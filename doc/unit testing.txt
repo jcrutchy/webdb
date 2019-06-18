@@ -1,0 +1,22 @@
+UNIT TESTING
+============
+
+
+
+To add unit tests, create a PHP file in the application "testing" subdirectory. This file will be automatically included when unit testing is envoked by setting a "testing" URL parameter.
+Create run_all_tests() function that runs all the tests in that PHP file.
+
+
+
+  global $settings;
+  $settings["system_message_flag"]=false;
+  $settings["system_message_output"]="";
+  $settings["overall_test_pass"]=true;
+  $settings["test_messages"]=array();
+
+
+$settings["app_root_namespace"]="\\my_app\\";
+
+PHP file named "file_name.php" must have namespace in the form:
+
+namespace my_app\testing\file_name;

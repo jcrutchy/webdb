@@ -1,0 +1,43 @@
+Templates
+=========
+
+Template files are stored in the "templates" subdirectory.
+By convention, template filenames have no spaces (use underscores as required) and are all lowercase.
+
+Templates are loaded into the application and are available from the global $templates array variable.
+The templates array is associative, with array keys corresponding to template filenames.
+
+Templates can contain anything, but would conventionally contain html, css or js for output to the browser.
+
+
+CHILD TEMPLATES:
+
+Template files may contain the names of other templates.
+
+Syntax example: @@my_template_name@@
+
+If child template equates to a template key, that child template reference is replaced by the contents of the corresponding template.
+
+Replacement of child templates is recursive. However, usage is tracked to prevent loops such that each template may only be used once per branch of recursion.
+A child template may be used multiple times at the same level though, or may be used in multiple recursion branches.
+
+
+SETTINGS TEMPLATES:
+
+Used for accessing settings defined in the application settings file.
+
+Syntax example: $$WEB_ROOT$$
+
+
+USER CONSTANT TEMPLATES:
+
+Syntax example: ??MY_CONST??
+
+
+SCRIPT VARIABLES:
+
+Assign string variable placeholders in templates from within the application using the $params argument of the webdb\utils\template_fill function.
+These are substituted after child templates have been recursively replaced.
+Variables must be strings or numbers (not arrays or other structures).
+
+Syntax example: %%my_var%%
