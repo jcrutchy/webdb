@@ -1,10 +1,6 @@
 SETUP
 =====
 
-https://www.youtube.com/watch?v=EmrWLj2CE00
-
-- clone git repository to a web server public location
-
 ````
 # nano /etc/apache2/envvars
 
@@ -17,7 +13,6 @@ export APACHE_RUN_GROUP=myuser
 > create user 'webdb_admin'@'localhost' identified by 'some_password';
 > grant all privileges on *.* to 'webdb_admin'@'localhost';
 
-for each application (as required):
 > create user 'webdb_user'@'localhost' identified by 'some_password';
 > grant select,insert,update,delete on app_schema.* to 'webdb_user'@'localhost';
 
@@ -30,34 +25,7 @@ use https://www.question-defense.com/tools/phpmyadmin-blowfish-secret-generator 
 # chown myuser:myuser /var/lib/phpmyadmin/blowfish_secret.inc.php
 # chmod 600 /var/lib/phpmyadmin/blowfish_secret.inc.php
 
+$ php my_app/index.php init_users
+(don't run on webdb index.php)
+
 ````
-
-<?php
-$sql=file_get_contents("schema.sql");
-$result=$pdo->exec($sql);
-if ($result===false)
-{
-  die("ERROR EXECUTING SCHEMA".PHP_EOL);
-}
-?>
-
-CREATE FIRST APPLICATION ADMINISTRATOR USER:
-username: admin
-password: password
-
-# mysql -u root -p
-> INSERT INTO `app_schema`.`users` (`email`,`pw_hash`,`privs`) VALUES ("admin","$2y$13$Vn8rJB73AHq56cAqbBwkEuKrQt3lSdoA3sDmKULZEgQLE4.nmsKzW","admin");
-> exit
-
-
-suggested directory structure:
-
-/home/myuser/pwd/
-/home/myuser/public/
-/home/myuser/public/webdb/ <= clone git repo to here
-/home/myuser/public/myapp1/ <= location for app-specific code, settings, templates, sql, css, js, etc
-/home/myuser/public/myapp2/
-
-
-- as normal user (myuser) in shell, cd to /home/myuser/public/myapp1/
-$ php index.php setup myapp1schema <= myapp1schema must match the db_schema app setting

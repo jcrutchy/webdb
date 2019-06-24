@@ -6,12 +6,10 @@ namespace webdb\utils;
 
 function system_message($message)
 {
-  if (isset($_GET["testing"])==true)
+  global $settings;
+  if (\webdb\utils\is_cli_mode()==true)
   {
-    global $settings;
-    $settings["system_message_flag"]=true;
-    $settings["system_message_output"]=$message;
-    return;
+    die(str_replace(PHP_EOL,", ",$message).PHP_EOL);
   }
   $buf=ob_get_contents();
   if (strlen($buf)<>0)
@@ -236,6 +234,36 @@ function is_app_mode()
   else
   {
     return true;
+  }
+}
+
+#####################################################################################################
+
+function is_cli_mode()
+{
+  if (isset($_SERVER["argv"])==true)
+  {
+    return true;
+  }
+  else
+  {
+    return false;
+  }
+}
+
+#####################################################################################################
+
+function script_modified_timestamp($script_name)
+{
+  global $settings;
+  $filename=$settings["webdb_resources_path"].$script_name.".js";
+  if (file_exists($filename)==true)
+  {
+    return filemtime($filename);
+  }
+  else
+  {
+    return "error";
   }
 }
 
