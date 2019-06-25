@@ -6,9 +6,7 @@ DROP TABLE IF EXISTS `$$db_users_schema$$`.`$$db_users_table$$`;
 
 CREATE TABLE IF NOT EXISTS `$$db_users_schema$$`.`$$db_users_table$$` (
   `user_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `last_login_microtime` BIGINT NOT NULL,
   `login_cookie` VARCHAR(255) NOT NULL,
-  `login_cookie_microtime` BIGINT NOT NULL,
   `enabled` TINYINT NOT NULL DEFAULT 1,
   `email` VARCHAR(255) NOT NULL,
   `pw_hash` VARCHAR(255) NOT NULL,

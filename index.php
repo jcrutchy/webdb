@@ -47,6 +47,8 @@ if (\webdb\utils\is_cli_mode()==false)
   }
 }
 
+# TODO: MOVE SETTINGS VALIDATIONS INTO A TESTING ROUTINE (DON'T RUN EVERY REQUEST)
+
 $settings_filename=$settings["app_root_path"]."settings.php";
 if (file_exists($settings_filename)==false)
 {
@@ -75,7 +77,8 @@ $required_settings=array(
   "app_dispatch_include",
   "app_templates_path",
   "app_sql_path",
-  "app_resources_path");
+  "app_resources_path",
+  "app_forms_path");
 for ($i=0;$i<count($required_settings);$i++)
 {
   \webdb\utils\check_required_setting_exists($required_settings[$i]);
@@ -92,7 +95,8 @@ for ($i=0;$i<count($required_files);$i++)
 $required_paths=array(
   "app_templates_path",
   "app_sql_path",
-  "app_resources_path");
+  "app_resources_path",
+  "app_forms_path");
 for ($i=0;$i<count($required_paths);$i++)
 {
   $path=$required_paths[$i];
@@ -146,9 +150,7 @@ if (isset($argv[1])==true)
 $records=\webdb\sql\file_fetch_query("describe_users",true);
 $field_names=array(
   "user_id",
-  "last_login_microtime",
   "login_cookie",
-  "login_cookie_microtime",
   "enabled",
   "email",
   "pw_hash",
@@ -171,6 +173,12 @@ for ($i=0;$i<count($field_names);$i++)
     \webdb\utils\system_message("error: missing required users table field: ".$field_names[$i]);
   }
 }
+
+$settings["forms"]=array();
+\webdb\utils\load_form_defs();
+
+#var_dump($settings["forms"]);
+#die;
 
 require_once($settings["app_dispatch_include"]);
 if (function_exists($settings["app_dispatch_function"])==false)

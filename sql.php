@@ -18,7 +18,7 @@ function query_error($sql,$source="",$filename="")
       $params["source_error"]=$err[2];
     }
   }
-  \webdb\utils\show_message(\webdb\utils\template_fill("global/sql_error",$params));
+  \webdb\utils\show_message(\webdb\utils\template_fill("global".DIRECTORY_SEPARATOR."sql_error",$params));
 }
 
 #####################################################################################################

@@ -27,7 +27,7 @@ function show_message($message)
   $params=array();
   $params["page_title"]=$settings["app_name"];
   $params["message"]=$message;
-  \webdb\utils\system_message(\webdb\utils\template_fill("global/message",$params));
+  \webdb\utils\system_message(\webdb\utils\template_fill("global".DIRECTORY_SEPARATOR."message",$params));
 }
 
 #####################################################################################################
@@ -265,6 +265,82 @@ function script_modified_timestamp($script_name)
   {
     return "error";
   }
+}
+
+#####################################################################################################
+
+function setup_standard_list_form($page_name,$field_defs,$db_id_field_name,$multi_row_delete=true)
+{
+  global $settings;
+  $frm=array();
+  $frm["url_page"]=$page_name;
+  $frm["form_type"]="list";
+  $frm["header_rows_template"]=$page_name.DIRECTORY_SEPARATOR."list_header_rows";
+  $frm["select_sql_file"]=$page_name."_list";
+  $frm["db_id_field_name"]=$db_id_field_name;
+  $frm["multi_row_delete"]=$multi_row_delete;
+  $frm["individual_delete"]=true;
+  $frm["individual_edit"]=true;
+  $frm["insert_new"]=true;
+  $cols=array();
+  foreach ($field_defs as $field_name => $control_type)
+  {
+    $cols[]=\webdb\utils\generate_standard_list_form_column($field_name,$control_type);
+  }
+  $frm["data_columns"]=$cols;
+  $settings["forms"][$frm["url_page"]]=$frm;
+}
+
+#####################################################################################################
+
+function load_form_defs()
+{
+  global $settings;
+  $file_list=scandir($settings["app_forms_path"]);
+  for ($i=0;$i<count($file_list);$i++)
+  {
+    $fn=$file_list[$i];
+    if (($fn==".") or ($fn==".."))
+    {
+      continue;
+    }
+    $full=$settings["app_forms_path"].$fn;
+    $data=trim(file_get_contents($full));
+    $info=pathinfo($fn);
+    switch ($info["extension"])
+    {
+      case "list":
+        $data=json_decode($data,true);
+        \webdb\utils\setup_standard_list_form($info["filename"],$data["field_defs"],$data["db_id_field_name"],$data["multi_row_delete"]);
+        break;
+    }
+  }
+}
+
+#####################################################################################################
+
+function generate_standard_list_form_column($field_name,$control_type)
+{
+  $col=array();
+  $ctl=array();
+  $ctl["db_field_name"]=$field_name;
+  $ctl["html_id"]=$ctl["db_field_name"];
+  $ctl["type"]=$control_type;
+  switch ($control_type)
+  {
+    case "text":
+      $ctl["html_name"]=$ctl["db_field_name"];
+      break;
+    case "span":
+      break;
+    case "checkbox":
+      $ctl["html_name"]=$ctl["db_field_name"];
+      break;
+    default:
+      return false;
+  }
+  $col[]=$ctl;
+  return $col;
 }
 
 #####################################################################################################
