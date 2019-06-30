@@ -253,10 +253,10 @@ function is_cli_mode()
 
 #####################################################################################################
 
-function script_modified_timestamp($script_name)
+function webdb_resource_modified_timestamp($resource_file)
 {
   global $settings;
-  $filename=$settings["webdb_resources_path"].$script_name.".js";
+  $filename=$settings["webdb_resources_path"].$resource_file;
   if (file_exists($filename)==true)
   {
     return filemtime($filename);
@@ -269,78 +269,78 @@ function script_modified_timestamp($script_name)
 
 #####################################################################################################
 
-function setup_standard_list_form($page_name,$field_defs,$db_id_field_name,$multi_row_delete=true)
+function get_child_array_key(&$array,$parent_key)
 {
-  global $settings;
-  $frm=array();
-  $frm["url_page"]=$page_name;
-  $frm["form_type"]="list";
-  $frm["header_rows_template"]=$page_name.DIRECTORY_SEPARATOR."list_header_rows";
-  $frm["select_sql_file"]=$page_name."_list";
-  $frm["db_id_field_name"]=$db_id_field_name;
-  $frm["multi_row_delete"]=$multi_row_delete;
-  $frm["individual_delete"]=true;
-  $frm["individual_edit"]=true;
-  $frm["insert_new"]=true;
-  $cols=array();
-  foreach ($field_defs as $field_name => $control_type)
+  if (is_array($array[$parent_key])==false)
   {
-    $cols[]=\webdb\utils\generate_standard_list_form_column($field_name,$control_type);
+    show_message("error: array expected with parent key: ".$parent_key);
   }
-  $frm["data_columns"]=$cols;
-  $settings["forms"][$frm["url_page"]]=$frm;
+  $child_keys=array_keys($array[$parent_key]);
+  if (count($child_keys)<>1)
+  {
+    show_message("error: invalid child array key count: ".$parent_key);
+  }
+  return $child_keys[0];
 }
 
 #####################################################################################################
 
-function load_form_defs()
+function output_page($content,$title)
 {
-  global $settings;
-  $file_list=scandir($settings["app_forms_path"]);
-  for ($i=0;$i<count($file_list);$i++)
-  {
-    $fn=$file_list[$i];
-    if (($fn==".") or ($fn==".."))
-    {
-      continue;
-    }
-    $full=$settings["app_forms_path"].$fn;
-    $data=trim(file_get_contents($full));
-    $info=pathinfo($fn);
-    switch ($info["extension"])
-    {
-      case "list":
-        $data=json_decode($data,true);
-        \webdb\utils\setup_standard_list_form($info["filename"],$data["field_defs"],$data["db_id_field_name"],$data["multi_row_delete"]);
-        break;
-    }
-  }
+  $page_params=array();
+  $page_params["page_title"]=$title;
+  $form_params["global_styles_modified"]=\webdb\utils\webdb_resource_modified_timestamp("global.css");
+  $page_params["body_text"]=$content;
+  die(\webdb\utils\template_fill("global".DIRECTORY_SEPARATOR."page",$page_params));
 }
 
 #####################################################################################################
 
-function generate_standard_list_form_column($field_name,$control_type)
+function static_page($template,$title)
 {
-  $col=array();
-  $ctl=array();
-  $ctl["db_field_name"]=$field_name;
-  $ctl["html_id"]=$ctl["db_field_name"];
-  $ctl["type"]=$control_type;
-  switch ($control_type)
+  $content=\webdb\utils\template_fill($template);
+  \webdb\utils\output_page($content,$title);
+}
+
+#####################################################################################################
+
+function page_dispatch()
+{
+  global $settings;
+  foreach ($settings["forms"] as $form_name => $form_config)
   {
-    case "text":
-      $ctl["html_name"]=$ctl["db_field_name"];
-      break;
-    case "span":
-      break;
-    case "checkbox":
-      $ctl["html_name"]=$ctl["db_field_name"];
-      break;
-    default:
-      return false;
+    if ($_GET["page"]===$form_config["url_page"])
+    {
+      if (isset($_POST["form_cmd"])==true)
+      {
+        $form_cmd=get_child_array_key($_POST,"form_cmd");
+        switch ($form_cmd)
+        {
+          case "insert":
+            \webdb\forms\insert_form($form_name);
+          case "insert_confirm":
+            \webdb\forms\insert_record($form_name);
+          case "edit":
+            $id=get_child_array_key($_POST["form_cmd"],"edit");
+            \webdb\forms\edit_form($form_name,$id);
+          case "edit_confirm":
+            $id=get_child_array_key($_POST["form_cmd"],"edit_confirm");
+            \webdb\forms\update_record($form_name,$id);
+          case "delete":
+            $id=get_child_array_key($_POST["form_cmd"],"delete");
+            \webdb\forms\delete_confirmation($form_name,$id);
+          case "delete_confirm":
+            $id=get_child_array_key($_POST["form_cmd"],"delete_confirm");
+            \webdb\forms\delete_record($form_name,$id);
+          case "cancel":
+            \webdb\forms\cancel($form_name);
+          case "delete_selected":
+            \webdb\forms\delete_selected_confirmation($form_name);
+        }
+      }
+      \webdb\forms\output_list_form($form_name);
+    }
   }
-  $col[]=$ctl;
-  return $col;
 }
 
 #####################################################################################################

@@ -12,6 +12,7 @@ date_default_timezone_set("UTC");
 
 require_once("utils.php");
 require_once("users.php");
+require_once("forms.php");
 require_once("sql.php");
 
 set_error_handler('\webdb\utils\error_handler',E_ALL);
@@ -43,7 +44,7 @@ if (\webdb\utils\is_cli_mode()==false)
   header("Pragma: no-cache");
   if (\webdb\utils\is_app_mode()==false)
   {
-    die(\webdb\utils\template_fill("home"));
+    \webdb\utils\static_page("home","WebDB");
   }
 }
 
@@ -69,12 +70,11 @@ $required_settings=array(
   "email_cookie",
   "max_cookie_age",
   "password_reset_timeout",
-  "app_dispatch_function",
+  "app_home_template",
   "db_admin_file",
   "db_user_file",
   "db_users_schema",
   "db_users_table",
-  "app_dispatch_include",
   "app_templates_path",
   "app_sql_path",
   "app_resources_path",
@@ -85,8 +85,7 @@ for ($i=0;$i<count($required_settings);$i++)
 }
 $required_files=array(
   "db_admin_file",
-  "db_user_file",
-  "app_dispatch_include");
+  "db_user_file");
 for ($i=0;$i<count($required_files);$i++)
 {
   $file=$required_files[$i];
@@ -175,19 +174,15 @@ for ($i=0;$i<count($field_names);$i++)
 }
 
 $settings["forms"]=array();
-\webdb\utils\load_form_defs();
-
-#var_dump($settings["forms"]);
-#die;
-
-require_once($settings["app_dispatch_include"]);
-if (function_exists($settings["app_dispatch_function"])==false)
-{
-  \webdb\utils\system_message("error: application dispatch function not found: ".$settings["app_dispatch_function"]);
-}
+\webdb\forms\load_form_defs();
 
 \webdb\users\authenticate();
 
-call_user_func($settings["app_dispatch_function"]);
+if (isset($_GET["page"])==true)
+{
+  \webdb\utils\page_dispatch();
+}
+
+\webdb\utils\static_page($settings["app_home_template"],$settings["app_name"]);
 
 #####################################################################################################

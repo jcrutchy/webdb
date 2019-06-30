@@ -1,0 +1,16 @@
+
+th
+  {
+    font-size: 10pt;
+    font-weight: bold;
+    border: solid 1px black;
+    padding: 5px;
+    background-color: #DDDDDD;
+  }
+
+td
+  {
+    font-size: 10pt;
+    border: solid 1px black;
+    padding: 5px;
+  }

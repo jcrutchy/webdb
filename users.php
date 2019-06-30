@@ -15,7 +15,7 @@ function authenticate()
   }
   $login_form_params["auth_error"]="";
   $login_form_params["default_remember_me"]=\webdb\utils\template_fill("checkbox_checked");
-  $login_form_params["login_script_modified"]=\webdb\utils\script_modified_timestamp("login");
+  $login_form_params["login_script_modified"]=\webdb\utils\webdb_resource_modified_timestamp("login.js");
   if (isset($_POST["reset_password"])==true)
   {
     if (isset($_POST["login_email"])==false)
