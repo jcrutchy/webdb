@@ -73,8 +73,6 @@ $required_settings=array(
   "app_home_template",
   "db_admin_file",
   "db_user_file",
-  "db_users_schema",
-  "db_users_table",
   "app_templates_path",
   "app_sql_path",
   "app_resources_path",
@@ -122,7 +120,7 @@ $settings["sql"]=array_merge($settings["webdb_sql"],$settings["app_sql"]);
 # process setting templates in sql
 foreach ($settings["sql"] as $name => $sql)
 {
-  $settings["sql"][$name]=\webdb\utils\template_fill($name,false,array(),$settings["sql"]);
+  $settings["sql"][$name]=\webdb\utils\sql_fill($name);
 }
 
 $settings["pdo_admin"]=new \PDO("mysql:host=".$settings["db_host"],$settings["db_admin_username"],$settings["db_admin_password"]);
@@ -140,43 +138,16 @@ if (isset($argv[1])==true)
 {
   switch ($argv[1])
   {
-    case "init_users":
-      \webdb\sql\file_execute_prepare("initialize_users",array(),true);
-      \webdb\utils\system_message("users table initialized");
-  }
-}
-
-$records=\webdb\sql\file_fetch_query("describe_users",true);
-$field_names=array(
-  "user_id",
-  "login_cookie",
-  "enabled",
-  "email",
-  "pw_hash",
-  "pw_reset",
-  "pw_reset_time",
-  "privs");
-for ($i=0;$i<count($field_names);$i++)
-{
-  $found=false;
-  for ($j=0;$j<count($records);$j++)
-  {
-    if ($field_names[$i]==$records[$j]["Field"])
-    {
-      $found=true;
-      break;
-    }
-  }
-  if ($found==false)
-  {
-    \webdb\utils\system_message("error: missing required users table field: ".$field_names[$i]);
+    case "create_webdb_schema":
+      \webdb\sql\file_execute_prepare("create_webdb_schema",array(),true);
+      \webdb\utils\system_message("webdb schema created");
   }
 }
 
 $settings["forms"]=array();
 \webdb\forms\load_form_defs();
 
-\webdb\users\authenticate();
+\webdb\users\auth_dispatch();
 
 if (isset($_GET["page"])==true)
 {

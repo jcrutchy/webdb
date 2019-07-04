@@ -78,6 +78,14 @@ function load_files($path,$root="",$ext="",$trim_ext=true) # path (and root) mus
 
 #####################################################################################################
 
+function sql_fill($sql_key,$params=false)
+{
+  global $settings;
+  return \webdb\utils\template_fill($sql_key,$params,array(),$settings["sql"]);
+}
+
+#####################################################################################################
+
 function template_fill($template_key,$params=false,$tracking=array(),$custom_templates=false) # tracking array is used internally to limit recursion and should not be manually passed
 {
   global $settings;
@@ -224,6 +232,15 @@ function load_db_credentials($type)
 
 #####################################################################################################
 
+function send_email($recipient,$subject,$message)
+{
+  $headers="MIME-Version: 1.0".PHP_EOL;
+  $headers=$headers."Content-type: text/html; charset=iso-8859-1".PHP_EOL;
+  mail($recipient,$subject,$message,$headers);
+}
+
+#####################################################################################################
+
 function is_app_mode()
 {
   global $settings;
@@ -336,6 +353,8 @@ function page_dispatch()
             \webdb\forms\cancel($form_name);
           case "delete_selected":
             \webdb\forms\delete_selected_confirmation($form_name);
+          case "delete_selected_confirm":
+            \webdb\forms\delete_selected_records($form_name);
         }
       }
       \webdb\forms\output_list_form($form_name);

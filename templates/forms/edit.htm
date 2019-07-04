@@ -1,10 +1,11 @@
 <p>Edit %%command_caption_noun%%</p>
 
+<form action="$$app_web_index$$?page=%%url_page%%" method="post">
+
 <table>
 %%rows%%
 </table>
 
-<form action="$$app_web_index$$?page=%%url_page%%" method="post">
 <p>
   <input type="submit" name="form_cmd[cancel]" value="Cancel">
   <input type="submit" name="form_cmd[edit_confirm][%%id%%]" value="%%confirm_caption%%">

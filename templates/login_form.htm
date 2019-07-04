@@ -1,4 +1,10 @@
 <script type="text/javascript" src="$$webdb_web_resources$$login.js?mod=%%login_script_modified%%"></script>
+<link rel="stylesheet" property="stylesheet" href="$$webdb_web_resources$$login.css?mod=%%login_styles_modified%%">
+
+<div id="login_background">
+<div id="login_dialog">
+<div id="login_content">
+
 
 <form action="$$app_web_index$$" method="post">
 
@@ -10,7 +16,7 @@
 
 
 <p><input id="login_submit" style="font-weight: bold;" type="submit" value="Login"></p>
-<p><input style="font-size: 9pt;" type="submit" name="reset_password" value="Reset Password"></p>
+<p><input style="font-size: 9pt;" type="submit" name="send_reset_password" value="Reset Password"></p>
 
 <p>%%auth_error%%</p>
 
@@ -18,3 +24,8 @@
 <p><input type="checkbox" name="remember_me" %%default_remember_me%%> remember me</p>
 
 </form>
+
+
+</div>
+</div>
+</div>

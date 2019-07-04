@@ -3,10 +3,16 @@
 <form action="@@forms/page_url@@" method="post">
 
 <table>
-%%header_rows_template%%
+<tr>
+  %%check_head%%
+  %%field_headers%%
+  <th colspan="%%controls_count%%">&nbsp;</th>
+</tr>
 %%rows%%
 </table>
 %%insert_control%%
 %%delete_selected_control%%
 
 </form>
+
+<p><a href="$$app_web_index$$">Home</a></p>

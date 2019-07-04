@@ -25,7 +25,7 @@ use https://www.question-defense.com/tools/phpmyadmin-blowfish-secret-generator 
 # chown myuser:myuser /var/lib/phpmyadmin/blowfish_secret.inc.php
 # chmod 600 /var/lib/phpmyadmin/blowfish_secret.inc.php
 
-$ php my_app/index.php init_users
-(don't run on webdb index.php)
+$ php my_app/index.php create_webdb_schema
+(don't run on webdb index.php because requires database access parameters in settings.php)
 
 ````

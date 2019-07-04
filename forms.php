@@ -31,47 +31,13 @@ function load_form_defs()
         $data=json_decode($data,true);
         $data["url_page"]=$info["filename"];
         $data["form_type"]="list";
-        $data["header_rows_template"]=$info["filename"].DIRECTORY_SEPARATOR."list_header_rows";
-        $data["select_sql_file"]=$info["filename"]."_list";
         $data["individual_delete"]=true;
         $data["individual_edit"]=true;
         $data["insert_new"]=true;
-        $cols=array();
-        foreach ($data["control_types"] as $field_name => $control_type)
-        {
-          $cols[]=\webdb\forms\generate_standard_list_form_column($field_name,$control_type);
-        }
-        $data["data_columns"]=$cols;
         $settings["forms"][$data["url_page"]]=$data;
         break;
     }
   }
-}
-
-#####################################################################################################
-
-function generate_standard_list_form_column($field_name,$control_type)
-{
-  $col=array();
-  $ctl=array();
-  $ctl["db_field_name"]=$field_name;
-  $ctl["html_id"]=$ctl["db_field_name"];
-  $ctl["type"]=$control_type;
-  switch ($control_type)
-  {
-    case "text":
-      $ctl["html_name"]=$ctl["db_field_name"];
-      break;
-    case "span":
-      break;
-    case "checkbox":
-      $ctl["html_name"]=$ctl["db_field_name"];
-      break;
-    default:
-      return false;
-  }
-  $col[]=$ctl;
-  return $col;
 }
 
 #####################################################################################################
@@ -81,31 +47,45 @@ function output_list_form($form_name)
   global $settings;
   $form_config=$settings["forms"][$form_name];
   $form_params=array();
-  $form_params["header_rows_template"]=\webdb\utils\template_fill($form_config["header_rows_template"]);
   $form_params["form_styles_modified"]=\webdb\utils\webdb_resource_modified_timestamp("list.css");
   $form_params["url_page"]=$form_config["url_page"];
-  $form_params["rows"]="";
-  $records=\webdb\sql\file_fetch_query($form_config["select_sql_file"]);
+  $field_headers="";
+  foreach ($form_config["control_types"] as $field_name => $control_type)
+  {
+    $header_params=array();
+    $header_params["field_name"]=$field_name;
+    $field_headers.=\webdb\forms\form_template_fill("list_field_header",$header_params);
+  }
+  $form_params["check_head"]="";
+  if ($form_config["multi_row_delete"]==true)
+  {
+    $form_params["check_head"]=\webdb\forms\form_template_fill("list_check_head");
+  }
+  $controls_count=0;
+  if ($form_config["individual_edit"]==true)
+  {
+    $controls_count++;
+  }
+  if ($form_config["individual_delete"]==true)
+  {
+    $controls_count++;
+  }
+  $form_params["controls_count"]=$controls_count;
+  $form_params["field_headers"]=$field_headers;
+  $rows="";
+  $sql=\webdb\utils\sql_fill("form_list_fetch_all",$form_config);
+  $records=\webdb\sql\fetch_query($sql);
   for ($i=0;$i<count($records);$i++)
   {
     $record=$records[$i];
     $row_params=array();
-    $row_params["cols"]="";
     $row_params["id"]=$record[$form_config["db_id_field_name"]];
-    for ($j=0;$j<count($form_config["data_columns"]);$j++)
+    $fields="";
+    foreach ($form_config["control_types"] as $field_name => $control_type)
     {
-      $column_config=$form_config["data_columns"][$j];
-      $col_params=array();
-      $col_params["content"]="";
-      for ($k=0;$k<count($column_config);$k++)
-      {
-        $field_config=$column_config[$k];
-        $field_params=array();
-        $field_name=$field_config["db_field_name"];
-        $field_params["value"]=htmlspecialchars($record[$field_name]);
-        $col_params["content"].=\webdb\forms\form_template_fill("list_field",$field_params);
-      }
-      $row_params["cols"].=\webdb\forms\form_template_fill("list_col",$col_params);
+      $field_params=array();
+      $field_params["value"]=htmlspecialchars($record[$field_name]);
+      $fields.=\webdb\forms\form_template_fill("list_field",$field_params);
       $row_params["check"]="";
       if ($form_config["multi_row_delete"]==true)
       {
@@ -121,8 +101,10 @@ function output_list_form($form_name)
         $row_params["controls"].=\webdb\forms\form_template_fill("list_row_del",$row_params);
       }
     }
-    $form_params["rows"].=\webdb\forms\form_template_fill("list_row",$row_params);
+    $row_params["fields"]=$fields;
+    $rows.=\webdb\forms\form_template_fill("list_row",$row_params);
   }
+  $form_params["rows"]=$rows;
   $form_params["insert_control"]="";
   if ($form_config["insert_new"]==true)
   {
@@ -151,7 +133,7 @@ function insert_form($form_name)
 
 function edit_form($form_name,$id)
 {
-  $record=get_record_by_id($form_name,$id);
+  $record=\webdb\forms\get_record_by_id($form_name,$id);
   \webdb\forms\output_editor($form_name,$record,"edit","Update",$id);
 }
 
@@ -202,12 +184,42 @@ function output_editor($form_name,$record,$command,$verb,$id=0)
 
 #####################################################################################################
 
+function process_form_data_fields($form_name)
+{
+  global $settings;
+  $form_config=$settings["forms"][$form_name];
+  $value_items=array();
+  foreach ($form_config["control_types"] as $field_name => $control_type)
+  {
+    switch ($control_type)
+    {
+      case "text":
+        $value_items[$field_name]=$_POST[$field_name];
+        break;
+      case "checkbox":
+        if (isset($_POST[$field_name])==true)
+        {
+          $value_items[$field_name]=1;
+        }
+        else
+        {
+          $value_items[$field_name]=0;
+        }
+        break;
+    }
+  }
+  return $value_items;
+}
+
+#####################################################################################################
+
 function insert_record($form_name)
 {
   global $settings;
   $form_config=$settings["forms"][$form_name];
-  # TODO
-  die("insert_record");
+  $value_items=\webdb\forms\process_form_data_fields($form_name);
+  \webdb\sql\sql_insert($value_items,$form_config["table"],$form_config["database"]);
+  \webdb\forms\cancel($form_name);
 }
 
 #####################################################################################################
@@ -216,8 +228,11 @@ function update_record($form_name,$id)
 {
   global $settings;
   $form_config=$settings["forms"][$form_name];
-  # TODO
-  die("update_record");
+  $value_items=\webdb\forms\process_form_data_fields($form_name);
+  $where_items=array();
+  $where_items[$form_config["db_id_field_name"]]=$id;
+  \webdb\sql\sql_update($value_items,$where_items,$form_config["table"],$form_config["database"]);
+  \webdb\forms\cancel($form_name);
 }
 
 #####################################################################################################
@@ -228,11 +243,11 @@ function get_record_by_id($form_name,$id)
   $form_config=$settings["forms"][$form_name];
   $sql_params=array();
   $sql_params["id"]=$id;
-  $sql_file=$form_name."_get_by_id";
-  $records=\webdb\sql\file_fetch_prepare($sql_file,$sql_params);
+  $sql=\webdb\utils\sql_fill("form_list_fetch_by_id",$form_config);
+  $records=\webdb\sql\fetch_prepare($sql,$sql_params);
   if (count($records)<>1)
   {
-    \webdb\utils\show_message("error: id '".$id."' is not unique for query '".$sql_file."'");
+    \webdb\utils\show_message("error: id '".$id."' is not unique for query: ".$sql);
   }
   return $records[0];
 }
@@ -277,10 +292,11 @@ function cancel($form_name)
 
 function delete_record($form_name,$id)
 {
+  global $settings;
+  $form_config=$settings["forms"][$form_name];
   $sql_params=array();
-  $sql_params["id"]=$id;
-  $sql_file=$form_name."_delete_by_id";
-  \webdb\sql\file_execute_prepare($sql_file,$sql_params);
+  $sql_params[$form_config["db_id_field_name"]]=$id;
+  \webdb\sql\sql_delete($sql_params,$form_config["table"],$form_config["database"]);
   \webdb\forms\cancel($form_name);
 }
 
@@ -290,8 +306,50 @@ function delete_selected_confirmation($form_name)
 {
   global $settings;
   $form_config=$settings["forms"][$form_name];
-  # TODO
-  die("delete_selected");
+  if (isset($_POST["list_select"])==false)
+  {
+    $message_params["message"]="No records selected.";
+    $message_params["url_page"]=$form_config["url_page"];
+    \webdb\utils\show_message(\webdb\forms\form_template_fill("page_message",$message_params));
+  }
+  $rows="";
+  foreach ($_POST["list_select"] as $id => $value)
+  {
+    $row_params=array();
+    $record=get_record_by_id($form_name,$id);
+    $fields="";
+    foreach ($record as $field_name => $field_value)
+    {
+      $field_params=array();
+      $field_params["value"]=htmlspecialchars($field_value);
+      $fields.=\webdb\forms\form_template_fill("list_field",$field_params);
+    }
+    $row_params["id"]=$record[$form_config["db_id_field_name"]];
+    $row_params["fields"]=$fields;
+    $rows.=\webdb\forms\form_template_fill("list_del_selected_confirm_row",$row_params);
+  }
+  $form_params=array();
+  $form_params["rows"]=$rows;
+  $form_params["url_page"]=$form_config["url_page"];
+  $content=\webdb\forms\form_template_fill("list_del_selected_confirm",$form_params);
+  $title=$form_name.": confirm selected deletion";
+  \webdb\utils\output_page($content,$title);
+  \webdb\forms\cancel($form_name);
+}
+
+#####################################################################################################
+
+function delete_selected_records($form_name)
+{
+  global $settings;
+  $form_config=$settings["forms"][$form_name];
+  foreach ($_POST["id"] as $id => $value)
+  {
+    $sql_params=array();
+    $sql_params[$form_config["db_id_field_name"]]=$id;
+    \webdb\sql\sql_delete($sql_params,$form_config["table"],$form_config["database"]);
+  }
+  \webdb\forms\cancel($form_name);
 }
 
 #####################################################################################################

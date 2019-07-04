@@ -1,1 +1,1 @@
-SELECT * FROM `$$db_users_schema$$`.`$$db_users_table$$` WHERE ((email=:email) AND (enabled=1))
+SELECT * FROM `webdb`.`users` WHERE ((email=:email) AND (enabled=1))
