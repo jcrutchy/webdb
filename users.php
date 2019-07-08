@@ -6,6 +6,7 @@ namespace webdb\users;
 
 function auth_dispatch()
 {
+  global $settings;
   if (isset($_GET["logout"])==true)
   {
     \webdb\users\logout();
@@ -26,7 +27,7 @@ function auth_dispatch()
   {
     \webdb\users\user_admin_page();
   }
-  \webdb\users\login();
+  $settings["user_record"]=\webdb\users\login();
 }
 
 #####################################################################################################
@@ -116,7 +117,7 @@ function login()
       $value_items["login_cookie"]="";
     }
     \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
-    return;
+    return $user_record;
   }
   elseif ((isset($_COOKIE[$settings["login_cookie"]])==true) and (isset($_COOKIE[$settings["email_cookie"]])==true))
   {
@@ -127,7 +128,7 @@ function login()
     }
     if (password_verify($user_record["email"].$_COOKIE[$settings["login_cookie"]],$user_record["login_cookie"])==true)
     {
-      return;
+      return $user_record;
     }
   }
   setcookie($settings["login_cookie"],null,-1,"/");
@@ -167,7 +168,7 @@ function reset_password()
       continue;
     }
     $time_delta=microtime(true)-$record["pw_reset_time"];
-    if ($time_delta>(24*60*60))
+    if ($time_delta>$settings["password_reset_timeout"])
     {
       continue;
     }
@@ -217,25 +218,51 @@ function send_reset_password_message()
   $msg_params=array();
   $msg_params["key"]=urlencode($key);
   $message=\webdb\utils\template_fill("password_reset_message",$msg_params);
-  # DEBUG
-  \webdb\utils\show_message($message);
-  \webdb\utils\send_email($_POST["login_email"],$settings["app_name"]." password reset",$message);
+  \webdb\utils\show_message($message); # DEBUG
+  #\webdb\utils\send_email($_POST["login_email"],$settings["app_name"]." password reset",$message);
   setcookie($settings["login_cookie"],null,-1,"/");
-  \webdb\utils\show_message("Password reset link sent to registered email address. It will be valid for 24 hours.");
+  $t=$value_items["pw_reset_time"]+$settings["password_reset_timeout"];
+  \webdb\utils\show_message("Password reset link sent to registered email address, valid till ".date("g:i a",$t)." on ".date("l, j F Y (T)",$t).".");
 }
 
 #####################################################################################################
 
 function change_password($password_reset_user=false)
 {
-  die("change_password");
+  if (isset($_POST["change_password"])==true)
+  {
+    die("todo");
+  }
+  $change_password_params=array();
+  if ($password_reset_user===false)
+  {
+    $change_password_params["old_password_default"]="";
+  }
+  else
+  {
+    $value_items=array();
+    $crypto_strong=true;
+    $temp_password=base64_encode(openssl_random_pseudo_bytes(30,$crypto_strong));
+    $options=array();
+    $options["cost"]=13;
+    $value_items["pw_hash"]=password_hash($temp_password,PASSWORD_BCRYPT,$options);
+    $where_items=array();
+    $where_items["user_id"]=$password_reset_user["user_id"];
+    \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
+    $change_password_params["old_password_default"]=$temp_password;
+  }
+  $page_params=array();
+  $page_params["page_title"]="Change Password";
+  $page_params["page_head"]="";
+  $page_params["body_text"]=\webdb\utils\template_fill("change_password",$change_password_params);
+  die(\webdb\utils\template_fill("global".DIRECTORY_SEPARATOR."page",$page_params));
 }
 
 #####################################################################################################
 
 function user_admin_page()
 {
-  die("user_admin_page");
+  die("todo");
 }
 
 #####################################################################################################

@@ -306,7 +306,8 @@ function output_page($content,$title)
 {
   $page_params=array();
   $page_params["page_title"]=$title;
-  $form_params["global_styles_modified"]=\webdb\utils\webdb_resource_modified_timestamp("global.css");
+  $page_params["global_styles_modified"]=\webdb\utils\webdb_resource_modified_timestamp("global.css");
+  $page_params["global_script_modified"]=\webdb\utils\webdb_resource_modified_timestamp("global.js");
   $page_params["body_text"]=$content;
   die(\webdb\utils\template_fill("global".DIRECTORY_SEPARATOR."page",$page_params));
 }
@@ -317,6 +318,15 @@ function static_page($template,$title)
 {
   $content=\webdb\utils\template_fill($template);
   \webdb\utils\output_page($content,$title);
+}
+
+#####################################################################################################
+
+function is_row_locked($schema,$table,$key_field,$key_value)
+{
+  global $settings;
+  # $settings["user_record"]
+  # delete expired locks
 }
 
 #####################################################################################################
@@ -357,7 +367,8 @@ function page_dispatch()
             \webdb\forms\delete_selected_records($form_name);
         }
       }
-      \webdb\forms\output_list_form($form_name);
+      $content=\webdb\forms\list_form_content($form_name);
+      \webdb\utils\output_page($content,$form_name);
     }
   }
 }

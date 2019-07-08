@@ -1,0 +1,46 @@
+#calendar_div
+  {
+    display: none;
+    padding: 2px;
+    position: absolute;
+    z-index: 1000;
+    background-color: white;
+    border: 1px black solid;
+    -webkit-box-shadow: 10px 10px 33px 1px rgba(0,0,0,0.67);
+    -moz-box-shadow: 10px 10px 33px 1px rgba(0,0,0,0.67);
+    box-shadow: 10px 10px 33px 1px rgba(0,0,0,0.67);
+  }
+
+#calendar_div th
+  {
+    font-size: 10pt;
+    font-weight: bold;
+    border: none;
+    height: 24px;
+    padding: 2px;
+  }
+
+#calendar_div td
+  {
+    text-align: center;
+    font-size: 10pt;
+    border: none;
+    height: 22px;
+    padding: 2px;
+  }
+
+#calendar_today
+  {
+    border: 2px solid red !important;
+  }
+
+#calendar_selected
+  {
+    background-color: orange;
+  }
+
+#calendar_selected_today
+  {
+    border: 2px solid red !important;
+    background-color: orange;
+  }

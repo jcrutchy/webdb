@@ -1,7 +1,6 @@
 SETUP
 =====
 
-````
 # nano /etc/apache2/envvars
 
 export APACHE_RUN_USER=myuser
@@ -12,10 +11,8 @@ export APACHE_RUN_GROUP=myuser
 # mysql -u root -p
 > create user 'webdb_admin'@'localhost' identified by 'some_password';
 > grant all privileges on *.* to 'webdb_admin'@'localhost';
-
 > create user 'webdb_user'@'localhost' identified by 'some_password';
 > grant select,insert,update,delete on app_schema.* to 'webdb_user'@'localhost';
-
 > exit
 
 # nano /var/lib/phpmyadmin/blowfish_secret.inc.php
@@ -25,7 +22,10 @@ use https://www.question-defense.com/tools/phpmyadmin-blowfish-secret-generator 
 # chown myuser:myuser /var/lib/phpmyadmin/blowfish_secret.inc.php
 # chmod 600 /var/lib/phpmyadmin/blowfish_secret.inc.php
 
-$ php my_app/index.php create_webdb_schema
+$ php my_app/index.php load_webdb_schema
+executes webdb/sql/schema.sql
 (don't run on webdb index.php because requires database access parameters in settings.php)
 
-````
+$ php my_app/index.php load_app_schema
+executes my_app/sql/schema.sql
+(don't run on webdb index.php because requires database access parameters in settings.php)

@@ -1,0 +1,19 @@
+{
+    "form_type": "list",
+    "url_page": "",
+    "control_types": {
+    },
+    "default_values": {
+    },
+    "lookups": {
+    },
+    "db_id_field_name": "",
+    "command_caption_noun": "",
+    "multi_row_delete": true,
+    "individual_delete": true,
+    "individual_edit": true,
+    "insert_new": true,
+    "database": "",
+    "table": "",
+    "sort_sql": ""
+}

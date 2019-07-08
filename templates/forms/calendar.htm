@@ -1,0 +1,53 @@
+<script type="text/javascript">
+var calendar_inputs=[%%calendar_inputs%%];
+</script>
+
+<link rel="stylesheet" property="stylesheet" href="$$webdb_web_resources$$calendar.css?mod=%%calendar_styles_modified%%">
+<script type="text/javascript" src="$$webdb_web_resources$$calendar.js?mod=%%calendar_script_modified%%"></script>
+
+<div id="calendar_div">
+  <table>
+    <thead>
+    <tr>
+      <td><input type="button" value="&lt;" id="calendar_previous_month_link" onclick="" title=""></td>
+      <td colspan="5">
+        <select id="calendar_month_select" onchange="">
+          <option value="0">January</option>
+          <option value="1">February</option>
+          <option value="2">March</option>
+          <option value="3">April</option>
+          <option value="4">May</option>
+          <option value="5">June</option>
+          <option value="6">July</option>
+          <option value="7">August</option>
+          <option value="8">September</option>
+          <option value="9">October</option>
+          <option value="10">November</option>
+          <option value="11">December</option>
+        </select>
+        <select id="calendar_year_select" onchange=""></select>
+      </td>
+      <td><input type="button" value="&gt;" id="calendar_next_month_link" onclick="" title=""></td>
+    </tr>
+    <tr>
+      <td>Sun</td>
+      <td>Mon</td>
+      <td>Tue</td>
+      <td>Wed</td>
+      <td>Thu</td>
+      <td>Fri</td>
+      <td>Sat</td>
+    </tr>
+    </thead>
+    <tbody>
+
+    </tbody>
+    <tfoot>
+    <tr>
+      <td colspan="2" style="padding-top: 3px;"><input style="width: 100%;" type="button" value="Clear" onclick="calendar_clear_input();"></td>
+      <td colspan="3" style="padding-top: 3px;"><input style="width: 100%;" type="button" value="Today" onclick="calendar_select_today();"></td>
+      <td colspan="2" style="padding-top: 3px;"><input style="width: 100%;" type="button" value="Cancel" onclick="hide_calendar();"></td>
+    </tr>
+    </tfoot>
+  </table>
+</div> <!-- calendar_div -->

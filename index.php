@@ -23,6 +23,7 @@ $settings["webdb_root_path"]=__DIR__.DIRECTORY_SEPARATOR;
 $settings["webdb_templates_path"]=$settings["webdb_root_path"]."templates".DIRECTORY_SEPARATOR;
 $settings["webdb_sql_path"]=$settings["webdb_root_path"]."sql".DIRECTORY_SEPARATOR;
 $settings["webdb_resources_path"]=$settings["webdb_root_path"]."resources".DIRECTORY_SEPARATOR;
+$settings["webdb_forms_path"]=$settings["webdb_root_path"]."forms".DIRECTORY_SEPARATOR;
 
 \webdb\utils\check_required_file_exists($settings["webdb_templates_path"],true);
 \webdb\utils\check_required_file_exists($settings["webdb_sql_path"],true);
@@ -70,6 +71,7 @@ $required_settings=array(
   "email_cookie",
   "max_cookie_age",
   "password_reset_timeout",
+  "row_lock_expiration",
   "app_home_template",
   "db_admin_file",
   "db_user_file",
@@ -138,9 +140,21 @@ if (isset($argv[1])==true)
 {
   switch ($argv[1])
   {
-    case "create_webdb_schema":
-      \webdb\sql\file_execute_prepare("create_webdb_schema",array(),true);
+    case "load_webdb_schema":
+      \webdb\sql\file_execute_prepare("webdb_schema",array(),true);
       \webdb\utils\system_message("webdb schema created");
+    case "load_app_schema":
+      $filename=$settings["app_sql_path"]."schema.sql";
+      if (file_exists($filename)==true)
+      {
+        $sql=trim(file_get_contents($filename));
+        \webdb\sql\execute_prepare($sql,array(),"",true);
+        \webdb\utils\system_message("app schema created");
+      }
+      else
+      {
+        \webdb\utils\system_message("error: schema file not found: ".$filename);
+      }
   }
 }
 

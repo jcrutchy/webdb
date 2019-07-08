@@ -11,38 +11,70 @@ function form_template_fill($name,$params=false)
 
 #####################################################################################################
 
+function get_calendar($field_names)
+{
+  if (count($field_names)>0)
+  {
+    for ($i=0;$i<count($field_names);$i++)
+    {
+      $input_params=array();
+      $input_params["field_name"]=$field_names[$i];
+      $field_names[$i]=\webdb\forms\form_template_fill("calendar_input_array_item",$input_params);
+    }
+    $calendar_params=array();
+    $calendar_params["calendar_inputs"]=implode(",",$field_names);
+    $calendar_params["calendar_styles_modified"]=\webdb\utils\webdb_resource_modified_timestamp("calendar.css");
+    $calendar_params["calendar_script_modified"]=\webdb\utils\webdb_resource_modified_timestamp("calendar.js");
+    return \webdb\forms\form_template_fill("calendar",$calendar_params);
+  }
+  return "";
+}
+
+#####################################################################################################
+
 function load_form_defs()
 {
   global $settings;
-  $file_list=scandir($settings["app_forms_path"]);
-  for ($i=0;$i<count($file_list);$i++)
+  $webdb_file_list=scandir($settings["webdb_forms_path"]);
+  for ($i=0;$i<count($webdb_file_list);$i++)
   {
-    $fn=$file_list[$i];
+    $fn=$webdb_file_list[$i];
+    if (($fn==".") or ($fn==".."))
+    {
+      continue;
+    }
+    $full=$settings["webdb_forms_path"].$fn;
+    $data=trim(file_get_contents($full));
+    $data=json_decode($data,true);
+    $settings["form_defaults"][$data["form_type"]]=$data;
+  }
+  $app_file_list=scandir($settings["app_forms_path"]);
+  for ($i=0;$i<count($app_file_list);$i++)
+  {
+    $fn=$app_file_list[$i];
     if (($fn==".") or ($fn==".."))
     {
       continue;
     }
     $full=$settings["app_forms_path"].$fn;
     $data=trim(file_get_contents($full));
-    $info=pathinfo($fn);
-    switch ($info["extension"])
+    $data=json_decode($data,true);
+    if (isset($data["form_type"])==false)
     {
-      case "list":
-        $data=json_decode($data,true);
-        $data["url_page"]=$info["filename"];
-        $data["form_type"]="list";
-        $data["individual_delete"]=true;
-        $data["individual_edit"]=true;
-        $data["insert_new"]=true;
-        $settings["forms"][$data["url_page"]]=$data;
-        break;
+      \webdb\utils\show_message("error: invalid form def (missing form_type): ".$fn);
     }
+    if (isset($settings["form_defaults"][$data["form_type"]])==false)
+    {
+      \webdb\utils\show_message("error: invalid form def (invalid form_type): ".$fn);
+    }
+    $default=$settings["form_defaults"][$data["form_type"]];
+    $settings["forms"][$data["url_page"]]=array_merge($default,$data);
   }
 }
 
 #####################################################################################################
 
-function output_list_form($form_name)
+function list_form_content($form_name)
 {
   global $settings;
   $form_config=$settings["forms"][$form_name];
@@ -78,13 +110,36 @@ function output_list_form($form_name)
   for ($i=0;$i<count($records);$i++)
   {
     $record=$records[$i];
+
+    # is_row_locked($schema,$table,$key_field,$key_value)
+
     $row_params=array();
     $row_params["id"]=$record[$form_config["db_id_field_name"]];
     $fields="";
     foreach ($form_config["control_types"] as $field_name => $control_type)
     {
       $field_params=array();
-      $field_params["value"]=htmlspecialchars($record[$field_name]);
+      if ($record[$field_name]==="")
+      {
+        $field_params["value"]=\webdb\utils\template_fill("empty_cell");
+      }
+      else
+      {
+        $field_params["value"]=htmlspecialchars($record[$field_name]);
+      }
+      switch ($control_type)
+      {
+        case "date":
+          if ($record[$field_name]==\webdb\sql\zero_sql_timestamp())
+          {
+            $field_params["value"]=\webdb\utils\template_fill("empty_cell");
+          }
+          else
+          {
+            $field_params["value"]=date("Y-m-d",strtotime($record[$field_name]));
+          }
+          break;
+      }
       $fields.=\webdb\forms\form_template_fill("list_field",$field_params);
       $row_params["check"]="";
       if ($form_config["multi_row_delete"]==true)
@@ -115,8 +170,7 @@ function output_list_form($form_name)
   {
     $form_params["delete_selected_control"]=\webdb\forms\form_template_fill("list_del_selected");
   }
-  $content=\webdb\forms\form_template_fill("list",$form_params);
-  \webdb\utils\output_page($content,$form_name);
+  return \webdb\forms\form_template_fill("list",$form_params);
 }
 
 #####################################################################################################
@@ -143,17 +197,74 @@ function output_editor($form_name,$record,$command,$verb,$id=0)
 {
   global $settings;
   $form_config=$settings["forms"][$form_name];
+  $calendar_fields=array();
   $rows="";
   foreach ($form_config["control_types"] as $field_name => $control_type)
   {
     $field_value=$record[$field_name];
     $field_params=array();
     $field_params["field_name"]=$field_name;
+    $field_params["field_value"]=htmlspecialchars($field_value);
     switch ($control_type)
     {
       case "span":
         break;
       case "text":
+        break;
+      case "memo":
+        break;
+      case "combobox":
+        $options="";
+        if (isset($form_config["lookups"][$field_name])==false)
+        {
+          \webdb\utils\show_message("error: invalid lookup config for field '".$field_name."' in form '".$form_name."' (lookup config missing)");
+        }
+        $lookup_config=$form_config["lookups"][$field_name];
+        $config_keys=array("schema","table","key_field","display_field");
+        for ($i=0;$i<count($config_keys);$i++)
+        {
+          if (isset($lookup_config[$config_keys[$i]])==false)
+          {
+            \webdb\utils\show_message("error: invalid lookup config for field '".$field_name."' in form '".$form_name."' (lookup config key '".$config_keys[$i]."' missing)");
+          }
+          if ($lookup_config[$config_keys[$i]]=="")
+          {
+            \webdb\utils\show_message("error: invalid lookup config for field '".$field_name."' in form '".$form_name."' (lookup config key '".$config_keys[$i]."' cannot be empty)");
+          }
+        }
+        $sql=\webdb\utils\sql_fill("form_lookup",$lookup_config);
+        $records=\webdb\sql\fetch_query($sql);
+        $blank_record=array();
+        $blank_record[$lookup_config["key_field"]]="";
+        $blank_record[$lookup_config["display_field"]]="";
+        array_unshift($records,$blank_record);
+        for ($i=0;$i<count($records);$i++)
+        {
+          $loop_record=$records[$i];
+          $option_params=array();
+          $option_params["value"]=$loop_record[$lookup_config["key_field"]];
+          $option_params["caption"]=$loop_record[$lookup_config["display_field"]];
+          if ($loop_record[$lookup_config["key_field"]]==$field_value)
+          {
+            $options.=\webdb\utils\template_fill("select_option_selected",$option_params);
+          }
+          else
+          {
+            $options.=\webdb\utils\template_fill("select_option",$option_params);
+          }
+        }
+        $field_params["options"]=$options;
+        break;
+      case "date":
+        $calendar_fields[]=$field_name;
+        if ($field_value==\webdb\sql\zero_sql_timestamp())
+        {
+          $field_params["field_value"]="";
+        }
+        else
+        {
+          $field_params["field_value"]=date("Y-m-d",strtotime($field_value));
+        }
         break;
       case "checkbox":
         $field_params["checked"]="";
@@ -165,13 +276,13 @@ function output_editor($form_name,$record,$command,$verb,$id=0)
       default:
         \webdb\utils\show_message("error: invalid control type '".$control_type."' for field '".$field_name."' on form '".$form_name."'");
     }
-    $field_params["field_value"]=htmlspecialchars($field_value);
     $row_params=array();
     $row_params["field_name"]=$field_name;
     $row_params["field_value"]=\webdb\forms\form_template_fill("field_edit_".$control_type,$field_params);
     $rows.=\webdb\forms\form_template_fill("field_row",$row_params);
   }
   $form_params=array();
+  $form_params["calendar"]=\webdb\forms\get_calendar($calendar_fields);
   $form_params["rows"]=$rows;
   $form_params["url_page"]=$form_config["url_page"];
   $form_params["id"]=$id;
@@ -195,6 +306,29 @@ function process_form_data_fields($form_name)
     {
       case "text":
         $value_items[$field_name]=$_POST[$field_name];
+        break;
+      case "combobox":
+        if ($_POST[$field_name]=="")
+        {
+          $value_items[$field_name]=null;
+        }
+        else
+        {
+          $value_items[$field_name]=$_POST[$field_name];
+        }
+        break;
+      case "memo":
+        $value_items[$field_name]=$_POST[$field_name];
+        break;
+      case "date":
+        if ($_POST[$field_name]=="")
+        {
+          $value_items[$field_name]=\webdb\sql\zero_sql_timestamp();
+        }
+        else
+        {
+          $value_items[$field_name]=$_POST[$field_name];
+        }
         break;
       case "checkbox":
         if (isset($_POST[$field_name])==true)

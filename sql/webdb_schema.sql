@@ -28,6 +28,32 @@ password: password
 INSERT INTO `webdb`.`users` (`email`,`pw_hash`,`privs`) VALUES ("admin","$2y$13$Vn8rJB73AHq56cAqbBwkEuKrQt3lSdoA3sDmKULZEgQLE4.nmsKzW","admin");
 
 
+DROP TABLE IF EXISTS `webdb`.`row_locks` ;
+
+CREATE TABLE IF NOT EXISTS `webdb`.`row_locks` (
+  `lock_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `user_id` INT UNSIGNED NOT NULL,
+  `lock_timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `lock_schema` VARCHAR(255) NOT NULL,
+  `lock_table` VARCHAR(255) NOT NULL,
+  `lock_key_field` VARCHAR(255) NOT NULL,
+  `lock_key_value` INT UNSIGNED NOT NULL,
+  PRIMARY KEY (`lock_id`),
+  INDEX `lock_timestamp` (`lock_timestamp` ASC),
+  INDEX `lock_schema` (`lock_schema` ASC),
+  INDEX `lock_table` (`lock_table` ASC),
+  INDEX `lock_key_field` (`lock_key_field` ASC),
+  INDEX `lock_key_value` (`lock_key_value` ASC),
+  INDEX `fk_row_locks_users_idx` (`user_id` ASC),
+  CONSTRAINT `fk_row_locks_users`
+    FOREIGN KEY (`user_id`)
+    REFERENCES `webdb`.`users` (`user_id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB
+AUTO_INCREMENT = 1;
+
+
 DROP TABLE IF EXISTS `webdb`.`sql_log` ;
 
 CREATE TABLE IF NOT EXISTS `webdb`.`sql_log` (

@@ -41,15 +41,15 @@ function login_check_caps(event)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function login_show_password()
+function login_show_password(id="login_password")
 {
   if (document.getElementById("show_password_check").checked==true)
   {
-    document.getElementById("login_password").type="text";
+    document.getElementById(id).type="text";
   }
   else
   {
-    document.getElementById("login_password").type="password";
+    document.getElementById(id).type="password";
   }
 }
 
