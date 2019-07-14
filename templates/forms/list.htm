@@ -1,8 +1,13 @@
+<script type="text/javascript" src="$$webdb_web_resources$$list.js?mod=%%form_script_modified%%"></script>
 <link rel="stylesheet" property="stylesheet" href="$$webdb_web_resources$$list.css?mod=%%form_styles_modified%%">
+%%firefox_styles%%
 
 <form action="@@forms/page_url@@" method="post">
 
+<input type="hidden" id="detail_page:%%url_page%%" name="detail_page:%%url_page%%" value="$$app_web_index$$?page=%%detail_page%%&id=">
+
 <table>
+%%caption_groups%%
 <tr>
   %%check_head%%
   %%field_headers%%

@@ -74,24 +74,13 @@ function load_form_defs()
 
 #####################################################################################################
 
-function list_form_content($form_name)
+function header_row($form_config)
 {
-  global $settings;
-  $form_config=$settings["forms"][$form_name];
-  $form_params=array();
-  $form_params["form_styles_modified"]=\webdb\utils\webdb_resource_modified_timestamp("list.css");
-  $form_params["url_page"]=$form_config["url_page"];
-  $field_headers="";
-  foreach ($form_config["control_types"] as $field_name => $control_type)
-  {
-    $header_params=array();
-    $header_params["field_name"]=$field_name;
-    $field_headers.=\webdb\forms\form_template_fill("list_field_header",$header_params);
-  }
-  $form_params["check_head"]="";
+  $params=array();
+  $params["check_head"]="";
   if ($form_config["multi_row_delete"]==true)
   {
-    $form_params["check_head"]=\webdb\forms\form_template_fill("list_check_head");
+    $params["check_head"]=\webdb\forms\form_template_fill("list_check_head");
   }
   $controls_count=0;
   if ($form_config["individual_edit"]==true)
@@ -102,7 +91,97 @@ function list_form_content($form_name)
   {
     $controls_count++;
   }
-  $form_params["controls_count"]=$controls_count;
+  $params["controls_count"]=$controls_count;
+  return $params;
+}
+
+#####################################################################################################
+
+function list_form_content($form_name)
+{
+  global $settings;
+  $form_config=$settings["forms"][$form_name];
+  $form_params=array();
+  $form_params["form_script_modified"]=\webdb\utils\webdb_resource_modified_timestamp("list.js");
+  $form_params["form_styles_modified"]=\webdb\utils\webdb_resource_modified_timestamp("list.css");
+  $form_params["url_page"]=$form_config["url_page"];
+  $form_params["detail_page"]=$form_config["detail_page"];
+  $form_params["firefox_styles"]="";
+  if (strpos(strtolower($settings["user_agent"]),"firefox")!==false)
+  {
+    $firefox_params=array();
+    $firefox_params["styles_modified"]=\webdb\utils\webdb_resource_modified_timestamp("list_firefox.css");
+    $form_params["firefox_styles"]=\webdb\forms\form_template_fill("list_firefox",$firefox_params);
+  }
+  $caption_groups="";
+  if (count($form_config["caption_groups"])>0)
+  {
+    $row_params=header_row($form_config);
+    $field_headers="";
+    $in_group=false;
+    $first_group=true;
+    $finished_group=false;
+    foreach ($form_config["control_types"] as $field_name => $control_type)
+    {
+      if ($form_config["visible"][$field_name]==false)
+      {
+        continue;
+      }
+      foreach ($form_config["caption_groups"] as $group_name => $field_names)
+      {
+        if ($field_names[0]==$field_name)
+        {
+          if ($finished_group==false)
+          {
+            $first_group=true;
+          }
+          $finished_group=false;
+          $in_group=true;
+          $group_params=array();
+          $group_params["group_caption"]=$group_name;
+          $group_params["field_count"]=count($field_names);
+          if ($first_group==true)
+          {
+            $field_headers.=\webdb\forms\form_template_fill("caption_group_first",$group_params);
+          }
+          else
+          {
+            $field_headers.=\webdb\forms\form_template_fill("caption_group",$group_params);
+          }
+          $first_group=false;
+          continue 2;
+        }
+        if ($field_names[count($field_names)-1]==$field_name)
+        {
+          $in_group=false;
+          $finished_group=true;
+          continue 2;
+        }
+      }
+      if ($in_group==false)
+      {
+        $finished_group=false;
+        $field_headers.=\webdb\forms\form_template_fill("list_field_header_group");
+      }
+    }
+    $row_params["field_headers"]=$field_headers;
+    $caption_groups=\webdb\forms\form_template_fill("group_header_row",$row_params);
+  }
+  $form_params["caption_groups"]=$caption_groups;
+  $field_headers="";
+  foreach ($form_config["control_types"] as $field_name => $control_type)
+  {
+    # $form_config["caption_groups"]
+    if ($form_config["visible"][$field_name]==false)
+    {
+      continue;
+    }
+    $header_params=array();
+    $header_params["field_name"]=$form_config["captions"][$field_name];
+    $field_headers.=\webdb\forms\form_template_fill("list_field_header",$header_params);
+  }
+  $head_params=header_row($form_config);
+  $form_params=array_merge($form_params,$head_params);
   $form_params["field_headers"]=$field_headers;
   $rows="";
   $sql=\webdb\utils\sql_fill("form_list_fetch_all",$form_config);
@@ -118,6 +197,10 @@ function list_form_content($form_name)
     $fields="";
     foreach ($form_config["control_types"] as $field_name => $control_type)
     {
+      if ($form_config["visible"][$field_name]==false)
+      {
+        continue;
+      }
       $field_params=array();
       if ($record[$field_name]==="")
       {
@@ -127,6 +210,9 @@ function list_form_content($form_name)
       {
         $field_params["value"]=htmlspecialchars($record[$field_name]);
       }
+      $field_params["field_name"]=$field_name;
+      $field_params["id"]=$row_params["id"];
+      $field_params["url_page"]=$form_config["url_page"];
       switch ($control_type)
       {
         case "date":
@@ -214,13 +300,15 @@ function output_editor($form_name,$record,$command,$verb,$id=0)
       case "memo":
         break;
       case "combobox":
+      case "listbox":
+      case "radiogroup":
         $options="";
         if (isset($form_config["lookups"][$field_name])==false)
         {
           \webdb\utils\show_message("error: invalid lookup config for field '".$field_name."' in form '".$form_name."' (lookup config missing)");
         }
         $lookup_config=$form_config["lookups"][$field_name];
-        $config_keys=array("schema","table","key_field","display_field");
+        $config_keys=array("database","table","key_field","display_field");
         for ($i=0;$i<count($config_keys);$i++)
         {
           if (isset($lookup_config[$config_keys[$i]])==false)
@@ -242,22 +330,28 @@ function output_editor($form_name,$record,$command,$verb,$id=0)
         {
           $loop_record=$records[$i];
           $option_params=array();
+          $option_params["name"]=$field_name;
           $option_params["value"]=$loop_record[$lookup_config["key_field"]];
           $option_params["caption"]=$loop_record[$lookup_config["display_field"]];
+          $option_template="select";
+          if ($control_type=="radiogroup")
+          {
+            $option_template="radio";
+          }
           if ($loop_record[$lookup_config["key_field"]]==$field_value)
           {
-            $options.=\webdb\utils\template_fill("select_option_selected",$option_params);
+            $options.=\webdb\utils\template_fill($option_template."_option_selected",$option_params);
           }
           else
           {
-            $options.=\webdb\utils\template_fill("select_option",$option_params);
+            $options.=\webdb\utils\template_fill($option_template."_option",$option_params);
           }
         }
         $field_params["options"]=$options;
         break;
       case "date":
         $calendar_fields[]=$field_name;
-        if ($field_value==\webdb\sql\zero_sql_timestamp())
+        if (($field_value==\webdb\sql\zero_sql_timestamp()) or ($field_value==""))
         {
           $field_params["field_value"]="";
         }
@@ -308,6 +402,8 @@ function process_form_data_fields($form_name)
         $value_items[$field_name]=$_POST[$field_name];
         break;
       case "combobox":
+      case "listbox":
+      case "radiogroup":
         if ($_POST[$field_name]=="")
         {
           $value_items[$field_name]=null;

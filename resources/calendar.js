@@ -110,26 +110,26 @@ function make_calendar(date_in_input,year,month,day)
     previous_month_year--;
   }
   var prev_month_link=document.getElementById("calendar_previous_month_link");
-  if (previous_month_year>=1995)
+  if (previous_month_year>=1900)
   {
     prev_month_link.onclick=function(){ make_calendar(date_in_input,previous_month_year,previous_month); };
     prev_month_link.title=clendar_month_names[previous_month]+" "+previous_month_year;
   }
   else
   {
-    prev_month_link.onclick=function(){ alert("Unable to select year before 1995. Sorry."); };
-    prev_month_link.title="Unable to select year before 1995. Sorry.";
+    prev_month_link.onclick=function(){ alert("Unable to select year before 1900. Sorry."); };
+    prev_month_link.title="Unable to select year before 1900. Sorry.";
   }
   var next_month_link=document.getElementById("calendar_next_month_link");
-  if (next_month_year<=2030)
+  if (next_month_year<=2200)
   {
     next_month_link.onclick=function(){ make_calendar(date_in_input,next_month_year,next_month); };
     next_month_link.title=clendar_month_names[next_month]+" "+next_month_year;
   }
   else
   {
-    next_month_link.onclick=function(){ alert("Unable to select year after 2030. Sorry."); };
-    next_month_link.title="Unable to select year after 2030. Sorry.";
+    next_month_link.onclick=function(){ alert("Unable to select year after 2200. Sorry."); };
+    next_month_link.title="Unable to select year after 2200. Sorry.";
   }
   var calendar_month_select=document.getElementById("calendar_month_select");
   calendar_month_select.value=month;
@@ -139,7 +139,7 @@ function make_calendar(date_in_input,year,month,day)
   {
     calendar_year_select.remove(i);
   }
-  for (var i=1995;i<=2030;i++)
+  for (var i=1900;i<=2200;i++)
   {
     var year_option=document.createElement("option");
     year_option.value=i;

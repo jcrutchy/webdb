@@ -1,7 +1,14 @@
 {
     "form_type": "list",
     "url_page": "",
+    "detail_page": "",
     "control_types": {
+    },
+    "captions": {
+    },
+    "caption_groups": {
+    },
+    "visible": {
     },
     "default_values": {
     },

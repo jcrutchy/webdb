@@ -6,7 +6,6 @@ DROP SCHEMA IF EXISTS `webdb` ;
 CREATE SCHEMA IF NOT EXISTS `webdb` DEFAULT CHARACTER SET utf8 ;
 
 DROP TABLE IF EXISTS `webdb`.`users`;
-
 CREATE TABLE IF NOT EXISTS `webdb`.`users` (
   `user_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `login_cookie` VARCHAR(255) NOT NULL,
@@ -27,9 +26,7 @@ password: password
 */
 INSERT INTO `webdb`.`users` (`email`,`pw_hash`,`privs`) VALUES ("admin","$2y$13$Vn8rJB73AHq56cAqbBwkEuKrQt3lSdoA3sDmKULZEgQLE4.nmsKzW","admin");
 
-
 DROP TABLE IF EXISTS `webdb`.`row_locks` ;
-
 CREATE TABLE IF NOT EXISTS `webdb`.`row_locks` (
   `lock_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `user_id` INT UNSIGNED NOT NULL,
@@ -55,7 +52,6 @@ AUTO_INCREMENT = 1;
 
 
 DROP TABLE IF EXISTS `webdb`.`sql_log` ;
-
 CREATE TABLE IF NOT EXISTS `webdb`.`sql_log` (
   `log_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `user_id` INT UNSIGNED NOT NULL,
@@ -71,7 +67,6 @@ CREATE TABLE IF NOT EXISTS `webdb`.`sql_log` (
     ON UPDATE NO ACTION)
 ENGINE = InnoDB
 AUTO_INCREMENT = 1;
-
 
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;

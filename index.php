@@ -13,12 +13,29 @@ date_default_timezone_set("UTC");
 require_once("utils.php");
 require_once("users.php");
 require_once("forms.php");
+require_once("graphics.php");
 require_once("sql.php");
 
 set_error_handler('\webdb\utils\error_handler',E_ALL);
 set_exception_handler('\webdb\utils\exception_handler');
 
 $settings=array();
+
+$settings["user_agent"]="";
+if (isset($_SERVER["HTTP_USER_AGENT"])==true)
+{
+  $settings["user_agent"]=$_SERVER["HTTP_USER_AGENT"];
+}
+
+$incompatible_agents=array("trident","msie");
+for ($i=0;$i<count($incompatible_agents);$i++)
+{
+  if (strpos(strtolower($settings["user_agent"]),$incompatible_agents[$i])!==false)
+  {
+    die("Internet Explorer is not supported. Please try a recent version of Google Chrome or Mozilla Firefox.");
+  }
+}
+
 $settings["webdb_root_path"]=__DIR__.DIRECTORY_SEPARATOR;
 $settings["webdb_templates_path"]=$settings["webdb_root_path"]."templates".DIRECTORY_SEPARATOR;
 $settings["webdb_sql_path"]=$settings["webdb_root_path"]."sql".DIRECTORY_SEPARATOR;
@@ -78,14 +95,16 @@ $required_settings=array(
   "app_templates_path",
   "app_sql_path",
   "app_resources_path",
-  "app_forms_path");
+  "app_forms_path",
+  "gd_ttf");
 for ($i=0;$i<count($required_settings);$i++)
 {
   \webdb\utils\check_required_setting_exists($required_settings[$i]);
 }
 $required_files=array(
   "db_admin_file",
-  "db_user_file");
+  "db_user_file",
+  "gd_ttf");
 for ($i=0;$i<count($required_files);$i++)
 {
   $file=$required_files[$i];

@@ -13,6 +13,7 @@ function body_click(event)
   if (typeof calendar_body_click==="function")
   {
     calendar_body_click(event);
+    return;
   }
 }
 
