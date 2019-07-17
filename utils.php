@@ -331,12 +331,12 @@ function is_row_locked($schema,$table,$key_field,$key_value)
 
 #####################################################################################################
 
-function page_dispatch()
+function page_dispatch($url_page)
 {
   global $settings;
   foreach ($settings["forms"] as $form_name => $form_config)
   {
-    if ($_GET["page"]===$form_config["url_page"])
+    if ($url_page===$form_config["url_page"])
     {
       if (isset($_POST["form_cmd"])==true)
       {

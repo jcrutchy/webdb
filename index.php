@@ -21,6 +21,19 @@ set_exception_handler('\webdb\utils\exception_handler');
 
 $settings=array();
 
+$settings["parent_path"]=dirname(dirname(__FILE__)).DIRECTORY_SEPARATOR;
+$settings["webdb_root_path"]=__DIR__.DIRECTORY_SEPARATOR;
+
+$common_settings_filename=$settings["parent_path"]."webdb_common_settings.php";
+if (file_exists($common_settings_filename)==true)
+{
+  require_once($common_settings_filename);
+}
+else
+{
+  \webdb\utils\system_message("error: webdb common settings file not found");
+}
+
 $settings["user_agent"]="";
 if (isset($_SERVER["HTTP_USER_AGENT"])==true)
 {
@@ -32,19 +45,14 @@ for ($i=0;$i<count($incompatible_agents);$i++)
 {
   if (strpos(strtolower($settings["user_agent"]),$incompatible_agents[$i])!==false)
   {
-    die("Internet Explorer is not supported. Please try a recent version of Google Chrome or Mozilla Firefox.");
+    \webdb\utils\system_message("Internet Explorer is not supported. Please try a recent version of Google Chrome or Mozilla Firefox.");
   }
 }
-
-$settings["webdb_root_path"]=__DIR__.DIRECTORY_SEPARATOR;
-$settings["webdb_templates_path"]=$settings["webdb_root_path"]."templates".DIRECTORY_SEPARATOR;
-$settings["webdb_sql_path"]=$settings["webdb_root_path"]."sql".DIRECTORY_SEPARATOR;
-$settings["webdb_resources_path"]=$settings["webdb_root_path"]."resources".DIRECTORY_SEPARATOR;
-$settings["webdb_forms_path"]=$settings["webdb_root_path"]."forms".DIRECTORY_SEPARATOR;
 
 \webdb\utils\check_required_file_exists($settings["webdb_templates_path"],true);
 \webdb\utils\check_required_file_exists($settings["webdb_sql_path"],true);
 \webdb\utils\check_required_file_exists($settings["webdb_resources_path"],true);
+\webdb\utils\check_required_file_exists($settings["webdb_forms_path"],true);
 
 $settings["templates"]=\webdb\utils\load_files($settings["webdb_templates_path"],"","htm",true);
 $settings["webdb_templates"]=$settings["templates"];
@@ -96,10 +104,16 @@ $required_settings=array(
   "app_sql_path",
   "app_resources_path",
   "app_forms_path",
-  "gd_ttf");
+  "gd_ttf",
+  "apps_list",
+  "webdb_default_form");
 for ($i=0;$i<count($required_settings);$i++)
 {
   \webdb\utils\check_required_setting_exists($required_settings[$i]);
+}
+if (in_array(basename($settings["app_root_path"]),$settings["apps_list"])==false)
+{
+  \webdb\utils\system_message("error: app not registered in common settings apps list");
 }
 $required_files=array(
   "db_admin_file",
@@ -184,7 +198,7 @@ $settings["forms"]=array();
 
 if (isset($_GET["page"])==true)
 {
-  \webdb\utils\page_dispatch();
+  \webdb\utils\page_dispatch($_GET["page"]);
 }
 
 \webdb\utils\static_page($settings["app_home_template"],$settings["app_name"]);

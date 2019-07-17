@@ -46,7 +46,34 @@ function load_form_defs()
     $full=$settings["webdb_forms_path"].$fn;
     $data=trim(file_get_contents($full));
     $data=json_decode($data,true);
-    $settings["form_defaults"][$data["form_type"]]=$data;
+    if ($fn==($settings["webdb_default_form"].".".$data["form_type"]))
+    {
+      $settings["form_defaults"][$data["form_type"]]=$data;
+    }
+  }
+  for ($i=0;$i<count($webdb_file_list);$i++)
+  {
+    $fn=$webdb_file_list[$i];
+    if (($fn==".") or ($fn==".."))
+    {
+      continue;
+    }
+    $full=$settings["webdb_forms_path"].$fn;
+    $data=trim(file_get_contents($full));
+    $data=json_decode($data,true);
+    if ($fn<>($settings["webdb_default_form"].".".$data["form_type"]))
+    {
+      if (isset($data["form_type"])==false)
+      {
+        \webdb\utils\show_message("error: invalid form def (missing form_type): ".$fn);
+      }
+      if (isset($settings["form_defaults"][$data["form_type"]])==false)
+      {
+        \webdb\utils\show_message("error: invalid form def (invalid form_type): ".$fn);
+      }
+      $default=$settings["form_defaults"][$data["form_type"]];
+      $settings["forms"][$data["url_page"]]=array_merge($default,$data);
+    }
   }
   $app_file_list=scandir($settings["app_forms_path"]);
   for ($i=0;$i<count($app_file_list);$i++)

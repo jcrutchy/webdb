@@ -1,4 +1,9 @@
 
+td
+  {
+    border: 0;
+  }
+
 #login_background
   {
     position: fixed;

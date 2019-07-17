@@ -23,10 +23,6 @@ function auth_dispatch()
   {
     \webdb\users\change_password();
   }
-  if (isset($_GET["user_admin"])==true)
-  {
-    \webdb\users\user_admin_page();
-  }
   $settings["user_record"]=\webdb\users\login();
 }
 
@@ -70,7 +66,6 @@ function login()
   {
     $login_form_params["default_email"]=$_COOKIE[$settings["email_cookie"]];
   }
-  $login_form_params["auth_error"]="";
   $login_form_params["default_remember_me"]=\webdb\utils\template_fill("checkbox_checked");
   $login_form_params["login_script_modified"]=\webdb\utils\webdb_resource_modified_timestamp("login.js");
   $login_form_params["login_styles_modified"]=\webdb\utils\webdb_resource_modified_timestamp("login.css");
@@ -132,11 +127,8 @@ function login()
     }
   }
   setcookie($settings["login_cookie"],null,-1,"/");
-  $page_params=array();
-  $page_params["page_title"]="Login";
-  $page_params["page_head"]="";
-  $page_params["body_text"]=\webdb\utils\template_fill("login_form",$login_form_params);
-  die(\webdb\utils\template_fill("global".DIRECTORY_SEPARATOR."page",$page_params));
+  $content=\webdb\utils\template_fill("login_form",$login_form_params);
+  \webdb\utils\output_page($content,"Login");
 }
 
 #####################################################################################################
@@ -218,8 +210,8 @@ function send_reset_password_message()
   $msg_params=array();
   $msg_params["key"]=urlencode($key);
   $message=\webdb\utils\template_fill("password_reset_message",$msg_params);
-  \webdb\utils\show_message($message); # DEBUG
-  #\webdb\utils\send_email($_POST["login_email"],$settings["app_name"]." password reset",$message);
+  \webdb\utils\show_message($message); # TESTING
+  \webdb\utils\send_email($_POST["login_email"],$settings["app_name"]." password reset",$message);
   setcookie($settings["login_cookie"],null,-1,"/");
   $t=$value_items["pw_reset_time"]+$settings["password_reset_timeout"];
   \webdb\utils\show_message("Password reset link sent to registered email address, valid till ".date("g:i a",$t)." on ".date("l, j F Y (T)",$t).".");
@@ -231,12 +223,25 @@ function change_password($password_reset_user=false)
 {
   if (isset($_POST["change_password"])==true)
   {
-    die("todo");
+    $pw_old=$_POST["change_password_old"];
+    $pw_new=$_POST["change_password_new"];
+    $pw_new_conf=$_POST["change_password_new_confirm"];
+    if ($pw_new<>$pw_new_conf)
+    {
+      setcookie($settings["login_cookie"],null,-1,"/");
+      \webdb\utils\show_message("error: new passwords do not match");
+    }
+
+    cancel_password_reset($user_record);
+    die("todo"); # TODO
   }
   $change_password_params=array();
+  $change_password_params["login_script_modified"]=\webdb\utils\webdb_resource_modified_timestamp("login.js");
+  $change_password_params["login_styles_modified"]=\webdb\utils\webdb_resource_modified_timestamp("login.css");
   if ($password_reset_user===false)
   {
     $change_password_params["old_password_default"]="";
+    $change_password_params["old_password_display"]="inline";
   }
   else
   {
@@ -250,19 +255,10 @@ function change_password($password_reset_user=false)
     $where_items["user_id"]=$password_reset_user["user_id"];
     \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
     $change_password_params["old_password_default"]=$temp_password;
+    $change_password_params["old_password_display"]="none";
   }
-  $page_params=array();
-  $page_params["page_title"]="Change Password";
-  $page_params["page_head"]="";
-  $page_params["body_text"]=\webdb\utils\template_fill("change_password",$change_password_params);
-  die(\webdb\utils\template_fill("global".DIRECTORY_SEPARATOR."page",$page_params));
-}
-
-#####################################################################################################
-
-function user_admin_page()
-{
-  die("todo");
+  $content=\webdb\utils\template_fill("change_password",$change_password_params);
+  \webdb\utils\output_page($content,"Change Password");
 }
 
 #####################################################################################################
