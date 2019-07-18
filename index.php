@@ -24,6 +24,12 @@ $settings=array();
 $settings["parent_path"]=dirname(dirname(__FILE__)).DIRECTORY_SEPARATOR;
 $settings["webdb_root_path"]=__DIR__.DIRECTORY_SEPARATOR;
 
+$includes=get_included_files();
+$settings["app_root_path"]=dirname($includes[0]).DIRECTORY_SEPARATOR;
+
+$settings["webdb_directory_name"]=basename($settings["webdb_root_path"]);
+$settings["app_directory_name"]=basename($settings["app_root_path"]);
+
 $common_settings_filename=$settings["parent_path"]."webdb_common_settings.php";
 if (file_exists($common_settings_filename)==true)
 {
@@ -59,9 +65,6 @@ $settings["webdb_templates"]=$settings["templates"];
 
 $settings["sql"]=\webdb\utils\load_files($settings["webdb_sql_path"],"","sql",true);
 $settings["webdb_sql"]=$settings["sql"];
-
-$includes=get_included_files();
-$settings["app_root_path"]=dirname($includes[0]).DIRECTORY_SEPARATOR;
 
 if (\webdb\utils\is_cli_mode()==false)
 {
@@ -111,7 +114,7 @@ for ($i=0;$i<count($required_settings);$i++)
 {
   \webdb\utils\check_required_setting_exists($required_settings[$i]);
 }
-if (in_array(basename($settings["app_root_path"]),$settings["apps_list"])==false)
+if (in_array($settings["app_directory_name"],$settings["apps_list"])==false)
 {
   \webdb\utils\system_message("error: app not registered in common settings apps list");
 }

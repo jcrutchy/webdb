@@ -140,7 +140,24 @@ function list_form_content($form_name)
     $firefox_params["styles_modified"]=\webdb\utils\webdb_resource_modified_timestamp("list_firefox.css");
     $form_params["firefox_styles"]=\webdb\forms\form_template_fill("list_firefox",$firefox_params);
   }
+  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  $max_field_name_width=0;
+  foreach ($form_config["control_types"] as $field_name => $control_type)
+  {
+    $box=imagettfbbox(10,0,$settings["gd_ttf"],$form_config["captions"][$field_name]);
+    $width=abs($box[4]-$box[0]);
+    if ($width>$max_field_name_width)
+    {
+      $max_field_name_width=$width;
+    }
+  }
+  $rotate_span_width=$max_field_name_width+10;
+  $rotate_height=round($rotate_span_width*0.707)+30;
+  $group_caption_first_left=$rotate_height+1-20;
+  $group_caption_left=$rotate_height-20;
+  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   $caption_groups="";
+  $bold_borders=array();
   if (count($form_config["caption_groups"])>0)
   {
     $row_params=header_row($form_config);
@@ -154,6 +171,10 @@ function list_form_content($form_name)
       {
         continue;
       }
+      if ($finished_group==true)
+      {
+        $bold_borders[$field_name]=true;
+      }
       foreach ($form_config["caption_groups"] as $group_name => $field_names)
       {
         if ($field_names[0]==$field_name)
@@ -162,6 +183,7 @@ function list_form_content($form_name)
           {
             $first_group=true;
           }
+          $bold_borders[$field_name]=true;
           $finished_group=false;
           $in_group=true;
           $group_params=array();
@@ -169,10 +191,12 @@ function list_form_content($form_name)
           $group_params["field_count"]=count($field_names);
           if ($first_group==true)
           {
+            $group_params["group_caption_first_left"]=$group_caption_first_left;
             $field_headers.=\webdb\forms\form_template_fill("caption_group_first",$group_params);
           }
           else
           {
+            $group_params["group_caption_left"]=$group_caption_left;
             $field_headers.=\webdb\forms\form_template_fill("caption_group",$group_params);
           }
           $first_group=false;
@@ -198,13 +222,19 @@ function list_form_content($form_name)
   $field_headers="";
   foreach ($form_config["control_types"] as $field_name => $control_type)
   {
-    # $form_config["caption_groups"]
     if ($form_config["visible"][$field_name]==false)
     {
       continue;
     }
     $header_params=array();
     $header_params["field_name"]=$form_config["captions"][$field_name];
+    $header_params["rotate_height"]=$rotate_height;
+    $header_params["rotate_span_width"]=$rotate_span_width;
+    $header_params["border_width"]=1;
+    if (isset($bold_borders[$field_name])==true)
+    {
+      $header_params["border_width"]=2;
+    }
     $field_headers.=\webdb\forms\form_template_fill("list_field_header",$header_params);
   }
   $head_params=header_row($form_config);
