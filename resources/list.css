@@ -64,6 +64,8 @@ th.rotate
 
 .verticaltick
   {
+    position: relative;
+    left: 0px;
     font-size: 1px;
     height: 20px;
     width: 40px;
@@ -85,7 +87,7 @@ th.rotate
     font-size: 10pt;
     border-top: 1px solid #666;
     width: 190px;
-    display: inline-block;
+    display: inline-block;v
   }
 
 #global_page_header

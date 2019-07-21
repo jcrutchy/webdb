@@ -86,6 +86,32 @@ function sql_fill($sql_key,$params=false)
 
 #####################################################################################################
 
+function app_template_fill($template_key,$params=false,$tracking=array(),$custom_templates=false)
+{
+  global $settings;
+  $styles="";
+  $script="";
+  $filename=$settings["app_resources_path"].$template_key.".css";
+  if (file_exists($filename)==true)
+  {
+    $params=array();
+    $params["name"]=$template_key;
+    $params["modified"]=filemtime($filename);
+    $styles=template_fill("app_resource_styles",$params);
+  }
+  $filename=$settings["app_resources_path"].$template_key.".js";
+  if (file_exists($filename)==true)
+  {
+    $params=array();
+    $params["name"]=$template_key;
+    $params["modified"]=filemtime($filename);
+    $script=template_fill("app_resource_script",$params);
+  }
+  return $styles.template_fill($template_key,$params,$tracking,$custom_templates).$script;
+}
+
+#####################################################################################################
+
 function template_fill($template_key,$params=false,$tracking=array(),$custom_templates=false) # tracking array is used internally to limit recursion and should not be manually passed
 {
   global $settings;
@@ -310,6 +336,14 @@ function output_page($content,$title)
   $page_params["global_script_modified"]=\webdb\utils\webdb_resource_modified_timestamp("global.js");
   $page_params["body_text"]=$content;
   die(\webdb\utils\template_fill("global".DIRECTORY_SEPARATOR."page",$page_params));
+}
+
+#####################################################################################################
+
+function app_static_page($template,$title)
+{
+  $content=\webdb\utils\app_template_fill($template);
+  \webdb\utils\output_page($content,$title);
 }
 
 #####################################################################################################

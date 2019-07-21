@@ -133,17 +133,14 @@ function list_form_content($form_name)
   $form_params["form_styles_modified"]=\webdb\utils\webdb_resource_modified_timestamp("list.css");
   $form_params["url_page"]=$form_config["url_page"];
   $form_params["detail_page"]=$form_config["detail_page"];
-  $form_params["firefox_styles"]="";
-  if (strpos(strtolower($settings["user_agent"]),"firefox")!==false)
-  {
-    $firefox_params=array();
-    $firefox_params["styles_modified"]=\webdb\utils\webdb_resource_modified_timestamp("list_firefox.css");
-    $form_params["firefox_styles"]=\webdb\forms\form_template_fill("list_firefox",$firefox_params);
-  }
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   $max_field_name_width=0;
   foreach ($form_config["control_types"] as $field_name => $control_type)
   {
+    if ($form_config["visible"][$field_name]==false)
+    {
+      continue;
+    }
     $box=imagettfbbox(10,0,$settings["gd_ttf"],$form_config["captions"][$field_name]);
     $width=abs($box[4]-$box[0]);
     if ($width>$max_field_name_width)
@@ -230,10 +227,28 @@ function list_form_content($form_name)
     $header_params["field_name"]=$form_config["captions"][$field_name];
     $header_params["rotate_height"]=$rotate_height;
     $header_params["rotate_span_width"]=$rotate_span_width;
+    $header_params["border_color"]="888";
     $header_params["border_width"]=1;
     if (isset($bold_borders[$field_name])==true)
     {
+      $header_params["border_color"]="000";
       $header_params["border_width"]=2;
+    }
+    if (strpos(strtolower($settings["user_agent"]),"firefox")!==false)
+    {
+      $header_params["border_left"]=-1;
+      if (isset($bold_borders[$field_name])==true)
+      {
+        $header_params["border_left"]=-1;
+      }
+    }
+    else # chrome browser
+    {
+      $header_params["border_left"]=0;
+      if (isset($bold_borders[$field_name])==true)
+      {
+        $header_params["border_left"]=-1;
+      }
     }
     $field_headers.=\webdb\forms\form_template_fill("list_field_header",$header_params);
   }
@@ -259,6 +274,13 @@ function list_form_content($form_name)
         continue;
       }
       $field_params=array();
+      $field_params["border_color"]="888";
+      $field_params["border_width"]=1;
+      if (isset($bold_borders[$field_name])==true)
+      {
+        $field_params["border_color"]="000";
+        $field_params["border_width"]=2;
+      }
       if ($record[$field_name]==="")
       {
         $field_params["value"]=\webdb\utils\template_fill("empty_cell");
@@ -280,6 +302,16 @@ function list_form_content($form_name)
           else
           {
             $field_params["value"]=date("Y-m-d",strtotime($record[$field_name]));
+          }
+          break;
+        case "checkbox":
+          if ($record[$field_name]==true)
+          {
+            $field_params["value"]=\webdb\utils\template_fill("check_tick");
+          }
+          else
+          {
+            $field_params["value"]=\webdb\utils\template_fill("check_cross");
           }
           break;
       }

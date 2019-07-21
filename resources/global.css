@@ -15,7 +15,7 @@ body
     border: none;
     padding: 10px;
     margin: 0;
-    overflow: hidden;
+    font-size-adjust: 0.47;
   }
 
 table

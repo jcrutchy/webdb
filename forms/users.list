@@ -9,8 +9,7 @@
         "email": "text",
         "pw_hash": "text",
         "pw_reset_key": "span",
-        "pw_reset_time": "span",
-        "privs": "text"
+        "pw_reset_time": "span"
     },
     "captions": {
         "user_id": "user_id",
@@ -19,20 +18,18 @@
         "email": "email",
         "pw_hash": "pw_hash",
         "pw_reset_key": "pw_reset_key",
-        "pw_reset_time": "pw_reset_time",
-        "privs": "privs"
+        "pw_reset_time": "pw_reset_time"
     },
     "caption_groups": {
     },
     "visible": {
         "user_id": true,
-        "login_cookie": true,
+        "login_cookie": false,
         "enabled": true,
         "email": true,
-        "pw_hash": true,
-        "pw_reset_key": true,
-        "pw_reset_time": true,
-        "privs": true
+        "pw_hash": false,
+        "pw_reset_key": false,
+        "pw_reset_time": false
     },
     "default_values": {
         "user_id": "(auto)",
@@ -41,8 +38,7 @@
         "email": "",
         "pw_hash": "$2y$13$Vn8rJB73AHq56cAqbBwkEuKrQt3lSdoA3sDmKULZEgQLE4.nmsKzW",
         "pw_reset_key": "(auto)",
-        "pw_reset_time": "(auto)",
-        "privs": ""
+        "pw_reset_time": "(auto)"
     },
     "lookups": {
     },

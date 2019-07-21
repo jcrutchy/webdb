@@ -100,7 +100,7 @@ function login()
       $crypto_strong=true;
       $key=base64_encode(openssl_random_pseudo_bytes(30,$crypto_strong));
       $options=array();
-      $options["cost"]=13;
+      $options["cost"]=$settings["password_bcrypt_cost"];
       $cookie=password_hash($_POST["login_email"].$key,PASSWORD_BCRYPT,$options);
       $value_items["login_cookie"]=$cookie;
       $expiry=microtime(true)+$settings["max_cookie_age"];
@@ -146,15 +146,11 @@ function logout()
 function reset_password()
 {
   global $settings;
-  $records=\webdb\sql\fetch_all_records("users","","","webdb");
+  $records=\webdb\sql\file_fetch_prepare("user_get_all_enabled");
   $validated=false;
   for ($i=0;$i<count($records);$i++)
   {
     $record=$records[$i];
-    if ($record["enabled"]<>1)
-    {
-      continue;
-    }
     if ($record["pw_reset_key"]=="")
     {
       continue;
@@ -175,8 +171,8 @@ function reset_password()
     setcookie($settings["login_cookie"],null,-1,"/");
     \webdb\utils\show_message("Invalid password reset key.");
   }
-  cancel_password_reset($validated);
-  change_password($validated);
+  \webdb\users\cancel_password_reset($validated);
+  \webdb\users\change_password($validated);
 }
 
 #####################################################################################################
@@ -201,7 +197,7 @@ function send_reset_password_message()
   $crypto_strong=true;
   $key=base64_encode(openssl_random_pseudo_bytes(30,$crypto_strong));
   $options=array();
-  $options["cost"]=13;
+  $options["cost"]=$settings["password_bcrypt_cost"];
   $value_items["pw_reset_key"]=password_hash($_POST["login_email"].$key,PASSWORD_BCRYPT,$options);
   $value_items["pw_reset_time"]=microtime(true);
   $where_items=array();
@@ -221,6 +217,7 @@ function send_reset_password_message()
 
 function change_password($password_reset_user=false)
 {
+  global $settings;
   if (isset($_POST["change_password"])==true)
   {
     $pw_old=$_POST["change_password_old"];
@@ -231,9 +228,21 @@ function change_password($password_reset_user=false)
       setcookie($settings["login_cookie"],null,-1,"/");
       \webdb\utils\show_message("error: new passwords do not match");
     }
-
-    cancel_password_reset($user_record);
-    die("todo"); # TODO
+    $user_record=\webdb\users\get_user_record($_POST["login_email"]);
+    if (password_verify($pw_old,$user_record["pw_hash"])==false)
+    {
+      setcookie($settings["login_cookie"],null,-1,"/");
+      \webdb\utils\show_message("error: incorrect password");
+    }
+    $options=array();
+    $options["cost"]=$settings["password_bcrypt_cost"];
+    $value_items=array();
+    $value_items["pw_hash"]=password_hash($pw_new,PASSWORD_BCRYPT,$options);
+    $where_items=array();
+    $where_items["user_id"]=$user_record["user_id"];
+    \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
+    \webdb\users\cancel_password_reset($user_record);
+    \webdb\utils\redirect($settings["app_web_index"]);
   }
   $change_password_params=array();
   $change_password_params["login_script_modified"]=\webdb\utils\webdb_resource_modified_timestamp("login.js");
@@ -241,7 +250,9 @@ function change_password($password_reset_user=false)
   if ($password_reset_user===false)
   {
     $change_password_params["old_password_default"]="";
-    $change_password_params["old_password_display"]="inline";
+    $change_password_params["old_password_display"]="table-row";
+    $user_record=\webdb\users\login();
+    $change_password_params["login_email"]=$user_record["email"];
   }
   else
   {
@@ -249,13 +260,14 @@ function change_password($password_reset_user=false)
     $crypto_strong=true;
     $temp_password=base64_encode(openssl_random_pseudo_bytes(30,$crypto_strong));
     $options=array();
-    $options["cost"]=13;
+    $options["cost"]=$settings["password_bcrypt_cost"];
     $value_items["pw_hash"]=password_hash($temp_password,PASSWORD_BCRYPT,$options);
     $where_items=array();
     $where_items["user_id"]=$password_reset_user["user_id"];
     \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
     $change_password_params["old_password_default"]=$temp_password;
     $change_password_params["old_password_display"]="none";
+    $change_password_params["login_email"]=$password_reset_user["email"];
   }
   $content=\webdb\utils\template_fill("change_password",$change_password_params);
   \webdb\utils\output_page($content,"Change Password");

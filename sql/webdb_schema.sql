@@ -14,7 +14,6 @@ CREATE TABLE IF NOT EXISTS `webdb`.`users` (
   `pw_hash` VARCHAR(255) NOT NULL,
   `pw_reset_key` VARCHAR(255) NOT NULL,
   `pw_reset_time` BIGINT NOT NULL,
-  `privs` LONGTEXT NOT NULL,
   PRIMARY KEY (`user_id`),
   UNIQUE INDEX `email` (`email` ASC))
 ENGINE = InnoDB
@@ -24,7 +23,7 @@ AUTO_INCREMENT = 1;
 username: admin
 password: password
 */
-INSERT INTO `webdb`.`users` (`email`,`pw_hash`,`privs`) VALUES ("admin","$2y$13$Vn8rJB73AHq56cAqbBwkEuKrQt3lSdoA3sDmKULZEgQLE4.nmsKzW","admin");
+INSERT INTO `webdb`.`users` (`email`,`pw_hash`) VALUES ("admin","$2y$13$Vn8rJB73AHq56cAqbBwkEuKrQt3lSdoA3sDmKULZEgQLE4.nmsKzW");
 
 DROP TABLE IF EXISTS `webdb`.`row_locks` ;
 CREATE TABLE IF NOT EXISTS `webdb`.`row_locks` (
@@ -50,7 +49,6 @@ CREATE TABLE IF NOT EXISTS `webdb`.`row_locks` (
 ENGINE = InnoDB
 AUTO_INCREMENT = 1;
 
-
 DROP TABLE IF EXISTS `webdb`.`sql_log` ;
 CREATE TABLE IF NOT EXISTS `webdb`.`sql_log` (
   `log_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -65,6 +63,16 @@ CREATE TABLE IF NOT EXISTS `webdb`.`sql_log` (
     REFERENCES `webdb`.`users` (`user_id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
+ENGINE = InnoDB
+AUTO_INCREMENT = 1;
+
+DROP TABLE IF EXISTS `webdb`.`groups`;
+CREATE TABLE IF NOT EXISTS `webdb`.`groups` (
+  `group_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `enabled` TINYINT NOT NULL DEFAULT 1,
+  `description` VARCHAR(255) NOT NULL,
+  PRIMARY KEY (`group_id`),
+  UNIQUE INDEX `description` (`description` ASC))
 ENGINE = InnoDB
 AUTO_INCREMENT = 1;
 

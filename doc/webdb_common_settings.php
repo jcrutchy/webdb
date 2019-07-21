@@ -23,6 +23,7 @@ $settings["login_cookie"]="webdb_login";
 $settings["email_cookie"]="webdb_email";
 $settings["max_cookie_age"]=24*60*60*365;
 $settings["password_reset_timeout"]=24*60*60;
+$settings["password_bcrypt_cost"]=13;
 $settings["row_lock_expiration"]=5*60;
 
 $settings["db_host"]="localhost";
