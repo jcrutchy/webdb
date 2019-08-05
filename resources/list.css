@@ -51,7 +51,7 @@ td
 
 .list_row_controls input
   {
-    width: 60px;
+    width: 70px;
   }
 
 th.rotate
@@ -87,7 +87,7 @@ th.rotate
     font-size: 10pt;
     border-top: 1px solid #666;
     width: 190px;
-    display: inline-block;v
+    display: inline-block;
   }
 
 #global_page_header

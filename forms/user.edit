@@ -1,9 +1,7 @@
 {
-    "form_type": "list",
+    "form_type": "edit",
     "enabled": true,
-    "url_page": "users",
-    "edit_form": "user",
-    "return_link_caption": "Users",
+    "url_page": "user",
     "control_types": {
         "user_id": "span",
         "login_cookie": "span",
@@ -46,11 +44,6 @@
     },
     "db_id_field_name": "user_id",
     "command_caption_noun": "User",
-    "multi_row_delete": false,
-    "individual_delete": true,
-    "individual_edit": "row",
-    "insert_new": true,
     "database": "webdb",
-    "table": "users",
-    "sort_sql": "email asc"
+    "table": "users"
 }

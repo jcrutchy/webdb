@@ -11,9 +11,10 @@
 <div id="global_page_body_inner">
 <div id="global_page_body_content">
 
-<form action="@@forms/page_url@@" method="post">
+<form action="@@forms/form_url@@" method="post">
 
-<input type="hidden" id="detail_page:%%url_page%%" name="detail_page:%%url_page%%" value="$$app_web_index$$?page=%%detail_page%%&id=">
+<input type="hidden" id="edit_page:%%url_page%%" name="edit_page:%%url_page%%" value="@@forms/form_url@@&cmd=edit&id=">
+<input type="hidden" id="insert_page:%%url_page%%" name="insert_page:%%url_page%%" value="@@forms/form_url@@&cmd=insert">
 
 <table>
 %%caption_groups%%
@@ -24,8 +25,8 @@
 </tr>
 %%rows%%
 </table>
-%%insert_control%%
 %%delete_selected_control%%
+%%insert_control%%
 
 </form>
 

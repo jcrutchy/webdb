@@ -316,12 +316,12 @@ function get_child_array_key(&$array,$parent_key)
 {
   if (is_array($array[$parent_key])==false)
   {
-    show_message("error: array expected with parent key: ".$parent_key);
+    \webdb\utils\show_message("error: array expected with parent key: ".$parent_key);
   }
   $child_keys=array_keys($array[$parent_key]);
   if (count($child_keys)<>1)
   {
-    show_message("error: invalid child array key count: ".$parent_key);
+    \webdb\utils\show_message("error: invalid child array key count: ".$parent_key);
   }
   return $child_keys[0];
 }
@@ -361,50 +361,6 @@ function is_row_locked($schema,$table,$key_field,$key_value)
   global $settings;
   # $settings["user_record"]
   # delete expired locks
-}
-
-#####################################################################################################
-
-function page_dispatch($url_page)
-{
-  global $settings;
-  foreach ($settings["forms"] as $form_name => $form_config)
-  {
-    if ($url_page===$form_config["url_page"])
-    {
-      if (isset($_POST["form_cmd"])==true)
-      {
-        $form_cmd=get_child_array_key($_POST,"form_cmd");
-        switch ($form_cmd)
-        {
-          case "insert":
-            \webdb\forms\insert_form($form_name);
-          case "insert_confirm":
-            \webdb\forms\insert_record($form_name);
-          case "edit":
-            $id=get_child_array_key($_POST["form_cmd"],"edit");
-            \webdb\forms\edit_form($form_name,$id);
-          case "edit_confirm":
-            $id=get_child_array_key($_POST["form_cmd"],"edit_confirm");
-            \webdb\forms\update_record($form_name,$id);
-          case "delete":
-            $id=get_child_array_key($_POST["form_cmd"],"delete");
-            \webdb\forms\delete_confirmation($form_name,$id);
-          case "delete_confirm":
-            $id=get_child_array_key($_POST["form_cmd"],"delete_confirm");
-            \webdb\forms\delete_record($form_name,$id);
-          case "cancel":
-            \webdb\forms\cancel($form_name);
-          case "delete_selected":
-            \webdb\forms\delete_selected_confirmation($form_name);
-          case "delete_selected_confirm":
-            \webdb\forms\delete_selected_records($form_name);
-        }
-      }
-      $content=\webdb\forms\list_form_content($form_name);
-      \webdb\utils\output_page($content,$form_name);
-    }
-  }
 }
 
 #####################################################################################################

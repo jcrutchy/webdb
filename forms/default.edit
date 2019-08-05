@@ -1,9 +1,7 @@
 {
-    "form_type": "list",
+    "form_type": "edit",
     "enabled": true,
     "url_page": "",
-    "edit_form": "",
-    "return_link_caption": "",
     "control_types": {
     },
     "captions": {
@@ -18,11 +16,6 @@
     },
     "db_id_field_name": "",
     "command_caption_noun": "",
-    "multi_row_delete": true,
-    "individual_delete": true,
-    "individual_edit": "row",
-    "insert_new": true,
     "database": "",
-    "table": "",
-    "sort_sql": ""
+    "table": ""
 }
