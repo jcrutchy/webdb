@@ -2,8 +2,9 @@
     "form_type": "list",
     "enabled": true,
     "url_page": "",
-    "edit_form": "",
     "return_link_caption": "",
+    "edit_subforms": {
+    },
     "control_types": {
     },
     "captions": {

@@ -2,8 +2,9 @@
     "form_type": "list",
     "enabled": true,
     "url_page": "users",
-    "edit_form": "user",
     "return_link_caption": "Users",
+    "edit_subforms": {
+    },
     "control_types": {
         "user_id": "span",
         "login_cookie": "span",

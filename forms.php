@@ -443,8 +443,29 @@ function insert_form($form_name)
 
 function edit_form($form_name,$id)
 {
+  global $settings;
+  $form_config=$settings["forms"][$form_name];
   $record=\webdb\forms\get_record_by_id($form_name,$id);
-  return \webdb\forms\output_editor($form_name,$record,"edit","Update",$id);
+
+  $subforms="";
+  foreach ($form_config["edit_subforms"] as $subform_name => $subform_link_field)
+  {
+    $subform_params=array();
+    $subform_params["content"]=list_form_content($subform_name);
+    # TODO
+    #$subforms.=$subform_params["content"];
+  }
+
+  $data=\webdb\forms\output_editor($form_name,$record,"edit","Update",$id);
+  $edit_page_params=array();
+  $edit_page_params["record_edit_form"]=$data["content"];
+  $edit_page_params["subforms"]=$subforms;
+  $title=$data["title"];
+  $content=\webdb\forms\form_template_fill("edit_page",$edit_page_params);
+  $result=array();
+  $result["title"]=$title;
+  $result["content"]=$content;
+  return $result;
 }
 
 #####################################################################################################
