@@ -174,3 +174,53 @@ th.rotate
   {
     height: 60px;
   }
+
+#editor_form
+  {
+    float: left;
+    width: 40%;
+    padding-bottom: 10px;
+    width: 39%;
+  }
+
+#editor_subforms
+  {
+    margin-left: 40%;
+    margin-top: 42px;
+    padding-bottom: 10px;
+  }
+
+.subform_outer
+  {
+    padding: 0;
+    overflow: hidden;
+    border-style: solid;
+    border-width: 1px;
+    border-top-color: #999999;
+    border-left-color: #999999;
+    border-bottom-color: #FFFFFF;
+    border-right-color: #FFFFFF;
+  }
+
+.subform_inner
+  {
+    background-color: #fdf6e3;
+    padding: 0;
+    overflow: auto;
+    border-style: solid;
+    border-width: 1px;
+    border-top-color: #555555;
+    border-left-color: #555555;
+    border-bottom-color: #CCCCCC;
+    border-right-color: #CCCCCC;
+  }
+
+.subform_content
+  {
+    padding: 10px;
+  }
+
+.edit_record_table
+  {
+    width: 100%;
+  }

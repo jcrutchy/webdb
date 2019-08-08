@@ -52,7 +52,11 @@ function form_dispatch($url_page)
                 \webdb\forms\delete_selected_records($form_name);
             }
           }
-          $content=\webdb\forms\list_form_content($form_name);
+          $list_params=array();
+          $list_params["list"]=\webdb\forms\list_form_content($form_name);
+          $list_params["form_script_modified"]=\webdb\utils\webdb_resource_modified_timestamp("list.js");
+          $list_params["form_styles_modified"]=\webdb\utils\webdb_resource_modified_timestamp("list.css");
+          $content=\webdb\forms\form_template_fill("list_page",$list_params);
           \webdb\utils\output_page($content,$form_name);
       }
     }
@@ -192,13 +196,11 @@ function header_row($form_config)
 
 #####################################################################################################
 
-function list_form_content($form_name)
+function list_form_content($form_name,$records=false)
 {
   global $settings;
   $form_config=$settings["forms"][$form_name];
   $form_params=array();
-  $form_params["form_script_modified"]=\webdb\utils\webdb_resource_modified_timestamp("list.js");
-  $form_params["form_styles_modified"]=\webdb\utils\webdb_resource_modified_timestamp("list.css");
   $form_params["url_page"]=$form_config["url_page"];
   $max_field_name_width=0;
   foreach ($form_config["control_types"] as $field_name => $control_type)
@@ -321,8 +323,11 @@ function list_form_content($form_name)
   $form_params=array_merge($form_params,$head_params);
   $form_params["field_headers"]=$field_headers;
   $rows="";
-  $sql=\webdb\utils\sql_fill("form_list_fetch_all",$form_config);
-  $records=\webdb\sql\fetch_query($sql);
+  if ($records===false)
+  {
+    $sql=\webdb\utils\sql_fill("form_list_fetch_all",$form_config);
+    $records=\webdb\sql\fetch_query($sql);
+  }
   for ($i=0;$i<count($records);$i++)
   {
     $record=$records[$i];
@@ -436,7 +441,15 @@ function insert_form($form_name)
   global $settings;
   $form_config=$settings["forms"][$form_name];
   $record=$form_config["default_values"];
-  return \webdb\forms\output_editor($form_name,$record,"new","Insert",0);
+  $data=\webdb\forms\output_editor($form_name,$record,"insert","Insert",0);
+  $insert_page_params=array();
+  $insert_page_params["record_insert_form"]=$data["content"];
+  $insert_page_params["form_script_modified"]=\webdb\utils\webdb_resource_modified_timestamp("list.js");
+  $insert_page_params["form_styles_modified"]=\webdb\utils\webdb_resource_modified_timestamp("list.css");
+  $result=array();
+  $result["title"]=$data["title"];
+  $result["content"]=\webdb\forms\form_template_fill("insert_page",$insert_page_params);
+  return $result;
 }
 
 #####################################################################################################
@@ -446,24 +459,33 @@ function edit_form($form_name,$id)
   global $settings;
   $form_config=$settings["forms"][$form_name];
   $record=\webdb\forms\get_record_by_id($form_name,$id);
-
   $subforms="";
   foreach ($form_config["edit_subforms"] as $subform_name => $subform_link_field)
   {
+    $subform_config=$settings["forms"][$subform_name];
+    $subform_sql_params=array();
+    $subform_sql_params["database"]=$subform_config["database"];
+    $subform_sql_params["table"]=$subform_config["table"];
+    $subform_sql_params["sort_sql"]=$subform_config["sort_sql"];
+    $subform_sql_params["link_field_name"]=$subform_link_field;
+    $sql=\webdb\utils\sql_fill("subform_list_fetch",$subform_sql_params);
+    $sql_params=array();
+    $sql_params["id"]=$id;
+    $records=\webdb\sql\fetch_prepare($sql,$sql_params);
     $subform_params=array();
-    $subform_params["content"]=list_form_content($subform_name);
-    # TODO
-    #$subforms.=$subform_params["content"];
+    $subform_params["subform"]=list_form_content($subform_name,$records);
+    $subform=\webdb\forms\form_template_fill("subform",$subform_params);
+    $subforms.=$subform;
   }
-
   $data=\webdb\forms\output_editor($form_name,$record,"edit","Update",$id);
   $edit_page_params=array();
   $edit_page_params["record_edit_form"]=$data["content"];
   $edit_page_params["subforms"]=$subforms;
-  $title=$data["title"];
+  $edit_page_params["form_script_modified"]=\webdb\utils\webdb_resource_modified_timestamp("list.js");
+  $edit_page_params["form_styles_modified"]=\webdb\utils\webdb_resource_modified_timestamp("list.css");
   $content=\webdb\forms\form_template_fill("edit_page",$edit_page_params);
   $result=array();
-  $result["title"]=$title;
+  $result["title"]=$data["title"];
   $result["content"]=$content;
   return $result;
 }
@@ -562,7 +584,7 @@ function output_editor($form_name,$record,$command,$verb,$id)
         \webdb\utils\show_message("error: invalid control type '".$control_type."' for field '".$field_name."' on form '".$form_name."'");
     }
     $row_params=array();
-    $row_params["field_name"]=$field_name;
+    $row_params["field_name"]=$form_config["captions"][$field_name];
     $row_params["field_value"]=\webdb\forms\form_template_fill("field_edit_".$control_type,$field_params);
     $rows.=\webdb\forms\form_template_fill("field_row",$row_params);
   }
