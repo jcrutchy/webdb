@@ -60,7 +60,12 @@ function form_dispatch($url_page)
           $list_params["form_script_modified"]=\webdb\utils\webdb_resource_modified_timestamp("list.js");
           $list_params["form_styles_modified"]=\webdb\utils\webdb_resource_modified_timestamp("list.css");
           $content=\webdb\forms\form_template_fill("list_page",$list_params);
-          \webdb\utils\output_page($content,$form_name);
+          $title=$form_name;
+          if ($form_config["title"]<>"")
+          {
+            $title=$form_config["title"];
+          }
+          \webdb\utils\output_page($content,$title);
       }
     }
   }
