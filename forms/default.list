@@ -25,5 +25,8 @@
     "insert_new": true,
     "database": "",
     "table": "",
-    "sort_sql": ""
+    "sort_sql": "",
+    "records_sql": "",
+    "group_by": [
+    ]
 }

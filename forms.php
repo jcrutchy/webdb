@@ -14,42 +14,45 @@ function form_dispatch($url_page)
       switch ($form_config["form_type"])
       {
         case "list":
-          if (isset($_GET["cmd"])==true)
+          if ($form_config["records_sql"]=="")
           {
-            switch ($_GET["cmd"])
+            if (isset($_GET["cmd"])==true)
             {
-              case "edit":
-                if (isset($_GET["id"])==false)
-                {
-                  \webdb\utils\show_message("error: missing id parameter");
-                }
-                $data=\webdb\forms\edit_form($form_name,$_GET["id"]);
-                \webdb\utils\output_page($data["content"],$data["title"]);
-              case "insert":
-                $data=\webdb\forms\insert_form($form_name);
-                \webdb\utils\output_page($data["content"],$data["title"]);
+              switch ($_GET["cmd"])
+              {
+                case "edit":
+                  if (isset($_GET["id"])==false)
+                  {
+                    \webdb\utils\show_message("error: missing id parameter");
+                  }
+                  $data=\webdb\forms\edit_form($form_name,$_GET["id"]);
+                  \webdb\utils\output_page($data["content"],$data["title"]);
+                case "insert":
+                  $data=\webdb\forms\insert_form($form_name);
+                  \webdb\utils\output_page($data["content"],$data["title"]);
+              }
             }
-          }
-          if (isset($_POST["form_cmd"])==true)
-          {
-            $cmd=\webdb\utils\get_child_array_key($_POST,"form_cmd");
-            switch ($cmd)
+            if (isset($_POST["form_cmd"])==true)
             {
-              case "insert_confirm":
-                \webdb\forms\insert_record($form_name);
-              case "edit_confirm":
-                $id=\webdb\utils\get_child_array_key($_POST["form_cmd"],"edit_confirm");
-                \webdb\forms\update_record($form_name,$id);
-              case "delete":
-                $id=\webdb\utils\get_child_array_key($_POST["form_cmd"],"delete");
-                \webdb\forms\delete_confirmation($form_name,$id);
-              case "delete_confirm":
-                $id=\webdb\utils\get_child_array_key($_POST["form_cmd"],"delete_confirm");
-                \webdb\forms\delete_record($form_name,$id);
-              case "delete_selected":
-                \webdb\forms\delete_selected_confirmation($form_name);
-              case "delete_selected_confirm":
-                \webdb\forms\delete_selected_records($form_name);
+              $cmd=\webdb\utils\get_child_array_key($_POST,"form_cmd");
+              switch ($cmd)
+              {
+                case "insert_confirm":
+                  \webdb\forms\insert_record($form_name);
+                case "edit_confirm":
+                  $id=\webdb\utils\get_child_array_key($_POST["form_cmd"],"edit_confirm");
+                  \webdb\forms\update_record($form_name,$id);
+                case "delete":
+                  $id=\webdb\utils\get_child_array_key($_POST["form_cmd"],"delete");
+                  \webdb\forms\delete_confirmation($form_name,$id);
+                case "delete_confirm":
+                  $id=\webdb\utils\get_child_array_key($_POST["form_cmd"],"delete_confirm");
+                  \webdb\forms\delete_record($form_name,$id);
+                case "delete_selected":
+                  \webdb\forms\delete_selected_confirmation($form_name);
+                case "delete_selected_confirm":
+                  \webdb\forms\delete_selected_records($form_name);
+              }
             }
           }
           $list_params=array();
@@ -177,16 +180,16 @@ function header_row($form_config)
 {
   $params=array();
   $params["check_head"]="";
-  if ($form_config["multi_row_delete"]==true)
+  if (($form_config["multi_row_delete"]==true) and ($form_config["records_sql"]==""))
   {
     $params["check_head"]=\webdb\forms\form_template_fill("list_check_head");
   }
   $controls_count=0;
-  if ($form_config["individual_edit"]==true)
+  if (($form_config["individual_edit"]==true) and ($form_config["records_sql"]==""))
   {
     $controls_count++;
   }
-  if ($form_config["individual_delete"]==true)
+  if (($form_config["individual_delete"]==true) and ($form_config["records_sql"]==""))
   {
     $controls_count++;
   }
@@ -200,6 +203,11 @@ function list_form_content($form_name,$records=false)
 {
   global $settings;
   $form_config=$settings["forms"][$form_name];
+  if ($form_config["records_sql"]<>"")
+  {
+    $sql=\webdb\utils\sql_fill($form_config["records_sql"]);
+    $records=\webdb\sql\fetch_query($sql);
+  }
   $form_params=array();
   $form_params["url_page"]=$form_config["url_page"];
   $max_field_name_width=0;
@@ -319,7 +327,7 @@ function list_form_content($form_name,$records=false)
     }
     $field_headers.=\webdb\forms\form_template_fill("list_field_header",$header_params);
   }
-  $head_params=header_row($form_config);
+  $head_params=\webdb\forms\header_row($form_config);
   $form_params=array_merge($form_params,$head_params);
   $form_params["field_headers"]=$field_headers;
   $rows="";
@@ -331,6 +339,8 @@ function list_form_content($form_name,$records=false)
   for ($i=0;$i<count($records);$i++)
   {
     $record=$records[$i];
+
+    $group_by_fields=\webdb\utils\group_by_fields($form_config,$record); # TODO
 
     # is_row_locked($schema,$table,$key_field,$key_value)
 
@@ -364,7 +374,7 @@ function list_form_content($form_name,$records=false)
       $field_params["id"]=$row_params["id"];
       $field_params["url_page"]=$form_config["url_page"];
       $field_params["handlers"]="";
-      if ($form_config["individual_edit"]=="row")
+      if (($form_config["individual_edit"]=="row") and ($form_config["records_sql"]==""))
       {
         $field_params["handlers"]=\webdb\forms\form_template_fill("list_field_handlers",$field_params);
       }
@@ -402,16 +412,16 @@ function list_form_content($form_name,$records=false)
           break;
       }
       $row_params["check"]="";
-      if ($form_config["multi_row_delete"]==true)
+      if (($form_config["multi_row_delete"]==true) and ($form_config["records_sql"]==""))
       {
         $row_params["check"]=\webdb\forms\form_template_fill("list_check",$row_params);
       }
       $row_params["controls"]="";
-      if ($form_config["individual_edit"]=="button")
+      if (($form_config["individual_edit"]=="button") and ($form_config["records_sql"]==""))
       {
         $row_params["controls"]=\webdb\forms\form_template_fill("list_row_edit",$row_params);
       }
-      if ($form_config["individual_delete"]==true)
+      if (($form_config["individual_delete"]==true) and ($form_config["records_sql"]==""))
       {
         $row_params["controls"].=\webdb\forms\form_template_fill("list_row_del",$row_params);
       }
@@ -422,12 +432,12 @@ function list_form_content($form_name,$records=false)
   }
   $form_params["rows"]=$rows;
   $form_params["insert_control"]="";
-  if ($form_config["insert_new"]==true)
+  if (($form_config["insert_new"]==true) and ($form_config["records_sql"]==""))
   {
     $form_params["insert_control"]=\webdb\forms\form_template_fill("list_insert",$form_config);
   }
   $form_params["delete_selected_control"]="";
-  if ($form_config["multi_row_delete"]==true)
+  if (($form_config["multi_row_delete"]==true) and ($form_config["records_sql"]==""))
   {
     $form_params["delete_selected_control"]=\webdb\forms\form_template_fill("list_del_selected");
   }

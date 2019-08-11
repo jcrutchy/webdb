@@ -86,6 +86,19 @@ function sql_fill($sql_key,$params=false)
 
 #####################################################################################################
 
+function group_by_fields($form_config,$record)
+{
+  $result=array();
+  for ($i=0;$i<count($form_config["group_by"]);$i++)
+  {
+    $field_name=$form_config["group_by"][$i];
+    $result[$field_name]=$record[$field_name];
+  }
+  return $result;
+}
+
+#####################################################################################################
+
 function app_template_fill($template_key,$params=false,$tracking=array(),$custom_templates=false)
 {
   global $settings;
