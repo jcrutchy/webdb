@@ -40,3 +40,5 @@ executes webdb/sql/schema.sql
 $ php my_app/index.php load_app_schema
 executes my_app/sql/schema.sql
 (don't run on webdb index.php because requires database access parameters in settings.php)
+
+TODO: make a bit clearer where to run these from, and also how the common settings file works

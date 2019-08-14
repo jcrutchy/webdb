@@ -24,6 +24,7 @@ function auth_dispatch()
     \webdb\users\change_password();
   }
   $settings["user_record"]=\webdb\users\login();
+  $settings["logged_in_email"]=$settings["user_record"]["email"];
 }
 
 #####################################################################################################
@@ -71,16 +72,8 @@ function login()
   $login_form_params["login_styles_modified"]=\webdb\utils\webdb_resource_modified_timestamp("login.css");
   if ((isset($_POST["login_email"])==true) and (isset($_POST["login_password"])==true))
   {
-    if (isset($_POST["remember_me"])==true)
-    {
-      setcookie($settings["email_cookie"],$_POST["login_email"],time()+$settings["max_cookie_age"],"/");
-      $login_form_params["default_email"]=$_POST["login_email"];
-    }
-    else
-    {
-      setcookie($settings["email_cookie"],null,-1,"/");
-      $login_form_params["default_remember_me"]="";
-    }
+    setcookie($settings["email_cookie"],$_POST["login_email"],time()+$settings["max_cookie_age"],"/");
+    $login_form_params["default_email"]=$_POST["login_email"];
     $user_record=\webdb\users\get_user_record($_POST["login_email"]);
     if (password_verify($_POST["login_password"],$user_record["pw_hash"])==false)
     {
@@ -95,24 +88,16 @@ function login()
       \webdb\users\cancel_password_reset($user_record);
     }
     $value_items=array();
-    if (isset($_POST["remember_me"])==true)
-    {
-      $crypto_strong=true;
-      $key=base64_encode(openssl_random_pseudo_bytes(30,$crypto_strong));
-      $options=array();
-      $options["cost"]=$settings["password_bcrypt_cost"];
-      $cookie=password_hash($_POST["login_email"].$key,PASSWORD_BCRYPT,$options);
-      $value_items["login_cookie"]=$cookie;
-      $expiry=microtime(true)+$settings["max_cookie_age"];
-      setcookie($settings["login_cookie"],$key,$expiry,"/");
-    }
-    else
-    {
-      setcookie($settings["login_cookie"],null,-1,"/");
-      $value_items["login_cookie"]="";
-    }
+    $crypto_strong=true;
+    $key=base64_encode(openssl_random_pseudo_bytes(30,$crypto_strong));
+    $options=array();
+    $options["cost"]=$settings["password_bcrypt_cost"];
+    $cookie=password_hash($key,PASSWORD_BCRYPT,$options);
+    $value_items["login_cookie"]=$cookie;
+    $expiry=microtime(true)+$settings["max_cookie_age"];
+    setcookie($settings["login_cookie"],$key,$expiry,"/");
     \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
-    return $user_record;
+    \webdb\utils\redirect($settings["app_web_index"]);
   }
   elseif ((isset($_COOKIE[$settings["login_cookie"]])==true) and (isset($_COOKIE[$settings["email_cookie"]])==true))
   {
@@ -121,7 +106,7 @@ function login()
     {
       \webdb\users\cancel_password_reset($user_record);
     }
-    if (password_verify($user_record["email"].$_COOKIE[$settings["login_cookie"]],$user_record["login_cookie"])==true)
+    if (password_verify($_COOKIE[$settings["login_cookie"]],$user_record["login_cookie"])==true)
     {
       return $user_record;
     }
@@ -160,7 +145,7 @@ function reset_password()
     {
       continue;
     }
-    if (password_verify($record["email"].$_GET["reset_password"],$record["pw_reset_key"])==true)
+    if (password_verify($_GET["reset_password"],$record["pw_reset_key"])==true)
     {
       $validated=$record;
       break;
@@ -198,7 +183,7 @@ function send_reset_password_message()
   $key=base64_encode(openssl_random_pseudo_bytes(30,$crypto_strong));
   $options=array();
   $options["cost"]=$settings["password_bcrypt_cost"];
-  $value_items["pw_reset_key"]=password_hash($_POST["login_email"].$key,PASSWORD_BCRYPT,$options);
+  $value_items["pw_reset_key"]=password_hash($key,PASSWORD_BCRYPT,$options);
   $value_items["pw_reset_time"]=microtime(true);
   $where_items=array();
   $where_items["user_id"]=$user_record["user_id"];

@@ -341,14 +341,30 @@ function list_form_content($form_name,$records=false)
     $sql=\webdb\utils\sql_fill("form_list_fetch_all",$form_config);
     $records=\webdb\sql\fetch_query($sql);
   }
+  $previous_group_by_fields=false;
+  $row_spans=array();
+  $current_group=0;
   for ($i=0;$i<count($records);$i++)
   {
     $record=$records[$i];
-
-    $group_by_fields=\webdb\utils\group_by_fields($form_config,$record); # TODO
-
-    # is_row_locked($schema,$table,$key_field,$key_value)
-
+    $group_by_fields=\webdb\utils\group_by_fields($form_config,$record);
+    if ($previous_group_by_fields===$group_by_fields)
+    {
+      $row_spans[$i]=0;
+      $row_spans[$current_group]=$row_spans[$current_group]+1;
+    }
+    else
+    {
+      $row_spans[$i]=1;
+      $current_group=$i;
+      $previous_group_by_fields=$group_by_fields;
+    }
+  }
+  $previous_group_by_fields=false;
+  for ($i=0;$i<count($records);$i++)
+  {
+    $record=$records[$i];
+    # TODO: is_row_locked($schema,$table,$key_field,$key_value)
     $row_params=array();
     $row_params["url_page"]=$form_config["url_page"];
     $row_params["id"]=$record[$form_config["db_id_field_name"]];
@@ -378,43 +394,61 @@ function list_form_content($form_name,$records=false)
       $field_params["field_name"]=$field_name;
       $field_params["id"]=$row_params["id"];
       $field_params["url_page"]=$form_config["url_page"];
+      $field_params["group_span"]="";
       $field_params["handlers"]="";
       if (($form_config["individual_edit"]=="row") and ($form_config["records_sql"]==""))
       {
         $field_params["handlers"]=\webdb\forms\form_template_fill("list_field_handlers",$field_params);
       }
-      switch ($control_type)
+      $skip_field=false;
+      if (in_array($field_name,$form_config["group_by"])==true)
       {
-        case "text":
-        case "span":
-        case "memo":
-        case "combobox":
-        case "listbox":
-        case "radiogroup":
-          $fields.=\webdb\forms\form_template_fill("list_field",$field_params);
-          break;
-        case "date":
-          if ($record[$field_name]==\webdb\sql\zero_sql_timestamp())
-          {
-            $field_params["value"]=\webdb\utils\template_fill("empty_cell");
-          }
-          else
-          {
-            $field_params["value"]=date("Y-m-d",strtotime($record[$field_name]));
-          }
-          $fields.=\webdb\forms\form_template_fill("list_field",$field_params);
-          break;
-        case "checkbox":
-          if ($record[$field_name]==true)
-          {
-            $field_params["value"]=\webdb\utils\template_fill("check_tick");
-          }
-          else
-          {
-            $field_params["value"]=\webdb\utils\template_fill("check_cross");
-          }
-          $fields.=\webdb\forms\form_template_fill("list_field_check",$field_params);
-          break;
+        if ($row_spans[$i]==0)
+        {
+          $skip_field=true;
+        }
+        else
+        {
+          $group_span_params=array();
+          $group_span_params["row_span"]=$row_spans[$i];
+          $field_params["group_span"]=\webdb\forms\form_template_fill("group_span",$group_span_params);
+        }
+      }
+      if ($skip_field==false)
+      {
+        switch ($control_type)
+        {
+          case "text":
+          case "span":
+          case "memo":
+          case "combobox":
+          case "listbox":
+          case "radiogroup":
+            $fields.=\webdb\forms\form_template_fill("list_field",$field_params);
+            break;
+          case "date":
+            if ($record[$field_name]==\webdb\sql\zero_sql_timestamp())
+            {
+              $field_params["value"]=\webdb\utils\template_fill("empty_cell");
+            }
+            else
+            {
+              $field_params["value"]=date("Y-m-d",strtotime($record[$field_name]));
+            }
+            $fields.=\webdb\forms\form_template_fill("list_field",$field_params);
+            break;
+          case "checkbox":
+            if ($record[$field_name]==true)
+            {
+              $field_params["value"]=\webdb\utils\template_fill("check_tick");
+            }
+            else
+            {
+              $field_params["value"]=\webdb\utils\template_fill("check_cross");
+            }
+            $fields.=\webdb\forms\form_template_fill("list_field_check",$field_params);
+            break;
+        }
       }
       $row_params["check"]="";
       if (($form_config["multi_row_delete"]==true) and ($form_config["records_sql"]==""))
