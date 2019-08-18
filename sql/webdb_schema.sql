@@ -8,12 +8,12 @@ CREATE SCHEMA IF NOT EXISTS `webdb` DEFAULT CHARACTER SET utf8 ;
 DROP TABLE IF EXISTS `webdb`.`users`;
 CREATE TABLE IF NOT EXISTS `webdb`.`users` (
   `user_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `login_cookie` VARCHAR(255) NOT NULL,
+  `login_cookie` VARCHAR(255) DEFAULT "",
   `enabled` TINYINT NOT NULL DEFAULT 1,
   `email` VARCHAR(255) NOT NULL,
   `pw_hash` VARCHAR(255) NOT NULL,
-  `pw_reset_key` VARCHAR(255) NOT NULL,
-  `pw_reset_time` BIGINT NOT NULL,
+  `pw_reset_key` VARCHAR(255) DEFAULT "",
+  `pw_reset_time` BIGINT DEFAULT 0,
   PRIMARY KEY (`user_id`),
   UNIQUE INDEX `email` (`email` ASC))
 ENGINE = InnoDB

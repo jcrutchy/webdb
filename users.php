@@ -52,7 +52,7 @@ function cancel_password_reset($user_record)
   $where_items["user_id"]=$user_record["user_id"];
   $value_items=array();
   $value_items["pw_reset_key"]="";
-  $value_items["pw_reset_time"]=\webdb\sql\zero_sql_timestamp();
+  $value_items["pw_reset_time"]=0;
   \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
 }
 

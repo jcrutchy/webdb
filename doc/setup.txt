@@ -1,37 +1,95 @@
-SETUP
-=====
+server setup
+============
 
-/etc/apt/sources.list
+install debian with xfce4
+
+run "su -" (not just "su") for superuser with proper path env var set
+
+# nano /etc/apt/sources.list
 ----
-deb http://ftp.au.debian.org/debian/ stretch main contrib non-free
-deb http://security.debian.org/debian-security stretch/updates main contrib non-free
-deb http://ftp.au.debian.org/debian/ stretch-updates main contrib non-free
+deb http://deb.debian.org/debian/ buster main contrib non-free
+deb http://security.debian.org/debian-security buster/updates main contrib non-free
+deb http://deb.debian.org/debian/ buster-updates main contrib non-free
 ----
 
 # apt-get update
 # apt-get upgrade
-# apt-get install msttcorefonts
+
+# apt-get install build-essential module-assistant
+# m-a prepare
+
+insert guest additions cd image (from virtualbox toolbar)
+
+# cd /media/cdrom
+# bash VBoxLinuxAdditions.run
+
+reboot system for guest addition kernel modules to take effect
+
+~~~~
+
+# apt-get install msttcorefonts php apache2 mariadb-server php-gd git geany adminer
 
 # nano /etc/apache2/envvars
+----
+export APACHE_RUN_USER=<myuser>
+export APACHE_RUN_GROUP=<myuser>
+----
 
-export APACHE_RUN_USER=myuser
-export APACHE_RUN_GROUP=myuser
+# nano /etc/apache2/apache2.conf
+----
+ServerName <your-server-name>
+----
+
+$ cd ~
+$ mkdir dev
+$ cd dev
+$ mkdir apache_logs
+$ mkdir public
+$ mkdir pwd
+$ cd pwd
+$ touch sql_admin
+$ touch sql_user
+
+sql_admin:
+----
+webdb_admin
+<password>
+----
+
+sql_user:
+----
+webdb_user
+<password>
+----
+
+# nano /etc/apache2/sites-available/000-default.conf
+----
+DocumentRoot /home/<myuser>/dev/public/
+DirectoryIndex index.php
+
+<Directory /home/<myuser>/dev/public>
+  Options Indexes FollowSymLinks
+  AllowOverride all
+  Require all granted
+</Directory>
+
+ErrorLog /home/<myuser>/dev/apache_logs/error.log
+CustomLog /home/<myuser>/dev/apache_logs/access.log combined
+----
 
 # service apache2 reload
 
+# mysql_secure_installation
+follow prompts
+
 # mysql -u root -p
-> create user 'webdb_admin'@'localhost' identified by 'some_password';
+> create user 'webdb_admin'@'localhost' identified by '<password>';
 > grant all privileges on *.* to 'webdb_admin'@'localhost';
-> create user 'webdb_user'@'localhost' identified by 'some_password';
-> grant select,insert,update,delete on app_schema.* to 'webdb_user'@'localhost';
+> create user 'webdb_user'@'localhost' identified by '<password>';
+> grant select,insert,update,delete on *.* to 'webdb_user'@'localhost';
 > exit
 
-# nano /var/lib/phpmyadmin/blowfish_secret.inc.php
-
-use https://www.question-defense.com/tools/phpmyadmin-blowfish-secret-generator to generate string
-
-# chown myuser:myuser /var/lib/phpmyadmin/blowfish_secret.inc.php
-# chmod 600 /var/lib/phpmyadmin/blowfish_secret.inc.php
+# adduser <myuser> vboxsf
 
 $ php my_app/index.php load_webdb_schema
 executes webdb/sql/schema.sql
@@ -42,3 +100,18 @@ executes my_app/sql/schema.sql
 (don't run on webdb index.php because requires database access parameters in settings.php)
 
 TODO: make a bit clearer where to run these from, and also how the common settings file works
+
+~~~~
+
+# apt-get install adminer
+# echo "Alias /adminer.php /usr/share/adminer/adminer.php" | tee /etc/apache2/conf-available/adminer.conf
+# a2enconf adminer
+http://localhost/adminer.php should work but doesn't for some unknown reason
+
+~~~~
+
+# apt-get install phpmyadmin
+# nano /var/lib/phpmyadmin/blowfish_secret.inc.php
+use https://www.question-defense.com/tools/phpmyadmin-blowfish-secret-generator to generate string
+# chown myuser:myuser /var/lib/phpmyadmin/blowfish_secret.inc.php
+# chmod 600 /var/lib/phpmyadmin/blowfish_secret.inc.php
