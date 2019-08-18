@@ -120,7 +120,7 @@ function app_template_fill($template_key,$params=false,$tracking=array(),$custom
     $params["modified"]=filemtime($filename);
     $script=template_fill("app_resource_script",$params);
   }
-  return $styles.template_fill($template_key,$params,$tracking,$custom_templates).$script;
+  return $styles.PHP_EOL.template_fill($template_key,$params,$tracking,$custom_templates).PHP_EOL.$script;
 }
 
 #####################################################################################################
@@ -309,18 +309,15 @@ function is_cli_mode()
 
 #####################################################################################################
 
-function webdb_resource_modified_timestamp($resource_file)
+function resource_modified_timestamp($resource_file,$source="webdb")
 {
   global $settings;
-  $filename=$settings["webdb_resources_path"].$resource_file;
+  $filename=$settings[$source."_resources_path"].$resource_file;
   if (file_exists($filename)==true)
   {
     return filemtime($filename);
   }
-  else
-  {
-    return "error";
-  }
+  return "error";
 }
 
 #####################################################################################################
@@ -345,8 +342,8 @@ function output_page($content,$title)
 {
   $page_params=array();
   $page_params["page_title"]=$title;
-  $page_params["global_styles_modified"]=\webdb\utils\webdb_resource_modified_timestamp("global.css");
-  $page_params["global_script_modified"]=\webdb\utils\webdb_resource_modified_timestamp("global.js");
+  $page_params["global_styles_modified"]=\webdb\utils\resource_modified_timestamp("global.css");
+  $page_params["global_script_modified"]=\webdb\utils\resource_modified_timestamp("global.js");
   $page_params["body_text"]=$content;
   die(\webdb\utils\template_fill("global".DIRECTORY_SEPARATOR."page",$page_params));
 }

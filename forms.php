@@ -57,8 +57,8 @@ function form_dispatch($url_page)
           }
           $list_params=array();
           $list_params["list"]=\webdb\forms\list_form_content($form_name);
-          $list_params["form_script_modified"]=\webdb\utils\webdb_resource_modified_timestamp("list.js");
-          $list_params["form_styles_modified"]=\webdb\utils\webdb_resource_modified_timestamp("list.css");
+          $list_params["form_script_modified"]=\webdb\utils\resource_modified_timestamp("list.js");
+          $list_params["form_styles_modified"]=\webdb\utils\resource_modified_timestamp("list.css");
           $content=\webdb\forms\form_template_fill("list_page",$list_params);
           $title=$form_name;
           if ($form_config["title"]<>"")
@@ -92,8 +92,8 @@ function get_calendar($field_names)
     }
     $calendar_params=array();
     $calendar_params["calendar_inputs"]=implode(",",$field_names);
-    $calendar_params["calendar_styles_modified"]=\webdb\utils\webdb_resource_modified_timestamp("calendar.css");
-    $calendar_params["calendar_script_modified"]=\webdb\utils\webdb_resource_modified_timestamp("calendar.js");
+    $calendar_params["calendar_styles_modified"]=\webdb\utils\resource_modified_timestamp("calendar.css");
+    $calendar_params["calendar_script_modified"]=\webdb\utils\resource_modified_timestamp("calendar.js");
     return \webdb\forms\form_template_fill("calendar",$calendar_params);
   }
   return "";
@@ -493,8 +493,8 @@ function insert_form($form_name)
   $data=\webdb\forms\output_editor($form_name,$record,"insert","Insert",0);
   $insert_page_params=array();
   $insert_page_params["record_insert_form"]=$data["content"];
-  $insert_page_params["form_script_modified"]=\webdb\utils\webdb_resource_modified_timestamp("list.js");
-  $insert_page_params["form_styles_modified"]=\webdb\utils\webdb_resource_modified_timestamp("list.css");
+  $insert_page_params["form_script_modified"]=\webdb\utils\resource_modified_timestamp("list.js");
+  $insert_page_params["form_styles_modified"]=\webdb\utils\resource_modified_timestamp("list.css");
   $result=array();
   $result["title"]=$data["title"];
   $result["content"]=\webdb\forms\form_template_fill("insert_page",$insert_page_params);
@@ -530,8 +530,8 @@ function edit_form($form_name,$id)
   $edit_page_params=array();
   $edit_page_params["record_edit_form"]=$data["content"];
   $edit_page_params["subforms"]=$subforms;
-  $edit_page_params["form_script_modified"]=\webdb\utils\webdb_resource_modified_timestamp("list.js");
-  $edit_page_params["form_styles_modified"]=\webdb\utils\webdb_resource_modified_timestamp("list.css");
+  $edit_page_params["form_script_modified"]=\webdb\utils\resource_modified_timestamp("list.js");
+  $edit_page_params["form_styles_modified"]=\webdb\utils\resource_modified_timestamp("list.css");
   $content=\webdb\forms\form_template_fill("edit_page",$edit_page_params);
   $result=array();
   $result["title"]=$data["title"];

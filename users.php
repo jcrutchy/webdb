@@ -68,8 +68,8 @@ function login()
     $login_form_params["default_email"]=$_COOKIE[$settings["email_cookie"]];
   }
   $login_form_params["default_remember_me"]=\webdb\utils\template_fill("checkbox_checked");
-  $login_form_params["login_script_modified"]=\webdb\utils\webdb_resource_modified_timestamp("login.js");
-  $login_form_params["login_styles_modified"]=\webdb\utils\webdb_resource_modified_timestamp("login.css");
+  $login_form_params["login_script_modified"]=\webdb\utils\resource_modified_timestamp("login.js");
+  $login_form_params["login_styles_modified"]=\webdb\utils\resource_modified_timestamp("login.css");
   if ((isset($_POST["login_email"])==true) and (isset($_POST["login_password"])==true))
   {
     setcookie($settings["email_cookie"],$_POST["login_email"],time()+$settings["max_cookie_age"],"/");
@@ -230,8 +230,8 @@ function change_password($password_reset_user=false)
     \webdb\utils\redirect($settings["app_web_index"]);
   }
   $change_password_params=array();
-  $change_password_params["login_script_modified"]=\webdb\utils\webdb_resource_modified_timestamp("login.js");
-  $change_password_params["login_styles_modified"]=\webdb\utils\webdb_resource_modified_timestamp("login.css");
+  $change_password_params["login_script_modified"]=\webdb\utils\resource_modified_timestamp("login.js");
+  $change_password_params["login_styles_modified"]=\webdb\utils\resource_modified_timestamp("login.css");
   if ($password_reset_user===false)
   {
     $change_password_params["old_password_default"]="";

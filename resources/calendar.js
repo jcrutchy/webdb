@@ -55,7 +55,7 @@ function show_calendar(element)
   var xy=get_element_position(calendar_selected_input);
   var width=calendar_selected_input.clientWidth || calendar_selected_input.offsetWidth;
   calendar.style.left=(xy[0]+width+10)+"px";
-  calendar.style.top=(xy[1])+"px";
+  calendar.style.top=(xy[1])+"px"; // TODO: look into vertical position
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
