@@ -1,0 +1,5 @@
+
+content generated using the \webdb\utils\app_template_fill function
+will have css and js files automatically linked with modified timestamps if
+files with the same name as the template exists under app_resources_path
+

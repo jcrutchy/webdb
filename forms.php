@@ -360,6 +360,14 @@ function list_form_content($form_name,$records=false)
       $previous_group_by_fields=$group_by_fields;
     }
   }
+  $lookup_records=array();
+  foreach ($form_config["control_types"] as $field_name => $control_type)
+  {
+    if (isset($form_config["lookups"][$field_name])==true)
+    {
+      $lookup_records[$field_name]=\webdb\forms\lookup_field_data($form_name,$field_name);
+    }
+  }
   $previous_group_by_fields=false;
   for ($i=0;$i<count($records);$i++)
   {
@@ -421,9 +429,23 @@ function list_form_content($form_name,$records=false)
           case "text":
           case "span":
           case "memo":
+            $fields.=\webdb\forms\form_template_fill("list_field",$field_params);
+            break;
           case "combobox":
           case "listbox":
           case "radiogroup":
+            for ($j=0;$j<count($lookup_records[$field_name]);$j++)
+            {
+              $key_field_name=$form_config["lookups"][$field_name]["key_field"];
+              $display_field_name=$form_config["lookups"][$field_name]["display_field"];
+              $key_value=$lookup_records[$field_name][$j][$key_field_name];
+              $display_value=$lookup_records[$field_name][$j][$display_field_name];
+              if ($record[$field_name]==$key_value)
+              {
+                $field_params["value"]=$display_value;
+                break;
+              }
+            }
             $fields.=\webdb\forms\form_template_fill("list_field",$field_params);
             break;
           case "date":
@@ -541,6 +563,33 @@ function edit_form($form_name,$id)
 
 #####################################################################################################
 
+function lookup_field_data($form_name,$field_name)
+{
+  global $settings;
+  $form_config=$settings["forms"][$form_name];
+  if (isset($form_config["lookups"][$field_name])==false)
+  {
+    \webdb\utils\show_message("error: invalid lookup config for field '".$field_name."' in form '".$form_name."' (lookup config missing)");
+  }
+  $lookup_config=$form_config["lookups"][$field_name];
+  $config_keys=array("database","table","key_field","display_field");
+  for ($i=0;$i<count($config_keys);$i++)
+  {
+    if (isset($lookup_config[$config_keys[$i]])==false)
+    {
+      \webdb\utils\show_message("error: invalid lookup config for field '".$field_name."' in form '".$form_name."' (lookup config key '".$config_keys[$i]."' missing)");
+    }
+    if ($lookup_config[$config_keys[$i]]=="")
+    {
+      \webdb\utils\show_message("error: invalid lookup config for field '".$field_name."' in form '".$form_name."' (lookup config key '".$config_keys[$i]."' cannot be empty)");
+    }
+  }
+  $sql=\webdb\utils\sql_fill("form_lookup",$lookup_config);
+  return \webdb\sql\fetch_query($sql);
+}
+
+#####################################################################################################
+
 function output_editor($form_name,$record,$command,$verb,$id)
 {
   global $settings;
@@ -565,25 +614,8 @@ function output_editor($form_name,$record,$command,$verb,$id)
       case "listbox":
       case "radiogroup":
         $options="";
-        if (isset($form_config["lookups"][$field_name])==false)
-        {
-          \webdb\utils\show_message("error: invalid lookup config for field '".$field_name."' in form '".$form_name."' (lookup config missing)");
-        }
+        $records=\webdb\forms\lookup_field_data($form_name,$field_name);
         $lookup_config=$form_config["lookups"][$field_name];
-        $config_keys=array("database","table","key_field","display_field");
-        for ($i=0;$i<count($config_keys);$i++)
-        {
-          if (isset($lookup_config[$config_keys[$i]])==false)
-          {
-            \webdb\utils\show_message("error: invalid lookup config for field '".$field_name."' in form '".$form_name."' (lookup config key '".$config_keys[$i]."' missing)");
-          }
-          if ($lookup_config[$config_keys[$i]]=="")
-          {
-            \webdb\utils\show_message("error: invalid lookup config for field '".$field_name."' in form '".$form_name."' (lookup config key '".$config_keys[$i]."' cannot be empty)");
-          }
-        }
-        $sql=\webdb\utils\sql_fill("form_lookup",$lookup_config);
-        $records=\webdb\sql\fetch_query($sql);
         $blank_record=array();
         $blank_record[$lookup_config["key_field"]]="";
         $blank_record[$lookup_config["display_field"]]="";
