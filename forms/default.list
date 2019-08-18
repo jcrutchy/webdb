@@ -18,7 +18,7 @@
     },
     "lookups": {
     },
-    "db_id_field_name": "",
+    "primary_key": "",
     "command_caption_noun": "",
     "multi_row_delete": true,
     "individual_delete": true,

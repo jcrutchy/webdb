@@ -45,7 +45,7 @@
     },
     "lookups": {
     },
-    "db_id_field_name": "user_id",
+    "primary_key": "user_id",
     "command_caption_noun": "User",
     "multi_row_delete": false,
     "individual_delete": true,

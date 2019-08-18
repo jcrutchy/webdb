@@ -375,7 +375,7 @@ function list_form_content($form_name,$records=false)
     # TODO: is_row_locked($schema,$table,$key_field,$key_value)
     $row_params=array();
     $row_params["url_page"]=$form_config["url_page"];
-    $row_params["id"]=$record[$form_config["db_id_field_name"]];
+    $row_params["id"]=$record[$form_config["primary_key"]];
     $fields="";
     foreach ($form_config["control_types"] as $field_name => $control_type)
     {
@@ -758,7 +758,7 @@ function update_record($form_name,$id)
   $form_config=$settings["forms"][$form_name];
   $value_items=\webdb\forms\process_form_data_fields($form_name);
   $where_items=array();
-  $where_items[$form_config["db_id_field_name"]]=$id;
+  $where_items[$form_config["primary_key"]]=$id;
   \webdb\sql\sql_update($value_items,$where_items,$form_config["table"],$form_config["database"]);
   \webdb\forms\page_redirect($form_name);
 }
@@ -831,7 +831,7 @@ function delete_record($form_name,$id)
   global $settings;
   $form_config=$settings["forms"][$form_name];
   $sql_params=array();
-  $sql_params[$form_config["db_id_field_name"]]=$id;
+  $sql_params[$form_config["primary_key"]]=$id;
   \webdb\sql\sql_delete($sql_params,$form_config["table"],$form_config["database"]);
   \webdb\forms\page_redirect($form_name);
 }
@@ -869,7 +869,7 @@ function delete_selected_confirmation($form_name)
       $field_params["value"]=htmlspecialchars($field_value);
       $fields.=\webdb\forms\form_template_fill("list_field",$field_params);
     }
-    $row_params["id"]=$record[$form_config["db_id_field_name"]];
+    $row_params["id"]=$record[$form_config["primary_key"]];
     $row_params["fields"]=$fields;
     $rows.=\webdb\forms\form_template_fill("list_del_selected_confirm_row",$row_params);
   }
@@ -891,7 +891,7 @@ function delete_selected_records($form_name)
   foreach ($_POST["id"] as $id => $value)
   {
     $sql_params=array();
-    $sql_params[$form_config["db_id_field_name"]]=$id;
+    $sql_params[$form_config["primary_key"]]=$id;
     \webdb\sql\sql_delete($sql_params,$form_config["table"],$form_config["database"]);
   }
   \webdb\forms\page_redirect($form_name);

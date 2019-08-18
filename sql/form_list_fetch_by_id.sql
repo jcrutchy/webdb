@@ -1,1 +1,1 @@
-SELECT * FROM `%%database%%`.`%%table%%` WHERE (%%db_id_field_name%%=:id);
+SELECT * FROM `%%database%%`.`%%table%%` WHERE (%%primary_key%%=:id);
