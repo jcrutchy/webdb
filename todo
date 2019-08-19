@@ -1,2 +1,8 @@
-- for primary_key list form parameter, allow multi-field primary key (comma-delimited) for editing link tables
+- add column headers to delete selected confirmation page
 - event handlers
+- lookup custom sql
+- ability to edit all records at once
+- ability to insert/edit/delete records for subforms from within parent form
+- link subform
+- insert/edit group captions
+- friendly error message when deleting record fails due to foreign key

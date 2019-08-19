@@ -68,7 +68,12 @@ function sql_delete($items,$table,$schema,$is_admin=false)
 function sql_update($value_items,$where_items,$table,$schema,$is_admin=false)
 {
   $value_fieldnames=array_keys($value_items);
-  $value_placeholders=array_map("\webdb\sql\callback_prepare",$value_fieldnames);
+  $value_placeholder_names=array();
+  for ($i=0;$i<count($value_fieldnames);$i++)
+  {
+    $value_placeholder_names[]=$value_fieldnames[$i]."_value";
+  }
+  $value_placeholders=array_map("\webdb\sql\callback_prepare",$value_placeholder_names);
   $value_fieldnames=array_map("\webdb\sql\callback_quote",$value_fieldnames);
   $values_array=array();
   for ($i=0;$i<count($value_items);$i++)
@@ -76,7 +81,12 @@ function sql_update($value_items,$where_items,$table,$schema,$is_admin=false)
     $values_array[]=$value_fieldnames[$i]."=".$value_placeholders[$i];
   }
   $values_string=implode(",",$values_array);
-  $items=array_merge($value_items,$where_items);
+  $update_value_items=array();
+  foreach ($value_items as $field_name => $field_value)
+  {
+    $update_value_items[$field_name."_value"]=$field_value;
+  }
+  $items=array_merge($update_value_items,$where_items);
   $sql="UPDATE `$schema`.`".$table."` SET ".$values_string." WHERE (".\webdb\sql\build_prepared_where($where_items).")";
   return \webdb\sql\execute_prepare($sql,$items,"",$is_admin);
 }

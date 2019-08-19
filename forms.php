@@ -204,6 +204,19 @@ function header_row($form_config)
 
 #####################################################################################################
 
+function primary_key_url_value($form_config,$record)
+{
+  $key_fields=explode(\webdb\index\PRIMARY_KEY_DELIMITER,$form_config["primary_key"]);
+  $values=array();
+  for ($i=0;$i<count($key_fields);$i++)
+  {
+    $values[]=$record[$key_fields[$i]];
+  }
+  return implode(\webdb\index\PRIMARY_KEY_DELIMITER,$values);
+}
+
+#####################################################################################################
+
 function list_form_content($form_name,$records=false)
 {
   global $settings;
@@ -375,7 +388,7 @@ function list_form_content($form_name,$records=false)
     # TODO: is_row_locked($schema,$table,$key_field,$key_value)
     $row_params=array();
     $row_params["url_page"]=$form_config["url_page"];
-    $row_params["id"]=$record[$form_config["primary_key"]];
+    $row_params["id"]=\webdb\forms\primary_key_url_value($form_config,$record);
     $fields="";
     foreach ($form_config["control_types"] as $field_name => $control_type)
     {
@@ -616,10 +629,14 @@ function output_editor($form_name,$record,$command,$verb,$id)
         $options="";
         $records=\webdb\forms\lookup_field_data($form_name,$field_name);
         $lookup_config=$form_config["lookups"][$field_name];
-        $blank_record=array();
-        $blank_record[$lookup_config["key_field"]]="";
-        $blank_record[$lookup_config["display_field"]]="";
-        array_unshift($records,$blank_record);
+        $primary_key_fields=explode(\webdb\index\PRIMARY_KEY_DELIMITER,$form_config["primary_key"]);
+        if (in_array($lookup_config["key_field"],$primary_key_fields)==false)
+        {
+          $blank_record=array();
+          $blank_record[$lookup_config["key_field"]]="";
+          $blank_record[$lookup_config["display_field"]]="";
+          array_unshift($records,$blank_record);
+        }
         for ($i=0;$i<count($records);$i++)
         {
           $loop_record=$records[$i];
@@ -757,10 +774,23 @@ function update_record($form_name,$id)
   global $settings;
   $form_config=$settings["forms"][$form_name];
   $value_items=\webdb\forms\process_form_data_fields($form_name);
-  $where_items=array();
-  $where_items[$form_config["primary_key"]]=$id;
+  $where_items=\webdb\forms\primary_key_conditions($form_config,$id);
   \webdb\sql\sql_update($value_items,$where_items,$form_config["table"],$form_config["database"]);
   \webdb\forms\page_redirect($form_name);
+}
+
+#####################################################################################################
+
+function primary_key_conditions($form_config,$id)
+{
+  $fieldnames=explode(\webdb\index\PRIMARY_KEY_DELIMITER,$form_config["primary_key"]);
+  $values=explode(\webdb\index\PRIMARY_KEY_DELIMITER,$id);
+  $items=array();
+  for ($i=0;$i<count($fieldnames);$i++)
+  {
+    $items[$fieldnames[$i]]=$values[$i];
+  }
+  return $items;
 }
 
 #####################################################################################################
@@ -769,10 +799,10 @@ function get_record_by_id($form_name,$id)
 {
   global $settings;
   $form_config=$settings["forms"][$form_name];
-  $sql_params=array();
-  $sql_params["id"]=$id;
+  $items=\webdb\forms\primary_key_conditions($form_config,$id);
+  $form_config["primary_key_conditions"]=\webdb\sql\build_prepared_where($items);
   $sql=\webdb\utils\sql_fill("form_list_fetch_by_id",$form_config);
-  $records=\webdb\sql\fetch_prepare($sql,$sql_params);
+  $records=\webdb\sql\fetch_prepare($sql,$items);
   if (count($records)<>1)
   {
     \webdb\utils\show_message("error: id '".$id."' is not unique for query: ".$sql);
@@ -830,9 +860,8 @@ function delete_record($form_name,$id)
 {
   global $settings;
   $form_config=$settings["forms"][$form_name];
-  $sql_params=array();
-  $sql_params[$form_config["primary_key"]]=$id;
-  \webdb\sql\sql_delete($sql_params,$form_config["table"],$form_config["database"]);
+  $where_items=primary_key_conditions($form_config,$id);
+  \webdb\sql\sql_delete($where_items,$form_config["table"],$form_config["database"]);
   \webdb\forms\page_redirect($form_name);
 }
 
@@ -869,7 +898,7 @@ function delete_selected_confirmation($form_name)
       $field_params["value"]=htmlspecialchars($field_value);
       $fields.=\webdb\forms\form_template_fill("list_field",$field_params);
     }
-    $row_params["id"]=$record[$form_config["primary_key"]];
+    $row_params["id"]=\webdb\forms\primary_key_url_value($form_config,$record);
     $row_params["fields"]=$fields;
     $rows.=\webdb\forms\form_template_fill("list_del_selected_confirm_row",$row_params);
   }
@@ -890,9 +919,8 @@ function delete_selected_records($form_name)
   $form_config=$settings["forms"][$form_name];
   foreach ($_POST["id"] as $id => $value)
   {
-    $sql_params=array();
-    $sql_params[$form_config["primary_key"]]=$id;
-    \webdb\sql\sql_delete($sql_params,$form_config["table"],$form_config["database"]);
+    $where_items=primary_key_conditions($form_config,$id);
+    \webdb\sql\sql_delete($where_items,$form_config["table"],$form_config["database"]);
   }
   \webdb\forms\page_redirect($form_name);
 }

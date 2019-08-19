@@ -19,6 +19,8 @@ require_once("sql.php");
 set_error_handler('\webdb\utils\error_handler',E_ALL);
 set_exception_handler('\webdb\utils\exception_handler');
 
+define("webdb\index\PRIMARY_KEY_DELIMITER",",");
+
 $settings=array();
 
 $settings["parent_path"]=dirname(dirname(__FILE__)).DIRECTORY_SEPARATOR;
