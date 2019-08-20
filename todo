@@ -1,8 +1,48 @@
-- add column headers to delete selected confirmation page
-- event handlers
-- lookup custom sql
-- ability to edit all records at once
-- ability to insert/edit/delete records for subforms from within parent form
-- link subform
-- insert/edit group captions
-- friendly error message when deleting record fails due to foreign key
+* add column headers to delete selected confirmation page
+* lookup custom sql
+* ability to edit all records at once
+* ability to insert/edit/delete records for subforms from within parent form
+* link subform
+* insert/edit group captions
+* friendly error message when deleting record fails due to foreign key
+
+
+* email alert
+ - daily crontab
+ - specify date field
+ - specify days to alert prior to date (default 0)
+ - specify user/group recipients
+ - only one message per user per day
+
+* record locking
+  - when record is edited, add a lock record
+  - if someone else attempts to edit the same record, display lock error message
+  - ajax request to update list lock indicators every minute or so (not full page refresh)
+
+* form generator tool
+
+* memo field format tools (html tags)
+* html line breaks in memo fields
+
+
+* event handlers
+  - on_field_default_value
+  - on_form_dispatch_begin
+  - on_form_dispatch_end
+  - on_user_authenticate
+
+* user permissions
+* user groups
+
+* edit all by selection/filter to change common field values (sort of like AutoCAD properties)
+
+* in form config file, add some style options for each field, such as column min-width, fixed width or max-width, color, etc
+
+* dynamic filtering for reports
+
+* pdf printing on server
+* report/form generator with field grid, custom sql memo and query templates (with add/remove template)
+
+* setting to adjust column heading rotation angle
+
+* fixed headers on scrolling

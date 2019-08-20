@@ -225,3 +225,8 @@ th.rotate
   {
     width: 100%;
   }
+
+.list_controls td
+  {
+    border: 0;
+  }

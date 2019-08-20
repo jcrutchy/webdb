@@ -177,7 +177,7 @@ function file_execute_prepare($filename,$params,$is_admin=false)
 
 #####################################################################################################
 
-function execute_prepare($sql,$params,$filename="",$is_admin=false)
+function execute_prepare($sql,$params=array(),$filename="",$is_admin=false)
 {
   $pdo=\webdb\sql\get_pdo_object($is_admin);
   $statement=$pdo->prepare($sql);
@@ -221,7 +221,7 @@ function file_fetch_prepare($filename,$params=array(),$is_admin=false)
 
 #####################################################################################################
 
-function fetch_prepare($sql,$params,$filename="",$is_admin=false)
+function fetch_prepare($sql,$params=array(),$filename="",$is_admin=false)
 {
   $pdo=\webdb\sql\get_pdo_object($is_admin);
   $statement=$pdo->prepare($sql);

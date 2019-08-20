@@ -4,8 +4,18 @@
 <input type="hidden" id="edit_page:%%url_page%%" name="edit_page:%%url_page%%" value="@@forms/form_url@@&cmd=edit&id=">
 <input type="hidden" id="insert_page:%%url_page%%" name="insert_page:%%url_page%%" value="@@forms/form_url@@&cmd=insert">
 
-%%delete_selected_control%%
+<div class="list_controls">
+<table>
+<tr>
+<td>
 %%insert_control%%
+</td>
+<td>
+%%delete_selected_control%%
+</td>
+</tr>
+</table>
+</div>
 
 <table>
 %%caption_groups%%
