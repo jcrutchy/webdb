@@ -22,6 +22,7 @@ set_error_handler('\webdb\utils\error_handler',E_ALL);
 set_exception_handler('\webdb\utils\exception_handler');
 
 define("webdb\index\PRIMARY_KEY_DELIMITER",",");
+define("webdb\index\LINEBREAK_PLACEHOLDER","@@@@");
 
 $settings=array();
 

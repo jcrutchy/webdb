@@ -417,6 +417,11 @@ function list_form_content($form_name,$records=false)
       $field_params["url_page"]=$form_config["url_page"];
       $field_params["group_span"]="";
       $field_params["handlers"]="";
+      $field_params["table_cell_style"]="";
+      if (isset($form_config["table_cell_styles"][$field_name])==true)
+      {
+        $field_params["table_cell_style"]=$form_config["table_cell_styles"][$field_name];
+      }
       if (($form_config["individual_edit"]=="row") and ($form_config["records_sql"]==""))
       {
         $field_params["handlers"]=\webdb\forms\form_template_fill("list_field_handlers",$field_params);
@@ -442,6 +447,8 @@ function list_form_content($form_name,$records=false)
           case "text":
           case "span":
           case "memo":
+            $field_params["value"]=htmlspecialchars(str_replace("\\n",\webdb\index\LINEBREAK_PLACEHOLDER,$record[$field_name]));
+            $field_params["value"]=str_replace(\webdb\index\LINEBREAK_PLACEHOLDER,\webdb\utils\template_fill("break"),$field_params["value"]);
             $fields.=\webdb\forms\form_template_fill("list_field",$field_params);
             break;
           case "combobox":
@@ -622,6 +629,8 @@ function output_editor($form_name,$record,$command,$verb,$id)
       case "text":
         break;
       case "memo":
+        $field_params["field_value"]=htmlspecialchars(str_replace("\\n",\webdb\index\LINEBREAK_PLACEHOLDER,$field_value));
+        $field_params["field_value"]=str_replace(\webdb\index\LINEBREAK_PLACEHOLDER,PHP_EOL,$field_params["field_value"]);
         break;
       case "combobox":
       case "listbox":
@@ -683,6 +692,11 @@ function output_editor($form_name,$record,$command,$verb,$id)
     }
     $row_params=array();
     $row_params["field_name"]=$form_config["captions"][$field_name];
+    $field_params["control_style"]="";
+    if (isset($form_config["control_styles"][$field_name])==true)
+    {
+      $field_params["control_style"]=$form_config["control_styles"][$field_name];
+    }
     $row_params["field_value"]=\webdb\forms\form_template_fill("field_edit_".$control_type,$field_params);
     $rows.=\webdb\forms\form_template_fill("field_row",$row_params);
   }

@@ -66,6 +66,8 @@ textarea
     width: 250px;
     height: 100px;
     overflow: auto;
+    word-wrap: normal;
+    overflow-wrap: normal;
   }
 
 .print_only

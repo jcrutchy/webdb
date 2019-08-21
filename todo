@@ -36,8 +36,6 @@
 
 * edit all by selection/filter to change common field values (sort of like AutoCAD properties)
 
-* in form config file, add some style options for each field, such as column min-width, fixed width or max-width, color, etc
-
 * dynamic filtering for reports
 
 * pdf printing on server
@@ -46,3 +44,5 @@
 * setting to adjust column heading rotation angle
 
 * fixed headers on scrolling
+
+* option to set scrollbars for memo fields

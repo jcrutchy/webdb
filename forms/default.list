@@ -16,6 +16,10 @@
     },
     "default_values": {
     },
+    "table_cell_styles": {
+    },
+    "control_styles": {
+    },
     "lookups": {
     },
     "primary_key": "",
