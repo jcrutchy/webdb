@@ -72,7 +72,8 @@ function login()
   $login_form_params["login_styles_modified"]=\webdb\utils\resource_modified_timestamp("login.css");
   if ((isset($_POST["login_email"])==true) and (isset($_POST["login_password"])==true))
   {
-    setcookie($settings["email_cookie"],$_POST["login_email"],time()+$settings["max_cookie_age"],"/");
+    $expiry=time()+$settings["max_cookie_age"];
+    setcookie($settings["email_cookie"],$_POST["login_email"],$expiry,"/");
     $login_form_params["default_email"]=$_POST["login_email"];
     $user_record=\webdb\users\get_user_record($_POST["login_email"]);
     if (password_verify($_POST["login_password"],$user_record["pw_hash"])==false)
@@ -94,7 +95,6 @@ function login()
     $options["cost"]=$settings["password_bcrypt_cost"];
     $cookie=password_hash($key,PASSWORD_BCRYPT,$options);
     $value_items["login_cookie"]=$cookie;
-    $expiry=microtime(true)+$settings["max_cookie_age"];
     setcookie($settings["login_cookie"],$key,$expiry,"/");
     \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
     \webdb\utils\redirect($settings["app_web_index"]);

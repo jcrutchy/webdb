@@ -1,11 +1,22 @@
+* user permissions
+* user groups
+
+* try to figure out why login cookies are being forgotten after a reboot
 * add column headers to delete selected confirmation page
 * lookup custom sql
 * ability to edit all records at once
 * ability to insert/edit/delete records for subforms from within parent form
-* link subform
 * insert/edit group captions
 * friendly error message when deleting record fails due to foreign key
-
+* edit all by selection/filter to change common field values (sort of like AutoCAD properties)
+* dynamic filtering for reports
+* pdf printing on server
+* report/form generator with field grid, custom sql memo and query templates (with add/remove template)
+* setting to adjust column heading rotation angle
+* group header text colors
+* lookups with constant list
+* form generator tool
+* memo field format tools (html tags)
 
 * email alert
  - daily crontab
@@ -26,25 +37,8 @@
   - if user clicks edit before data has had a chance to update, display latest data in
     edit form but alert the user (alert bar along top of screen) that data has changed
 
-* form generator tool
-
-* memo field format tools (html tags)
-* html line breaks in memo fields
-
-
 * event handlers
   - on_field_default_value
   - on_form_dispatch_begin
   - on_form_dispatch_end
   - on_user_authenticate
-
-* user permissions
-* user groups
-
-* edit all by selection/filter to change common field values (sort of like AutoCAD properties)
-* dynamic filtering for reports
-* pdf printing on server
-* report/form generator with field grid, custom sql memo and query templates (with add/remove template)
-* setting to adjust column heading rotation angle
-* group header text colors
-* lookups with constant list

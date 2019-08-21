@@ -52,10 +52,9 @@ function show_calendar(element)
   }
   make_calendar(date_in_input,existing_date.getYear(),existing_date.getMonth(),existing_date.getDate());
   calendar.style.display="block";
-  var xy=get_element_position(calendar_selected_input);
-  var width=calendar_selected_input.clientWidth || calendar_selected_input.offsetWidth;
-  calendar.style.left=(xy[0]+width+10)+"px";
-  calendar.style.top=(xy[1])+"px"; // TODO: look into vertical position
+  calendar_selected_input.parentElement.appendChild(calendar);
+  calendar.offsetLeft=calendar_selected_input.offsetLeft;
+  calendar.offsetTop=calendar_selected_input.offsetTop;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////

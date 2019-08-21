@@ -36,15 +36,6 @@ function ajax(url,method,load,error,timeout,body="",timeout_sec=30)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function get_element_position(element)
-{
-  var rect=element.getBoundingClientRect();
-  var xy=new Array(rect.left+window.scrollX,rect.top+window.scrollY);
-  return xy;
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-
 function is_descendant(parent,child)
 {
   var node=child.parentNode;
