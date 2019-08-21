@@ -15,9 +15,16 @@
  - only one message per user per day
 
 * record locking
+  - use record locks table
   - when record is edited, add a lock record
   - if someone else attempts to edit the same record, display lock error message
   - ajax request to update list lock indicators every minute or so (not full page refresh)
+  - add ajax request every minute to check if any records in the viewed list are locked,
+    or if there have been any changes (check by querying to webdb mysql_log table)
+  - if records have been changed, update data table (without refreshing page) and display
+    alert bar along top of screen
+  - if user clicks edit before data has had a chance to update, display latest data in
+    edit form but alert the user (alert bar along top of screen) that data has changed
 
 * form generator tool
 
@@ -35,14 +42,9 @@
 * user groups
 
 * edit all by selection/filter to change common field values (sort of like AutoCAD properties)
-
 * dynamic filtering for reports
-
 * pdf printing on server
 * report/form generator with field grid, custom sql memo and query templates (with add/remove template)
-
 * setting to adjust column heading rotation angle
-
-* fixed headers on scrolling
-
-* option to set scrollbars for memo fields
+* group header text colors
+* lookups with constant list
