@@ -1,6 +1,6 @@
 <?php
 
-$settings["apps_list"]=array("my_app1","my_app2");
+$settings["apps_list"]=array("mdo_risks","messenger");
 
 $settings["app_web_root"]="/".$settings["app_directory_name"]."/";
 $settings["app_web_resources"]=$settings["app_web_root"]."resources/";
@@ -21,17 +21,19 @@ $settings["webdb_default_form"]="default";
 
 $settings["login_cookie"]="webdb_login";
 $settings["email_cookie"]="webdb_email";
-$settings["max_cookie_age"]=24*60*60*365;
-$settings["password_reset_timeout"]=24*60*60;
+$settings["max_cookie_age"]=60*60*24*365;
+$settings["password_reset_timeout"]=60*60*24;
 $settings["password_bcrypt_cost"]=13;
-$settings["row_lock_expiration"]=5*60;
+$settings["row_lock_expiration"]=60*5;
 
 $settings["db_host"]="localhost";
 $settings["db_pwd_path"]="/home/jared/dev/pwd/";
 $settings["db_admin_file"]=$settings["db_pwd_path"]."sql_admin";
 $settings["db_user_file"]=$settings["db_pwd_path"]."sql_user";
-$settings["gd_ttf"]="/usr/share/fonts/truetype/freefont/FreeSans.ttf";
+$settings["gd_ttf"]="/usr/share/fonts/truetype/msttcorefonts/arial.ttf";
 
 $settings["webdb_web_root"]="/".$settings["webdb_directory_name"]."/";
 $settings["webdb_web_resources"]=$settings["webdb_web_root"]."resources/";
 $settings["webdb_web_index"]=$settings["webdb_web_root"]."index.php";
+
+$settings["pdf_temp_path"]="/home/jared/dev/temp/";

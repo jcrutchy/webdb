@@ -17,6 +17,7 @@
 * lookups with constant list
 * form generator tool
 * memo field format tools (html tags)
+* option to include insert row controls in list form
 
 * email alert
  - daily crontab

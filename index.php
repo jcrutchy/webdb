@@ -12,6 +12,7 @@ date_default_timezone_set("UTC");
 
 chdir(__DIR__);
 
+require_once("pdf.php");
 require_once("utils.php");
 require_once("users.php");
 require_once("forms.php");
@@ -60,6 +61,20 @@ for ($i=0;$i<count($incompatible_agents);$i++)
   }
 }
 
+if (isset($_GET["pdf"])==true)
+{
+  \webdb\pdf\output_pdf();
+}
+
+$required_settings=array(
+  "webdb_templates_path",
+  "webdb_sql_path",
+  "webdb_resources_path",
+  "webdb_forms_path");
+for ($i=0;$i<count($required_settings);$i++)
+{
+  \webdb\utils\check_required_setting_exists($required_settings[$i]);
+}
 \webdb\utils\check_required_file_exists($settings["webdb_templates_path"],true);
 \webdb\utils\check_required_file_exists($settings["webdb_sql_path"],true);
 \webdb\utils\check_required_file_exists($settings["webdb_resources_path"],true);

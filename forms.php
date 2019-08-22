@@ -217,7 +217,7 @@ function primary_key_url_value($form_config,$record)
 
 #####################################################################################################
 
-function list_form_content($form_name,$records=false)
+function list_form_content($form_name,$records=false,$insert_default_params=false)
 {
   global $settings;
   $form_config=$settings["forms"][$form_name];
@@ -228,6 +228,14 @@ function list_form_content($form_name,$records=false)
   }
   $form_params=array();
   $form_params["url_page"]=$form_config["url_page"];
+  $form_params["insert_default_params"]="";
+  if ($insert_default_params!==false)
+  {
+    foreach ($insert_default_params as $param_name => $param_value)
+    {
+      $form_params["insert_default_params"].="&".urlencode($param_name)."=".urlencode($param_value);
+    }
+  }
   $max_field_name_width=0;
   foreach ($form_config["control_types"] as $field_name => $control_type)
   {
@@ -532,6 +540,13 @@ function insert_form($form_name)
   global $settings;
   $form_config=$settings["forms"][$form_name];
   $record=$form_config["default_values"];
+  foreach ($record as $fieldname => $value)
+  {
+    if (isset($_GET[$fieldname])==true)
+    {
+      $record[$fieldname]=$_GET[$fieldname];
+    }
+  }
   $data=\webdb\forms\output_editor($form_name,$record,"insert","Insert",0);
   $insert_page_params=array();
   $insert_page_params["record_insert_form"]=$data["content"];
@@ -564,7 +579,9 @@ function edit_form($form_name,$id)
     $sql_params["id"]=$id;
     $records=\webdb\sql\fetch_prepare($sql,$sql_params);
     $subform_params=array();
-    $subform_params["subform"]=list_form_content($subform_name,$records);
+    $url_params=array();
+    $url_params[$subform_link_field]=$id;
+    $subform_params["subform"]=list_form_content($subform_name,$records,$url_params);
     $subform=\webdb\forms\form_template_fill("subform",$subform_params);
     $subforms.=$subform;
   }

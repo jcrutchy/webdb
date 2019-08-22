@@ -27,7 +27,7 @@ reboot system for guest addition kernel modules to take effect
 
 ~~~~
 
-# apt-get install msttcorefonts php apache2 mariadb-server php-gd git geany adminer
+# apt-get install wkhtmltopdf msttcorefonts php apache2 mariadb-server php-gd git geany
 
 # nano /etc/apache2/envvars
 ----
@@ -46,6 +46,7 @@ $ cd dev
 $ mkdir apache_logs
 $ mkdir public
 $ mkdir pwd
+$ mkdir temp
 $ cd pwd
 $ touch sql_admin
 $ touch sql_user
@@ -100,13 +101,6 @@ executes my_app/sql/schema.sql
 (don't run on webdb index.php because requires database access parameters in settings.php)
 
 TODO: make a bit clearer where to run these from, and also how the common settings file works
-
-~~~~
-
-# apt-get install adminer
-# echo "Alias /adminer.php /usr/share/adminer/adminer.php" | tee /etc/apache2/conf-available/adminer.conf
-# a2enconf adminer
-http://localhost/adminer.php should work but doesn't for some unknown reason
 
 ~~~~
 
