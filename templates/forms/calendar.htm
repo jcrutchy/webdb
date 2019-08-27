@@ -43,6 +43,16 @@ var calendar_inputs=[%%calendar_inputs%%];
 
     </tbody>
     <tfoot>
+    <!-- following empty row is a chrome colspan bug workaround -->
+    <tr>
+      <td style="font-size: 0; height: 0; margin: 0; padding: 0; border: 0;"></td>
+      <td style="font-size: 0; height: 0; margin: 0; padding: 0; border: 0;"></td>
+      <td style="font-size: 0; height: 0; margin: 0; padding: 0; border: 0;"></td>
+      <td style="font-size: 0; height: 0; margin: 0; padding: 0; border: 0;"></td>
+      <td style="font-size: 0; height: 0; margin: 0; padding: 0; border: 0;"></td>
+      <td style="font-size: 0; height: 0; margin: 0; padding: 0; border: 0;"></td>
+      <td style="font-size: 0; height: 0; margin: 0; padding: 0; border: 0;"></td>
+    </tr>
     <tr>
       <td colspan="2" style="padding-top: 3px;"><input style="width: 100%;" type="button" value="Clear" onclick="calendar_clear_input();"></td>
       <td colspan="3" style="padding-top: 3px;"><input style="width: 100%;" type="button" value="Today" onclick="calendar_select_today();"></td>

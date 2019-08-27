@@ -24,6 +24,11 @@ td
     min-width: 33px;
   }
 
+.list_controls td
+  {
+    border: 0;
+  }
+
 .group_caption_div_first
   {
     position: relative;
@@ -68,6 +73,7 @@ th.rotate
     white-space: nowrap;
     vertical-align: bottom;
     text-align: left;
+    /*background-color: #fdf6e3;*/
   }
 
 .verticaltick
@@ -235,7 +241,33 @@ th.rotate
     width: 100%;
   }
 
-.list_controls td
+#advanced_search_results
+  {
+    margin-top: 15px;
+  }
+
+#advanced_search_form
+  {
+    float: left;
+  }
+
+#advanced_search_form td
   {
     border: 0;
+  }
+
+#advanced_search_help
+  {
+    float: right;
+    margin-left: 15px;
+  }
+
+#advanced_search_help_content
+  {
+    min-width: 300px;
+    min-height: 300px;
+    background-color: white;
+    margin: 0;
+    padding: 10px;
+    font-family: mono;
   }

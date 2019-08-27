@@ -75,6 +75,12 @@ textarea
     display: none;
   }
 
+.clearfix
+  {
+    clear: both;
+    overflow: auto;
+  }
+
 #global_page_header
   {
     position: absolute;

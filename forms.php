@@ -30,6 +30,9 @@ function form_dispatch($url_page)
                 case "insert":
                   $data=\webdb\forms\insert_form($form_name);
                   \webdb\utils\output_page($data["content"],$data["title"]);
+                case "advanced_search":
+                  $data=\webdb\forms\advanced_search($form_name);
+                  \webdb\utils\output_page($data["content"],$data["title"]);
               }
             }
             if (isset($_POST["form_cmd"])==true)
@@ -59,6 +62,7 @@ function form_dispatch($url_page)
           $list_params["list"]=\webdb\forms\list_form_content($form_name);
           $list_params["form_script_modified"]=\webdb\utils\resource_modified_timestamp("list.js");
           $list_params["form_styles_modified"]=\webdb\utils\resource_modified_timestamp("list.css");
+          $list_params["form_styles_print_modified"]=\webdb\utils\resource_modified_timestamp("list_print.css");
           $content=\webdb\forms\form_template_fill("list_page",$list_params);
           $title=$form_name;
           if ($form_config["title"]<>"")
@@ -116,6 +120,10 @@ function load_form_defs()
     $full=$settings["webdb_forms_path"].$fn;
     $data=trim(file_get_contents($full));
     $data=json_decode($data,true);
+    if (isset($data["form_version"])==false)
+    {
+      \webdb\utils\show_message("error: invalid webdb form def (missing form_version): ".$fn);
+    }
     if (isset($data["form_type"])==false)
     {
       \webdb\utils\show_message("error: invalid webdb form def (missing form_type): ".$fn);
@@ -158,6 +166,14 @@ function load_form_defs()
     $full=$settings["app_forms_path"].$fn;
     $data=trim(file_get_contents($full));
     $data=json_decode($data,true);
+    if (isset($data["form_version"])==false)
+    {
+      \webdb\utils\show_message("error: invalid app form def (missing form_version): ".$fn);
+    }
+    if ($data["form_version"]<>$settings["form_defaults"][$data["form_type"]]["form_version"])
+    {
+      \webdb\utils\show_message("error: invalid form def (incompatible version number): ".$fn);
+    }
     if (isset($data["form_type"])==false)
     {
       \webdb\utils\show_message("error: invalid app form def (missing form_type): ".$fn);
@@ -217,10 +233,14 @@ function primary_key_url_value($form_config,$record)
 
 #####################################################################################################
 
-function list_form_content($form_name,$records=false,$insert_default_params=false)
+function list_form_content($form_name,$records=false,$insert_default_params=false,$form_config_override=false)
 {
   global $settings;
   $form_config=$settings["forms"][$form_name];
+  if ($form_config_override!==false)
+  {
+    $form_config=$form_config_override;
+  }
   if ($form_config["records_sql"]<>"")
   {
     $sql=\webdb\utils\sql_fill($form_config["records_sql"]);
@@ -237,12 +257,14 @@ function list_form_content($form_name,$records=false,$insert_default_params=fals
     }
   }
   $max_field_name_width=0;
+  $visible_field_count=0;
   foreach ($form_config["control_types"] as $field_name => $control_type)
   {
     if ($form_config["visible"][$field_name]==false)
     {
       continue;
     }
+    $visible_field_count++;
     $box=imagettfbbox(10,0,$settings["gd_ttf"],$form_config["captions"][$field_name]);
     $width=abs($box[4]-$box[0]);
     if ($width>$max_field_name_width)
@@ -520,17 +542,199 @@ function list_form_content($form_name,$records=false,$insert_default_params=fals
     $rows.=\webdb\forms\form_template_fill("list_row",$row_params);
   }
   $form_params["rows"]=$rows;
+  $form_params["advanced_search_control"]="";
   $form_params["insert_control"]="";
-  if (($form_config["insert_new"]==true) and ($form_config["records_sql"]==""))
-  {
-    $form_params["insert_control"]=\webdb\forms\form_template_fill("list_insert",$form_config);
-  }
   $form_params["delete_selected_control"]="";
-  if (($form_config["multi_row_delete"]==true) and ($form_config["records_sql"]==""))
+  if ($form_config["records_sql"]=="")
   {
-    $form_params["delete_selected_control"]=\webdb\forms\form_template_fill("list_del_selected");
+    if ($form_config["advanced_search"]==true)
+    {
+      $form_params["advanced_search_control"]=\webdb\forms\form_template_fill("list_advanced_search",$form_config);
+    }
+    if ($form_config["insert_new"]==true)
+    {
+      $form_params["insert_control"]=\webdb\forms\form_template_fill("list_insert",$form_config);
+    }
+    if ($form_config["multi_row_delete"]==true)
+    {
+      $form_params["delete_selected_control"]=\webdb\forms\form_template_fill("list_del_selected");
+    }
   }
   return \webdb\forms\form_template_fill("list",$form_params);
+}
+
+#####################################################################################################
+
+function advanced_search($form_name)
+{
+  global $settings;
+  $form_config=$settings["forms"][$form_name];
+  $calendar_fields=array();
+  $rows="";
+  $sql_params=array();
+  foreach ($form_config["control_types"] as $field_name => $control_type)
+  {
+    $field_value="";
+    if (isset($_POST[$field_name])==true)
+    {
+      $field_value=$_POST[$field_name];
+    }
+    $field_params=array();
+    $field_params["field_name"]=$field_name;
+    $field_params["field_value"]=htmlspecialchars($field_value);
+    $search_control_type="text";
+    switch ($control_type)
+    {
+      case "span":
+      case "checkbox":
+      case "text":
+      case "memo":
+      case "combobox":
+      case "listbox":
+      case "radiogroup":
+        if ($field_value<>"")
+        {
+          $sql_params[$field_name]=$field_value;
+        }
+        break;
+      case "date":
+        $date_operators=array("<","<=","=",">=",">","<>");
+        $selected_option="=";
+        if (isset($_POST["search_operator_".$field_name])==true)
+        {
+          $selected_option=$_POST["search_operator_".$field_name];
+        }
+        $field_params["options"]="";
+        for ($i=0;$i<count($date_operators);$i++)
+        {
+          $option_params=array();
+          $option_params["value"]=$date_operators[$i];
+          $option_params["caption"]=htmlspecialchars($date_operators[$i]);
+          if ($date_operators[$i]==$selected_option)
+          {
+            $field_params["options"].=\webdb\utils\template_fill("select_option_selected",$option_params);
+          }
+          else
+          {
+            $field_params["options"].=\webdb\utils\template_fill("select_option",$option_params);
+          }
+        }
+        $search_control_type="date";
+        $calendar_fields[]=$field_name;
+        if (($field_value==\webdb\sql\zero_sql_timestamp()) or ($field_value==""))
+        {
+          $field_params["field_value"]="";
+        }
+        else
+        {
+          $field_params["field_value"]=date("Y-m-d",strtotime($field_value));
+        }
+        if ($field_value<>"")
+        {
+          $sql_params[$field_name]=$field_value;
+        }
+        break;
+      default:
+        \webdb\utils\show_message("error: invalid control type '".$control_type."' for field '".$field_name."' on form '".$form_name."'");
+    }
+    $row_params=array();
+    $row_params["field_name"]=$form_config["captions"][$field_name];
+    $row_params["field_value"]=\webdb\forms\form_template_fill("advanced_search_".$search_control_type,$field_params);
+    $rows.=\webdb\forms\form_template_fill("field_row",$row_params);
+  }
+  $form_params=array();
+  $form_params["calendar"]=\webdb\forms\get_calendar($calendar_fields);
+  $form_params["title"]=$form_config["title"];
+  $form_params["rows"]=$rows;
+  $form_params["url_page"]=$form_config["url_page"];
+  $form_params["return_link"]=\webdb\forms\form_template_fill("return_link",$form_config);
+  $search_page_params=array();
+  $search_page_params["advanced_search"]=\webdb\forms\form_template_fill("advanced_search",$form_params);
+  $fieldnames=array_keys($sql_params);
+  $values=array_values($sql_params);
+  $placeholders=array_map("\webdb\sql\callback_prepare",$fieldnames);
+  $quoted_fieldnames=array_map("\webdb\sql\callback_quote",$fieldnames);
+  $records=array();
+  $prepared_where="";
+  if (count($sql_params)>0)
+  {
+    $inner_joins=array();
+    foreach ($form_config["lookups"] as $field_name => $lookup_data)
+    {
+      if (isset($sql_params[$field_name])==false)
+      {
+        continue;
+      }
+      $join_params=array();
+      $join_params["database"]=$lookup_data["database"];
+      $join_params["table"]=$lookup_data["table"];
+      $join_params["key_field"]=$lookup_data["key_field"];
+      $join_params["main_database"]=$form_config["database"];
+      $join_params["main_table"]=$form_config["table"];
+      $join_params["main_key_field"]=$field_name;
+      $inner_joins[]=\webdb\utils\sql_fill("form_list_advanced_search_join",$join_params);
+      $key=array_search($field_name,$fieldnames);
+      $field_params=array();
+      $field_params["database"]=$lookup_data["database"];
+      $field_params["table"]=$lookup_data["table"];
+      $field_params["field_name"]=$lookup_data["display_field"];
+      $full_field_name=\webdb\utils\sql_fill("full_field_name",$field_params);
+      $quoted_fieldnames[$key]=$full_field_name;
+    }
+    $conditions=array();
+    for ($i=0;$i<count($fieldnames);$i++)
+    {
+      $parts=explode(" ",$values[$i]);
+      $operator=" like ";
+      if (count($parts)>1)
+      {
+        switch ($parts[0])
+        {
+          case "<":
+          case ">":
+          case "=":
+          case ">=":
+          case "<=":
+          case "<>":
+            $operator=array_shift($parts);
+            $sql_params[$fieldnames[$i]]=implode(" ",$parts);
+        }
+      }
+      else
+      {
+        switch ($form_config["control_types"][$fieldnames[$i]])
+        {
+          case "checkbox":
+          case "date":
+            $operator=$_POST["search_operator_".$fieldnames[$i]];
+            break;
+          default:
+            break;
+        }
+      }
+      $conditions[]="(".$quoted_fieldnames[$i].$operator.$placeholders[$i].")";
+      $prepared_where="WHERE (".implode(" AND ",$conditions).")";
+    }
+    $params=array();
+    $params["database"]=$form_config["database"];
+    $params["table"]=$form_config["table"];
+    $params["inner_joins"]=implode(" ",$inner_joins);
+    $params["prepared_where"]=$prepared_where;
+    $params["sort_sql"]=$form_config["sort_sql"];
+    $sql=\webdb\utils\sql_fill("form_list_advanced_search",$params);
+    #var_dump($sql_params);
+    #die($sql);
+    $records=\webdb\sql\fetch_prepare($sql,$sql_params);
+  }
+  $form_config["insert_new"]=false;
+  $form_config["advanced_search"]=false;
+  $search_page_params["advanced_search_results"]=\webdb\forms\list_form_content($form_name,$records,false,$form_config);
+  $search_page_params["form_script_modified"]=\webdb\utils\resource_modified_timestamp("list.js");
+  $search_page_params["form_styles_modified"]=\webdb\utils\resource_modified_timestamp("list.css");
+  $result=array();
+  $result["title"]=$form_config["title"].": Advanced Search";
+  $result["content"]=\webdb\forms\form_template_fill("advanced_search_page",$search_page_params);
+  return $result;
 }
 
 #####################################################################################################

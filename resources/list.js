@@ -7,6 +7,13 @@ function list_insert_click(url_page)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
+function list_advanced_search_click(url_page)
+{
+  window.location=document.getElementById("advanced_search_page:"+url_page).value;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
 function list_record_cell_click(url_page,id)
 {
   window.location=document.getElementById("edit_page:"+url_page).value+id;

@@ -1,0 +1,15 @@
+A caption group consist of bordered column header that spans a number of related data field columns, with bold
+vertical borders running down the outside of the data columns to distinguish the group of fields.
+
+On modern browsers, the caption cell for the group should stick to the top of the window when scrolling down a long
+list of records.
+
+If there are two adjacent groups, they will share a common bold vertical border.
+
+
+CONFIGURATION
+=============
+
+When setting up a caption group in the form config file, noting that field column order is set by the control types array,
+caption groups must consist of a set of adjacent fields in the same order as in the control types array.
+

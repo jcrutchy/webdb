@@ -1,0 +1,41 @@
+%%calendar%%
+
+<p class="form_title">Advanced Search: %%title%%</p>
+
+<form action="$$app_web_index$$?page=%%url_page%%&cmd=advanced_search" method="post">
+
+<div class="clearfix">
+
+<div id="advanced_search_form">
+  <table>
+  %%rows%%
+  </table>
+</div>
+
+<div id="advanced_search_help">
+
+<div class="subform_outer">
+<div class="subform_inner">
+
+<div id="advanced_search_help_content">
+@@forms/advanced_search_help@@
+</div>
+
+</div>
+</div>
+
+</div>
+
+</div>
+
+<p>
+  <input type="submit" name="advanced_search" value="Search">
+</p>
+
+</form>
+
+%%return_link%%
+
+<div id="advanced_search_results">
+%%advanced_search_results%%
+</div>

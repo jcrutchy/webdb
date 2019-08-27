@@ -3,19 +3,19 @@
 
 <input type="hidden" id="edit_page:%%url_page%%" name="edit_page:%%url_page%%" value="@@forms/form_url@@&cmd=edit&id=">
 <input type="hidden" id="insert_page:%%url_page%%" name="insert_page:%%url_page%%" value="@@forms/form_url@@&cmd=insert%%insert_default_params%%">
+<input type="hidden" id="advanced_search_page:%%url_page%%" name="advanced_search_page:%%url_page%%" value="@@forms/form_url@@&cmd=advanced_search">
 
 <div class="list_controls">
 <table>
   <tr>
-    <td>
-      %%insert_control%%
-    </td>
-    <td>
-      %%delete_selected_control%%
-    </td>
+    %%insert_control%%
+    %%delete_selected_control%%
+    %%advanced_search_control%%
   </tr>
 </table>
 </div>
+
+<div class="list_data_table">
 
 <table>
 %%caption_groups%%
@@ -26,5 +26,7 @@
 </tr>
 %%rows%%
 </table>
+
+</div>
 
 </form>

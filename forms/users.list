@@ -1,4 +1,5 @@
 {
+    "form_version": "2019-08-23 14:11",
     "form_type": "list",
     "enabled": true,
     "url_page": "users",
@@ -51,6 +52,7 @@
     "individual_delete": true,
     "individual_edit": "row",
     "insert_new": true,
+    "advanced_search": false,
     "database": "webdb",
     "table": "users",
     "sort_sql": "email asc"

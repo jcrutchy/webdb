@@ -1,0 +1,22 @@
+
+.screen_only
+  {
+    display: none;
+  }
+
+#global_page_body_outer
+  {
+    border: 0;
+    overflow: visible;
+  }
+
+#global_page_body_inner
+  {
+    border: 0;
+    overflow: visible;
+  }
+
+#global_page_body_content
+  {
+    padding: 0;
+  }
