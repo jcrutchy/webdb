@@ -35,7 +35,7 @@ function show_calendar(element)
   calendar.style.display="none";
   calendar_selected_input=element;
   var existing_date=new Date();
-  var date_in_input=calendar_selected_input.value;
+  var date_in_input=document.getElementById("iso_"+calendar_selected_input.id).value;
   if (date_in_input)
   {
     var selected_date=false;
@@ -87,13 +87,13 @@ function make_calendar(date_in_input,year,month,day)
   {
     year+=1900;
   }
-  var clendar_month_names=["January","February","March","April","May","June","July","August","September","October","November","December"];
-  var clendar_month_days=[31,28,31,30,31,30,31,31,30,31,30,31];
+  var calendar_month_names=["January","February","March","April","May","June","July","August","September","October","November","December"];
+  var calendar_month_days=[31,28,31,30,31,30,31,31,30,31,30,31];
   if ((year%4)==0) // adjust for leap year
   {
-    clendar_month_days[1]=29;
+    calendar_month_days[1]=29;
   }
-  var clendar_weekdays=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  var calendar_weekdays=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
   var next_month=month+1;
   var next_month_year=year;
   if (next_month>=12)
@@ -112,7 +112,7 @@ function make_calendar(date_in_input,year,month,day)
   if (previous_month_year>=1900)
   {
     prev_month_link.onclick=function(){ make_calendar(date_in_input,previous_month_year,previous_month); };
-    prev_month_link.title=clendar_month_names[previous_month]+" "+previous_month_year;
+    prev_month_link.title=calendar_month_names[previous_month]+" "+previous_month_year;
   }
   else
   {
@@ -123,7 +123,7 @@ function make_calendar(date_in_input,year,month,day)
   if (next_month_year<=2200)
   {
     next_month_link.onclick=function(){ make_calendar(date_in_input,next_month_year,next_month); };
-    next_month_link.title=clendar_month_names[next_month]+" "+next_month_year;
+    next_month_link.title=calendar_month_names[next_month]+" "+next_month_year;
   }
   else
   {
@@ -152,7 +152,7 @@ function make_calendar(date_in_input,year,month,day)
   var d=1;
   var flag=0;
   var w=0;
-  var days_in_this_month=clendar_month_days[month];
+  var days_in_this_month=calendar_month_days[month];
   var tbody="";
   for (var i=0;i<=5;i++)
   {
@@ -184,7 +184,7 @@ function make_calendar(date_in_input,year,month,day)
           mon="0"+mon;
         }
         var td_id="";
-        var yea=today.getYear();
+        var yea=today.getFullYear();
         if (yea<1900)
         {
           yea+=1900;
@@ -236,7 +236,10 @@ function calendar_select_date(year,month,day)
 {
   if (calendar_selected_input)
   {
-    calendar_selected_input.value=year+"-"+month+"-"+day;
+    iso_date_element=document.getElementById("iso_"+calendar_selected_input.id);
+    iso_date_element.value=year+"-"+month+"-"+day;
+    var date=new Date(iso_date_element.value);
+    calendar_selected_input.value=format_date(date,document.getElementById("app_date_format").innerHTML);
     calendar_selected_input=undefined;
   }
   else
@@ -252,6 +255,7 @@ function calendar_clear_input(year,month,day)
 {
   if (calendar_selected_input)
   {
+    document.getElementById("iso_"+calendar_selected_input.id).value="";
     calendar_selected_input.value="";
     calendar_selected_input=undefined;
   }
@@ -277,14 +281,17 @@ function calendar_select_today()
   {
     month="0"+month;
   }
-  var year=today.getYear();
+  var year=today.getFullYear();
   if (year<1900)
   {
     year+=1900;
   }
   if (calendar_selected_input)
   {
-    calendar_selected_input.value=year+"-"+month+"-"+day;
+    iso_date_element=document.getElementById("iso_"+calendar_selected_input.id);
+    iso_date_element.value=year+"-"+month+"-"+day;
+    var date=new Date(iso_date_element.value);
+    calendar_selected_input.value=format_date(date,document.getElementById("app_date_format").innerHTML);
     calendar_selected_input=undefined;
   }
   else
@@ -292,6 +299,44 @@ function calendar_select_today()
     alert("calendar_selected_input not set");
   }
   hide_calendar();
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function format_date(date,format)
+{
+  // applies PHP date format to a javascript date object
+  // outputs a string
+  var j=date.getDate();
+  var n=date.getMonth()+1;
+  var Y=date.getFullYear();
+  if (Y<1900)
+  {
+    Y+=1900;
+  }
+  var d=j;
+  if (d<10)
+  {
+    d="0"+d;
+  }
+  var m=n;
+  if (m<10)
+  {
+    m="0"+m;
+  }
+  var y=Y.toString().substring(2);
+  var month_names=["January","February","March","April","May","June","July","August","September","October","November","December"];
+  var F=month_names[n-1];
+  var M=F.substring(0,3);
+  format=format.replace("j",j.toString());
+  format=format.replace("n",n.toString());
+  format=format.replace("Y",Y.toString());
+  format=format.replace("d",d);
+  format=format.replace("m",m);
+  format=format.replace("y",y);
+  format=format.replace("F",F);
+  format=format.replace("M",M);
+  return format;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////

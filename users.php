@@ -45,6 +45,16 @@ function get_user_record($email)
 
 #####################################################################################################
 
+function get_user_groups($user_id)
+{
+  $sql_params=array();
+  $sql_params["user_id"]=$user_id;
+  $records=\webdb\sql\file_fetch_prepare("user_groups",$sql_params);
+  return $records;
+}
+
+#####################################################################################################
+
 function cancel_password_reset($user_record)
 {
   global $settings;

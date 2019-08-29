@@ -1,0 +1,3 @@
+groups_allowed element is either an empty string or comma-delimited list of group names
+
+if groups_allowed is an empty string, all users/groups are allowed to view form

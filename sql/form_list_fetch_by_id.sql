@@ -1,1 +1,1 @@
-SELECT * FROM `%%database%%`.`%%table%%` WHERE (%%primary_key_conditions%%);
+SELECT * FROM `%%database%%`.`%%table%%` WHERE (%%where_conditions%%);

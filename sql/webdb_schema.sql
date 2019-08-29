@@ -70,11 +70,32 @@ DROP TABLE IF EXISTS `webdb`.`groups`;
 CREATE TABLE IF NOT EXISTS `webdb`.`groups` (
   `group_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `enabled` TINYINT NOT NULL DEFAULT 1,
-  `description` VARCHAR(255) NOT NULL,
+  `group_name` VARCHAR(255) NOT NULL,
   PRIMARY KEY (`group_id`),
-  UNIQUE INDEX `description` (`description` ASC))
+  UNIQUE INDEX `group_name` (`group_name` ASC))
 ENGINE = InnoDB
 AUTO_INCREMENT = 1;
+
+INSERT INTO `webdb`.`groups` (`group_name`) VALUES ("admin");
+
+DROP TABLE IF EXISTS `webdb`.`user_group_links` ;
+CREATE TABLE IF NOT EXISTS `webdb`.`user_group_links` (
+  `user_id` INT UNSIGNED NOT NULL,
+  `group_id` INT UNSIGNED NOT NULL,
+  PRIMARY KEY (`user_id`, `group_id`),
+  CONSTRAINT `fk_user_group_links_users1`
+    FOREIGN KEY (`user_id`)
+    REFERENCES `webdb`.`users` (`user_id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_user_group_links_groups1`
+    FOREIGN KEY (`group_id`)
+    REFERENCES `webdb`.`groups` (`group_id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+INSERT INTO `webdb`.`user_group_links` (`user_id`,`group_id`) VALUES (1,1);
 
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;

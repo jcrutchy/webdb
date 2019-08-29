@@ -1,0 +1,9 @@
+you can control access to a specific template by inserting a line at the beginning of the file that contains a prefix and a comma-delimited list of group names
+
+the prefix is defined as a constant in the webdb index.php file
+
+it must be the first line of the file, and cannot contain anything in that line other than the prefix and group list
+
+this line will not be shown in the output of the template
+
+if a user isn't a member of a group with permission to view the template, an empty string will be output

@@ -22,8 +22,9 @@ require_once("sql.php");
 set_error_handler('\webdb\utils\error_handler',E_ALL);
 set_exception_handler('\webdb\utils\exception_handler');
 
-define("webdb\index\PRIMARY_KEY_DELIMITER",",");
+define("webdb\index\CONFIG_ID_DELIMITER",",");
 define("webdb\index\LINEBREAK_PLACEHOLDER","@@@@");
+define("webdb\index\TEMPLATE_GROUP_PERMISSION_PREFIX","group_permissions:");
 
 $settings=array();
 
@@ -115,6 +116,7 @@ $required_settings=array(
   "app_web_index",
   "app_web_resources",
   "app_root_namespace",
+  "app_date_format",
   "login_cookie",
   "email_cookie",
   "max_cookie_age",

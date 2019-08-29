@@ -11,6 +11,13 @@ function form_dispatch($url_page)
   {
     if ($url_page===$form_config["url_page"])
     {
+      if ($form_config["groups_allowed"]<>"")
+      {
+        if (\webdb\utils\check_user_permission(explode(",",$form_config["groups_allowed"]))==false)
+        {
+          \webdb\utils\show_message("error: permission denied");
+        }
+      }
       switch ($form_config["form_type"])
       {
         case "list":
@@ -86,6 +93,7 @@ function form_template_fill($name,$params=false)
 
 function get_calendar($field_names)
 {
+  global $settings;
   if (count($field_names)>0)
   {
     for ($i=0;$i<count($field_names);$i++)
@@ -96,6 +104,7 @@ function get_calendar($field_names)
     }
     $calendar_params=array();
     $calendar_params["calendar_inputs"]=implode(",",$field_names);
+    $calendar_params["app_date_format"]=$settings["app_date_format"];
     $calendar_params["calendar_styles_modified"]=\webdb\utils\resource_modified_timestamp("calendar.css");
     $calendar_params["calendar_script_modified"]=\webdb\utils\resource_modified_timestamp("calendar.js");
     return \webdb\forms\form_template_fill("calendar",$calendar_params);
@@ -220,15 +229,15 @@ function header_row($form_config)
 
 #####################################################################################################
 
-function primary_key_url_value($form_config,$record)
+function config_id_url_value($form_config,$record,$config_key)
 {
-  $key_fields=explode(\webdb\index\PRIMARY_KEY_DELIMITER,$form_config["primary_key"]);
+  $key_fields=explode(\webdb\index\CONFIG_ID_DELIMITER,$form_config[$config_key]);
   $values=array();
   for ($i=0;$i<count($key_fields);$i++)
   {
     $values[]=$record[$key_fields[$i]];
   }
-  return implode(\webdb\index\PRIMARY_KEY_DELIMITER,$values);
+  return implode(\webdb\index\CONFIG_ID_DELIMITER,$values);
 }
 
 #####################################################################################################
@@ -248,6 +257,7 @@ function list_form_content($form_name,$records=false,$insert_default_params=fals
   }
   $form_params=array();
   $form_params["url_page"]=$form_config["url_page"];
+  $form_params["individual_edit_url_page"]=$form_config["individual_edit_url_page"];
   $form_params["insert_default_params"]="";
   if ($insert_default_params!==false)
   {
@@ -408,7 +418,12 @@ function list_form_content($form_name,$records=false,$insert_default_params=fals
   {
     if (isset($form_config["lookups"][$field_name])==true)
     {
-      $lookup_records[$field_name]=\webdb\forms\lookup_field_data($form_name,$field_name);
+      $sibling_field=false;
+      if (isset($form_config["lookups"][$field_name]["sibling_key_field"])==true)
+      {
+        $sibling_field=$form_config["lookups"][$field_name]["sibling_key_field"];
+      }
+      $lookup_records[$field_name]=\webdb\forms\lookup_field_data($form_name,$field_name,$sibling_field);
     }
   }
   $previous_group_by_fields=false;
@@ -418,7 +433,7 @@ function list_form_content($form_name,$records=false,$insert_default_params=fals
     # TODO: is_row_locked($schema,$table,$key_field,$key_value)
     $row_params=array();
     $row_params["url_page"]=$form_config["url_page"];
-    $row_params["id"]=\webdb\forms\primary_key_url_value($form_config,$record);
+    $row_params["delete_id"]=\webdb\forms\config_id_url_value($form_config,$record,"delete_id");
     $fields="";
     foreach ($form_config["control_types"] as $field_name => $control_type)
     {
@@ -434,16 +449,23 @@ function list_form_content($form_name,$records=false,$insert_default_params=fals
         $field_params["border_color"]="000";
         $field_params["border_width"]=2;
       }
-      if ($record[$field_name]==="")
+      if ($control_type=="lookup")
       {
         $field_params["value"]=\webdb\utils\template_fill("empty_cell");
       }
       else
       {
-        $field_params["value"]=htmlspecialchars($record[$field_name]);
+        if ($record[$field_name]==="")
+        {
+          $field_params["value"]=\webdb\utils\template_fill("empty_cell");
+        }
+        else
+        {
+          $field_params["value"]=htmlspecialchars($record[$field_name]);
+        }
       }
       $field_params["field_name"]=$field_name;
-      $field_params["id"]=$row_params["id"];
+      $field_params["delete_id"]=$row_params["delete_id"];
       $field_params["url_page"]=$form_config["url_page"];
       $field_params["group_span"]="";
       $field_params["handlers"]="";
@@ -454,6 +476,7 @@ function list_form_content($form_name,$records=false,$insert_default_params=fals
       }
       if (($form_config["individual_edit"]=="row") and ($form_config["records_sql"]==""))
       {
+        $field_params["edit_id"]=\webdb\forms\config_id_url_value($form_config,$record,"edit_id");
         $field_params["handlers"]=\webdb\forms\form_template_fill("list_field_handlers",$field_params);
       }
       $skip_field=false;
@@ -474,8 +497,26 @@ function list_form_content($form_name,$records=false,$insert_default_params=fals
       {
         switch ($control_type)
         {
-          case "text":
+          case "lookup":
+            $key_field_name=$form_config["lookups"][$field_name]["key_field"];
+            $sibling_field_name=$form_config["lookups"][$field_name]["sibling_field"];
+            $display_field_name=$form_config["lookups"][$field_name]["display_field"];
+            for ($j=0;$j<count($lookup_records[$field_name]);$j++)
+            {
+              $key_value=$lookup_records[$field_name][$j][$key_field_name];
+              $display_value=$lookup_records[$field_name][$j][$display_field_name];
+              if ($record[$sibling_field_name]==$key_value)
+              {
+                $field_params["value"]=htmlspecialchars($display_value);
+                break;
+              }
+            }
+            $field_params["value"]=htmlspecialchars(str_replace("\\n",\webdb\index\LINEBREAK_PLACEHOLDER,$field_params["value"]));
+            $field_params["value"]=str_replace(\webdb\index\LINEBREAK_PLACEHOLDER,\webdb\utils\template_fill("break"),$field_params["value"]);
+            $fields.=\webdb\forms\form_template_fill("list_field",$field_params);
+            break;
           case "span":
+          case "text":
           case "memo":
             $field_params["value"]=htmlspecialchars(str_replace("\\n",\webdb\index\LINEBREAK_PLACEHOLDER,$record[$field_name]));
             $field_params["value"]=str_replace(\webdb\index\LINEBREAK_PLACEHOLDER,\webdb\utils\template_fill("break"),$field_params["value"]);
@@ -505,7 +546,7 @@ function list_form_content($form_name,$records=false,$insert_default_params=fals
             }
             else
             {
-              $field_params["value"]=date("Y-m-d",strtotime($record[$field_name]));
+              $field_params["value"]=date($settings["app_date_format"],strtotime($record[$field_name]));
             }
             $fields.=\webdb\forms\form_template_fill("list_field",$field_params);
             break;
@@ -530,6 +571,7 @@ function list_form_content($form_name,$records=false,$insert_default_params=fals
       $row_params["controls"]="";
       if (($form_config["individual_edit"]=="button") and ($form_config["records_sql"]==""))
       {
+        $row_params["edit_id"]=\webdb\forms\config_id_url_value($form_config,$record,"edit_id");
         $row_params["controls"]=\webdb\forms\form_template_fill("list_row_edit",$row_params);
       }
       if (($form_config["individual_delete"]==true) and ($form_config["records_sql"]==""))
@@ -585,6 +627,8 @@ function advanced_search($form_name)
     $search_control_type="text";
     switch ($control_type)
     {
+      case "lookup":
+        continue 2;
       case "span":
       case "checkbox":
       case "text":
@@ -598,6 +642,10 @@ function advanced_search($form_name)
         }
         break;
       case "date":
+        if (isset($_POST["iso_".$field_name])==true)
+        {
+          $field_value=$_POST["iso_".$field_name];
+        }
         $date_operators=array("<","<=","=",">=",">","<>");
         $selected_option="=";
         if (isset($_POST["search_operator_".$field_name])==true)
@@ -624,10 +672,12 @@ function advanced_search($form_name)
         if (($field_value==\webdb\sql\zero_sql_timestamp()) or ($field_value==""))
         {
           $field_params["field_value"]="";
+          $field_params["iso_field_value"]="";
         }
         else
         {
-          $field_params["field_value"]=date("Y-m-d",strtotime($field_value));
+          $field_params["field_value"]=date($settings["app_date_format"],strtotime($field_value));
+          $field_params["iso_field_value"]=date("Y-m-d",strtotime($field_value));
         }
         if ($field_value<>"")
         {
@@ -768,7 +818,7 @@ function edit_form($form_name,$id)
 {
   global $settings;
   $form_config=$settings["forms"][$form_name];
-  $record=\webdb\forms\get_record_by_id($form_name,$id);
+  $record=\webdb\forms\get_record_by_id($form_name,$id,"edit_id");
   $subforms="";
   foreach ($form_config["edit_subforms"] as $subform_name => $subform_link_field)
   {
@@ -804,7 +854,7 @@ function edit_form($form_name,$id)
 
 #####################################################################################################
 
-function lookup_field_data($form_name,$field_name)
+function lookup_field_data($form_name,$field_name,$sibling_field=false)
 {
   global $settings;
   $form_config=$settings["forms"][$form_name];
@@ -825,6 +875,10 @@ function lookup_field_data($form_name,$field_name)
       \webdb\utils\show_message("error: invalid lookup config for field '".$field_name."' in form '".$form_name."' (lookup config key '".$config_keys[$i]."' cannot be empty)");
     }
   }
+  if ($sibling_field!==false)
+  {
+    $lookup_config["key_field"]=$sibling_field;
+  }
   $sql=\webdb\utils\sql_fill("form_lookup",$lookup_config);
   return \webdb\sql\fetch_query($sql);
 }
@@ -839,6 +893,10 @@ function output_editor($form_name,$record,$command,$verb,$id)
   $rows="";
   foreach ($form_config["control_types"] as $field_name => $control_type)
   {
+    if ($control_type=="lookup")
+    {
+      continue;
+    }
     $field_value=$record[$field_name];
     $field_params=array();
     $field_params["field_name"]=$field_name;
@@ -856,17 +914,17 @@ function output_editor($form_name,$record,$command,$verb,$id)
       case "combobox":
       case "listbox":
       case "radiogroup":
-        $options="";
+        $option_template="select";
+        if ($control_type=="radiogroup")
+        {
+          $option_template="radio";
+        }
+        $option_params["name"]=$field_name;
+        $option_params["value"]="";
+        $option_params["caption"]="";
+        $options=\webdb\utils\template_fill($option_template."_option",$option_params);
         $records=\webdb\forms\lookup_field_data($form_name,$field_name);
         $lookup_config=$form_config["lookups"][$field_name];
-        $primary_key_fields=explode(\webdb\index\PRIMARY_KEY_DELIMITER,$form_config["primary_key"]);
-        if (in_array($lookup_config["key_field"],$primary_key_fields)==false)
-        {
-          $blank_record=array();
-          $blank_record[$lookup_config["key_field"]]="";
-          $blank_record[$lookup_config["display_field"]]="";
-          array_unshift($records,$blank_record);
-        }
         for ($i=0;$i<count($records);$i++)
         {
           $loop_record=$records[$i];
@@ -874,11 +932,6 @@ function output_editor($form_name,$record,$command,$verb,$id)
           $option_params["name"]=$field_name;
           $option_params["value"]=$loop_record[$lookup_config["key_field"]];
           $option_params["caption"]=$loop_record[$lookup_config["display_field"]];
-          $option_template="select";
-          if ($control_type=="radiogroup")
-          {
-            $option_template="radio";
-          }
           if ($loop_record[$lookup_config["key_field"]]==$field_value)
           {
             $options.=\webdb\utils\template_fill($option_template."_option_selected",$option_params);
@@ -895,10 +948,12 @@ function output_editor($form_name,$record,$command,$verb,$id)
         if (($field_value==\webdb\sql\zero_sql_timestamp()) or ($field_value==""))
         {
           $field_params["field_value"]="";
+          $field_params["iso_field_value"]="";
         }
         else
         {
-          $field_params["field_value"]=date("Y-m-d",strtotime($field_value));
+          $field_params["field_value"]=date($settings["app_date_format"],strtotime($field_value));
+          $field_params["iso_field_value"]=date("Y-m-d",strtotime($field_value));
         }
         break;
       case "checkbox":
@@ -925,7 +980,7 @@ function output_editor($form_name,$record,$command,$verb,$id)
   $form_params["calendar"]=\webdb\forms\get_calendar($calendar_fields);
   $form_params["rows"]=$rows;
   $form_params["url_page"]=$form_config["url_page"];
-  $form_params["id"]=$id;
+  $form_params["edit_id"]=$id;
   $form_params["return_link"]=\webdb\forms\form_template_fill("return_link",$form_config);
   $form_params["command_caption_noun"]=$form_config["command_caption_noun"];
   $form_params["confirm_caption"]=$verb." ".$form_config["command_caption_noun"];
@@ -954,13 +1009,20 @@ function process_form_data_fields($form_name)
       case "combobox":
       case "listbox":
       case "radiogroup":
-        if ($_POST[$field_name]=="")
+        if (isset($_POST[$field_name])==false)
         {
           $value_items[$field_name]=null;
         }
         else
         {
-          $value_items[$field_name]=$_POST[$field_name];
+          if ($_POST[$field_name]=="")
+          {
+            $value_items[$field_name]=null;
+          }
+          else
+          {
+            $value_items[$field_name]=$_POST[$field_name];
+          }
         }
         break;
       case "memo":
@@ -1009,17 +1071,17 @@ function update_record($form_name,$id)
   global $settings;
   $form_config=$settings["forms"][$form_name];
   $value_items=\webdb\forms\process_form_data_fields($form_name);
-  $where_items=\webdb\forms\primary_key_conditions($form_config,$id);
+  $where_items=\webdb\forms\config_id_conditions($form_config,$id,"edit_id");
   \webdb\sql\sql_update($value_items,$where_items,$form_config["table"],$form_config["database"]);
   \webdb\forms\page_redirect($form_name);
 }
 
 #####################################################################################################
 
-function primary_key_conditions($form_config,$id)
+function config_id_conditions($form_config,$id,$config_key)
 {
-  $fieldnames=explode(\webdb\index\PRIMARY_KEY_DELIMITER,$form_config["primary_key"]);
-  $values=explode(\webdb\index\PRIMARY_KEY_DELIMITER,$id);
+  $fieldnames=explode(\webdb\index\CONFIG_ID_DELIMITER,$form_config[$config_key]);
+  $values=explode(\webdb\index\CONFIG_ID_DELIMITER,$id);
   $items=array();
   for ($i=0;$i<count($fieldnames);$i++)
   {
@@ -1030,12 +1092,12 @@ function primary_key_conditions($form_config,$id)
 
 #####################################################################################################
 
-function get_record_by_id($form_name,$id)
+function get_record_by_id($form_name,$id,$config_key)
 {
   global $settings;
   $form_config=$settings["forms"][$form_name];
-  $items=\webdb\forms\primary_key_conditions($form_config,$id);
-  $form_config["primary_key_conditions"]=\webdb\sql\build_prepared_where($items);
+  $items=\webdb\forms\config_id_conditions($form_config,$id,$config_key);
+  $form_config["where_conditions"]=\webdb\sql\build_prepared_where($items);
   $sql=\webdb\utils\sql_fill("form_list_fetch_by_id",$form_config);
   $records=\webdb\sql\fetch_prepare($sql,$items);
   if (count($records)<>1)
@@ -1051,19 +1113,57 @@ function delete_confirmation($form_name,$id)
 {
   global $settings;
   $form_config=$settings["forms"][$form_name];
-  $record=get_record_by_id($form_name,$id);
+  $record=get_record_by_id($form_name,$id,"delete_id");
   $rows="";
-  foreach ($record as $field_name => $field_value)
+
+  foreach ($form_config["control_types"] as $field_name => $control_type)
   {
+    if ($control_type=="lookup")
+    {
+      continue;
+    }
+    $field_value=$record[$field_name];
     $field_params=array();
     $field_params["field_name"]=$field_name;
     $field_params["field_value"]=htmlspecialchars($field_value);
+    switch ($control_type)
+    {
+      case "span":
+      case "text":
+      case "combobox":
+      case "listbox":
+      case "radiogroup":
+        break;
+      case "memo":
+        $field_params["field_value"]=htmlspecialchars(str_replace("\\n",\webdb\index\LINEBREAK_PLACEHOLDER,$field_value));
+        $field_params["field_value"]=str_replace(\webdb\index\LINEBREAK_PLACEHOLDER,PHP_EOL,$field_params["field_value"]);
+        break;
+      case "date":
+        if (($field_value==\webdb\sql\zero_sql_timestamp()) or ($field_value==""))
+        {
+          $field_params["field_value"]="";
+        }
+        else
+        {
+          $field_params["field_value"]=date($settings["app_date_format"],strtotime($field_value));
+        }
+        break;
+      case "checkbox":
+        $field_params["checked"]="";
+        if ($field_value==1)
+        {
+          $field_params["checked"]=\webdb\utils\template_fill("checkbox_checked");
+        }
+        break;
+      default:
+        \webdb\utils\show_message("error: invalid control type '".$control_type."' for field '".$field_name."' on form '".$form_name."'");
+    }
     $rows.=\webdb\forms\form_template_fill("field_row",$field_params);
   }
   $form_params=array();
   $form_params["rows"]=$rows;
   $form_params["url_page"]=$form_config["url_page"];
-  $form_params["id"]=$id;
+  $form_params["delete_id"]=$id;
   $form_params["return_link"]=\webdb\forms\form_template_fill("return_link",$form_config);
   $content=\webdb\forms\form_template_fill("delete_confirm",$form_params);
   $title=$form_name.": confirm deletion";
@@ -1095,7 +1195,7 @@ function delete_record($form_name,$id)
 {
   global $settings;
   $form_config=$settings["forms"][$form_name];
-  $where_items=primary_key_conditions($form_config,$id);
+  $where_items=\webdb\forms\config_id_conditions($form_config,$id,"delete_id");
   \webdb\sql\sql_delete($where_items,$form_config["table"],$form_config["database"]);
   \webdb\forms\page_redirect($form_name);
 }
@@ -1125,7 +1225,7 @@ function delete_selected_confirmation($form_name)
   foreach ($_POST["list_select"] as $id => $value)
   {
     $row_params=array();
-    $record=get_record_by_id($form_name,$id);
+    $record=get_record_by_id($form_name,$id,"delete_id");
     $fields="";
     foreach ($record as $field_name => $field_value)
     {
@@ -1133,7 +1233,7 @@ function delete_selected_confirmation($form_name)
       $field_params["value"]=htmlspecialchars($field_value);
       $fields.=\webdb\forms\form_template_fill("list_field",$field_params);
     }
-    $row_params["id"]=\webdb\forms\primary_key_url_value($form_config,$record);
+    $row_params["delete_id"]=\webdb\forms\config_id_url_value($form_config,$record,"delete_id");
     $row_params["fields"]=$fields;
     $rows.=\webdb\forms\form_template_fill("list_del_selected_confirm_row",$row_params);
   }
@@ -1154,7 +1254,7 @@ function delete_selected_records($form_name)
   $form_config=$settings["forms"][$form_name];
   foreach ($_POST["id"] as $id => $value)
   {
-    $where_items=primary_key_conditions($form_config,$id);
+    $where_items=\webdb\forms\config_id_conditions($form_config,$id,"delete_id");
     \webdb\sql\sql_delete($where_items,$form_config["table"],$form_config["database"]);
   }
   \webdb\forms\page_redirect($form_name);

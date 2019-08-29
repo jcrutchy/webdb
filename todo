@@ -1,16 +1,17 @@
 high priority
 =============
 
+* for lookup fields, automatically sort by display field rather than underlying id
+* ability to insert/edit/delete records for subforms from within parent form (option to include insert row controls in list form)
+  - use ajax to replace the subform content only
+
 * basic search feature (key fields, uses implicit wildcards)
-* user permissions
 * try to figure out why login cookies are being forgotten after a reboot
 * add column headers to delete selected confirmation page
 * ability to edit all records at once
-* ability to insert/edit/delete records for subforms from within parent form (option to include insert row controls in list form)
 * insert/edit/advanced search control group captions (using borders?)
 * friendly error message when deleting record fails due to foreign key
 * dynamic filtering for reports
-* sql backup script (command line argument launched from crontab)
 
 * email alert
  - daily crontab

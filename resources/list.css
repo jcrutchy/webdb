@@ -234,6 +234,12 @@ th.rotate
 .subform_content
   {
     padding: 10px;
+    max-height: 500px;
+  }
+
+.list_data_table
+  {
+    padding-bottom: 10px;
   }
 
 .edit_record_table
