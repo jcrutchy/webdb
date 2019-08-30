@@ -35,6 +35,48 @@ function form_dispatch($url_page)
                   $data=\webdb\forms\edit_form($form_name,$_GET["id"]);
                   \webdb\utils\output_page($data["content"],$data["title"]);
                 case "insert":
+                  if (isset($_GET["ajax"])==true)
+                  {
+                    $data=array();
+                    if (count($_POST)==0)
+                    {
+                      $data["error"]="error: no field data to insert";
+                      $data=json_encode($data);
+                      die($data);
+                    }
+                    $data["url_page"]=$url_page;
+                    $insert_default_params=array();
+                    foreach ($_GET as $param_name => $param_value)
+                    {
+                      switch ($param_name)
+                      {
+                        case "page":
+                        case "cmd":
+                        case "ajax":
+                          continue;
+                        default:
+                          $insert_default_params[$param_name]=$param_value;
+                      }
+                    }
+                    if (count($insert_default_params)>0)
+                    {
+                      foreach ($insert_default_params as $param_name => $param_value)
+                      {
+                        $insert_params=$_POST;
+                        $insert_params[$param_name]=$param_value;
+                        \webdb\sql\sql_insert($insert_params,$form_config["table"],$form_config["database"]);
+                        $data["html"]=get_subform_content($form_name,$param_name,$param_value,true);
+                        break;
+                      }
+                    }
+                    else
+                    {
+                      \webdb\sql\sql_insert($_POST,$form_config["table"],$form_config["database"]);
+                      $data["html"]=list_form_content($form_name);
+                    }
+                    $data=json_encode($data);
+                    die($data);
+                  }
                   $data=\webdb\forms\insert_form($form_name);
                   \webdb\utils\output_page($data["content"],$data["title"]);
                 case "advanced_search":
@@ -70,6 +112,7 @@ function form_dispatch($url_page)
           $list_params["form_script_modified"]=\webdb\utils\resource_modified_timestamp("list.js");
           $list_params["form_styles_modified"]=\webdb\utils\resource_modified_timestamp("list.css");
           $list_params["form_styles_print_modified"]=\webdb\utils\resource_modified_timestamp("list_print.css");
+          $list_params["title"]=$form_config["title"];
           $content=\webdb\forms\form_template_fill("list_page",$list_params);
           $title=$form_name;
           if ($form_config["title"]<>"")
@@ -91,6 +134,32 @@ function form_template_fill($name,$params=false)
 
 #####################################################################################################
 
+function get_subform_content($subform_name,$subform_link_field,$id,$list_only=false)
+{
+  global $settings;
+  $subform_config=$settings["forms"][$subform_name];
+  $sql_params=array();
+  $sql_params["database"]=$subform_config["database"];
+  $sql_params["table"]=$subform_config["table"];
+  $sql_params["sort_sql"]=$subform_config["sort_sql"];
+  $sql_params["link_field_name"]=$subform_link_field;
+  $sql=\webdb\utils\sql_fill("subform_list_fetch",$sql_params);
+  $sql_params=array();
+  $sql_params["id"]=$id;
+  $records=\webdb\sql\fetch_prepare($sql,$sql_params);
+  $subform_params=array();
+  $url_params=array();
+  $url_params[$subform_link_field]=$id;
+  $subform_params["subform"]=list_form_content($subform_name,$records,$url_params);
+  if ($list_only==true)
+  {
+    return $subform_params["subform"];
+  }
+  return \webdb\forms\form_template_fill("subform",$subform_params);
+}
+
+#####################################################################################################
+
 function get_calendar($field_names)
 {
   global $settings;
@@ -98,9 +167,7 @@ function get_calendar($field_names)
   {
     for ($i=0;$i<count($field_names);$i++)
     {
-      $input_params=array();
-      $input_params["field_name"]=$field_names[$i];
-      $field_names[$i]=\webdb\forms\form_template_fill("calendar_input_array_item",$input_params);
+      $field_names[$i]="'date_field__".$field_names[$i]."'";
     }
     $calendar_params=array();
     $calendar_params["calendar_inputs"]=implode(",",$field_names);
@@ -231,6 +298,14 @@ function header_row($form_config)
 
 function config_id_url_value($form_config,$record,$config_key)
 {
+  if (isset($form_config[$config_key])==false)
+  {
+    return "";
+  }
+  if ($form_config[$config_key]=="")
+  {
+    return "";
+  }
   $key_fields=explode(\webdb\index\CONFIG_ID_DELIMITER,$form_config[$config_key]);
   $values=array();
   for ($i=0;$i<count($key_fields);$i++)
@@ -583,6 +658,137 @@ function list_form_content($form_name,$records=false,$insert_default_params=fals
     $row_params["fields"]=$fields;
     $rows.=\webdb\forms\form_template_fill("list_row",$row_params);
   }
+  if (($form_config["insert_row"]==true) and ($form_config["records_sql"]==""))
+  {
+    $insert_fields=array();
+    $calendar_fields=array();
+    $row_params=array();
+    $row_params["url_page"]=$form_config["url_page"];
+    $row_params["check"]="";
+    if ($form_config["multi_row_delete"]==true)
+    {
+      $row_params["check"]=\webdb\forms\form_template_fill("list_check_insert");
+    }
+    $fields="";
+    foreach ($form_config["control_types"] as $field_name => $control_type)
+    {
+      if ($form_config["visible"][$field_name]==false)
+      {
+        continue;
+      }
+      $field_params=array();
+      $field_params["handlers"]="";
+      $field_params["field_value"]="";
+      if (isset($form_config["default_values"][$field_name])==true)
+      {
+        $field_params["field_value"]=$form_config["default_values"][$field_name];
+      }
+      $field_params["border_color"]="888";
+      $field_params["border_width"]=1;
+      if (isset($bold_borders[$field_name])==true)
+      {
+        $field_params["border_color"]="000";
+        $field_params["border_width"]=2;
+      }
+      $field_params["field_name"]=$field_name;
+      $field_params["group_span"]="";
+      $field_params["table_cell_style"]="";
+      if (isset($form_config["table_cell_styles"][$field_name])==true)
+      {
+        $field_params["table_cell_style"]=$form_config["table_cell_styles"][$field_name];
+      }
+      $field_params["control_style"]="";
+      if (isset($form_config["control_styles"][$field_name])==true)
+      {
+        $field_params["control_style"]=$form_config["control_styles"][$field_name];
+      }
+      $control_type_suffix="";
+      switch ($control_type)
+      {
+        case "lookup":
+          break;
+        case "span":
+          break;
+        case "text":
+          $insert_fields[]=$field_name;
+          break;
+        case "memo":
+          $field_params["field_value"]=htmlspecialchars(str_replace("\\n",\webdb\index\LINEBREAK_PLACEHOLDER,$field_params["field_value"]));
+          $field_params["field_value"]=str_replace(\webdb\index\LINEBREAK_PLACEHOLDER,PHP_EOL,$field_params["field_value"]);
+          $insert_fields[]=$field_name;
+          break;
+        case "combobox":
+        case "listbox":
+        case "radiogroup":
+          $option_template="select";
+          if ($control_type=="radiogroup")
+          {
+            $option_template="radio";
+          }
+          $option_params["name"]=$field_name;
+          $option_params["value"]="";
+          $option_params["caption"]="";
+          $options=\webdb\utils\template_fill($option_template."_option",$option_params);
+          $records=\webdb\forms\lookup_field_data($form_name,$field_name);
+          $lookup_config=$form_config["lookups"][$field_name];
+          for ($i=0;$i<count($records);$i++)
+          {
+            $loop_record=$records[$i];
+            $option_params=array();
+            $option_params["name"]=$field_name;
+            $option_params["value"]=$loop_record[$lookup_config["key_field"]];
+            $option_params["caption"]=$loop_record[$lookup_config["display_field"]];
+            if ($loop_record[$lookup_config["key_field"]]==$field_params["field_value"])
+            {
+              $options.=\webdb\utils\template_fill($option_template."_option_selected",$option_params);
+            }
+            else
+            {
+              $options.=\webdb\utils\template_fill($option_template."_option",$option_params);
+            }
+          }
+          $field_params["options"]=$options;
+          $insert_fields[]=$field_name;
+          break;
+        case "date":
+          $calendar_fields[]=$field_name;
+          if (($field_params["field_value"]==\webdb\sql\zero_sql_timestamp()) or ($field_params["field_value"]==""))
+          {
+            $field_params["field_value"]="";
+            $field_params["iso_field_value"]="";
+          }
+          else
+          {
+            $field_params["field_value"]=date($settings["app_date_format"],strtotime($field_params["field_value"]));
+            $field_params["iso_field_value"]=date("Y-m-d",strtotime($field_params["field_value"]));
+          }
+          $insert_fields[]=$field_name;
+          break;
+        case "checkbox":
+          $field_params["checked"]="";
+          if ($field_params["field_value"]==1)
+          {
+            $field_params["checked"]=\webdb\utils\template_fill("checkbox_checked");
+          }
+          $control_type_suffix="_check";
+          $insert_fields[]=$field_name;
+          break;
+        default:
+          \webdb\utils\show_message("error: invalid control type '".$control_type."' for field '".$field_name."' on form '".$form_name."'");
+      }
+      $field_params["value"]=\webdb\forms\form_template_fill("field_edit_".$control_type,$field_params);
+      $fields.=\webdb\forms\form_template_fill("list_field".$control_type_suffix,$field_params);
+    }
+    $row_params["controls_min_width"]=round($rotate_span_width*0.707)-20;
+    $row_params["fields"]=$fields;
+    $rows.=\webdb\forms\form_template_fill("list_insert_row",$row_params);
+    for ($i=0;$i<count($insert_fields);$i++)
+    {
+      $insert_fields[$i]="'".$insert_fields[$i]."'";
+    }
+    $form_params["insert_row_controls"]=implode(",",$insert_fields);
+    $form_params["calendar"]=\webdb\forms\get_calendar($calendar_fields);
+  }
   $form_params["rows"]=$rows;
   $form_params["advanced_search_control"]="";
   $form_params["insert_control"]="";
@@ -777,10 +983,12 @@ function advanced_search($form_name)
     $records=\webdb\sql\fetch_prepare($sql,$sql_params);
   }
   $form_config["insert_new"]=false;
+  $form_config["insert_row"]=false;
   $form_config["advanced_search"]=false;
   $search_page_params["advanced_search_results"]=\webdb\forms\list_form_content($form_name,$records,false,$form_config);
   $search_page_params["form_script_modified"]=\webdb\utils\resource_modified_timestamp("list.js");
   $search_page_params["form_styles_modified"]=\webdb\utils\resource_modified_timestamp("list.css");
+  $search_page_params["title"]=$form_config["title"];
   $result=array();
   $result["title"]=$form_config["title"].": Advanced Search";
   $result["content"]=\webdb\forms\form_template_fill("advanced_search_page",$search_page_params);
@@ -806,6 +1014,7 @@ function insert_form($form_name)
   $insert_page_params["record_insert_form"]=$data["content"];
   $insert_page_params["form_script_modified"]=\webdb\utils\resource_modified_timestamp("list.js");
   $insert_page_params["form_styles_modified"]=\webdb\utils\resource_modified_timestamp("list.css");
+  $insert_page_params["command_caption_noun"]=$form_config["command_caption_noun"];
   $result=array();
   $result["title"]=$data["title"];
   $result["content"]=\webdb\forms\form_template_fill("insert_page",$insert_page_params);
@@ -822,22 +1031,7 @@ function edit_form($form_name,$id)
   $subforms="";
   foreach ($form_config["edit_subforms"] as $subform_name => $subform_link_field)
   {
-    $subform_config=$settings["forms"][$subform_name];
-    $subform_sql_params=array();
-    $subform_sql_params["database"]=$subform_config["database"];
-    $subform_sql_params["table"]=$subform_config["table"];
-    $subform_sql_params["sort_sql"]=$subform_config["sort_sql"];
-    $subform_sql_params["link_field_name"]=$subform_link_field;
-    $sql=\webdb\utils\sql_fill("subform_list_fetch",$subform_sql_params);
-    $sql_params=array();
-    $sql_params["id"]=$id;
-    $records=\webdb\sql\fetch_prepare($sql,$sql_params);
-    $subform_params=array();
-    $url_params=array();
-    $url_params[$subform_link_field]=$id;
-    $subform_params["subform"]=list_form_content($subform_name,$records,$url_params);
-    $subform=\webdb\forms\form_template_fill("subform",$subform_params);
-    $subforms.=$subform;
+    $subforms.=get_subform_content($subform_name,$subform_link_field,$id);
   }
   $data=\webdb\forms\output_editor($form_name,$record,"edit","Update",$id);
   $edit_page_params=array();
@@ -845,6 +1039,7 @@ function edit_form($form_name,$id)
   $edit_page_params["subforms"]=$subforms;
   $edit_page_params["form_script_modified"]=\webdb\utils\resource_modified_timestamp("list.js");
   $edit_page_params["form_styles_modified"]=\webdb\utils\resource_modified_timestamp("list.css");
+  $edit_page_params["command_caption_noun"]=$form_config["command_caption_noun"];
   $content=\webdb\forms\form_template_fill("edit_page",$edit_page_params);
   $result=array();
   $result["title"]=$data["title"];
@@ -968,6 +1163,14 @@ function output_editor($form_name,$record,$command,$verb,$id)
     }
     $row_params=array();
     $row_params["field_name"]=$form_config["captions"][$field_name];
+    foreach ($form_config["caption_groups"] as $group_caption => $group_fields)
+    {
+      if (in_array($field_name,$group_fields)==true)
+      {
+        $row_params["field_name"]=$group_caption.": ".$row_params["field_name"];
+        break;
+      }
+    }
     $field_params["control_style"]="";
     if (isset($form_config["control_styles"][$field_name])==true)
     {

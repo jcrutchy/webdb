@@ -2,7 +2,7 @@ high priority
 =============
 
 * for lookup fields, automatically sort by display field rather than underlying id
-* ability to insert/edit/delete records for subforms from within parent form (option to include insert row controls in list form)
+* ability to edit/delete records for subforms from within parent form
   - use ajax to replace the subform content only
 
 * basic search feature (key fields, uses implicit wildcards)

@@ -2,6 +2,7 @@
     "form_version": "20190829.1",
     "form_type": "list",
     "enabled": true,
+    "title": "Groups",
     "groups_allowed": "admin",
     "url_page": "groups",
     "return_link_url_page": "groups",

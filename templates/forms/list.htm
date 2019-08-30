@@ -1,5 +1,10 @@
 
-<form action="@@forms/form_url@@" method="post">
+<script type="text/javascript">
+insert_row_controls['%%url_page%%']=[%%insert_row_controls%%];
+insert_row_parents['%%url_page%%']=document.currentScript.parentElement;
+</script>
+
+<form name="%%url_page%%" id="%%url_page%%" action="@@forms/form_url@@" method="post">
 
 <input type="hidden" id="edit_page:%%url_page%%" name="edit_page:%%url_page%%" value="$$app_web_index$$?page=%%individual_edit_url_page%%&cmd=edit&id=">
 <input type="hidden" id="insert_page:%%url_page%%" name="insert_page:%%url_page%%" value="@@forms/form_url@@&cmd=insert%%insert_default_params%%">

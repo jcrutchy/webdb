@@ -33,6 +33,7 @@
     "individual_edit_url_page": "",
     "edit_id": "",
     "insert_new": true,
+    "insert_row": true,
     "advanced_search": true,
     "database": "",
     "table": "",

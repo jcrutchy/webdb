@@ -124,8 +124,17 @@ th.rotate
 
 #global_page_header_content
   {
-    text-align: center;
+    text-align: right;
     padding: 15px;
+  }
+
+#header_title
+  {
+    position: absolute;
+    left: 15px;
+    top: 20px;
+    font-size: 18px;
+    text-shadow: 0 0 4px #999999;
   }
 
 #global_page_body_outer
@@ -152,7 +161,7 @@ th.rotate
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: #fdf6e3;
+    background-color: #fafafd;
     padding: 0;
     overflow: auto;
     border-style: solid;
@@ -187,7 +196,8 @@ th.rotate
 
 #company_logo
   {
-    height: 60px;
+    height: 50px;
+    margin-top: 5px;
   }
 
 #editor_form
@@ -220,7 +230,7 @@ th.rotate
 
 .subform_inner
   {
-    background-color: #fdf6e3;
+    background-color: #fafafd;
     padding: 0;
     overflow: auto;
     border-style: solid;

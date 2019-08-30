@@ -1,0 +1,5 @@
+
+
+individual_edit form config setting can be either none, row, button or inline
+
+inline not working yet => intended to be that you click a row and it turns into editable controls (ajax-driven)
