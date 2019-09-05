@@ -125,43 +125,30 @@ function app_template_fill($template_key,$params=false,$tracking=array(),$custom
 
 #####################################################################################################
 
-function check_template_group($content)
-{
-  $lines=explode(PHP_EOL,$content);
-  if (count($lines)==0)
-  {
-    return $content;
-  }
-  $check_line=array_shift($lines);
-  if (strpos($check_line,\webdb\index\TEMPLATE_GROUP_PERMISSION_PREFIX)!==0)
-  {
-    return $content;
-  }
-  $groups=substr($check_line,strlen(\webdb\index\TEMPLATE_GROUP_PERMISSION_PREFIX));
-  $groups=explode(",",$groups);
-  if (\webdb\utils\check_user_permission($groups)==true)
-  {
-    return implode(PHP_EOL,$lines);
-  }
-  else
-  {
-    return false;
-  }
-}
-
-#####################################################################################################
-
-function check_user_permission($allowed_groups)
+function check_user_permission($type,$name,$permission)
 {
   global $settings;
+  if (isset($settings["permissions"][$type][$name])==false)
+  {
+    return true;
+  }
   $user_record=$settings["user_record"];
   $user_id=$user_record["user_id"];
   $user_groups=\webdb\users\get_user_groups($user_id);
   for ($i=0;$i<count($user_groups);$i++)
   {
-    if (in_array($user_groups[$i]["group_name"],$allowed_groups)==true)
+    $user_group=$user_groups[$i]["group_name"];
+    if (isset($settings["permissions"][$type][$name][$user_group])==true)
     {
-      return true;
+      $permissions=$settings["permissions"][$type][$name][$user_group];
+      if (strpos($permissions,$permission)!==false)
+      {
+        return true;
+      }
+      else
+      {
+        return false;
+      }
     }
   }
   return false;
@@ -185,13 +172,12 @@ function template_fill($template_key,$params=false,$tracking=array(),$custom_tem
   {
     \webdb\utils\system_message("error: circular reference to template '".$template_key."'");
   }
-  $tracking[]=$template_key;
-  $result=$template_array[$template_key];
-  $result=\webdb\utils\check_template_group($result);
-  if ($result===false)
+  if (\webdb\utils\check_user_permission("templates",$template_key,"r")==false)
   {
     return "";
   }
+  $tracking[]=$template_key;
+  $result=$template_array[$template_key];
   foreach ($template_array as $key => $value)
   {
     if (strpos($result,"@@".$key."@@")===false)

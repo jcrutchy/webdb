@@ -29,7 +29,8 @@ function show_calendar(element)
   var calendar=document.getElementById("calendar_div");
   if (!calendar)
   {
-    alert("calendar div not found");
+    //alert("calendar div not found");
+    document.getElementById("global_page_footer_content").innerHTML="calendar div not found";
     return;
   }
   calendar.style.display="none";

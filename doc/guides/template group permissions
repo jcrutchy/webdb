@@ -1,9 +1,16 @@
-you can control access to a specific template by inserting a line at the beginning of the file that contains a prefix and a comma-delimited list of group names
+you can control access to a specific template by adding to the $settings["permissions"]["templates"] array
 
-the prefix is defined as a constant in the webdb index.php file
+permissions are whitelist-based; if there are any permissions set for a given template, anyone outside those permissions will be denied access
 
-it must be the first line of the file, and cannot contain anything in that line other than the prefix and group list
+any template without permissions is assumed to be accessible for reading by all users
 
-this line will not be shown in the output of the template
+in the application settings.php file, add group permissions to specific templates using the following convention:
 
-if a user isn't a member of a group with permission to view the template, an empty string will be output
+$settings["permissions"]["templates"]["template_name"]=array();
+$settings["permissions"]["templates"]["template_name"]["group_name"]="r";
+
+a permission value of "r" indicates read permission
+
+there are no other permissions applicable to templates
+
+if a user isn't a member of a group with permission to read a template, an empty string will be output

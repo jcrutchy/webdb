@@ -162,8 +162,10 @@ function fetch_query($sql,$filename="",$is_admin=false)
   $statement=$pdo->query($sql);
   if ($statement===false)
   {
+    \webdb\sql\sql_log("ERROR",$sql);
     \webdb\sql\query_error($sql,$pdo,$filename);
   }
+  \webdb\sql\sql_log("SUCCESS",$sql);
   return $statement->fetchAll(\PDO::FETCH_ASSOC);
 }
 
@@ -183,6 +185,7 @@ function execute_prepare($sql,$params=array(),$filename="",$is_admin=false)
   $statement=$pdo->prepare($sql);
   if ($statement===false)
   {
+    \webdb\sql\sql_log("PREPARE ERROR",$sql,$params);
     return \webdb\sql\query_error($sql,"",$filename);
   }
   foreach ($params as $key => $value)
@@ -203,12 +206,11 @@ function execute_prepare($sql,$params=array(),$filename="",$is_admin=false)
   }
   if ($statement->execute()===false)
   {
+    \webdb\sql\sql_log("EXECUTE ERROR",$sql,$params);
     return \webdb\sql\query_error($sql,$statement,$filename);
   }
-  else
-  {
-    return true;
-  }
+  \webdb\sql\sql_log("SUCCESS",$sql,$params);
+  return true;
 }
 
 #####################################################################################################
@@ -227,6 +229,7 @@ function fetch_prepare($sql,$params=array(),$filename="",$is_admin=false)
   $statement=$pdo->prepare($sql);
   if ($statement===false)
   {
+    \webdb\sql\sql_log("PREPARE ERROR",$sql,$params);
     return \webdb\sql\query_error($sql,"",$filename);
   }
   foreach ($params as $key => $value)
@@ -241,13 +244,16 @@ function fetch_prepare($sql,$params=array(),$filename="",$is_admin=false)
     }
     if ($err==false)
     {
+      \webdb\sql\sql_log("BIND ERROR",$sql,$params);
       return \webdb\sql\query_error($sql,$statement,$filename);
     }
   }
   if ($statement->execute()===false)
   {
+    \webdb\sql\sql_log("EXECUTE ERROR",$sql,$params);
     return \webdb\sql\query_error($sql,$statement,$filename);
   }
+  \webdb\sql\sql_log("SUCCESS",$sql,$params);
   return $statement->fetchAll(\PDO::FETCH_ASSOC);
 }
 
@@ -269,6 +275,34 @@ function fetch_all_records($table,$sort_field="",$sort_dir="",$schema,$is_admin=
     }
   }
   return \webdb\sql\fetch_query($sql,"",$is_admin);
+}
+
+#####################################################################################################
+
+function sql_log($result,$sql,$params=array())
+{
+  global $settings;
+  $email="(no user email)";
+  if (isset($settings["user_record"]["email"])==true)
+  {
+    $email=$settings["user_record"]["email"];
+  }
+  $log_filename=$settings["sql_log_path"].date("Ymd").".log";
+  if (isset($params["login_cookie_value"])==true)
+  {
+    $params["login_cookie_value"]="(obfuscated)";
+  }
+  if (isset($params["pw_hash"])==true)
+  {
+    $params["pw_hash"]="(obfuscated)";
+  }
+  if (isset($params["pw_reset_key"])==true)
+  {
+    $params["pw_reset_key"]="(obfuscated)";
+  }
+  $sql=str_replace(PHP_EOL," ",$sql);
+  $content=date("Y-m-d H:i:s")."\t".$email."\t".$result."\t".$sql."\t".serialize($params).PHP_EOL;
+  file_put_contents($log_filename,$content,FILE_APPEND);
 }
 
 #####################################################################################################

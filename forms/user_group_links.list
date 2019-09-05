@@ -3,7 +3,6 @@
     "form_type": "list",
     "enabled": true,
     "title": "User Groups",
-    "groups_allowed": "admin",
     "url_page": "user_groups",
     "return_link_url_page": "user_groups",
     "return_link_caption": "User Groups",
@@ -41,13 +40,13 @@
             "display_field": "group_name"
         }
     },
-    "delete_id": "user_id,group_id",
+    "primary_key": "user_id,group_id",
     "command_caption_noun": "User Group Link",
     "multi_row_delete": true,
     "individual_delete": true,
     "individual_edit": "row",
     "individual_edit_url_page": "user_groups",
-    "edit_id": "user_id,group_id",
+    "individual_edit_id": "user_id,group_id",
     "insert_new": true,
     "advanced_search": true,
     "database": "webdb",

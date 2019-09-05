@@ -1,9 +1,13 @@
 high priority
 =============
 
+* doc/quides content
+
+* table cell/column style per field name in form config (for things like setting column widths)
+* combine inline edit row ajax reset and controls requests into one
 * for lookup fields, automatically sort by display field rather than underlying id
-* ability to edit/delete records for subforms from within parent form
-  - use ajax to replace the subform content only
+* delete record page (or just go straight to ajax deletion)
+* friendly ajax error pages/messages
 
 * basic search feature (key fields, uses implicit wildcards)
 * try to figure out why login cookies are being forgotten after a reboot
@@ -20,13 +24,12 @@ high priority
  - specify user/group recipients
  - only one message per user per day
 
-* doc/quides content
+* add 'where' setting to lookups for simple conditions (eg: "where": "boolean_field=1")
 
 
 low priority
 ============
 
-* user groups
 * lookup custom sql
 * edit all by selection/filter to change common field values (sort of like AutoCAD properties)
 * pdf printing on server (using TCPDF or FPDF, or maybe wkhtmltopdf if you can get a decent webkit layout to work)

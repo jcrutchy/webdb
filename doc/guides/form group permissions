@@ -1,3 +1,19 @@
-groups_allowed element is either an empty string or comma-delimited list of group names
+you can control access to a specific forms by adding to the $settings["permissions"]["forms"] array
 
-if groups_allowed is an empty string, all users/groups are allowed to view form
+permissions are whitelist-based; if there are any permissions set for a given form, anyone outside those permissions will be denied access
+
+any form without permissions is assumed to be accessible for reading, updating and deleting of records by all users
+
+in the application settings.php file, add group permissions to specific forms using the following convention:
+
+$settings["permissions"]["forms"]["form_name"]=array();
+$settings["permissions"]["forms"]["form_name"]["group_name"]="rud";
+
+the permission value consists of a string containing any mixture of "r", "i", "u" and "d"
+
+"r" is for reading records
+"i" is for inserting records
+"u" is for updating records
+"d" is for deleting records
+
+if a user attempts an action on one or more records associated with a form and isn't a member of a group with permission to perform that action, an error message will be shown

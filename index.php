@@ -18,15 +18,19 @@ require_once("users.php");
 require_once("forms.php");
 require_once("graphics.php");
 require_once("sql.php");
+require_once("stubs.php");
 
 set_error_handler('\webdb\utils\error_handler',E_ALL);
 set_exception_handler('\webdb\utils\exception_handler');
 
 define("webdb\index\CONFIG_ID_DELIMITER",",");
 define("webdb\index\LINEBREAK_PLACEHOLDER","@@@@");
-define("webdb\index\TEMPLATE_GROUP_PERMISSION_PREFIX","group_permissions:");
 
 $settings=array();
+
+$settings["permissions"]=array();
+$settings["permissions"]["templates"]=array();
+$settings["permissions"]["forms"]=array();
 
 $settings["parent_path"]=dirname(dirname(__FILE__)).DIRECTORY_SEPARATOR;
 $settings["webdb_root_path"]=__DIR__.DIRECTORY_SEPARATOR;
@@ -36,6 +40,16 @@ $settings["app_root_path"]=dirname($includes[0]).DIRECTORY_SEPARATOR;
 
 $settings["webdb_directory_name"]=basename($settings["webdb_root_path"]);
 $settings["app_directory_name"]=basename($settings["app_root_path"]);
+
+$webdb_settings_filename=$settings["webdb_root_path"]."settings.php";
+if (file_exists($webdb_settings_filename)==true)
+{
+  require_once($webdb_settings_filename);
+}
+else
+{
+  \webdb\utils\system_message("error: webdb settings file not found");
+}
 
 $common_settings_filename=$settings["parent_path"]."webdb_common_settings.php";
 if (file_exists($common_settings_filename)==true)
@@ -129,9 +143,14 @@ $required_settings=array(
   "app_sql_path",
   "app_resources_path",
   "app_forms_path",
+  "sql_log_path",
   "gd_ttf",
   "apps_list",
-  "webdb_default_form");
+  "webdb_default_form",
+  "list_border_color",
+  "list_border_width",
+  "list_group_border_color",
+  "list_group_border_width");
 for ($i=0;$i<count($required_settings);$i++)
 {
   \webdb\utils\check_required_setting_exists($required_settings[$i]);
@@ -153,7 +172,8 @@ $required_paths=array(
   "app_templates_path",
   "app_sql_path",
   "app_resources_path",
-  "app_forms_path");
+  "app_forms_path",
+  "sql_log_path");
 for ($i=0;$i<count($required_paths);$i++)
 {
   $path=$required_paths[$i];
