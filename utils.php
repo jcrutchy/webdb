@@ -125,10 +125,19 @@ function app_template_fill($template_key,$params=false,$tracking=array(),$custom
 
 #####################################################################################################
 
-function check_user_permission($type,$name,$permission)
+function check_user_form_permission($form_name,$permission)
 {
   global $settings;
-  if (isset($settings["permissions"][$type][$name])==false)
+  $whitelisted=false;
+  foreach ($settings["permissions"] as $group_name_iterator => $group_permissions)
+  {
+    if (isset($group_permissions["forms"][$form_name])==true)
+    {
+      $whitelisted=true;
+      break;
+    }
+  }
+  if ($whitelisted==false)
   {
     return true;
   }
@@ -138,9 +147,9 @@ function check_user_permission($type,$name,$permission)
   for ($i=0;$i<count($user_groups);$i++)
   {
     $user_group=$user_groups[$i]["group_name"];
-    if (isset($settings["permissions"][$type][$name][$user_group])==true)
+    if (isset($settings["permissions"][$user_group]["forms"][$form_name])==true)
     {
-      $permissions=$settings["permissions"][$type][$name][$user_group];
+      $permissions=$settings["permissions"][$user_group]["forms"][$form_name];
       if (strpos($permissions,$permission)!==false)
       {
         return true;
@@ -149,6 +158,43 @@ function check_user_permission($type,$name,$permission)
       {
         return false;
       }
+    }
+  }
+  return false;
+}
+
+#####################################################################################################
+
+function check_user_template_permission($template_name)
+{
+  global $settings;
+  $whitelisted=false;
+  foreach ($settings["permissions"] as $group_name_iterator => $group_permissions)
+  {
+    if (isset($group_permissions["templates"][$template_name])==true)
+    {
+      $whitelisted=true;
+      break;
+    }
+  }
+  if ($whitelisted==false)
+  {
+    return $template_name;
+  }
+  $user_record=$settings["user_record"];
+  $user_id=$user_record["user_id"];
+  $user_groups=\webdb\users\get_user_groups($user_id);
+  for ($i=0;$i<count($user_groups);$i++)
+  {
+    $user_group=$user_groups[$i]["group_name"];
+    if (isset($settings["permissions"][$user_group]["templates"][$template_name])==true)
+    {
+      $substitute_template=$settings["permissions"][$user_group]["templates"][$template_name];
+      if ($substitute_template=="")
+      {
+        return $template_name;
+      }
+      return $substitute_template;
     }
   }
   return false;
@@ -172,9 +218,14 @@ function template_fill($template_key,$params=false,$tracking=array(),$custom_tem
   {
     \webdb\utils\system_message("error: circular reference to template '".$template_key."'");
   }
-  if (\webdb\utils\check_user_permission("templates",$template_key,"r")==false)
+  $substitute_template=\webdb\utils\check_user_template_permission($template_key);
+  if ($substitute_template===false)
   {
     return "";
+  }
+  if ($substitute_template<>$template_key)
+  {
+    return template_fill($substitute_template,$params,$tracking,$custom_templates);
   }
   $tracking[]=$template_key;
   $result=$template_array[$template_key];

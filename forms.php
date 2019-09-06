@@ -11,7 +11,7 @@ function get_form_config($url_page)
   {
     if ($url_page===$form_config["url_page"])
     {
-      if (\webdb\utils\check_user_permission("forms",$form_name,"r")==false)
+      if (\webdb\utils\check_user_form_permission($form_name,"r")==false)
       {
         \webdb\utils\show_message("error: form read permission denied");
       }
@@ -809,6 +809,7 @@ function list_form_content($form_name,$records=false,$insert_default_params=fals
   {
     $record=$records[$i];
     # TODO: is_row_locked($schema,$table,$key_field,$key_value)
+    \webdb\forms\process_computed_fields($form_config,$record);
     $rows.=\webdb\forms\list_row($form_name,$record,$column_format,$row_spans,$lookup_records,$i);
   }
   $form_params["insert_row_controls"]="";
@@ -1063,6 +1064,7 @@ function edit_form($form_name,$id)
   global $settings;
   $form_config=$settings["forms"][$form_name];
   $record=\webdb\forms\get_record_by_id($form_name,$id,"individual_edit_id");
+  \webdb\forms\process_computed_fields($form_config,$record);
   $subforms="";
   foreach ($form_config["edit_subforms"] as $subform_name => $subform_link_field)
   {
@@ -1306,16 +1308,32 @@ function process_form_data_fields($form_name,$post_override=false)
 function insert_record($form_name)
 {
   global $settings;
-  if (\webdb\utils\check_user_permission("forms",$form_name,"i")==false)
+  if (\webdb\utils\check_user_form_permission($form_name,"i")==false)
   {
     \webdb\utils\show_message("error: form record insert permission denied");
   }
   $form_config=$settings["forms"][$form_name];
   $value_items=\webdb\forms\process_form_data_fields($form_name);
-  var_dump($value_items);
-  die;
   \webdb\sql\sql_insert($value_items,$form_config["table"],$form_config["database"]);
   \webdb\forms\page_redirect($form_name);
+}
+
+#####################################################################################################
+
+function process_computed_fields($form_config,&$value_items)
+{
+  foreach ($form_config["control_types"] as $field_name => $control_type)
+  {
+    if (isset($form_config["computed_values"][$field_name])==false)
+    {
+      continue;
+    }
+    $func_name=$form_config["computed_values"][$field_name];
+    if (function_exists($func_name)==True)
+    {
+      $value_items[$field_name]=call_user_func($func_name,$value_items);
+    }
+  }
 }
 
 #####################################################################################################
@@ -1323,7 +1341,7 @@ function insert_record($form_name)
 function update_record($form_name,$id)
 {
   global $settings;
-  if (\webdb\utils\check_user_permission("forms",$form_name,"u")==false)
+  if (\webdb\utils\check_user_form_permission($form_name,"u")==false)
   {
     \webdb\utils\show_message("error: form record update permission denied");
   }
@@ -1452,7 +1470,7 @@ function form_url($form_name)
 function delete_record($form_name,$id)
 {
   global $settings;
-  if (\webdb\utils\check_user_permission("forms",$form_name,"d")==false)
+  if (\webdb\utils\check_user_form_permission($form_name,"d")==false)
   {
     \webdb\utils\show_message("error: form record delete permission denied");
   }
@@ -1513,7 +1531,7 @@ function delete_selected_confirmation($form_name)
 function delete_selected_records($form_name)
 {
   global $settings;
-  if (\webdb\utils\check_user_permission("forms",$form_name,"d")==false)
+  if (\webdb\utils\check_user_form_permission($form_name,"d")==false)
   {
     \webdb\utils\show_message("error: form record(s) delete permission denied");
   }

@@ -3,6 +3,8 @@ high priority
 
 * doc/quides content
 
+* repeat column headers on every page (use THEAD per https://stackoverflow.com/questions/274149/repeat-table-headers-in-print-mode)
+
 * table cell/column style per field name in form config (for things like setting column widths)
 * combine inline edit row ajax reset and controls requests into one
 * for lookup fields, automatically sort by display field rather than underlying id
@@ -16,6 +18,9 @@ high priority
 * insert/edit/advanced search control group captions (using borders?)
 * friendly error message when deleting record fails due to foreign key
 * dynamic filtering for reports
+
+* calculation fields
+* field-specific event handlers
 
 * email alert
  - daily crontab

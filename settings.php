@@ -39,27 +39,22 @@ $settings["list_border_width"]=1;
 $settings["list_group_border_color"]="000";
 $settings["list_group_border_width"]=2;
 
+#########################################################
+################### WEBDB PERMISSIONS ###################
+#########################################################
+
 # webdb template permissions
+# $settings["permissions"]["group_name"]["templates"]["template_name"]="template_name_on_success (or empty for no substitution)";
 
-$settings["permissions"]["templates"]["admin_links"]=array();
-$settings["permissions"]["templates"]["admin_links"]["admin"]="r";
-
-$settings["permissions"]["templates"]["groups_page_link"]=array();
-$settings["permissions"]["templates"]["groups_page_link"]["admin"]="r";
-
-$settings["permissions"]["templates"]["user_groups_page_link"]=array();
-$settings["permissions"]["templates"]["user_groups_page_link"]["admin"]="r";
-
-$settings["permissions"]["templates"]["users_page_link"]=array();
-$settings["permissions"]["templates"]["users_page_link"]["admin"]="r";
+$settings["permissions"]["admin"]["templates"]["admin_links"]="";
+$settings["permissions"]["admin"]["templates"]["groups_page_link"]="";
+$settings["permissions"]["admin"]["templates"]["user_groups_page_link"]="";
+$settings["permissions"]["admin"]["templates"]["users_page_link"]="";
 
 # webdb form permissions
+# $settings["permissions"]["group_name"]["forms"]["form_name"]="riud";
+# r=read, i=insert, u=update, d=delete
 
-$settings["permissions"]["forms"]["groups"]=array();
-$settings["permissions"]["forms"]["groups"]["admin"]="riud";
-
-$settings["permissions"]["forms"]["users"]=array();
-$settings["permissions"]["forms"]["users"]["admin"]="riud";
-
-$settings["permissions"]["forms"]["user_group_links"]=array();
-$settings["permissions"]["forms"]["user_group_links"]["admin"]="riud";
+$settings["permissions"]["admin"]["forms"]["groups"]="riud";
+$settings["permissions"]["admin"]["forms"]["users"]="riud";
+$settings["permissions"]["admin"]["forms"]["user_group_links"]="riud";

@@ -29,8 +29,6 @@ define("webdb\index\LINEBREAK_PLACEHOLDER","@@@@");
 $settings=array();
 
 $settings["permissions"]=array();
-$settings["permissions"]["templates"]=array();
-$settings["permissions"]["forms"]=array();
 
 $settings["parent_path"]=dirname(dirname(__FILE__)).DIRECTORY_SEPARATOR;
 $settings["webdb_root_path"]=__DIR__.DIRECTORY_SEPARATOR;

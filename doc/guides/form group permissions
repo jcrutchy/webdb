@@ -4,10 +4,9 @@ permissions are whitelist-based; if there are any permissions set for a given fo
 
 any form without permissions is assumed to be accessible for reading, updating and deleting of records by all users
 
-in the application settings.php file, add group permissions to specific forms using the following convention:
+in the any of the settings php files (webdb/common/application), add group permissions to specific forms using the following convention:
 
-$settings["permissions"]["forms"]["form_name"]=array();
-$settings["permissions"]["forms"]["form_name"]["group_name"]="rud";
+$settings["permissions"]["group_name"]["forms"]["form_name"]="riud";
 
 the permission value consists of a string containing any mixture of "r", "i", "u" and "d"
 
@@ -17,3 +16,5 @@ the permission value consists of a string containing any mixture of "r", "i", "u
 "d" is for deleting records
 
 if a user attempts an action on one or more records associated with a form and isn't a member of a group with permission to perform that action, an error message will be shown
+
+if a permission is set more than once, the last setting will be used

@@ -67,6 +67,16 @@ td
     width: 70px;
   }
 
+.edit_form_controls
+  {
+    margin-bottom: 10px;
+  }
+
+.edit_form_return_link
+  {
+    padding-left: 10px;
+  }
+
 th.rotate
   {
     height: 165px;
@@ -220,7 +230,7 @@ th.rotate
 #editor_subforms
   {
     margin-left: 40%;
-    margin-top: 43px;
+    margin-top: 32px;
     padding-bottom: 10px;
   }
 

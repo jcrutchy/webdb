@@ -1,0 +1,24 @@
+computed fields are calculated on display (either in a list row, edit form or inline edit row)
+
+can be dependent on or be stored in a database field, but doesn't require a database field
+
+can be calculated based on multiple other database fields in a record
+
+can be any data/control type
+
+the following section of a form config must be added for computed fields (in addition to entries in the control_type, visible, captions, etc arrays:
+
+    "computed_values": {
+        "my_computed_field": "\\namespace\\function_name"
+    },
+
+include a php file created in the application root directory into the application index script before including the webdb index script
+
+computed field functions must accept a single associative array parameter of any name
+
+the return value from the function is assigned to the field value that is displayed
+
+function function_name($field_data)
+{
+  return $some_computed_value;
+}

@@ -2,14 +2,13 @@
 
 <form action="$$app_web_index$$?page=%%url_page%%" method="post">
 
+<div class="edit_form_controls">
+  <input type="submit" name="form_cmd[edit_confirm][%%individual_edit_id%%]" value="%%confirm_caption%%">
+  <span class="edit_form_return_link">%%return_link%%</span>
+</div>
+
 <table class="edit_record_table">
 %%rows%%
 </table>
 
-<p>
-  <input type="submit" name="form_cmd[edit_confirm][%%individual_edit_id%%]" value="%%confirm_caption%%">
-</p>
-
 </form>
-
-%%return_link%%

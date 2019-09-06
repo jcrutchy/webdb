@@ -7,7 +7,7 @@ namespace webdb\stubs;
 function list_insert($form_name)
 {
   global $settings;
-  if (\webdb\utils\check_user_permission("forms",$form_name,"i")==false)
+  if (\webdb\utils\check_user_form_permission($form_name,"i")==false)
   {
     \webdb\utils\show_message("error: form record update permission denied");
   }
@@ -58,7 +58,7 @@ function list_insert($form_name)
 function list_edit($id,$form_name)
 {
   global $settings;
-  if (\webdb\utils\check_user_permission("forms",$form_name,"u")==false)
+  if (\webdb\utils\check_user_form_permission($form_name,"u")==false)
   {
     \webdb\utils\show_message("error: form record update permission denied");
   }
@@ -67,6 +67,7 @@ function list_edit($id,$form_name)
   $data["url_page"]=$form_config["url_page"];
   $column_format=\webdb\forms\get_column_format_data($form_name);
   $record=\webdb\forms\get_record_by_id($form_name,$id,"primary_key");
+  \webdb\forms\process_computed_fields($form_config,$record);
   if (count($_POST)>0)
   {
     $post_fields=array();
@@ -84,17 +85,13 @@ function list_edit($id,$form_name)
       $subform_url_page=$_GET["subform"];
       $subform_form_config=\webdb\forms\get_form_config($subform_url_page);
       $subform_form_name=$subform_form_config["form_name"];
-      if (\webdb\utils\check_user_permission("forms",$form_name,"u")==false)
-      {
-        \webdb\utils\show_message("error: form record update permission denied");
-      }
       $value_items=\webdb\forms\process_form_data_fields($subform_form_name,$post_fields);
       $where_items=\webdb\forms\config_id_conditions($subform_form_config,$id,"primary_key");
       \webdb\sql\sql_update($value_items,$where_items,$subform_form_config["table"],$subform_form_config["database"]);
     }
     else
     {
-      if (\webdb\utils\check_user_permission("forms",$form_name,"u")==false)
+      if (\webdb\utils\check_user_form_permission($form_name,"u")==false)
       {
         \webdb\utils\show_message("error: form record update permission denied");
       }

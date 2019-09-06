@@ -1,16 +1,12 @@
-you can control access to a specific template by adding to the $settings["permissions"]["templates"] array
+you can control access to a specific template by adding to the $settings["permissions"]["group_name"]["templates"] array
 
-permissions are whitelist-based; if there are any permissions set for a given template, anyone outside those permissions will be denied access
+permissions are whitelist-based; if there are any permissions set for a given template, anyone not explicitly given permission will be denied access
+- if a permission exists, everyone requiring access will need to be assigned to a permitted group
+- any template without permissions is assumed to be accessible for reading by all users
 
-any template without permissions is assumed to be accessible for reading by all users
+in the any of the settings php files (webdb/common/application), add group permissions to specific templates using the following convention:
 
-in the application settings.php file, add group permissions to specific templates using the following convention:
+$settings["permissions"]["group_name"]["templates"]["template_name"]="template_name_on_success";
+if template name on success is blank, the original template_name will be returned, but you can substitute a template that is group-specific
 
-$settings["permissions"]["templates"]["template_name"]=array();
-$settings["permissions"]["templates"]["template_name"]["group_name"]="r";
-
-a permission value of "r" indicates read permission
-
-there are no other permissions applicable to templates
-
-if a user isn't a member of a group with permission to read a template, an empty string will be output
+if a permission is set more than once, the last setting will be used
