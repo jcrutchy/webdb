@@ -20,3 +20,18 @@
   {
     padding: 0;
   }
+
+.list_controls
+  {
+    display: none;
+  }
+
+.list_row_controls table
+  {
+    display: none;
+  }
+
+tr[class^="list_insert_row_"]
+  {
+    display: none;
+  }
