@@ -9,8 +9,10 @@ insert_row_parents['%%url_page%%']=document.currentScript.parentElement;
 
 <form name="%%url_page%%" id="%%url_page%%" action="@@forms/form_url@@" method="post">
 
-<input type="hidden" id="inline_edit_page:%%url_page%%" name="inline_edit_page:%%url_page%%" value="$$app_web_index$$?page=%%url_page%%&cmd=edit&id=">
-<input type="hidden" id="edit_page:%%url_page%%" name="edit_page:%%url_page%%" value="$$app_web_index$$?page=%%individual_edit_url_page%%&cmd=edit&id=">
+%%custom_form_above%%
+
+<input type="hidden" id="inline_edit_page:%%url_page%%" name="inline_edit_page:%%url_page%%" value="$$app_web_index$$?page=%%url_page%%$$manage_flag$$&cmd=edit&id=">
+<input type="hidden" id="edit_page:%%url_page%%" name="edit_page:%%url_page%%" value="$$app_web_index$$?page=%%individual_edit_url_page%%$$manage_flag$$&cmd=edit&id=">
 <input type="hidden" id="insert_page:%%url_page%%" name="insert_page:%%url_page%%" value="@@forms/form_url@@&cmd=insert%%insert_default_params%%">
 <input type="hidden" id="advanced_search_page:%%url_page%%" name="advanced_search_page:%%url_page%%" value="@@forms/form_url@@&cmd=advanced_search">
 
@@ -43,5 +45,7 @@ insert_row_parents['%%url_page%%']=document.currentScript.parentElement;
 </table>
 
 </div>
+
+%%custom_form_below%%
 
 </form>

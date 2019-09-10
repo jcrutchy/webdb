@@ -17,6 +17,8 @@ $settings["webdb_sql_path"]=$settings["webdb_root_path"]."sql".DIRECTORY_SEPARAT
 $settings["webdb_resources_path"]=$settings["webdb_root_path"]."resources".DIRECTORY_SEPARATOR;
 $settings["webdb_forms_path"]=$settings["webdb_root_path"]."forms".DIRECTORY_SEPARATOR;
 
+$settings["webdb_manage_form"]="form_config";
+
 $settings["webdb_default_form"]="default";
 
 $settings["login_cookie"]="webdb_login";
@@ -51,6 +53,10 @@ $settings["permissions"]["admin"]["templates"]["groups_page_link"]="";
 $settings["permissions"]["admin"]["templates"]["user_groups_page_link"]="";
 $settings["permissions"]["admin"]["templates"]["users_page_link"]="";
 
+$settings["permissions"]["admin"]["templates"]["manage_page_link"]="";
+$settings["permissions"]["admin"]["templates"]["manage".DIRECTORY_SEPARATOR."form_select"]="";
+$settings["permissions"]["admin"]["templates"]["manage".DIRECTORY_SEPARATOR."form_config_above"]="";
+
 # webdb form permissions
 # $settings["permissions"]["group_name"]["forms"]["form_name"]="riud";
 # r=read, i=insert, u=update, d=delete
@@ -58,3 +64,5 @@ $settings["permissions"]["admin"]["templates"]["users_page_link"]="";
 $settings["permissions"]["admin"]["forms"]["groups"]="riud";
 $settings["permissions"]["admin"]["forms"]["users"]="riud";
 $settings["permissions"]["admin"]["forms"]["user_group_links"]="riud";
+
+$settings["permissions"]["admin"]["forms"]["form_config"]="riud";

@@ -27,6 +27,7 @@ function list_insert($form_name)
     switch ($param_name)
     {
       case "page":
+      case "manage":
       case "cmd":
       case "ajax":
         continue;
@@ -87,7 +88,11 @@ function list_edit($id,$form_name)
       $subform_form_name=$subform_form_config["form_name"];
       $value_items=\webdb\forms\process_form_data_fields($subform_form_name,$post_fields);
       $where_items=\webdb\forms\config_id_conditions($subform_form_config,$id,"primary_key");
-      \webdb\sql\sql_update($value_items,$where_items,$subform_form_config["table"],$subform_form_config["database"]);
+      $handled=\webdb\forms\handle_update_record_event($subform_form_name,$id,$where_items,$value_items,$subform_form_config);
+      if ($handled==false)
+      {
+        \webdb\sql\sql_update($value_items,$where_items,$subform_form_config["table"],$subform_form_config["database"]);
+      }
     }
     else
     {
@@ -97,7 +102,11 @@ function list_edit($id,$form_name)
       }
       $value_items=\webdb\forms\process_form_data_fields($form_name,$post_fields);
       $where_items=\webdb\forms\config_id_conditions($form_config,$id,"primary_key");
-      \webdb\sql\sql_update($value_items,$where_items,$form_config["table"],$form_config["database"]);
+      $handled=\webdb\forms\handle_update_record_event($form_name,$id,$where_items,$value_items,$form_config);
+      if ($handled==false)
+      {
+        \webdb\sql\sql_update($value_items,$where_items,$form_config["table"],$form_config["database"]);
+      }
     }
     $data=json_encode($data);
     die($data);

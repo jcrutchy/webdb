@@ -1,0 +1,142 @@
+
+<p class="form_title">Edit Form Config: %%manage_form%%</p>
+
+<p><a href="$$app_web_index$$?manage">Return to Application Form Configuration</a></p>
+
+<hr>
+
+<div class="form_config_above">
+
+<table>
+<tr>
+  <td>filename</td>
+  <td colspan="3"><input class="long_text_input" type="text" name="filename" value="%%filename%%"></td>
+  <td>&nbsp;</td>
+  <td rowspan="17">
+
+<table>
+<tr>
+  <td>edit_subforms<br><textarea name="edit_subforms">%%edit_subforms%%</textarea></td>
+  <td>&nbsp;<br>subform_name_1=subform_1_key_field<br>subform_name_2=subform_2_key_field</td>
+</tr>
+<tr>
+  <td>caption_groups<br><textarea name="caption_groups">%%caption_groups%%</textarea></td>
+  <td>&nbsp;<br>[Group Caption]<br>group_field_1<br>group_field_2</td>
+</tr>
+<tr>
+  <td>lookups<br><textarea name="lookups">%%lookups%%</textarea></td>
+  <td>&nbsp;<br>[lookup_field_name]<br>database=<br>table=<br>key_field=<br>display_field=</td>
+</tr>
+<tr>
+  <td>group_by<br><textarea name="group_by">%%group_by%%</textarea></td>
+  <td>&nbsp;<br>group_field_1<br>group_field_2</td>
+</tr>
+</table>
+
+  </td>
+</tr>
+<tr>
+  <td>form_version</td>
+  <td><input type="text" name="form_version" value="%%form_version%%"></td>
+  <td>multi_row_delete</td><td>%%multi_row_delete%%</td>
+  <td>&nbsp;</td>
+</tr>
+<tr>
+  <td>form_type</td>
+  <td><input type="text" name="form_type" value="%%form_type%%"></td>
+  <td>individual_delete</td><td>%%individual_delete%%</td>
+  <td>&nbsp;</td>
+</tr>
+<tr>
+  <td>enabled</td>
+  <td>%%enabled%%</td>
+  <td>individual_edit</td>
+  <td>
+    <select name="individual_edit">
+    %%individual_edit_options%%
+    </select>
+  </td>
+  <td>&nbsp;</td>
+</tr>
+<tr>
+  <td>title</td>
+  <td><input type="text" name="title" value="%%title%%"></td>
+  <td>insert_new</td><td>%%insert_new%%</td>
+  <td>&nbsp;</td>
+</tr>
+<tr>
+  <td>url_page</td>
+  <td><input type="text" name="url_page" value="%%url_page%%"></td>
+  <td>insert_row</td><td>%%insert_row%%</td>
+  <td>&nbsp;</td>
+</tr>
+<tr>
+  <td>return_link_url_page</td>
+  <td><input type="text" name="return_link_url_page" value="%%return_link_url_page%%"></td>
+  <td>advanced_search</td><td>%%advanced_search%%</td>
+  <td>&nbsp;</td>
+</tr>
+<tr>
+  <td>return_link_caption</td>
+  <td colspan="3"><input type="text" name="return_link_caption" value="%%return_link_caption%%"></td>
+  <td>&nbsp;</td>
+</tr>
+<tr>
+  <td>primary_key</td>
+  <td colspan="3"><input type="text" name="primary_key" value="%%primary_key%%"></td>
+  <td>&nbsp;</td>
+</tr>
+<tr>
+  <td>command_caption_noun</td>
+  <td colspan="3"><input type="text" name="command_caption_noun" value="%%command_caption_noun%%"></td>
+  <td>&nbsp;</td>
+</tr>
+<tr>
+  <td>custom_form_above_template</td>
+  <td colspan="3"><input type="text" name="custom_form_above_template" value="%%custom_form_above_template%%"></td>
+  <td>&nbsp;</td>
+</tr>
+<tr>
+  <td>custom_form_below_template</td>
+  <td colspan="3"><input type="text" name="custom_form_below_template" value="%%custom_form_below_template%%"></td>
+  <td>&nbsp;</td>
+</tr>
+<tr>
+  <td>database</td>
+  <td colspan="3"><input type="text" name="database" value="%%database%%"></td>
+  <td>&nbsp;</td>
+</tr>
+<tr>
+  <td>table</td>
+  <td colspan="3"><input type="text" name="table" value="%%table%%"></td>
+  <td>&nbsp;</td>
+</tr>
+<tr>
+  <td>sort_sql</td>
+  <td colspan="3"><input class="long_text_input" type="text" name="sort_sql" value="%%sort_sql%%"></td>
+  <td>&nbsp;</td>
+</tr>
+<tr>
+  <td>individual_edit_url_page</td>
+  <td colspan="3"><input type="text" name="individual_edit_url_page" value="%%individual_edit_url_page%%"></td>
+  <td>&nbsp;</td>
+</tr>
+<tr>
+  <td>individual_edit_id</td>
+  <td colspan="3"><input type="text" name="individual_edit_id" value="%%individual_edit_id%%"></td>
+  <td>&nbsp;</td>
+</tr>
+<tr>
+  <td>records_sql</td>
+  <td colspan="3"><input type="text" name="records_sql" value="%%records_sql%%"></td>
+  <td>&nbsp;</td>
+</tr>
+<tr>
+  <td>event_handlers</td>
+  <td colspan="5">on_event=\namespace\handler_function_name<br>on_event=\namespace\handler_function_name<br><textarea class="event_handlers" name="event_handlers">%%event_handlers%%</textarea></td>
+</tr>
+</table>
+
+</div>
+
+<hr>

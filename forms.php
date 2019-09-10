@@ -48,6 +48,7 @@ function form_dispatch($url_page)
                 \webdb\stubs\list_edit($_GET["id"],$form_name);
               }
               $data=\webdb\forms\edit_form($form_name,$_GET["id"]);
+              $data["content"].=\webdb\forms\output_html_includes($form_config);
               \webdb\utils\output_page($data["content"],$data["title"]);
             case "insert":
               if (isset($_GET["ajax"])==true)
@@ -55,9 +56,11 @@ function form_dispatch($url_page)
                 \webdb\stubs\list_insert($form_name);
               }
               $data=\webdb\forms\insert_form($form_name);
+              $data["content"].=\webdb\forms\output_html_includes($form_config);
               \webdb\utils\output_page($data["content"],$data["title"]);
             case "advanced_search":
               $data=\webdb\forms\advanced_search($form_name);
+              $data["content"].=\webdb\forms\output_html_includes($form_config);
               \webdb\utils\output_page($data["content"],$data["title"]);
           }
         }
@@ -85,12 +88,39 @@ function form_dispatch($url_page)
         }
       }
       $list_params=array();
-      $list_params["list"]=\webdb\forms\list_form_content($form_name);
+      $event_params=array();
+      $event_params["form_name"]=$form_name;
+      if (isset($_GET["manage"])==true)
+      {
+        $event_params["manage_form"]=$_GET["manage"];
+      }
+      $event_params["form_name"]=$form_name;
+      $event_params["form_config"]=$form_config;
+      $event_params["custom_list_content"]=false;
+      $event_params["records"]=false;
+      $event_params["content"]="";
+      if (isset($form_config["event_handlers"]["on_list"])==true)
+      {
+        $func_name=$form_config["event_handlers"]["on_list"];
+        if (function_exists($func_name)==true)
+        {
+          $event_params=call_user_func($func_name,$event_params);
+        }
+      }
+      if ($event_params["custom_list_content"]==false)
+      {
+        $list_params["list"]=\webdb\forms\list_form_content($form_name,$event_params["records"]);
+      }
+      else
+      {
+        $list_params["list"]=$event_params["content"];
+      }
       $list_params["form_script_modified"]=\webdb\utils\resource_modified_timestamp("list.js");
       $list_params["form_styles_modified"]=\webdb\utils\resource_modified_timestamp("list.css");
       $list_params["form_styles_print_modified"]=\webdb\utils\resource_modified_timestamp("list_print.css");
       $list_params["title"]=$form_config["title"];
       $content=\webdb\forms\form_template_fill("list_page",$list_params);
+      $content.=\webdb\forms\output_html_includes($form_config);
       $title=$form_name;
       if ($form_config["title"]<>"")
       {
@@ -98,6 +128,18 @@ function form_dispatch($url_page)
       }
       \webdb\utils\output_page($content,$title);
   }
+}
+
+#####################################################################################################
+
+function output_html_includes($form_config)
+{
+  $result="";
+  for ($i=0;$i<count($form_config["html_includes"]);$i++)
+  {
+    $result.=\webdb\utils\app_template_fill($form_config["html_includes"][$i]);
+  }
+  return $result;
 }
 
 #####################################################################################################
@@ -211,7 +253,12 @@ function load_form_defs()
     {
       \webdb\utils\show_message("error: invalid form def (invalid form_type): ".$fn);
     }
+    $data["filename"]=$full;
     $default=$settings["form_defaults"][$data["form_type"]];
+    if (isset($settings["forms"][$data["url_page"]])==true)
+    {
+      \webdb\utils\show_message("error: form '".$data["url_page"]."' already exsits: ".$fn);
+    }
     $settings["forms"][$data["url_page"]]=array_merge($default,$data);
   }
   $app_file_list=scandir($settings["app_forms_path"]);
@@ -249,7 +296,12 @@ function load_form_defs()
     {
       \webdb\utils\show_message("error: invalid form def (invalid form_type): ".$fn);
     }
+    $data["filename"]=$full;
     $default=$settings["form_defaults"][$data["form_type"]];
+    if (isset($settings["forms"][$data["url_page"]])==true)
+    {
+      \webdb\utils\show_message("error: form '".$data["url_page"]."' already exsits: ".$fn);
+    }
     $settings["forms"][$data["url_page"]]=array_merge($default,$data);
   }
 }
@@ -844,6 +896,18 @@ function list_form_content($form_name,$records=false,$insert_default_params=fals
     }
   }
   $form_params["row_edit_mode"]=$form_config["individual_edit"];
+  $form_params["custom_form_above"]="";
+  $form_params["custom_form_below"]="";
+  if ($form_config["custom_form_above_template"]<>"")
+  {
+    $form_params["custom_form_above"]=\webdb\forms\form_template_fill($form_config["custom_form_above_template"]);
+  }
+  if ($form_config["custom_form_below_template"]<>"")
+  {
+    $form_params["custom_form_below"]=\webdb\forms\form_template_fill($form_config["custom_form_below_template"]);
+  }
+  $form_params=\webdb\forms\handle_custom_form_above_event($form_config,$form_params);
+  $form_params=\webdb\forms\handle_custom_form_below_event($form_config,$form_params);
   return \webdb\forms\form_template_fill("list",$form_params);
 }
 
@@ -1118,6 +1182,23 @@ function lookup_field_data($form_name,$field_name,$sibling_field=false)
 
 #####################################################################################################
 
+function get_interface_button($form_config,$record,$field_name,$field_value)
+{
+  foreach ($form_config["custom_interfaces"] as $interface_function => $interface_field_names)
+  {
+    if (in_array($field_name,$interface_field_names)==true)
+    {
+      if (function_exists($interface_function)==true)
+      {
+        return call_user_func($interface_function,$form_config,$record,$field_name,$field_value);
+      }
+    }
+  }
+  return \webdb\utils\template_fill("empty_cell");
+}
+
+#####################################################################################################
+
 function output_editor($form_name,$record,$command,$verb,$id)
 {
   global $settings;
@@ -1132,6 +1213,7 @@ function output_editor($form_name,$record,$command,$verb,$id)
     }
     $field_value=$record[$field_name];
     $field_params=array();
+    $field_params["url_page"]=$form_config["url_page"];
     $field_params["field_name"]=$field_name;
     $field_params["field_value"]=htmlspecialchars($field_value);
     switch ($control_type)
@@ -1215,6 +1297,7 @@ function output_editor($form_name,$record,$command,$verb,$id)
       $field_params["control_style"]=$form_config["control_styles"][$field_name];
     }
     $row_params["field_value"]=\webdb\forms\form_template_fill("field_edit_".$control_type,$field_params);
+    $row_params["interface_button"]=\webdb\forms\get_interface_button($form_config,$record,$field_name,$field_value);
     $rows.=\webdb\forms\form_template_fill("field_row",$row_params);
   }
   $form_params=array();
@@ -1314,7 +1397,11 @@ function insert_record($form_name)
   }
   $form_config=$settings["forms"][$form_name];
   $value_items=\webdb\forms\process_form_data_fields($form_name);
-  \webdb\sql\sql_insert($value_items,$form_config["table"],$form_config["database"]);
+  $handled=\webdb\forms\handle_insert_record_event($form_name,$value_items,$form_config);
+  if ($handled==false)
+  {
+    \webdb\sql\sql_insert($value_items,$form_config["table"],$form_config["database"]);
+  }
   \webdb\forms\page_redirect($form_name);
 }
 
@@ -1329,11 +1416,85 @@ function process_computed_fields($form_config,&$value_items)
       continue;
     }
     $func_name=$form_config["computed_values"][$field_name];
-    if (function_exists($func_name)==True)
+    if (function_exists($func_name)==true)
     {
       $value_items[$field_name]=call_user_func($func_name,$value_items);
     }
   }
+}
+
+#####################################################################################################
+
+function handle_insert_record_event($form_name,$value_items,$form_config)
+{
+  if (isset($form_config["event_handlers"]["on_insert_record"])==true)
+  {
+    $func_name=$form_config["event_handlers"]["on_insert_record"];
+    if (function_exists($func_name)==true)
+    {
+      return call_user_func($func_name,$form_name,$value_items,$form_config);
+    }
+  }
+  return false;
+}
+
+#####################################################################################################
+
+function handle_update_record_event($form_name,$id,$where_items,$value_items,$form_config)
+{
+  if (isset($form_config["event_handlers"]["on_update_record"])==true)
+  {
+    $func_name=$form_config["event_handlers"]["on_update_record"];
+    if (function_exists($func_name)==true)
+    {
+      return call_user_func($func_name,$form_name,$id,$where_items,$value_items,$form_config);
+    }
+  }
+  return false;
+}
+
+#####################################################################################################
+
+function handle_delete_record_event($form_name,$id)
+{
+
+}
+
+#####################################################################################################
+
+function handle_delete_selected_records_event($form_name,$list_select)
+{
+
+}
+
+#####################################################################################################
+
+function handle_custom_form_above_event($form_config,$form_params)
+{
+  if (isset($form_config["event_handlers"]["on_custom_form_above"])==true)
+  {
+    $func_name=$form_config["event_handlers"]["on_custom_form_above"];
+    if (function_exists($func_name)==true)
+    {
+      $form_params["custom_form_above"]=call_user_func($func_name,$form_config,$form_params);
+    }
+  }
+  return $form_params;
+}
+
+#####################################################################################################
+
+function handle_custom_form_below_event($form_config,$form_params)
+{
+  if (isset($form_config["event_handlers"]["on_custom_form_below"])==true)
+  {
+    $func_name=$form_config["event_handlers"]["on_custom_form_below"];
+    if (function_exists($func_name)==true)
+    {
+      $form_params["custom_form_below"]=call_user_func($func_name,$form_config,$form_params);
+    }
+  }
+  return $form_params;
 }
 
 #####################################################################################################
@@ -1348,7 +1509,11 @@ function update_record($form_name,$id)
   $form_config=$settings["forms"][$form_name];
   $value_items=\webdb\forms\process_form_data_fields($form_name);
   $where_items=\webdb\forms\config_id_conditions($form_config,$id,"individual_edit_id");
-  \webdb\sql\sql_update($value_items,$where_items,$form_config["table"],$form_config["database"]);
+  $handled=\webdb\forms\handle_update_record_event($form_name,$id,$where_items,$value_items,$form_config);
+  if ($handled==false)
+  {
+    \webdb\sql\sql_update($value_items,$where_items,$form_config["table"],$form_config["database"]);
+  }
   \webdb\forms\page_redirect($form_name);
 }
 
@@ -1372,6 +1537,23 @@ function get_record_by_id($form_name,$id,$config_key)
 {
   global $settings;
   $form_config=$settings["forms"][$form_name];
+  if (isset($_GET["manage"])==true)
+  {
+    $form_config=$settings["forms"][$settings["webdb_manage_form"]];
+  }
+  if (isset($form_config["event_handlers"]["on_get_record_by_id"])==true)
+  {
+    $func_name=$form_config["event_handlers"]["on_get_record_by_id"];
+    if (function_exists($func_name)==true)
+    {
+      $event_params=array();
+      $event_params["form_name"]=$form_name;
+      $event_params["form_config"]=$form_config;
+      $event_params["id"]=$id;
+      $event_params["config_key"]=$config_key;
+      return call_user_func($func_name,$event_params);
+    }
+  }
   $items=\webdb\forms\config_id_conditions($form_config,$id,$config_key);
   $form_config["where_conditions"]=\webdb\sql\build_prepared_where($items);
   $sql=\webdb\utils\sql_fill("form_list_fetch_by_id",$form_config);

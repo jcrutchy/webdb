@@ -20,14 +20,21 @@
     },
     "computed_values": {
     },
+    "custom_interfaces": {
+    },
     "table_cell_styles": {
     },
     "control_styles": {
     },
     "lookups": {
     },
+    "event_handlers": {
+    },
+    "html_includes": [],
     "primary_key": "",
     "command_caption_noun": "",
+    "custom_form_above_template": "",
+    "custom_form_below_template": "",
     "multi_row_delete": true,
     "individual_delete": true,
     "individual_edit": "row",
@@ -40,6 +47,5 @@
     "table": "",
     "sort_sql": "",
     "records_sql": "",
-    "group_by": [
-    ]
+    "group_by": []
 }

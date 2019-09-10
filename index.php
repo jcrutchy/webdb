@@ -12,13 +12,13 @@ date_default_timezone_set("UTC");
 
 chdir(__DIR__);
 
-require_once("pdf.php");
 require_once("utils.php");
 require_once("users.php");
 require_once("forms.php");
 require_once("graphics.php");
 require_once("sql.php");
 require_once("stubs.php");
+require_once("manage.php");
 
 set_error_handler('\webdb\utils\error_handler',E_ALL);
 set_exception_handler('\webdb\utils\exception_handler');
@@ -28,6 +28,7 @@ define("webdb\index\LINEBREAK_PLACEHOLDER","@@@@");
 
 $settings=array();
 
+$settings["manage_flag"]="";
 $settings["permissions"]=array();
 
 $settings["parent_path"]=dirname(dirname(__FILE__)).DIRECTORY_SEPARATOR;
@@ -72,11 +73,6 @@ for ($i=0;$i<count($incompatible_agents);$i++)
   {
     \webdb\utils\system_message("Internet Explorer is not supported. Please try a recent version of Google Chrome or Mozilla Firefox.");
   }
-}
-
-if (isset($_GET["pdf"])==true)
-{
-  \webdb\pdf\output_pdf();
 }
 
 $required_settings=array(
@@ -145,6 +141,7 @@ $required_settings=array(
   "gd_ttf",
   "apps_list",
   "webdb_default_form",
+  "webdb_manage_form",
   "list_border_color",
   "list_border_width",
   "list_group_border_color",
@@ -241,7 +238,16 @@ $settings["forms"]=array();
 
 if (isset($_GET["page"])==true)
 {
+  if (isset($_GET["manage"])==true)
+  {
+    $settings["manage_flag"]="&manage=".$_GET["manage"];
+  }
   \webdb\forms\form_dispatch($_GET["page"]);
+}
+
+if (isset($_GET["manage"])==true)
+{
+  \webdb\manage\manager_page();
 }
 
 \webdb\utils\app_static_page($settings["app_home_template"],$settings["app_name"]);
