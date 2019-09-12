@@ -1,3 +1,22 @@
+<script type="text/javascript" src="$$webdb_web_resources$$list.js?mod=%%form_script_modified%%"></script>
+<link rel="stylesheet" property="stylesheet" href="$$webdb_web_resources$$list.css?mod=%%form_styles_modified%%">
+
+<div id="global_page_header">
+<div id="global_page_header_content">
+<div id="header_title">Delete %%command_caption_noun%%</div>
+<a href="$$app_web_index$$"><img id="company_logo" src="$$app_web_resources$$$$app_logo_filename$$" alt=""></a>
+</div>
+</div>
+
+<div id="global_page_body_outer">
+<div id="global_page_body_inner">
+<div id="global_page_body_content">
+
+<div class="edit_form_controls">
+  <input type="submit" name="form_cmd[delete_confirm][%%primary_key%%]" value="Confirm Delete">
+  <span class="edit_form_return_link">%%return_link%%</span> (abandons deletion)
+</div>
+
 <p>Confirm deletion of the following record:</p>
 
 <table>
@@ -5,9 +24,14 @@
 </table>
 
 <form action="$$app_web_index$$?page=%%url_page%%" method="post">
-<p>
-  <input type="submit" name="form_cmd[delete_confirm][%%primary_key%%]" value="Confirm Delete">
-</p>
+
 </form>
 
-%%return_link%%
+</div>
+</div>
+</div>
+
+<div id="global_page_footer">
+<div id="global_page_footer_content">
+</div>
+</div>

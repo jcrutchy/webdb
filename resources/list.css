@@ -230,7 +230,7 @@ th.rotate
 #editor_subforms
   {
     margin-left: 40%;
-    margin-top: 32px;
+    margin-top: 31px;
     padding-bottom: 10px;
   }
 
@@ -263,7 +263,7 @@ th.rotate
 .subform_content
   {
     padding: 10px;
-    max-height: 500px;
+    height: 500px;
   }
 
 .list_data_table
@@ -315,6 +315,20 @@ th.rotate
     margin: 0;
     padding: 10px;
     font-family: mono;
+  }
+
+.interface_button
+  {
+    border-top: 0 !important;
+    border-bottom: 0 !important;
+    border-right: 0 !important;
+  }
+
+.unable_to_delete_message
+  {
+    font-weight: bold;
+    font-size: 14px;
+    color: red;
   }
 
 /* manage */

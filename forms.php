@@ -151,7 +151,7 @@ function form_template_fill($name,$params=false)
 
 #####################################################################################################
 
-function get_subform_content($subform_name,$subform_link_field,$id,$list_only=false)
+function get_subform_content($subform_name,$subform_link_field,$id,$list_only=false,$parent_form_config=false)
 {
   global $settings;
   $subform_config=$settings["forms"][$subform_name];
@@ -168,6 +168,14 @@ function get_subform_content($subform_name,$subform_link_field,$id,$list_only=fa
   $url_params=array();
   $url_params[$subform_link_field]=$id;
   $subform_params["subform"]=list_form_content($subform_name,$records,$url_params);
+  $subform_params["subform_style"]="";
+  if ($parent_form_config!==false)
+  {
+    if (isset($parent_form_config["edit_subforms_styles"][$subform_name])==true)
+    {
+      $subform_params["subform_style"]=$parent_form_config["edit_subforms_styles"][$subform_name];
+    }
+  }
   $subform_params["title"]=$subform_config["title"];
   if ($list_only==true)
   {
@@ -352,10 +360,9 @@ function config_id_url_value($form_config,$record,$config_key)
 
 #####################################################################################################
 
-function list_row($form_name,$record,$column_format,$row_spans,$lookup_records,$record_index)
+function list_row($form_config,$record,$column_format,$row_spans,$lookup_records,$record_index)
 {
   global $settings;
-  $form_config=$settings["forms"][$form_name];
   $bold_borders=$column_format["bold_borders"];
   $row_params=array();
   $row_params["url_page"]=$form_config["url_page"];
@@ -404,6 +411,13 @@ function list_row($form_name,$record,$column_format,$row_spans,$lookup_records,$
     if (isset($form_config["table_cell_styles"][$field_name])==true)
     {
       $field_params["table_cell_style"]=$form_config["table_cell_styles"][$field_name];
+    }
+    if (isset($record["foreign_key_used"])==true)
+    {
+      if ($record["foreign_key_used"]>0)
+      {
+        $field_params["table_cell_style"].=\webdb\forms\form_template_fill("delete_selected_foreign_key_used_style");
+      }
     }
     if ((($form_config["individual_edit"]=="row") or ($form_config["individual_edit"]=="inline")) and ($form_config["records_sql"]==""))
     {
@@ -518,10 +532,9 @@ function list_row($form_name,$record,$column_format,$row_spans,$lookup_records,$
 
 #####################################################################################################
 
-function list_row_controls($form_name,&$submit_fields,&$calendar_fields,$operation,$column_format,$record,$field_name_prefix="")
+function list_row_controls($form_name,$form_config,&$submit_fields,&$calendar_fields,$operation,$column_format,$record,$field_name_prefix="")
 {
   global $settings;
-  $form_config=$settings["forms"][$form_name];
   $bold_borders=$column_format["bold_borders"];
   $row_params=array();
   $row_params["url_page"]=$form_config["url_page"];
@@ -862,13 +875,13 @@ function list_form_content($form_name,$records=false,$insert_default_params=fals
     $record=$records[$i];
     # TODO: is_row_locked($schema,$table,$key_field,$key_value)
     \webdb\forms\process_computed_fields($form_config,$record);
-    $rows.=\webdb\forms\list_row($form_name,$record,$column_format,$row_spans,$lookup_records,$i);
+    $rows.=\webdb\forms\list_row($form_config,$record,$column_format,$row_spans,$lookup_records,$i);
   }
   $form_params["insert_row_controls"]="";
   if (($form_config["insert_row"]==true) and ($form_config["records_sql"]==""))
   {
     $insert_fields=array();
-    $rows.=\webdb\forms\list_row_controls($form_name,$insert_fields,$calendar_fields,"insert",$column_format,$form_config["default_values"]);
+    $rows.=\webdb\forms\list_row_controls($form_name,$form_config,$insert_fields,$calendar_fields,"insert",$column_format,$form_config["default_values"]);
     for ($i=0;$i<count($insert_fields);$i++)
     {
       $insert_fields[$i]="'".$insert_fields[$i]."'";
@@ -1132,7 +1145,7 @@ function edit_form($form_name,$id)
   $subforms="";
   foreach ($form_config["edit_subforms"] as $subform_name => $subform_link_field)
   {
-    $subforms.=get_subform_content($subform_name,$subform_link_field,$id);
+    $subforms.=get_subform_content($subform_name,$subform_link_field,$id,false,$form_config);
   }
   $data=\webdb\forms\output_editor($form_name,$record,"Edit","Update",$id);
   $edit_page_params=array();
@@ -1558,9 +1571,13 @@ function get_record_by_id($form_name,$id,$config_key)
   $form_config["where_conditions"]=\webdb\sql\build_prepared_where($items);
   $sql=\webdb\utils\sql_fill("form_list_fetch_by_id",$form_config);
   $records=\webdb\sql\fetch_prepare($sql,$items);
-  if (count($records)<>1)
+  if (count($records)==0)
   {
-    \webdb\utils\show_message("error: id '".$id."' is not unique for query: ".$sql);
+    \webdb\utils\show_message("error: no records found for id '".$id."' in query: ".$sql);
+  }
+  if (count($records)>1)
+  {
+    \webdb\utils\show_message("error: id '".$id."' is not unique in query: ".$sql);
   }
   return $records[0];
 }
@@ -1573,7 +1590,6 @@ function delete_confirmation($form_name,$id)
   $form_config=$settings["forms"][$form_name];
   $record=get_record_by_id($form_name,$id,"primary_key");
   $rows="";
-
   foreach ($form_config["control_types"] as $field_name => $control_type)
   {
     if ($control_type=="lookup")
@@ -1584,6 +1600,7 @@ function delete_confirmation($form_name,$id)
     $field_params=array();
     $field_params["field_name"]=$field_name;
     $field_params["field_value"]=htmlspecialchars($field_value);
+    $field_params["interface_button"]=\webdb\utils\template_fill("empty_cell");
     switch ($control_type)
     {
       case "span":
@@ -1623,6 +1640,7 @@ function delete_confirmation($form_name,$id)
   $form_params["url_page"]=$form_config["url_page"];
   $form_params["primary_key"]=$id;
   $form_params["return_link"]=\webdb\forms\form_template_fill("return_link",$form_config);
+  $form_params["command_caption_noun"]=$form_config["command_caption_noun"];
   $content=\webdb\forms\form_template_fill("delete_confirm",$form_params);
   $title=$form_name.": confirm deletion";
   \webdb\utils\output_page($content,$title);
@@ -1683,25 +1701,54 @@ function delete_selected_confirmation($form_name)
   {
     \webdb\forms\form_message("No records selected.",$form_config);
   }
-  $rows="";
+  $sql_params=array();
+  $sql_params["database"]=$form_config["database"];
+  $sql_params["table"]=$form_config["table"];
+  $foreign_key_defs=\webdb\sql\file_fetch_prepare("foreign_keys",$sql_params);
+  $form_params=array();
+  $records=array();
+  $hidden_id_fields="";
+  $foreign_key_used=false;
   foreach ($_POST["list_select"] as $id => $value)
   {
-    $row_params=array();
     $record=get_record_by_id($form_name,$id,"primary_key");
-    $fields="";
-    foreach ($record as $field_name => $field_value)
+    $record["foreign_key_used"]=false;
+    $id_params=array();
+    $id_params["primary_key"]=\webdb\forms\config_id_url_value($form_config,$record,"primary_key");
+    $hidden_id_fields.=\webdb\forms\form_template_fill("list_del_selected_hidden_id_field",$id_params);
+    for ($i=0;$i<count($foreign_key_defs);$i++)
     {
-      $field_params=array();
-      $field_params["value"]=htmlspecialchars($field_value);
-      $fields.=\webdb\forms\form_template_fill("list_field",$field_params);
+      $fk=$foreign_key_defs[$i];
+      $sql=\webdb\utils\sql_fill("foreign_key_check",$fk);
+      $sql_params=array();
+      $sql_params["referenced_column_value"]=$record[$fk["REFERENCED_COLUMN_NAME"]];
+      $foreign_keys=\webdb\sql\fetch_prepare($sql,$sql_params);
+      if (count($foreign_keys)>0)
+      {
+        $record["foreign_key_used"]=true;
+        $foreign_key_used=true;
+        break;
+      }
     }
-    $row_params["primary_key"]=\webdb\forms\config_id_url_value($form_config,$record,"primary_key");
-    $row_params["fields"]=$fields;
-    $rows.=\webdb\forms\form_template_fill("list_del_selected_confirm_row",$row_params);
+    $records[]=$record;
   }
-  $form_params=array();
-  $form_params["rows"]=$rows;
+  $form_params["hidden_id_fields"]=$hidden_id_fields;
+  $list_form_config=$form_config;
+  $list_form_config["multi_row_delete"]=false;
+  $list_form_config["individual_delete"]=false;
+  $list_form_config["individual_edit"]="none";
+  $list_form_config["insert_new"]=false;
+  $list_form_config["insert_row"]=false;
+  $list_form_config["advanced_search"]=false;
+  $form_params["records"]=\webdb\forms\list_form_content($form_name,$records,false,$list_form_config);
   $form_params["url_page"]=$form_config["url_page"];
+  $form_params["return_link"]=\webdb\forms\form_template_fill("return_link",$form_config);
+  $form_params["command_caption_noun"]=$form_config["command_caption_noun"];
+  $form_params["delete_all_button"]=\webdb\forms\form_template_fill("delete_selected_cancel_controls",$form_params);
+  if ($foreign_key_used==false)
+  {
+    $form_params["delete_all_button"]=\webdb\forms\form_template_fill("delete_selected_confirm_controls",$form_params);
+  }
   $content=\webdb\forms\form_template_fill("list_del_selected_confirm",$form_params);
   $title=$form_name.": confirm selected deletion";
   \webdb\utils\output_page($content,$title);

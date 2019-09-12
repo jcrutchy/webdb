@@ -115,7 +115,7 @@ function list_edit($id,$form_name)
   {
     $row_spans=array();
     $lookup_records=\webdb\forms\lookup_records($form_name);
-    $data["html"]=\webdb\forms\list_row($form_name,$record,$column_format,$row_spans,$lookup_records,0);
+    $data["html"]=\webdb\forms\list_row($form_config,$record,$column_format,$row_spans,$lookup_records,0);
     $data["primary_key"]=$id;
     $data["calendar_fields"]=json_encode(array());
     $data["edit_fields"]=json_encode(array());
@@ -125,7 +125,7 @@ function list_edit($id,$form_name)
   $calendar_fields=array();
   $edit_fields=array();
   $field_name_prefix="edit_control:".$form_config["url_page"].":".$id.":";
-  $data["html"]=\webdb\forms\list_row_controls($form_name,$edit_fields,$calendar_fields,"edit",$column_format,$record,$field_name_prefix);
+  $data["html"]=\webdb\forms\list_row_controls($form_name,$form_config,$edit_fields,$calendar_fields,"edit",$column_format,$record,$field_name_prefix);
   $data["primary_key"]=$id;
   $data["calendar_fields"]=json_encode($calendar_fields);
   $data["edit_fields"]=json_encode($edit_fields);
