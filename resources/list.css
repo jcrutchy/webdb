@@ -24,6 +24,21 @@ td
     min-width: 33px;
   }
 
+.list_field_scroll
+  {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+.list_field_content
+  {
+    padding: 5px;
+  }
+
 .list_controls td
   {
     border: 0;

@@ -704,7 +704,7 @@ function get_column_format_data($form_name)
       }
       if ($finished_group==true)
       {
-        $bold_borders[$field_name]=true;
+        $data["bold_borders"][$field_name]=true;
       }
       foreach ($form_config["caption_groups"] as $group_name => $field_names)
       {
@@ -714,7 +714,7 @@ function get_column_format_data($form_name)
           {
             $first_group=true;
           }
-          $bold_borders[$field_name]=true;
+          $data["bold_borders"][$field_name]=true;
           $finished_group=false;
           $in_group=true;
           $group_params=array();
