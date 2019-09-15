@@ -152,7 +152,7 @@ for ($i=0;$i<count($required_settings);$i++)
 }
 if (in_array($settings["app_directory_name"],$settings["apps_list"])==false)
 {
-  \webdb\utils\system_message("error: app not registered in common settings apps list");
+  \webdb\utils\system_message("error: app not registered");
 }
 $required_files=array(
   "db_admin_file",

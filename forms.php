@@ -34,6 +34,30 @@ function form_dispatch($url_page)
     case "list":
       if ($form_config["records_sql"]=="")
       {
+        if (isset($_POST["form_cmd"])==true)
+        {
+          $cmd=\webdb\utils\get_child_array_key($_POST,"form_cmd");
+          switch ($cmd)
+          {
+            case "insert_confirm":
+              \webdb\forms\insert_record($form_name);
+            case "edit_confirm":
+              $id=\webdb\utils\get_child_array_key($_POST["form_cmd"],"edit_confirm");
+              \webdb\forms\update_record($form_name,$id);
+            case "delete":
+              $id=\webdb\utils\get_child_array_key($_POST["form_cmd"],"delete");
+              \webdb\forms\delete_confirmation($form_name,$id);
+            case "delete_confirm":
+              $id=\webdb\utils\get_child_array_key($_POST["form_cmd"],"delete_confirm");
+              $data=\webdb\forms\delete_record($form_name,$id);
+              $data["content"].=\webdb\forms\output_html_includes($form_config);
+              \webdb\utils\output_page($data["content"],$data["title"]);
+            case "delete_selected":
+              \webdb\forms\delete_selected_confirmation($form_name);
+            case "delete_selected_confirm":
+              \webdb\forms\delete_selected_records($form_name);
+          }
+        }
         if (isset($_GET["cmd"])==true)
         {
           switch ($_GET["cmd"])
@@ -62,28 +86,6 @@ function form_dispatch($url_page)
               $data=\webdb\forms\advanced_search($form_name);
               $data["content"].=\webdb\forms\output_html_includes($form_config);
               \webdb\utils\output_page($data["content"],$data["title"]);
-          }
-        }
-        if (isset($_POST["form_cmd"])==true)
-        {
-          $cmd=\webdb\utils\get_child_array_key($_POST,"form_cmd");
-          switch ($cmd)
-          {
-            case "insert_confirm":
-              \webdb\forms\insert_record($form_name);
-            case "edit_confirm":
-              $id=\webdb\utils\get_child_array_key($_POST["form_cmd"],"edit_confirm");
-              \webdb\forms\update_record($form_name,$id);
-            case "delete":
-              $id=\webdb\utils\get_child_array_key($_POST["form_cmd"],"delete");
-              \webdb\forms\delete_confirmation($form_name,$id);
-            case "delete_confirm":
-              $id=\webdb\utils\get_child_array_key($_POST["form_cmd"],"delete_confirm");
-              \webdb\forms\delete_record($form_name,$id);
-            case "delete_selected":
-              \webdb\forms\delete_selected_confirmation($form_name);
-            case "delete_selected_confirm":
-              \webdb\forms\delete_selected_records($form_name);
           }
         }
       }
@@ -1009,6 +1011,7 @@ function advanced_search($form_name)
     $row_params=array();
     $row_params["field_name"]=$form_config["captions"][$field_name];
     $row_params["field_value"]=\webdb\forms\form_template_fill("advanced_search_".$search_control_type,$field_params);
+    $row_params["interface_button"]="";
     $rows.=\webdb\forms\form_template_fill("field_row",$row_params);
   }
   $form_params=array();
@@ -1155,6 +1158,7 @@ function edit_form($form_name,$id)
   $edit_page_params["form_styles_modified"]=\webdb\utils\resource_modified_timestamp("list.css");
   $edit_page_params["command_caption_noun"]=$form_config["command_caption_noun"];
   $edit_page_params["url_page"]=$form_config["url_page"];
+  $edit_page_params["individual_edit_url_page"]=$form_config["individual_edit_url_page"];
   $content=\webdb\forms\form_template_fill("edit_page",$edit_page_params);
   $result=array();
   $result["title"]=$data["title"];
@@ -1641,16 +1645,24 @@ function delete_confirmation($form_name,$id)
   $form_params["primary_key"]=$id;
   $form_params["return_link"]=\webdb\forms\form_template_fill("return_link",$form_config);
   $form_params["command_caption_noun"]=$form_config["command_caption_noun"];
-  $content=\webdb\forms\form_template_fill("delete_confirm",$form_params);
-  $title=$form_name.": confirm deletion";
-  \webdb\utils\output_page($content,$title);
+  $result=array();
+  $result["title"]=$form_name.": confirm deletion";
+  $result["content"]=\webdb\forms\form_template_fill("delete_confirm",$form_params);
+  return $result;
 }
 
 #####################################################################################################
 
-function page_redirect($form_name)
+function page_redirect($form_name,$refresh_mode=true)
 {
-  $url=\webdb\forms\form_url($form_name);
+  if ($refresh_mode==true)
+  {
+    $url=\webdb\utils\get_url();
+  }
+  else
+  {
+    $url=\webdb\forms\form_url($form_name);
+  }
   \webdb\utils\redirect($url);
 }
 

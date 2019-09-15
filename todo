@@ -22,6 +22,11 @@ high priority
  - specify days to alert prior to date (default 0)
  - specify user/group recipients
  - only one message per user per day
+https://stackoverflow.com/questions/6573511/how-do-i-specify-to-php-that-mail-should-be-sent-using-an-external-mail-server (answer by fyrye)
+https://unix.stackexchange.com/questions/1449/lightweight-outgoing-smtp-server (answer by samt in particular)
+https://stackoverflow.com/questions/18229279/sending-email-via-php-mail-function-goes-to-spam
+https://www.digitalocean.com/community/tutorials/how-to-install-and-configure-postfix-as-a-send-only-smtp-server-on-debian-10
+https://likegeeks.com/linux-mail-server/
 
 * add 'where' setting to lookups for simple conditions (eg: "where": "boolean_field=1")
 

@@ -32,6 +32,22 @@ function show_message($message)
 
 #####################################################################################################
 
+function get_url()
+{
+  $url="http://";
+  if (isset($_SERVER["HTTPS"])==true)
+  {
+    if (($_SERVER["HTTPS"]<>"") and ($_SERVER["HTTPS"]=="on"))
+    {
+      $url="https://";
+    }
+  }
+  $url.=$_SERVER["HTTP_HOST"].$_SERVER["REQUEST_URI"];
+  return $url;
+}
+
+#####################################################################################################
+
 function load_files($path,$root="",$ext="",$trim_ext=true) # path (and root) must have trailing delimiter, ext excludes dot, empty ext means all
 {
   if ($root=="")
