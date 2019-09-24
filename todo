@@ -3,8 +3,18 @@ high priority
 
 * doc/guides content
 
+* change delete individual record from subform list into a popup with ajax (optional, similar to edit)
+* incorporate foreign key check in individual record delete
+
+* make brute-force attacks costly
+  - if multiple failed attempts are made against an account, introduce a forced delay between attempts
+  - eg: after 5 failed attempts force a 5 second delay between subsequent attempts, after 10 failed attempts force a 15 second delay
+    between attempts, after 15 attempts introduce a 1 day block for the IP address
+    or block account and email user to reinstate a new password
+
+* when clicking update in individual record edit page, on page load show dialog indicating success/failure of update
 * combine inline edit row ajax reset and controls requests into one
-* for lookup fields, automatically sort by display field rather than underlying id
+* for lookup fields, automatically sort by display field ratlher than underlying id
 * delete record page (or just go straight to ajax deletion)
 * friendly ajax error pages/messages
 

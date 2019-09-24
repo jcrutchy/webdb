@@ -46,7 +46,9 @@ function form_dispatch($url_page)
               \webdb\forms\update_record($form_name,$id);
             case "delete":
               $id=\webdb\utils\get_child_array_key($_POST["form_cmd"],"delete");
-              \webdb\forms\delete_confirmation($form_name,$id);
+              $data=\webdb\forms\delete_confirmation($form_name,$id);
+              $data["content"].=\webdb\forms\output_html_includes($form_config);
+              \webdb\utils\output_page($data["content"],$data["title"]);
             case "delete_confirm":
               $id=\webdb\utils\get_child_array_key($_POST["form_cmd"],"delete_confirm");
               $data=\webdb\forms\delete_record($form_name,$id);
@@ -1590,6 +1592,7 @@ function get_record_by_id($form_name,$id,$config_key)
 
 function delete_confirmation($form_name,$id)
 {
+  # TODO: INCORPORATE FOREIGN KEY CHECK (SIMILAR TO DELETE SELECTED)
   global $settings;
   $form_config=$settings["forms"][$form_name];
   $record=get_record_by_id($form_name,$id,"primary_key");
@@ -1642,6 +1645,11 @@ function delete_confirmation($form_name,$id)
   $form_params=array();
   $form_params["rows"]=$rows;
   $form_params["url_page"]=$form_config["url_page"];
+  $form_params["individual_delete_url_page"]=$form_config["url_page"];
+  if ($form_config["individual_delete_url_page"]=="")
+  {
+    $form_params["individual_delete_url_page"]=$form_config["individual_delete_url_page"];
+  }
   $form_params["primary_key"]=$id;
   $form_params["return_link"]=\webdb\forms\form_template_fill("return_link",$form_config);
   $form_params["command_caption_noun"]=$form_config["command_caption_noun"];

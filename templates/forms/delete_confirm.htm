@@ -21,6 +21,8 @@ var waiting_edit_row_element=null;
 <div id="global_page_body_inner">
 <div id="global_page_body_content">
 
+<form action="$$app_web_index$$?page=%%individual_delete_url_page%%$$manage_flag$$" method="post">
+
 <div class="edit_form_controls">
   <input type="submit" name="form_cmd[delete_confirm][%%primary_key%%]" value="Confirm Delete">
   <span class="edit_form_return_link">%%return_link%%</span> (abandons deletion)
@@ -31,8 +33,6 @@ var waiting_edit_row_element=null;
 <table>
 %%rows%%
 </table>
-
-<form action="$$app_web_index$$?page=%%url_page%%" method="post">
 
 </form>
 
