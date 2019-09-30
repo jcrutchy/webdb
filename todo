@@ -1,10 +1,20 @@
 high priority
 =============
 
+* if a field is set to non-visible, don't show it in the individual edit/insert page (put a hidden field set to default value, or nothing for spans)
+
+* add 'where' setting to lookups for simple conditions (eg: "where": "boolean_field=1")
+* record/data-specific form permissions (eg: only group working on a job able to update records related to that job)
+
+* for individual record edit page, disable update button by default, when user changes value of field highlight it and enable update button
+* when updating individual record, show something to indicate if update was successful (status bar of sorts, or via update button enabled status?)
+* change update caption to "Save %% Record"
+
 * doc/guides content
 
 * change delete individual record from subform list into a popup with ajax (optional, similar to edit)
 * incorporate foreign key check in individual record delete
+* don't show delete button or select checkbox for a record if list record is referenced by a foreign key (leave foreign key check for deletion confirmation though)
 
 * make brute-force attacks costly
   - if multiple failed attempts are made against an account, introduce a forced delay between attempts
@@ -19,10 +29,7 @@ high priority
 * friendly ajax error pages/messages
 
 * basic search feature (key fields, uses implicit wildcards)
-* try to figure out why login cookies are being forgotten after a reboot
-* add column headers to delete selected confirmation page
 * ability to edit all records at once
-* insert/edit/advanced search control group captions (using borders?)
 * friendly error message when deleting record fails due to foreign key
 * dynamic filtering for reports
 
@@ -37,8 +44,6 @@ https://unix.stackexchange.com/questions/1449/lightweight-outgoing-smtp-server (
 https://stackoverflow.com/questions/18229279/sending-email-via-php-mail-function-goes-to-spam
 https://www.digitalocean.com/community/tutorials/how-to-install-and-configure-postfix-as-a-send-only-smtp-server-on-debian-10
 https://likegeeks.com/linux-mail-server/
-
-* add 'where' setting to lookups for simple conditions (eg: "where": "boolean_field=1")
 
 
 low priority

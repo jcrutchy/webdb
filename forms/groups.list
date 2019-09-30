@@ -7,6 +7,7 @@
     "return_link_url_page": "groups",
     "return_link_caption": "Groups",
     "edit_subforms": {
+        "group_users_subform": "group_id"
     },
     "control_types": {
         "group_id": "span",

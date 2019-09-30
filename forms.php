@@ -551,6 +551,14 @@ function list_row_controls($form_name,$form_config,&$submit_fields,&$calendar_fi
   foreach ($form_config["control_types"] as $field_name => $control_type)
   {
     $field_params=array();
+    $field_params["disabled"]="";
+    if (isset($form_config["disabled"][$field_name])==true)
+    {
+      if ($form_config["disabled"][$field_name]==true)
+      {
+        $field_params["disabled"]=\webdb\utils\template_fill("disabled_control");
+      }
+    }
     $field_params["handlers"]="";
     $field_params["field_value"]="";
     if (isset($record[$field_name])==true)
@@ -602,6 +610,14 @@ function list_row_controls($form_name,$form_config,&$submit_fields,&$calendar_fi
         $option_params["name"]=$field_params["field_name"];
         $option_params["value"]="";
         $option_params["caption"]="";
+        $option_params["disabled"]="";
+        if (isset($form_config["disabled"][$field_name])==true)
+        {
+          if ($form_config["disabled"][$field_name]==true)
+          {
+            $option_params["disabled"]=\webdb\utils\template_fill("disabled_control");
+          }
+        }
         $options=\webdb\utils\template_fill($option_template."_option",$option_params);
         $records=\webdb\forms\lookup_field_data($form_name,$field_name);
         $lookup_config=$form_config["lookups"][$field_name];
@@ -612,6 +628,14 @@ function list_row_controls($form_name,$form_config,&$submit_fields,&$calendar_fi
           $option_params["name"]=$field_name;
           $option_params["value"]=$loop_record[$lookup_config["key_field"]];
           $option_params["caption"]=$loop_record[$lookup_config["display_field"]];
+          $option_params["disabled"]="";
+          if (isset($form_config["disabled"][$field_name])==true)
+          {
+            if ($form_config["disabled"][$field_name]==true)
+            {
+              $option_params["disabled"]=\webdb\utils\template_fill("disabled_control");
+            }
+          }
           if ($loop_record[$lookup_config["key_field"]]==$field_params["field_value"])
           {
             $options.=\webdb\utils\template_fill($option_template."_option_selected",$option_params);
@@ -1233,6 +1257,14 @@ function output_editor($form_name,$record,$command,$verb,$id)
     $field_value=$record[$field_name];
     $field_params=array();
     $field_params["url_page"]=$form_config["url_page"];
+    $field_params["disabled"]="";
+    if (isset($form_config["disabled"][$field_name])==true)
+    {
+      if ($form_config["disabled"][$field_name]==true)
+      {
+        $field_params["disabled"]=\webdb\utils\template_fill("disabled_control");
+      }
+    }
     $field_params["field_name"]=$field_name;
     $field_params["field_value"]=htmlspecialchars($field_value);
     switch ($control_type)
@@ -1253,9 +1285,18 @@ function output_editor($form_name,$record,$command,$verb,$id)
         {
           $option_template="radio";
         }
+        $option_params=array();
         $option_params["name"]=$field_name;
         $option_params["value"]="";
         $option_params["caption"]="";
+        $option_params["disabled"]="";
+        if (isset($form_config["disabled"][$field_name])==true)
+        {
+          if ($form_config["disabled"][$field_name]==true)
+          {
+            $option_params["disabled"]=\webdb\utils\template_fill("disabled_control");
+          }
+        }
         $options=\webdb\utils\template_fill($option_template."_option",$option_params);
         $records=\webdb\forms\lookup_field_data($form_name,$field_name);
         $lookup_config=$form_config["lookups"][$field_name];
@@ -1266,6 +1307,14 @@ function output_editor($form_name,$record,$command,$verb,$id)
           $option_params["name"]=$field_name;
           $option_params["value"]=$loop_record[$lookup_config["key_field"]];
           $option_params["caption"]=$loop_record[$lookup_config["display_field"]];
+          $option_params["disabled"]="";
+          if (isset($form_config["disabled"][$field_name])==true)
+          {
+            if ($form_config["disabled"][$field_name]==true)
+            {
+              $option_params["disabled"]=\webdb\utils\template_fill("disabled_control");
+            }
+          }
           if ($loop_record[$lookup_config["key_field"]]==$field_value)
           {
             $options.=\webdb\utils\template_fill($option_template."_option_selected",$option_params);
@@ -1476,14 +1525,14 @@ function handle_update_record_event($form_name,$id,$where_items,$value_items,$fo
 
 function handle_delete_record_event($form_name,$id)
 {
-
+  # TODO
 }
 
 #####################################################################################################
 
 function handle_delete_selected_records_event($form_name,$list_select)
 {
-
+  # TODO
 }
 
 #####################################################################################################

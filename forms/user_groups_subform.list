@@ -1,0 +1,55 @@
+{
+    "form_version": "20190829.1",
+    "form_type": "list",
+    "enabled": true,
+    "title": "User Groups",
+    "url_page": "user_groups_subform",
+    "return_link_url_page": "users",
+    "return_link_caption": "Users",
+    "edit_subforms": {
+    },
+    "control_types": {
+        "user_id": "combobox",
+        "group_id": "combobox"
+    },
+    "captions": {
+        "user_id": "user email",
+        "group_id": "group name"
+    },
+    "caption_groups": {
+    },
+    "visible": {
+        "user_id": false,
+        "group_id": true
+    },
+    "default_values": {
+        "user_id": "",
+        "group_id": ""
+    },
+    "lookups": {
+        "user_id": {
+            "database": "webdb",
+            "table": "users",
+            "key_field": "user_id",
+            "display_field": "email"
+        },
+        "group_id": {
+            "database": "webdb",
+            "table": "groups",
+            "key_field": "group_id",
+            "display_field": "group_name"
+        }
+    },
+    "primary_key": "user_id,group_id",
+    "command_caption_noun": "User Group Link",
+    "multi_row_delete": true,
+    "individual_delete": true,
+    "individual_edit": "inline",
+    "individual_edit_url_page": "groups",
+    "individual_edit_id": "group_id",
+    "insert_new": true,
+    "advanced_search": false,
+    "database": "webdb",
+    "table": "user_group_links",
+    "sort_sql": "user_id asc,group_id asc"
+}
