@@ -21,6 +21,9 @@ $settings["webdb_manage_form"]="form_config";
 
 $settings["webdb_default_form"]="default";
 
+$settings["links_template"]="";
+$settings["footer_template"]="";
+
 $settings["login_cookie"]="webdb_login";
 $settings["email_cookie"]="webdb_email";
 $settings["max_cookie_age"]=60*60*24*365;

@@ -141,7 +141,7 @@ function output_html_includes($form_config)
   $result="";
   for ($i=0;$i<count($form_config["html_includes"]);$i++)
   {
-    $result.=\webdb\utils\app_template_fill($form_config["html_includes"][$i]);
+    $result.=\webdb\utils\template_fill($form_config["html_includes"][$i]);
   }
   return $result;
 }
@@ -649,7 +649,7 @@ function list_row_controls($form_name,$form_config,&$submit_fields,&$calendar_fi
         $submit_fields[]=$field_params["field_name"];
         break;
       case "date":
-        $calendar_fields[]=\webdb\forms\js_date_field($field_params["field_name"]);
+        $calendar_fields[]=$field_params["field_name"];
         if (($field_params["field_value"]==\webdb\sql\zero_sql_timestamp()) or ($field_params["field_value"]==""))
         {
           $field_params["field_value"]="";

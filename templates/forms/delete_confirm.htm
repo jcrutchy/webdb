@@ -13,6 +13,7 @@ var waiting_edit_row_element=null;
 <div id="global_page_header">
 <div id="global_page_header_content">
 <div id="header_title">Delete %%command_caption_noun%%</div>
+<div id="header_links_bar">@@$$links_template$$@@</div>
 <a href="$$app_web_index$$"><img id="company_logo" src="$$app_web_resources$$$$app_logo_filename$$" alt=""></a>
 </div>
 </div>
@@ -25,7 +26,7 @@ var waiting_edit_row_element=null;
 
 <div class="edit_form_controls">
   <input type="submit" name="form_cmd[delete_confirm][%%primary_key%%]" value="Confirm Delete">
-  <span class="edit_form_return_link">%%return_link%%</span> (abandons deletion)
+  <!-- <span class="edit_form_return_link">%%return_link%%</span> (abandons deletion) -->
 </div>
 
 <p>Confirm deletion of the following record:</p>
@@ -41,6 +42,7 @@ var waiting_edit_row_element=null;
 </div>
 
 <div id="global_page_footer">
+<div id="footer_info_bar">@@$$footer_template$$@@</div>
 <div id="global_page_footer_content">
 </div>
 </div>

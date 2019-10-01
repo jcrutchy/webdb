@@ -145,7 +145,9 @@ $required_settings=array(
   "list_border_color",
   "list_border_width",
   "list_group_border_color",
-  "list_group_border_width");
+  "list_group_border_width",
+  "links_template",
+  "footer_template");
 for ($i=0;$i<count($required_settings);$i++)
 {
   \webdb\utils\check_required_setting_exists($required_settings[$i]);
@@ -192,12 +194,6 @@ $settings["templates"]=array_merge($settings["webdb_templates"],$settings["app_t
 $settings["app_sql"]=\webdb\utils\load_files($settings["app_sql_path"],"","sql",true);
 $settings["sql"]=array_merge($settings["webdb_sql"],$settings["app_sql"]);
 
-# process setting templates in sql
-foreach ($settings["sql"] as $name => $sql)
-{
-  $settings["sql"][$name]=\webdb\utils\sql_fill($name);
-}
-
 $settings["pdo_admin"]=new \PDO("mysql:host=".$settings["db_host"],$settings["db_admin_username"],$settings["db_admin_password"]);
 if ($settings["pdo_admin"]===false)
 {
@@ -236,6 +232,16 @@ $settings["forms"]=array();
 
 \webdb\users\auth_dispatch();
 
+foreach ($settings["sql"] as $name => $sql) # process @@template_name@@ and $$setting_key$$ templates in sql files
+{
+  $settings["sql"][$name]=\webdb\utils\sql_fill($name);
+}
+
+foreach ($settings["templates"] as $name => $content) # process @@template_name@@, $$setting_key$$ templates and @@$$template_name_setting_key$$@@ templates
+{
+  $settings["templates"][$name]=\webdb\utils\template_fill($name);
+}
+
 if (isset($_GET["page"])==true)
 {
   if (isset($_GET["manage"])==true)
@@ -250,6 +256,6 @@ if (isset($_GET["manage"])==true)
   \webdb\manage\manager_page();
 }
 
-\webdb\utils\app_static_page($settings["app_home_template"],$settings["app_name"]);
+\webdb\utils\static_page($settings["app_home_template"],$settings["app_name"]);
 
 #####################################################################################################

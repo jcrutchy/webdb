@@ -1,6 +1,12 @@
 high priority
 =============
 
+* for list insert row comboboxes applicable to unique fields, filter out any options that are already used (need a 'unique_fields' section of the form config)
+
+* specify hashing algorithm constant in an app setting. consider using PASSWORD_DEFAULT by default instead of PASSWORD_BCRYPT so that if in the
+  future when PHP updates PASSWORD_DEFAULT from BCRYPT to a more secure algorithm, you can automatically take advantage of that (future-proof)
+  need to change password_bcrypt_cost setting if doing this
+
 * if a field is set to non-visible, don't show it in the individual edit/insert page (put a hidden field set to default value, or nothing for spans)
 
 * add 'where' setting to lookups for simple conditions (eg: "where": "boolean_field=1")

@@ -171,6 +171,35 @@ th.rotate
     text-shadow: 0 0 4px #999999;
   }
 
+#header_links_bar
+  {
+    text-align: left;
+    position: absolute;
+    left: 15px;
+    bottom: 15px;
+    font-size: 12px;
+    font-weight: bold;
+  }
+
+#header_links_bar ul, li
+  {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: inline;
+  }
+
+#header_links_bar li
+  {
+    margin-right: 8px;
+  }
+
+.links_menu_spacer
+  {
+    margin-left: 10px;
+    margin-right: 18px;
+  }
+
 #global_page_body_outer
   {
     position: absolute;

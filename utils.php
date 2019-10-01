@@ -115,7 +115,7 @@ function group_by_fields($form_config,$record)
 
 #####################################################################################################
 
-function app_template_fill($template_key,$params=false,$tracking=array(),$custom_templates=false)
+function append_resource_links($template_key,$template_content)
 {
   global $settings;
   $styles="";
@@ -136,7 +136,7 @@ function app_template_fill($template_key,$params=false,$tracking=array(),$custom
     $params["modified"]=filemtime($filename);
     $script=template_fill("app_resource_script",$params);
   }
-  return $styles.PHP_EOL.template_fill($template_key,$params,$tracking,$custom_templates).PHP_EOL.$script;
+  return $styles.PHP_EOL.$template_content.PHP_EOL.$script;
 }
 
 #####################################################################################################
@@ -221,6 +221,10 @@ function check_user_template_permission($template_name)
 function template_fill($template_key,$params=false,$tracking=array(),$custom_templates=false) # tracking array is used internally to limit recursion and should not be manually passed
 {
   global $settings;
+  if ($template_key=="")
+  {
+    return "";
+  }
   $template_array=$settings["templates"];
   if ($custom_templates!==false)
   {
@@ -284,6 +288,10 @@ function template_fill($template_key,$params=false,$tracking=array(),$custom_tem
         $result=str_replace("%%".$key."%%",$value,$result);
       }
     }
+  }
+  if (($custom_templates===false) and ($template_key<>"app_resource_styles") and ($template_key<>"app_resource_script"))
+  {
+    $result=\webdb\utils\append_resource_links($template_key,$result);
   }
   return $result;
 }
@@ -448,14 +456,6 @@ function output_page($content,$title)
   $page_params["global_script_modified"]=\webdb\utils\resource_modified_timestamp("global.js");
   $page_params["body_text"]=$content;
   die(\webdb\utils\template_fill("global".DIRECTORY_SEPARATOR."page",$page_params));
-}
-
-#####################################################################################################
-
-function app_static_page($template,$title)
-{
-  $content=\webdb\utils\app_template_fill($template);
-  \webdb\utils\output_page($content,$title);
 }
 
 #####################################################################################################
