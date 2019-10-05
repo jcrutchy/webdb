@@ -1,3 +1,5 @@
 # webdb
 
-Framework for building a web-based database application.
+Framework for building low/no-code web-based database applications.
+
+Visit our Freenode project channel: #webdb
