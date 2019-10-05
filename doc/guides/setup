@@ -27,7 +27,7 @@ reboot system for guest addition kernel modules to take effect
 
 ~~~~
 
-# apt-get install wkhtmltopdf msttcorefonts php apache2 mariadb-server php-gd git geany
+# apt-get install msttcorefonts php apache2 mariadb-server php-gd git geany
 
 # nano /etc/apache2/envvars
 ----
