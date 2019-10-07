@@ -1,0 +1,20 @@
+function my_field_onchange_ajax_stub($form_name,$form_config,$field_name,$event_type,$event_data)
+{
+}
+
+
+function my_field__change(form,value)
+{
+  var url=window.location+"&ajax=onchange&field_name=my_field;
+
+
+
+  "js_events": {
+    "my_field": {
+      "onchange": {
+        "handler": "my_field__change",
+        "params": "this.form,this.options[this.selectedIndex].value",
+        "ajax_stub": "\\my_app\\stubs\\my_field_onchange_ajax_stub"
+      }
+    }
+  },

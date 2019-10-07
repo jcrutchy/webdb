@@ -29,6 +29,24 @@ function form_dispatch($url_page)
   global $settings;
   $form_config=\webdb\forms\get_form_config($url_page);
   $form_name=$form_config["form_name"];
+  if ((isset($_GET["ajax"])==true) and (isset($_GET["field_name"])==true))
+  {
+    $event_type=$_GET["ajax"];
+    $field_name=$_GET["field_name"];
+    if (isset($form_config["js_events"][$field_name][$event_type])==true)
+    {
+      $event_data=$form_config["js_events"][$field_name][$event_type];
+      $func_name=$event_data["ajax_stub"];
+      if (function_exists($func_name)==true)
+      {
+        call_user_func($func_name,$form_name,$form_config,$field_name,$event_type,$event_data);
+      }
+    }
+    $data=array();
+    $data["error"]="unhandled ajax call";
+    $data=json_encode($data);
+    die($data);
+  }
   switch ($form_config["form_type"])
   {
     case "list":
@@ -1404,12 +1422,13 @@ function field_js_events($form_config,$field_name,$record)
 {
   if (isset($form_config["js_events"][$field_name])==true)
   {
-    $data=$form_config["js_events"][$field_name];
+    $events=$form_config["js_events"][$field_name];
     $result="";
-    for ($i=0;$i<count($data);$i++)
+    foreach ($events as $event_type => $event_data)
     {
-      $data[$i]["field_name"]=$field_name;
-      $result.=\webdb\forms\form_template_fill("field_js_event",$data[$i]);
+      $event_data["event_type"]=$event_type;
+      $event_data["field_name"]=$field_name;
+      $result.=\webdb\forms\form_template_fill("field_js_event",$event_data);
     }
     return $result;
   }
