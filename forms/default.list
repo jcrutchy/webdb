@@ -22,6 +22,8 @@
     },
     "default_values": {
     },
+    "js_events": {
+    },
     "computed_values": {
     },
     "custom_interfaces": {
@@ -32,9 +34,11 @@
     },
     "lookups": {
     },
-    "event_handlers": {
+    "js_events": {
     },
     "html_includes": [],
+    "js_includes": [],
+    "css_includes": [],
     "primary_key": "",
     "command_caption_noun": "",
     "custom_form_above_template": "",

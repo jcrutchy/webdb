@@ -23,6 +23,8 @@ require_once("manage.php");
 set_error_handler('\webdb\utils\error_handler',E_ALL);
 set_exception_handler('\webdb\utils\exception_handler');
 
+\webdb\utils\send_email("jared.crutchfield@wideband.net.au","test message","blah");
+
 define("webdb\index\CONFIG_ID_DELIMITER",",");
 define("webdb\index\LINEBREAK_PLACEHOLDER","@@@@");
 
@@ -231,16 +233,6 @@ $settings["forms"]=array();
 \webdb\forms\load_form_defs();
 
 \webdb\users\auth_dispatch();
-
-foreach ($settings["sql"] as $name => $sql) # process @@template_name@@ and $$setting_key$$ templates in sql files
-{
-  $settings["sql"][$name]=\webdb\utils\sql_fill($name);
-}
-
-foreach ($settings["templates"] as $name => $content) # process @@template_name@@, $$setting_key$$ templates and @@$$template_name_setting_key$$@@ templates
-{
-  $settings["templates"][$name]=\webdb\utils\template_fill($name);
-}
 
 if (isset($_GET["page"])==true)
 {

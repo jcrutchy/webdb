@@ -115,27 +115,43 @@ function group_by_fields($form_config,$record)
 
 #####################################################################################################
 
+function link_app_js_resource($name)
+{
+  global $settings;
+  $filename=$settings["app_resources_path"].$name.".js";
+  if (file_exists($filename)==true)
+  {
+    $params=array();
+    $params["name"]=$name;
+    $params["modified"]=filemtime($filename);
+    return \webdb\utils\template_fill("app_resource_script",$params);
+  }
+  return "";
+}
+
+#####################################################################################################
+
+function link_app_css_resource($name)
+{
+  global $settings;
+  $filename=$settings["app_resources_path"].$name.".css";
+  if (file_exists($filename)==true)
+  {
+    $params=array();
+    $params["name"]=$name;
+    $params["modified"]=filemtime($filename);
+    return \webdb\utils\template_fill("app_resource_styles",$params);
+  }
+  return "";
+}
+
+#####################################################################################################
+
 function append_resource_links($template_key,$template_content)
 {
   global $settings;
-  $styles="";
-  $script="";
-  $filename=$settings["app_resources_path"].$template_key.".css";
-  if (file_exists($filename)==true)
-  {
-    $params=array();
-    $params["name"]=$template_key;
-    $params["modified"]=filemtime($filename);
-    $styles=template_fill("app_resource_styles",$params);
-  }
-  $filename=$settings["app_resources_path"].$template_key.".js";
-  if (file_exists($filename)==true)
-  {
-    $params=array();
-    $params["name"]=$template_key;
-    $params["modified"]=filemtime($filename);
-    $script=template_fill("app_resource_script",$params);
-  }
+  $styles=\webdb\utils\link_app_css_resource($template_key);
+  $script=\webdb\utils\link_app_js_resource($template_key);
   return $styles.PHP_EOL.$template_content.PHP_EOL.$script;
 }
 
@@ -249,15 +265,6 @@ function template_fill($template_key,$params=false,$tracking=array(),$custom_tem
   }
   $tracking[]=$template_key;
   $result=$template_array[$template_key];
-  foreach ($template_array as $key => $value)
-  {
-    if (strpos($result,"@@".$key."@@")===false)
-    {
-      continue;
-    }
-    $value=\webdb\utils\template_fill($key,false,$tracking,$template_array);
-    $result=str_replace("@@".$key."@@",$value,$result);
-  }
   $constants=get_defined_constants(true);
   if (isset($constants["user"])==true)
   {
@@ -292,6 +299,15 @@ function template_fill($template_key,$params=false,$tracking=array(),$custom_tem
   if (($custom_templates===false) and ($template_key<>"app_resource_styles") and ($template_key<>"app_resource_script"))
   {
     $result=\webdb\utils\append_resource_links($template_key,$result);
+  }
+  foreach ($template_array as $key => $value)
+  {
+    if (strpos($result,"@@".$key."@@")===false)
+    {
+      continue;
+    }
+    $value=\webdb\utils\template_fill($key,$params,$tracking,$custom_templates);
+    $result=str_replace("@@".$key."@@",$value,$result);
   }
   return $result;
 }

@@ -48,11 +48,15 @@ function form_dispatch($url_page)
               $id=\webdb\utils\get_child_array_key($_POST["form_cmd"],"delete");
               $data=\webdb\forms\delete_confirmation($form_name,$id);
               $data["content"].=\webdb\forms\output_html_includes($form_config);
+              $data["content"].=\webdb\forms\output_js_includes($form_config);
+              $data["content"].=\webdb\forms\output_css_includes($form_config);
               \webdb\utils\output_page($data["content"],$data["title"]);
             case "delete_confirm":
               $id=\webdb\utils\get_child_array_key($_POST["form_cmd"],"delete_confirm");
               $data=\webdb\forms\delete_record($form_name,$id);
               $data["content"].=\webdb\forms\output_html_includes($form_config);
+              $data["content"].=\webdb\forms\output_js_includes($form_config);
+              $data["content"].=\webdb\forms\output_css_includes($form_config);
               \webdb\utils\output_page($data["content"],$data["title"]);
             case "delete_selected":
               \webdb\forms\delete_selected_confirmation($form_name);
@@ -75,6 +79,8 @@ function form_dispatch($url_page)
               }
               $data=\webdb\forms\edit_form($form_name,$_GET["id"]);
               $data["content"].=\webdb\forms\output_html_includes($form_config);
+              $data["content"].=\webdb\forms\output_js_includes($form_config);
+              $data["content"].=\webdb\forms\output_css_includes($form_config);
               \webdb\utils\output_page($data["content"],$data["title"]);
             case "insert":
               if (isset($_GET["ajax"])==true)
@@ -83,10 +89,14 @@ function form_dispatch($url_page)
               }
               $data=\webdb\forms\insert_form($form_name);
               $data["content"].=\webdb\forms\output_html_includes($form_config);
+              $data["content"].=\webdb\forms\output_js_includes($form_config);
+              $data["content"].=\webdb\forms\output_css_includes($form_config);
               \webdb\utils\output_page($data["content"],$data["title"]);
             case "advanced_search":
               $data=\webdb\forms\advanced_search($form_name);
               $data["content"].=\webdb\forms\output_html_includes($form_config);
+              $data["content"].=\webdb\forms\output_js_includes($form_config);
+              $data["content"].=\webdb\forms\output_css_includes($form_config);
               \webdb\utils\output_page($data["content"],$data["title"]);
           }
         }
@@ -125,6 +135,8 @@ function form_dispatch($url_page)
       $list_params["title"]=$form_config["title"];
       $content=\webdb\forms\form_template_fill("list_page",$list_params);
       $content.=\webdb\forms\output_html_includes($form_config);
+      $content.=\webdb\forms\output_js_includes($form_config);
+      $content.=\webdb\forms\output_css_includes($form_config);
       $title=$form_name;
       if ($form_config["title"]<>"")
       {
@@ -142,6 +154,30 @@ function output_html_includes($form_config)
   for ($i=0;$i<count($form_config["html_includes"]);$i++)
   {
     $result.=\webdb\utils\template_fill($form_config["html_includes"][$i]);
+  }
+  return $result;
+}
+
+#####################################################################################################
+
+function output_js_includes($form_config)
+{
+  $result="";
+  for ($i=0;$i<count($form_config["js_includes"]);$i++)
+  {
+    $result.=\webdb\utils\link_app_js_resource($form_config["js_includes"][$i]);
+  }
+  return $result;
+}
+
+#####################################################################################################
+
+function output_css_includes($form_config)
+{
+  $result="";
+  for ($i=0;$i<count($form_config["css_includes"]);$i++)
+  {
+    $result.=\webdb\utils\link_app_css_resource($form_config["css_includes"][$i]);
   }
   return $result;
 }
@@ -551,14 +587,8 @@ function list_row_controls($form_name,$form_config,&$submit_fields,&$calendar_fi
   foreach ($form_config["control_types"] as $field_name => $control_type)
   {
     $field_params=array();
-    $field_params["disabled"]="";
-    if (isset($form_config["disabled"][$field_name])==true)
-    {
-      if ($form_config["disabled"][$field_name]==true)
-      {
-        $field_params["disabled"]=\webdb\utils\template_fill("disabled_control");
-      }
-    }
+    $field_params["disabled"]=\webdb\forms\field_disabled($form_config,$field_name);
+    $field_params["js_events"]=\webdb\forms\field_js_events($form_config,$field_name,$record);
     $field_params["handlers"]="";
     $field_params["field_value"]="";
     if (isset($record[$field_name])==true)
@@ -610,14 +640,8 @@ function list_row_controls($form_name,$form_config,&$submit_fields,&$calendar_fi
         $option_params["name"]=$field_params["field_name"];
         $option_params["value"]="";
         $option_params["caption"]="";
-        $option_params["disabled"]="";
-        if (isset($form_config["disabled"][$field_name])==true)
-        {
-          if ($form_config["disabled"][$field_name]==true)
-          {
-            $option_params["disabled"]=\webdb\utils\template_fill("disabled_control");
-          }
-        }
+        $option_params["disabled"]=\webdb\forms\field_disabled($form_config,$field_name);
+        $option_params["js_events"]=\webdb\forms\field_js_events($form_config,$field_name,$record);
         $options=\webdb\utils\template_fill($option_template."_option",$option_params);
         $records=\webdb\forms\lookup_field_data($form_name,$field_name);
         $lookup_config=$form_config["lookups"][$field_name];
@@ -628,14 +652,8 @@ function list_row_controls($form_name,$form_config,&$submit_fields,&$calendar_fi
           $option_params["name"]=$field_name;
           $option_params["value"]=$loop_record[$lookup_config["key_field"]];
           $option_params["caption"]=$loop_record[$lookup_config["display_field"]];
-          $option_params["disabled"]="";
-          if (isset($form_config["disabled"][$field_name])==true)
-          {
-            if ($form_config["disabled"][$field_name]==true)
-            {
-              $option_params["disabled"]=\webdb\utils\template_fill("disabled_control");
-            }
-          }
+          $option_params["disabled"]=\webdb\forms\field_disabled($form_config,$field_name);
+          $option_params["js_events"]=\webdb\forms\field_js_events($form_config,$field_name,$record);
           if ($loop_record[$lookup_config["key_field"]]==$field_params["field_value"])
           {
             $options.=\webdb\utils\template_fill($option_template."_option_selected",$option_params);
@@ -1257,14 +1275,8 @@ function output_editor($form_name,$record,$command,$verb,$id)
     $field_value=$record[$field_name];
     $field_params=array();
     $field_params["url_page"]=$form_config["url_page"];
-    $field_params["disabled"]="";
-    if (isset($form_config["disabled"][$field_name])==true)
-    {
-      if ($form_config["disabled"][$field_name]==true)
-      {
-        $field_params["disabled"]=\webdb\utils\template_fill("disabled_control");
-      }
-    }
+    $field_params["disabled"]=\webdb\forms\field_disabled($form_config,$field_name);
+    $field_params["js_events"]=\webdb\forms\field_js_events($form_config,$field_name,$record);
     $field_params["field_name"]=$field_name;
     $field_params["field_value"]=htmlspecialchars($field_value);
     switch ($control_type)
@@ -1289,14 +1301,8 @@ function output_editor($form_name,$record,$command,$verb,$id)
         $option_params["name"]=$field_name;
         $option_params["value"]="";
         $option_params["caption"]="";
-        $option_params["disabled"]="";
-        if (isset($form_config["disabled"][$field_name])==true)
-        {
-          if ($form_config["disabled"][$field_name]==true)
-          {
-            $option_params["disabled"]=\webdb\utils\template_fill("disabled_control");
-          }
-        }
+        $option_params["disabled"]=\webdb\forms\field_disabled($form_config,$field_name);
+        $option_params["js_events"]=\webdb\forms\field_js_events($form_config,$field_name,$record);
         $options=\webdb\utils\template_fill($option_template."_option",$option_params);
         $records=\webdb\forms\lookup_field_data($form_name,$field_name);
         $lookup_config=$form_config["lookups"][$field_name];
@@ -1307,14 +1313,8 @@ function output_editor($form_name,$record,$command,$verb,$id)
           $option_params["name"]=$field_name;
           $option_params["value"]=$loop_record[$lookup_config["key_field"]];
           $option_params["caption"]=$loop_record[$lookup_config["display_field"]];
-          $option_params["disabled"]="";
-          if (isset($form_config["disabled"][$field_name])==true)
-          {
-            if ($form_config["disabled"][$field_name]==true)
-            {
-              $option_params["disabled"]=\webdb\utils\template_fill("disabled_control");
-            }
-          }
+          $option_params["disabled"]=\webdb\forms\field_disabled($form_config,$field_name);
+          $option_params["js_events"]=\webdb\forms\field_js_events($form_config,$field_name,$record);
           if ($loop_record[$lookup_config["key_field"]]==$field_value)
           {
             $options.=\webdb\utils\template_fill($option_template."_option_selected",$option_params);
@@ -1382,6 +1382,38 @@ function output_editor($form_name,$record,$command,$verb,$id)
   $result["title"]=$title;
   $result["content"]=$content;
   return $result;
+}
+
+#####################################################################################################
+
+function field_disabled($form_config,$field_name)
+{
+  if (isset($form_config["disabled"][$field_name])==true)
+  {
+    if ($form_config["disabled"][$field_name]==true)
+    {
+      return \webdb\utils\template_fill("disabled_control");
+    }
+  }
+  return "";
+}
+
+#####################################################################################################
+
+function field_js_events($form_config,$field_name,$record)
+{
+  if (isset($form_config["js_events"][$field_name])==true)
+  {
+    $data=$form_config["js_events"][$field_name];
+    $result="";
+    for ($i=0;$i<count($data);$i++)
+    {
+      $data[$i]["field_name"]=$field_name;
+      $result.=\webdb\forms\form_template_fill("field_js_event",$data[$i]);
+    }
+    return $result;
+  }
+  return "";
 }
 
 #####################################################################################################

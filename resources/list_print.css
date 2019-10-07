@@ -4,6 +4,11 @@
     display: none;
   }
 
+#header_links_bar
+  {
+    display: none;
+  }
+
 #global_page_body_outer
   {
     border: 0;

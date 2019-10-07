@@ -4,9 +4,36 @@ namespace webdb\stubs;
 
 #####################################################################################################
 
+function get_checklist_description()
+{
+  $data=array();
+  if ((isset($_GET["ernie_id"])==false) or (isset($_GET["form_id"])==false))
+  {
+    $data["error"]="missing parameter";
+    $data=json_encode($data);
+    die($data);
+  }
+  $data["form_id"]=$_GET["form_id"];
+
+  $ernie_id=$_GET["ernie_id"];
+  $checklist_id=$_GET["checklist_id"];
+
+  $data["hazard_no"]="test hazard no";
+  $data["hazard_description"]="test description";
+
+  $data=json_encode($data);
+  die($data);
+}
+
+#####################################################################################################
+
 function list_insert($form_name)
 {
   global $settings;
+  if (isset($_GET["checklist_id"])==true)
+  {
+    get_checklist_description();
+  }
   if (\webdb\utils\check_user_form_permission($form_name,"i")==false)
   {
     \webdb\utils\show_message("error: form record update permission denied");
@@ -59,6 +86,10 @@ function list_insert($form_name)
 function list_edit($id,$form_name)
 {
   global $settings;
+  if (isset($_GET["checklist_id"])==true)
+  {
+    get_checklist_description();
+  }
   if (\webdb\utils\check_user_form_permission($form_name,"u")==false)
   {
     \webdb\utils\show_message("error: form record update permission denied");

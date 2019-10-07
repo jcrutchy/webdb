@@ -2,7 +2,7 @@
 
 namespace webdb\manage;
 
-# todo: add form config elements: custom_interfaces, html_includes, edit_subforms_styles, individual_delete_url_page
+# todo: add form config elements: custom_interfaces, html_includes, edit_subforms_styles, individual_delete_url_page, events, js_includes, css_includes
 
 #####################################################################################################
 
