@@ -36,6 +36,8 @@
     },
     "js_events": {
     },
+    "event_handlers": {
+    },
     "html_includes": [],
     "js_includes": [],
     "css_includes": [],
