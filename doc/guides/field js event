@@ -14,6 +14,7 @@ function my_field__change(form,value)
       "onchange": {
         "handler": "my_field__change",
         "params": "this.form,this.options[this.selectedIndex].value",
+        "return": "false",
         "ajax_stub": "\\my_app\\stubs\\my_field_onchange_ajax_stub"
       }
     }

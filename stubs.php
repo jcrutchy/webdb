@@ -4,6 +4,44 @@ namespace webdb\stubs;
 
 #####################################################################################################
 
+function stub_error($error_msg)
+{
+  $data=array();
+  $data["error"]=$error_msg;
+  $data=json_encode($data);
+  die($data);
+}
+
+#####################################################################################################
+
+function check_get_parameters_exist($required_params)
+{
+  for ($i=0;$i<count($required_params);$i++)
+  {
+    $param_name=$required_params[$i];
+    if (isset($_GET[$param_name])==false)
+    {
+      \webdb\stubs\stub_error("missing parameter: ".$param_name);
+    }
+  }
+}
+
+#####################################################################################################
+
+function get_unique_stub_record($id_field_name,$id,$sql_stub_name,$return_field_name)
+{
+  $sql_params=array();
+  $sql_params[$id_field_name]=$id;
+  $records=\webdb\sql\file_fetch_prepare($sql_stub_name,$sql_params);
+  if (count($records)<>1)
+  {
+    \webdb\stubs\stub_error("record with specified ".$id_field_name." not found or not unique");
+  }
+  return $records[0][$return_field_name];
+}
+
+#####################################################################################################
+
 function list_insert($form_name)
 {
   global $settings;
@@ -16,9 +54,7 @@ function list_insert($form_name)
   $params=\webdb\forms\process_form_data_fields($form_name);
   if (count($params)==0)
   {
-    $data["error"]="error: no field data to insert";
-    $data=json_encode($data);
-    die($data);
+    \webdb\stubs\stub_error("error: no field data to insert");
   }
   $data["url_page"]=$form_config["url_page"];
   $insert_default_params=array();

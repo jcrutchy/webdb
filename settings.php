@@ -32,7 +32,6 @@ $settings["password_bcrypt_cost"]=10; # 10 is a good baseline, 13 is very diffic
 $settings["row_lock_expiration"]=60*5;
 
 $settings["db_host"]="localhost";
-$settings["gd_ttf"]="/usr/share/fonts/truetype/msttcorefonts/arial.ttf";
 
 $settings["webdb_web_root"]="/".$settings["webdb_directory_name"]."/";
 $settings["webdb_web_resources"]=$settings["webdb_web_root"]."resources/";

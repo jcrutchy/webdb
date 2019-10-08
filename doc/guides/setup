@@ -1,5 +1,13 @@
-server setup
-============
+ubuntu server setup
+===================
+
+install ubuntu desktop - can download iso from https://ubuntu.com/download/desktop
+update packages
+insert guest additions cd image (from virtualbox toolbar) and autorun guest additions installer
+
+
+debian server setup
+===================
 
 install debian with xfce4
 
@@ -25,17 +33,31 @@ insert guest additions cd image (from virtualbox toolbar)
 
 reboot system for guest addition kernel modules to take effect
 
-~~~~
+# adduser <myuser> vboxsf
 
-# apt-get install msttcorefonts php apache2 mariadb-server php-gd git geany
+after installation of phpmyadmin:
+# nano /var/lib/phpmyadmin/blowfish_secret.inc.php
+use https://www.question-defense.com/tools/phpmyadmin-blowfish-secret-generator to generate string
+# chown myuser:myuser /var/lib/phpmyadmin/blowfish_secret.inc.php
+# chmod 600 /var/lib/phpmyadmin/blowfish_secret.inc.php
 
-# nano /etc/apache2/envvars
+
+package install
+===============
+
+$ sudo apt-get install php apache2 mariadb-server git geany phpmyadmin
+
+
+apache2 and mariadb configuration
+=================================
+
+$ sudo nano /etc/apache2/envvars
 ----
 export APACHE_RUN_USER=<myuser>
 export APACHE_RUN_GROUP=<myuser>
 ----
 
-# nano /etc/apache2/apache2.conf
+$ sudo nano /etc/apache2/apache2.conf
 ----
 ServerName <your-server-name>
 ----
@@ -46,10 +68,11 @@ $ cd dev
 $ mkdir apache_logs
 $ mkdir public
 $ mkdir pwd
-$ mkdir temp
 $ cd pwd
 $ touch sql_admin
 $ touch sql_user
+
+$ sudo chmod 777 ~/dev/public
 
 sql_admin:
 ----
@@ -63,7 +86,8 @@ webdb_user
 <password>
 ----
 
-# nano /etc/apache2/sites-available/000-default.conf
+$ sudo nano /etc/apache2/sites-available/000-default.conf
+within <VirtualHost *:80>
 ----
 DocumentRoot /home/<myuser>/dev/public/
 DirectoryIndex index.php
@@ -78,34 +102,55 @@ ErrorLog /home/<myuser>/dev/apache_logs/error.log
 CustomLog /home/<myuser>/dev/apache_logs/access.log combined
 ----
 
-# service apache2 reload
+$ sudo apache2ctl configtest
+$ sudo service apache2 reload
 
-# mysql_secure_installation
+$ sudo mysql_secure_installation
 follow prompts
 
-# mysql -u root -p
+$ sudo mysql -u root -p
+
+> update mysql.user set plugin='',password=PASSWORD('<password>') where user='root';
 > create user 'webdb_admin'@'localhost' identified by '<password>';
 > grant all privileges on *.* to 'webdb_admin'@'localhost';
 > create user 'webdb_user'@'localhost' identified by '<password>';
 > grant select,insert,update,delete on *.* to 'webdb_user'@'localhost';
+> flush privileges;
 > exit
 
-# adduser <myuser> vboxsf
+reboot server
 
-$ php my_app/index.php load_webdb_schema
+
+webdb and application setup
+===========================
+
+$ cd ~/dev/public
+$ git clone git@github.com:crutchy-/webdb.git
+
+$ cp ~/dev/public/webdb/doc/webdb_common_settings.php ~/dev/public
+
+$ nano ~/dev/public/webdb_common_settings.php
+change values in file to suit
+
+$ mkdir ~/dev/public/my_app
+$ mkdir ~/dev/public/my_app/doc
+$ mkdir ~/dev/public/my_app/forms
+$ mkdir ~/dev/public/my_app/resources
+$ mkdir ~/dev/public/my_app/sql
+$ mkdir ~/dev/public/my_app/templates
+
+you can use the files under ~/dev/public/webdb/doc/app/ to base a new application on
+
+$ cd ~/dev/public/my_app/sql
+$ nano schema.sql
+create your application-specific database and table create statements here
+
+$ cd ~/dev/public/my_app
+
+$ php index.php load_webdb_schema
 executes webdb/sql/schema.sql
 (don't run on webdb index.php because requires database access parameters in settings.php)
 
-$ php my_app/index.php load_app_schema
+$ php index.php load_app_schema
 executes my_app/sql/schema.sql
 (don't run on webdb index.php because requires database access parameters in settings.php)
-
-TODO: make a bit clearer where to run these from, and also how the common settings file works
-
-~~~~
-
-# apt-get install phpmyadmin
-# nano /var/lib/phpmyadmin/blowfish_secret.inc.php
-use https://www.question-defense.com/tools/phpmyadmin-blowfish-secret-generator to generate string
-# chown myuser:myuser /var/lib/phpmyadmin/blowfish_secret.inc.php
-# chmod 600 /var/lib/phpmyadmin/blowfish_secret.inc.php
