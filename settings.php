@@ -33,6 +33,8 @@ $settings["row_lock_expiration"]=60*5;
 
 $settings["db_host"]="localhost";
 
+$settings["gd_ttf"]="/usr/share/fonts/truetype/msttcorefonts/arial.ttf";
+
 $settings["webdb_web_root"]="/".$settings["webdb_directory_name"]."/";
 $settings["webdb_web_resources"]=$settings["webdb_web_root"]."resources/";
 $settings["webdb_web_index"]=$settings["webdb_web_root"]."index.php";

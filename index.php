@@ -141,6 +141,7 @@ $required_settings=array(
   "app_forms_path",
   "sql_log_path",
   "apps_list",
+  "gd_ttf",
   "webdb_default_form",
   "webdb_manage_form",
   "list_border_color",
@@ -159,7 +160,8 @@ if (in_array($settings["app_directory_name"],$settings["apps_list"])==false)
 }
 $required_files=array(
   "db_admin_file",
-  "db_user_file");
+  "db_user_file",
+  "gd_ttf");
 for ($i=0;$i<count($required_files);$i++)
 {
   $file=$required_files[$i];

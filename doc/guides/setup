@@ -45,7 +45,7 @@ use https://www.question-defense.com/tools/phpmyadmin-blowfish-secret-generator 
 package install
 ===============
 
-$ sudo apt-get install php apache2 mariadb-server git geany phpmyadmin
+$ sudo apt-get install php apache2 mariadb-server git geany phpmyadmin exim4 php-gd msttcorefonts
 
 
 apache2 and mariadb configuration
@@ -123,6 +123,14 @@ reboot server
 
 webdb and application setup
 ===========================
+
+$ sudo dpkg-reconfigure exim4-config
+follow prompts: internet site
+
+$ ssk-keygen
+follow prompts with default filename and no passphrase
+add content of ~/.ssh/id_rsa.pub to new ssh key in webdb repo settings
+(or clone/download repo some other way)
 
 $ cd ~/dev/public
 $ git clone git@github.com:crutchy-/webdb.git
