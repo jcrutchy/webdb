@@ -30,6 +30,10 @@ function check_get_parameters_exist($required_params)
 
 function get_unique_stub_record($id_field_name,$id,$sql_stub_name,$return_field_name)
 {
+  if (is_numeric($id)==false)
+  {
+    return false;
+  }
   $sql_params=array();
   $sql_params[$id_field_name]=$id;
   $records=\webdb\sql\file_fetch_prepare($sql_stub_name,$sql_params);

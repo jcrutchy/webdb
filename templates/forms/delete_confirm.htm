@@ -25,11 +25,8 @@ var waiting_edit_row_element=null;
 <form action="$$app_web_index$$?page=%%individual_delete_url_page%%$$manage_flag$$" method="post">
 
 <div class="edit_form_controls">
-  <input type="submit" name="form_cmd[delete_confirm][%%primary_key%%]" value="Confirm Delete">
-  <!-- <span class="edit_form_return_link">%%return_link%%</span> (abandons deletion) -->
+  %%delete_button%%
 </div>
-
-<p>Confirm deletion of the following record:</p>
 
 <table>
 %%rows%%

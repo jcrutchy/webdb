@@ -93,6 +93,39 @@ function sql_update($value_items,$where_items,$table,$schema,$is_admin=false)
 
 #####################################################################################################
 
+function get_foreign_key_defs($database,$table)
+{
+  $sql_params=array();
+  $sql_params["database"]=$database;
+  $sql_params["table"]=$table;
+  return \webdb\sql\file_fetch_prepare("foreign_keys",$sql_params);
+}
+
+#####################################################################################################
+
+function foreign_key_used($database,$table,$record,$foreign_key_defs=false)
+{
+  if ($foreign_key_defs===false)
+  {
+    $foreign_key_defs=\webdb\sql\get_foreign_key_defs($database,$table);
+  }
+  for ($i=0;$i<count($foreign_key_defs);$i++)
+  {
+    $fk=$foreign_key_defs[$i];
+    $sql=\webdb\utils\sql_fill("foreign_key_check",$fk);
+    $sql_params=array();
+    $sql_params["referenced_column_value"]=$record[$fk["REFERENCED_COLUMN_NAME"]];
+    $foreign_keys=\webdb\sql\fetch_prepare($sql,$sql_params);
+    if (count($foreign_keys)>0)
+    {
+      return true;
+    }
+  }
+  return false;
+}
+
+#####################################################################################################
+
 function zero_sql_timestamp()
 {
   return "0000-00-00 00:00:00";

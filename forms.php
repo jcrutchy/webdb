@@ -1481,13 +1481,13 @@ function process_form_data_fields($form_name,$post_override=false)
         $value_items[$field_name]=$post_fields[$field_name];
         break;
       case "date":
-        if ($post_fields[$field_name]=="")
+        if ($post_fields["iso_".$field_name]=="")
         {
           $value_items[$field_name]=\webdb\sql\zero_sql_timestamp();
         }
         else
         {
-          $value_items[$field_name]=$post_fields[$field_name];
+          $value_items[$field_name]=$post_fields["iso_".$field_name];
         }
         break;
       case "checkbox":
@@ -1692,10 +1692,9 @@ function get_record_by_id($form_name,$id,$config_key)
 
 function delete_confirmation($form_name,$id)
 {
-  # TODO: INCORPORATE FOREIGN KEY CHECK (SIMILAR TO DELETE SELECTED)
   global $settings;
   $form_config=$settings["forms"][$form_name];
-  $record=get_record_by_id($form_name,$id,"primary_key");
+  $record=\webdb\forms\get_record_by_id($form_name,$id,"primary_key");
   $rows="";
   foreach ($form_config["control_types"] as $field_name => $control_type)
   {
@@ -1746,13 +1745,22 @@ function delete_confirmation($form_name,$id)
   $form_params["rows"]=$rows;
   $form_params["url_page"]=$form_config["url_page"];
   $form_params["individual_delete_url_page"]=$form_config["url_page"];
-  if ($form_config["individual_delete_url_page"]=="")
+  if ($form_config["individual_delete_url_page"]<>"")
   {
     $form_params["individual_delete_url_page"]=$form_config["individual_delete_url_page"];
   }
   $form_params["primary_key"]=$id;
   $form_params["return_link"]=\webdb\forms\form_template_fill("return_link",$form_config);
   $form_params["command_caption_noun"]=$form_config["command_caption_noun"];
+  $foreign_key_used=\webdb\sql\foreign_key_used($form_config["database"],$form_config["table"],$record);
+  if ($foreign_key_used==true)
+  {
+    $form_params["delete_button"]=\webdb\forms\form_template_fill("delete_cancel_controls",$form_params);
+  }
+  else
+  {
+    $form_params["delete_button"]=\webdb\forms\form_template_fill("delete_confirm_controls",$form_params);
+  }
   $result=array();
   $result["title"]=$form_name.": confirm deletion";
   $result["content"]=\webdb\forms\form_template_fill("delete_confirm",$form_params);
@@ -1821,35 +1829,22 @@ function delete_selected_confirmation($form_name)
   {
     \webdb\forms\form_message("No records selected.",$form_config);
   }
-  $sql_params=array();
-  $sql_params["database"]=$form_config["database"];
-  $sql_params["table"]=$form_config["table"];
-  $foreign_key_defs=\webdb\sql\file_fetch_prepare("foreign_keys",$sql_params);
+  $foreign_key_defs=\webdb\sql\get_foreign_key_defs($form_config["database"],$form_config["table"]);
   $form_params=array();
   $records=array();
   $hidden_id_fields="";
   $foreign_key_used=false;
   foreach ($_POST["list_select"] as $id => $value)
   {
-    $record=get_record_by_id($form_name,$id,"primary_key");
-    $record["foreign_key_used"]=false;
+    $record=\webdb\forms\get_record_by_id($form_name,$id,"primary_key");
+    $record["foreign_key_used"]=\webdb\sql\foreign_key_used($form_config["database"],$form_config["table"],$record,$foreign_key_defs);
+    if ($record["foreign_key_used"]==true)
+    {
+      $foreign_key_used=true;
+    }
     $id_params=array();
     $id_params["primary_key"]=\webdb\forms\config_id_url_value($form_config,$record,"primary_key");
     $hidden_id_fields.=\webdb\forms\form_template_fill("list_del_selected_hidden_id_field",$id_params);
-    for ($i=0;$i<count($foreign_key_defs);$i++)
-    {
-      $fk=$foreign_key_defs[$i];
-      $sql=\webdb\utils\sql_fill("foreign_key_check",$fk);
-      $sql_params=array();
-      $sql_params["referenced_column_value"]=$record[$fk["REFERENCED_COLUMN_NAME"]];
-      $foreign_keys=\webdb\sql\fetch_prepare($sql,$sql_params);
-      if (count($foreign_keys)>0)
-      {
-        $record["foreign_key_used"]=true;
-        $foreign_key_used=true;
-        break;
-      }
-    }
     $records[]=$record;
   }
   $form_params["hidden_id_fields"]=$hidden_id_fields;

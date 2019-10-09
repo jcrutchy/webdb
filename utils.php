@@ -32,6 +32,21 @@ function show_message($message)
 
 #####################################################################################################
 
+function ob_postprocess($buffer)
+{
+  if (isset($_SERVER["HTTP_ACCEPT_ENCODING"])==true)
+  {
+    if (strpos($_SERVER["HTTP_ACCEPT_ENCODING"],"gzip")!==false)
+    {
+      $buffer=gzencode($buffer);
+      header("Content-Encoding: gzip");
+    }
+  }
+  return $buffer;
+}
+
+#####################################################################################################
+
 function get_url()
 {
   $url="http://";
