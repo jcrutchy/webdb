@@ -92,6 +92,12 @@ function list_insert_row_click(form,url_page)
   for (var i=0;i<field_names.length;i++)
   {
     var field_name=field_names[i];
+    if (form.elements[field_name].id.startsWith("date_field__")==true)
+    {
+      var field_name_iso="iso_"+field_name;
+      var field_value=form.elements[field_name_iso].value;
+      data.push(field_name_iso+"="+field_value);
+    }
     if (form.elements[field_name].type=="checkbox")
     {
       var field_value=form.elements[field_name].checked;

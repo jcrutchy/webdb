@@ -19,7 +19,6 @@ require_once("graphics.php");
 require_once("sql.php");
 require_once("stubs.php");
 require_once("manage.php");
-require_once("w3c.php");
 
 set_error_handler('\webdb\utils\error_handler',E_ALL);
 set_exception_handler('\webdb\utils\exception_handler');
