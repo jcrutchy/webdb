@@ -34,6 +34,8 @@ function show_message($message)
 
 function ob_postprocess($buffer)
 {
+  #global $t;
+  #return (microtime(true)-$t);
   if (isset($_SERVER["HTTP_ACCEPT_ENCODING"])==true)
   {
     if (strpos($_SERVER["HTTP_ACCEPT_ENCODING"],"gzip")!==false)

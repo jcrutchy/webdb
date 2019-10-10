@@ -2,6 +2,8 @@
 
 namespace webdb\index;
 
+#$t=microtime(true);
+
 #####################################################################################################
 
 ini_set("display_errors","on");
@@ -24,8 +26,6 @@ set_error_handler('\webdb\utils\error_handler',E_ALL);
 set_exception_handler('\webdb\utils\exception_handler');
 
 ob_start("\webdb\utils\ob_postprocess");
-
-\webdb\utils\send_email("jared.crutchfield@wideband.net.au","test message","blah");
 
 define("webdb\index\CONFIG_ID_DELIMITER",",");
 define("webdb\index\LINEBREAK_PLACEHOLDER","@@@@");

@@ -1449,6 +1449,19 @@ function process_form_data_fields($form_name,$post_override=false)
   }
   foreach ($form_config["control_types"] as $field_name => $control_type)
   {
+    switch ($control_type)
+    {
+      case "checkbox":
+        if (isset($post_fields[$field_name])==true)
+        {
+          $value_items[$field_name]=1;
+        }
+        else
+        {
+          $value_items[$field_name]=0;
+        }
+        break;
+    }
     if (isset($post_fields[$field_name])==false)
     {
       continue;
@@ -1488,16 +1501,6 @@ function process_form_data_fields($form_name,$post_override=false)
         else
         {
           $value_items[$field_name]=$post_fields["iso_".$field_name];
-        }
-        break;
-      case "checkbox":
-        if (isset($post_fields[$field_name])==true)
-        {
-          $value_items[$field_name]=1;
-        }
-        else
-        {
-          $value_items[$field_name]=0;
         }
         break;
     }
