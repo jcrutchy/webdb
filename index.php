@@ -29,6 +29,7 @@ ob_start("\webdb\utils\ob_postprocess");
 
 define("webdb\index\CONFIG_ID_DELIMITER",",");
 define("webdb\index\LINEBREAK_PLACEHOLDER","@@@@");
+define("webdb\index\LINEBREAK_DB_DELIM","\\n");
 
 $settings=array();
 

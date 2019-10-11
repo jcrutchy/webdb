@@ -109,17 +109,25 @@ function foreign_key_used($database,$table,$record,$foreign_key_defs=false)
   {
     $foreign_key_defs=\webdb\sql\get_foreign_key_defs($database,$table);
   }
+  $foreign_keys=array();
   for ($i=0;$i<count($foreign_key_defs);$i++)
   {
     $fk=$foreign_key_defs[$i];
     $sql=\webdb\utils\sql_fill("foreign_key_check",$fk);
     $sql_params=array();
     $sql_params["referenced_column_value"]=$record[$fk["REFERENCED_COLUMN_NAME"]];
-    $foreign_keys=\webdb\sql\fetch_prepare($sql,$sql_params);
-    if (count($foreign_keys)>0)
+    $def_foreign_keys=\webdb\sql\fetch_prepare($sql,$sql_params);
+    if (count($def_foreign_keys)>0)
     {
-      return true;
+      $foreign_key=array();
+      $foreign_key["def"]=$fk;
+      $foreign_key["dat"]=$def_foreign_keys;
+      $foreign_keys[]=$foreign_key;
     }
+  }
+  if (count($foreign_keys)>0)
+  {
+    return $foreign_keys;
   }
   return false;
 }

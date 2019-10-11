@@ -1,5 +1,24 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
+function list_page_load()
+{
+  var update_status=document.getElementById("update_status");
+  if (update_status)
+  {
+    if (update_status.innerHTML!=="")
+    {
+      var url=window.location.href;
+      url=remove_url_param("update_status",url);
+      var current_state=history.state;
+      history.replaceState(current_state,document.title,url);
+      update_status.style.color="rgba(153,51,0,"+update_status_fade_alpha+")";
+      setTimeout(update_status_fadeout,2000); // 2 sec
+    }
+  }
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
 function list_body_click(element)
 {
   var edit_row=document.getElementById("data_row_tr:"+edit_row_url_page+":"+edit_row_id);
@@ -16,6 +35,29 @@ function list_body_click(element)
   {
     var url=document.getElementById("inline_edit_page:"+edit_row_url_page).value+edit_row_id+"&ajax&reset";
     ajax(url,"get",list_edit_row_reset_load,list_edit_row_reset_error,list_edit_row_reset_timeout);
+  }
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+var update_status_fade_alpha=1.0;
+
+function update_status_fadeout()
+{
+  var update_status=document.getElementById("update_status");
+  update_status_fade_alpha=update_status_fade_alpha-0.05;
+  if (update_status)
+  {
+    update_status.style.color="rgba(153,51,0,"+update_status_fade_alpha+")";
+    if (update_status_fade_alpha>0.0)
+    {
+      setTimeout(update_status_fadeout,200); // 0.2 sec
+    }
+    else
+    {
+      update_status_fade_alpha=1.0;
+      update_status.style.display="none";
+    }
   }
 }
 
@@ -353,10 +395,12 @@ function list_record_cell_mouseout(url_page,id)
 
 if (window.addEventListener)
 {
+  window.addEventListener("load",list_page_load);
   window.addEventListener("click",list_body_click);
 }
 else
 {
+  window.attachEvent("onload",list_page_load);
   window.attachEvent("onclick",list_body_click);
 }
 

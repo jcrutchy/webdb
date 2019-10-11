@@ -1,4 +1,3 @@
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function page_load()
@@ -36,6 +35,36 @@ function is_descendant(parent,child)
     node=node.parentNode;
   }
   return false;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function remove_url_param(key,url)
+{
+  var result=url.split("?")[0];
+  var param;
+  var params_arr=[];
+  var query_string;
+  if (url.indexOf("?")!==-1)
+  {
+    query_string=url.split("?")[1];
+    params_arr=query_string.split("&");
+    for (var i=params_arr.length-1;i>=0;i-=1)
+    {
+      param=params_arr[i].split("=")[0];
+      if (param===key)
+      {
+        params_arr.splice(i,1);
+      }
+    }
+    var params_str=params_arr.join("&");
+    if (params_str!="")
+    {
+      params_str="?"+params_str;
+    }
+    result=result+params_str;
+  }
+  return result;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////

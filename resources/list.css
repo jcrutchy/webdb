@@ -347,14 +347,14 @@ th.rotate
 
 #advanced_search_help
   {
-    float: right;
-    margin-left: 15px;
+    position: fixed;
+    right: 35px;
   }
 
 #advanced_search_help_content
   {
-    min-width: 300px;
-    min-height: 300px;
+    width: 600px;
+    height: 150px;
     background-color: white;
     margin: 0;
     padding: 10px;
@@ -397,4 +397,11 @@ th.rotate
 textarea.event_handlers
   {
     width: 700px;
+  }
+
+#update_status
+  {
+    font-weight: bold;
+    margin-left: 10px;
+    color: #993300;
   }

@@ -56,6 +56,7 @@ low priority
 ============
 
 * lookup custom sql
+* change password page styling
 * edit all by selection/filter to change common field values (sort of like AutoCAD properties)
 * pdf printing on server (using TCPDF or FPDF, or maybe wkhtmltopdf if you can get a decent webkit layout to work)
 * report/form generator with field grid, custom sql memo and query templates (with add/remove template)
