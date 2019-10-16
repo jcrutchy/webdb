@@ -336,9 +336,9 @@ th.rotate
   {
     position: absolute;
     left: 10px;
-    width: 500px;
+    width: 450px;
     top: 10px;
-    height: calc(40% - 22px);
+    bottom: 204px;
     padding: 0;
     overflow: hidden;
     border-style: solid;
@@ -353,10 +353,10 @@ th.rotate
 .advanced_search_results_outer
   {
     position: absolute;
-    left: 10px;
+    left: 470px;
     right: 10px;
-    bottom: 10px;
-    height: calc(60% - 22px);
+    bottom: 0;
+    top: 10px;
     padding: 0;
     overflow: hidden;
     border-style: solid;
@@ -366,6 +366,45 @@ th.rotate
     border-bottom-color: #FFFFFF;
     border-right-color: #FFFFFF;
     margin-bottom: 10px;
+  }
+
+.advanced_search_help_outer
+  {
+    position: absolute;
+    left: 10px;
+    bottom: 0;
+    width: 450px;
+    padding: 0;
+    overflow: hidden;
+    border-style: solid;
+    border-width: 1px;
+    border-top-color: #999999;
+    border-left-color: #999999;
+    border-bottom-color: #FFFFFF;
+    border-right-color: #FFFFFF;
+    margin-bottom: 10px;
+  }
+
+.advanced_search_help_inner
+  {
+    background-color: #fafafd;
+    padding: 0;
+    overflow: auto;
+    border-style: solid;
+    border-width: 1px;
+    border-top-color: #555555;
+    border-left-color: #555555;
+    border-bottom-color: #CCCCCC;
+    border-right-color: #CCCCCC;
+  }
+
+#advanced_search_help_content
+  {
+    padding: 10px;
+    height: 170px;
+    background-color: white;
+    margin: 0;
+    font-family: "Courier New", Courier, monospace;
   }
 
 .advanced_search_inner
@@ -422,22 +461,6 @@ th.rotate
 #advanced_search_form td
   {
     border: 0;
-  }
-
-#advanced_search_help
-  {
-    position: fixed;
-    right: 35px;
-  }
-
-#advanced_search_help_content
-  {
-    width: 600px;
-    height: 150px;
-    background-color: white;
-    margin: 0;
-    padding: 10px;
-    font-family: mono;
   }
 
 .interface_button

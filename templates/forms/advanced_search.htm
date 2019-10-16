@@ -2,38 +2,28 @@
 
 <form action="$$app_web_index$$?page=%%url_page%%&cmd=advanced_search" method="post">
 
-<div class="clearfix">
-
 <div class="advanced_search_form_outer">
 <div class="advanced_search_inner">
 <div class="advanced_search_form_content">
 <div id="advanced_search_form">
-
   <table>
   %%rows%%
   </table>
-
 </div>
 </div>
 </div>
 </div>
 
-<div id="advanced_search_page_search_button"><input type="submit" name="advanced_search" value="Search"></div>
-
-<div id="advanced_search_help">
-
-<div class="subform_outer">
-<div class="subform_inner">
-
-<div id="advanced_search_help_content">
-@@forms/advanced_search_help@@
+<div id="advanced_search_page_search_button">
+  <input type="submit" name="advanced_search" value="Search">
 </div>
 
+<div class="advanced_search_help_outer">
+<div class="advanced_search_help_inner">
+  <div id="advanced_search_help_content">
+  @@forms/advanced_search_help@@
+  </div>
 </div>
-</div>
-
-</div>
-
 </div>
 
 </form>
@@ -41,11 +31,9 @@
 <div class="advanced_search_results_outer">
 <div class="advanced_search_inner">
 <div class="advanced_search_results_content">
-
-<div id="advanced_search_results">
-%%advanced_search_results%%
-</div>
-
+  <div id="advanced_search_results">
+  %%advanced_search_results%%
+  </div>
 </div>
 </div>
 </div>
