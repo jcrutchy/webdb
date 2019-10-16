@@ -336,9 +336,9 @@ th.rotate
   {
     position: absolute;
     left: 10px;
-    width: 450px;
+    width: 500px;
     top: 10px;
-    bottom: 204px;
+    bottom: 194px;
     padding: 0;
     overflow: hidden;
     border-style: solid;
@@ -353,7 +353,7 @@ th.rotate
 .advanced_search_results_outer
   {
     position: absolute;
-    left: 470px;
+    left: 520px;
     right: 10px;
     bottom: 0;
     top: 10px;
@@ -373,7 +373,7 @@ th.rotate
     position: absolute;
     left: 10px;
     bottom: 0;
-    width: 450px;
+    width: 500px;
     padding: 0;
     overflow: hidden;
     border-style: solid;
@@ -401,7 +401,7 @@ th.rotate
 #advanced_search_help_content
   {
     padding: 10px;
-    height: 170px;
+    height: 160px;
     background-color: white;
     margin: 0;
     font-family: "Courier New", Courier, monospace;
