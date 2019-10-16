@@ -214,16 +214,16 @@ if (isset($argv[1])==true)
 {
   switch ($argv[1])
   {
-    case "load_webdb_schema":
+    case "init_webdb_schema":
       \webdb\sql\file_execute_prepare("webdb_schema",array(),true);
       \webdb\utils\system_message("webdb schema created");
-    case "load_app_schema":
+    case "init_app_schema":
       $filename=$settings["app_sql_path"]."schema.sql";
       if (file_exists($filename)==true)
       {
         $sql=trim(file_get_contents($filename));
         \webdb\sql\execute_prepare($sql,array(),"",true);
-        \webdb\utils\system_message("app schema created");
+        \webdb\utils\system_message("app schema initialised");
       }
       else
       {

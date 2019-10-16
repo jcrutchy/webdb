@@ -739,6 +739,10 @@ function get_column_format_data($form_name)
   $data["max_field_name_width"]=0;
   foreach ($form_config["control_types"] as $field_name => $control_type)
   {
+    if (isset($form_config["visible"][$field_name])==false)
+    {
+      \webdb\utils\show_message("error: field visibility not found for '".$field_name."' on form '".$form_name."'");
+    }
     if ($form_config["visible"][$field_name]==false)
     {
       continue;
@@ -959,6 +963,7 @@ function list_form_content($form_name,$records=false,$insert_default_params=fals
   $form_params["calendar"]=\webdb\forms\get_calendar($calendar_fields);
   $form_params["rows"]=$rows;
   $form_params["advanced_search_control"]="";
+  $form_params["sort_field_control"]="";
   $form_params["insert_control"]="";
   $form_params["delete_selected_control"]="";
   if ($form_config["records_sql"]=="")
@@ -1287,13 +1292,10 @@ function output_editor($form_name,$record,$command,$verb,$id)
   global $settings;
   $form_config=$settings["forms"][$form_name];
   $calendar_fields=array();
+  $lookup_records=lookup_records($form_name);
   $rows="";
   foreach ($form_config["control_types"] as $field_name => $control_type)
   {
-    if ($control_type=="lookup")
-    {
-      continue;
-    }
     $field_value=$record[$field_name];
     $field_params=array();
     $field_params["url_page"]=$form_config["url_page"];
@@ -1303,6 +1305,24 @@ function output_editor($form_name,$record,$command,$verb,$id)
     $field_params["field_value"]=htmlspecialchars($field_value);
     switch ($control_type)
     {
+      case "lookup":
+        $lookup_data=$form_config["lookups"][$field_name];
+        $key_field_name=$lookup_data["key_field"];
+        $sibling_field_name=$lookup_data["sibling_field"];
+        $display_field_name=$lookup_data["display_field"];
+        for ($j=0;$j<count($lookup_records[$field_name]);$j++)
+        {
+          $key_value=$lookup_records[$field_name][$j][$key_field_name];
+          $display_value=$lookup_records[$field_name][$j][$display_field_name];
+          if ($record[$sibling_field_name]==$key_value)
+          {
+            $field_params["field_value"]=$display_value;
+            break;
+          }
+        }
+        $field_params["field_value"]=htmlspecialchars(str_replace(\webdb\index\LINEBREAK_DB_DELIM,\webdb\index\LINEBREAK_PLACEHOLDER,$field_params["field_value"]));
+        $field_params["field_value"]=str_replace(\webdb\index\LINEBREAK_PLACEHOLDER,\webdb\utils\template_fill("break"),$field_params["field_value"]);
+        break;
       case "span":
         break;
       case "text":
@@ -1537,11 +1557,16 @@ function insert_record($form_name)
   $form_config=$settings["forms"][$form_name];
   $value_items=\webdb\forms\process_form_data_fields($form_name);
   $handled=\webdb\forms\handle_insert_record_event($form_name,$value_items,$form_config);
-  if ($handled==false)
+  if ($handled===false)
   {
     \webdb\sql\sql_insert($value_items,$form_config["table"],$form_config["database"]);
+    $id=\webdb\sql\sql_last_insert_autoinc_id();
   }
-  \webdb\forms\page_redirect();
+  else
+  {
+    $id=$handled;
+  }
+  \webdb\forms\page_redirect(false,$id);
 }
 
 #####################################################################################################
@@ -1571,6 +1596,7 @@ function handle_insert_record_event($form_name,$value_items,$form_config)
     $func_name=$form_config["event_handlers"]["on_insert_record"];
     if (function_exists($func_name)==true)
     {
+      # return either false (not handled => runs sql insert) or return record id for edit cmd
       return call_user_func($func_name,$form_name,$value_items,$form_config);
     }
   }

@@ -53,14 +53,41 @@ DROP TABLE IF EXISTS `webdb`.`sql_log` ;
 CREATE TABLE IF NOT EXISTS `webdb`.`sql_log` (
   `log_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `user_id` INT UNSIGNED NOT NULL,
-  `change_timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `sql_timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `sql_statement` LONGTEXT NOT NULL,
   PRIMARY KEY (`log_id`),
-  INDEX `change_timestamp` (`change_timestamp` ASC),
+  INDEX `sql_timestamp` (`sql_timestamp` ASC),
   INDEX `fk_sql_log_users_idx` (`user_id` ASC),
   CONSTRAINT `fk_sql_log_users`
     FOREIGN KEY (`user_id`)
     REFERENCES `webdb`.`users` (`user_id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB
+AUTO_INCREMENT = 1;
+
+DROP TABLE IF EXISTS `webdb`.`sql_changes` ;
+CREATE TABLE IF NOT EXISTS `webdb`.`sql_changes` (
+  `change_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `user_id` INT UNSIGNED NOT NULL,
+  `log_id` INT UNSIGNED NOT NULL,
+  `change_timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `change_schema` VARCHAR(255) NOT NULL,
+  `change_table` VARCHAR(255) NOT NULL,
+  `change_key_field` VARCHAR(255) NOT NULL,
+  `old_record_json` LONGTEXT NOT NULL,
+  `new_record_json` LONGTEXT NOT NULL,
+  PRIMARY KEY (`change_id`),
+  INDEX `change_timestamp` (`change_timestamp` ASC),
+  INDEX `fk_sql_changes_users_idx` (`user_id` ASC),
+  CONSTRAINT `fk_sql_changes_users`
+    FOREIGN KEY (`user_id`)
+    REFERENCES `webdb`.`users` (`user_id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_sql_changes_sql_log`
+    FOREIGN KEY (`log_id`)
+    REFERENCES `webdb`.`sql_log` (`log_id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB

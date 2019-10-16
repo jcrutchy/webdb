@@ -54,6 +54,7 @@
     "insert_new": true,
     "insert_row": true,
     "advanced_search": true,
+    "allow_field_sort": true,
     "database": "",
     "table": "",
     "sort_sql": "",
