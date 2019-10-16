@@ -1090,7 +1090,6 @@ function advanced_search($form_name)
   $form_params["title"]=$form_config["title"];
   $form_params["rows"]=$rows;
   $form_params["url_page"]=$form_config["url_page"];
-  $form_params["return_link"]=\webdb\forms\form_template_fill("return_link",$form_config);
   $search_page_params=array();
   $search_page_params["advanced_search"]=\webdb\forms\form_template_fill("advanced_search",$form_params);
   $fieldnames=array_keys($sql_params);
@@ -1165,13 +1164,13 @@ function advanced_search($form_name)
     $params["prepared_where"]=$prepared_where;
     $params["sort_sql"]=$form_config["sort_sql"];
     $sql=\webdb\utils\sql_fill("form_list_advanced_search",$params);
-    #var_dump($sql_params);
-    #die($sql);
     $records=\webdb\sql\fetch_prepare($sql,$sql_params);
   }
   $form_config["insert_new"]=false;
   $form_config["insert_row"]=false;
   $form_config["advanced_search"]=false;
+  $form_config["individual_delete"]=false;
+  $form_config["multi_row_delete"]=false;
   $search_page_params["advanced_search_results"]=\webdb\forms\list_form_content($form_name,$records,false,$form_config);
   $search_page_params["form_script_modified"]=\webdb\utils\resource_modified_timestamp("list.js");
   $search_page_params["form_styles_modified"]=\webdb\utils\resource_modified_timestamp("list.css");

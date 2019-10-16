@@ -210,6 +210,9 @@ if ($settings["pdo_user"]===false)
   \webdb\utils\system_message("error: unable to connect to sql server as user");
 }
 
+$settings["forms"]=array();
+\webdb\forms\load_form_defs();
+
 if (isset($argv[1])==true)
 {
   switch ($argv[1])
@@ -217,6 +220,18 @@ if (isset($argv[1])==true)
     case "init_webdb_schema":
       \webdb\sql\file_execute_prepare("webdb_schema",array(),true);
       \webdb\utils\system_message("webdb schema created");
+    case "validate_json":
+      echo "validating forms...".PHP_EOL;
+      foreach ($settings["forms"] as $form_name => $form_data)
+      {
+        $result=trim(shell_exec("jsonlint-php ".escapeshellarg($form_data["filename"])));
+        echo "validating form '".$form_name."': ".$result.PHP_EOL;
+        if ($result<>"Valid JSON")
+        {
+          die;
+        }
+      }
+      die;
     case "init_app_schema":
       $filename=$settings["app_sql_path"]."schema.sql";
       if (file_exists($filename)==true)
@@ -231,9 +246,6 @@ if (isset($argv[1])==true)
       }
   }
 }
-
-$settings["forms"]=array();
-\webdb\forms\load_form_defs();
 
 \webdb\users\auth_dispatch();
 
