@@ -323,6 +323,10 @@ function fetch_all_records($table,$sort_field="",$sort_dir="",$schema,$is_admin=
 function sql_log($result,$sql,$params=array())
 {
   global $settings;
+  if (\webdb\utils\is_cli_mode()==true)
+  {
+    return;
+  }
   $email="(no user email)";
   if (isset($settings["user_record"]["email"])==true)
   {

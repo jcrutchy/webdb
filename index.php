@@ -213,7 +213,7 @@ if ($settings["pdo_user"]===false)
 $settings["forms"]=array();
 \webdb\forms\load_form_defs();
 
-if (isset($argv[1])==true)
+if ((\webdb\utils\is_cli_mode()==true) and (isset($argv[1])==true))
 {
   switch ($argv[1])
   {
