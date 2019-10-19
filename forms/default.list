@@ -52,6 +52,7 @@
     "insert_new": true,
     "insert_row": true,
     "advanced_search": true,
+    "sort_field_select": true,
     "allow_field_sort": true,
     "database": "",
     "table": "",

@@ -918,6 +918,26 @@ function list_form_content($form_name,$records=false,$insert_default_params=fals
   $rows="";
   if ($records===false)
   {
+    if (isset($_GET["sort"])==true)
+    {
+      $sort_field=$_GET["sort"];
+      if (isset($form_config["control_types"][$sort_field])==true)
+      {
+        $sort_field_params=array();
+        $sort_field_params["field_name"]=$sort_field;
+        $sort_field_params["direction"]="ASC";
+        if (isset($_GET["dir"])==true)
+        {
+          $dir=strtoupper($_GET["dir"]);
+          if (($dir=="ASC") or ($dir=="DESC"))
+          {
+            $sort_field_params["direction"]=$dir;
+          }
+        }
+        $sort_sql=\webdb\utils\sql_fill("sort_field",$sort_field_params);
+        $form_config["sort_sql"]=$sort_sql;
+      }
+    }
     $sql=\webdb\utils\sql_fill("form_list_fetch_all",$form_config);
     $records=\webdb\sql\fetch_query($sql);
   }
