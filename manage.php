@@ -136,8 +136,6 @@ function form_config__event_handler__on_update_record($form_name,$id,$where_item
   $form_config["form_type"]=$_POST["form_type"];
   $form_config["title"]=$_POST["title"];
   $form_config["url_page"]=$_POST["url_page"];
-  $form_config["return_link_url_page"]=$_POST["return_link_url_page"];
-  $form_config["return_link_caption"]=$_POST["return_link_caption"];
   $form_config["primary_key"]=$_POST["primary_key"];
   $form_config["command_caption_noun"]=$_POST["command_caption_noun"];
   $form_config["custom_form_above_template"]=$_POST["custom_form_above_template"];

@@ -4,8 +4,6 @@
     "enabled": true,
     "title": "User Groups",
     "url_page": "user_groups",
-    "return_link_url_page": "user_groups",
-    "return_link_caption": "User Groups",
     "edit_subforms": {
     },
     "control_types": {

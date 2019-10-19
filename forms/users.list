@@ -4,8 +4,6 @@
     "enabled": true,
     "title": "Users",
     "url_page": "users",
-    "return_link_url_page": "users",
-    "return_link_caption": "Users",
     "edit_subforms": {
         "user_groups_subform": "user_id"
     },

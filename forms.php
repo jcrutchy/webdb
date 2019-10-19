@@ -1414,7 +1414,6 @@ function output_editor($form_name,$record,$command,$verb,$id)
   $form_params["rows"]=$rows;
   $form_params["url_page"]=$form_config["url_page"];
   $form_params["individual_edit_id"]=$id;
-  $form_params["return_link"]=\webdb\forms\form_template_fill("return_link",$form_config);
   $form_params["command_caption_noun"]=$form_config["command_caption_noun"];
   $form_params["confirm_caption"]=$verb." ".$form_config["command_caption_noun"];
   $form_params["update_status"]="";
@@ -1805,7 +1804,6 @@ function delete_confirmation($form_name,$id)
     $form_params["individual_delete_url_page"]=$form_config["individual_delete_url_page"];
   }
   $form_params["primary_key"]=$id;
-  $form_params["return_link"]=\webdb\forms\form_template_fill("return_link",$form_config);
   $form_params["command_caption_noun"]=$form_config["command_caption_noun"];
   $foreign_keys=\webdb\sql\foreign_key_used($form_config["database"],$form_config["table"],$record);
   if ($foreign_keys!==false)
@@ -1884,7 +1882,6 @@ function form_message($message,$form_config)
   $message_params=array();
   $message_params["message"]=$message;
   $message_params["url_page"]=$form_config["url_page"];
-  $message_params["return_link_caption"]=$form_config["return_link_caption"];
   \webdb\utils\show_message(\webdb\forms\form_template_fill("page_message",$message_params));
 }
 
@@ -1946,7 +1943,6 @@ function delete_selected_confirmation($form_name)
   $list_form_config["advanced_search"]=false;
   $form_params["records"]=\webdb\forms\list_form_content($form_name,$records,false,$list_form_config);
   $form_params["url_page"]=$form_config["url_page"];
-  $form_params["return_link"]=\webdb\forms\form_template_fill("return_link",$form_config);
   $form_params["command_caption_noun"]=$form_config["command_caption_noun"];
   $form_params["delete_all_button"]=\webdb\forms\form_template_fill("delete_selected_cancel_controls",$form_params);
   if ($foreign_key_used==false)

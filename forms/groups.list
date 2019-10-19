@@ -4,8 +4,6 @@
     "enabled": true,
     "title": "Groups",
     "url_page": "groups",
-    "return_link_url_page": "groups",
-    "return_link_caption": "Groups",
     "edit_subforms": {
         "group_users_subform": "group_id"
     },

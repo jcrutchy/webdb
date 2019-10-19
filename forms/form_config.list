@@ -4,8 +4,6 @@
     "enabled": true,
     "title": "Form Config",
     "url_page": "form_config",
-    "return_link_url_page": "form_config",
-    "return_link_caption": "Form Config",
     "edit_subforms": {
     },
     "control_types": {
