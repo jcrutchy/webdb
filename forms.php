@@ -877,6 +877,7 @@ function list_form_content($form_name,$records=false,$insert_default_params=fals
   $bold_borders=$column_format["bold_borders"];
   $form_params["caption_groups"]=$column_format["caption_groups"];
   $field_headers="";
+  $z_index=901;
   foreach ($form_config["control_types"] as $field_name => $control_type)
   {
     if ($form_config["visible"][$field_name]==false)
@@ -884,6 +885,10 @@ function list_form_content($form_name,$records=false,$insert_default_params=fals
       continue;
     }
     $header_params=array();
+    $header_params["z_index"]=$z_index;
+    $z_index--;
+    $header_params["right_border_width"]="2"; # TODO
+    $header_params["right_border_color"]="000000"; # TODO
     $header_params["field_name"]=$form_config["captions"][$field_name];
     $header_params["rotate_height"]=$column_format["rotate_height"];
     $header_params["rotate_span_width"]=$column_format["rotate_span_width"];
@@ -907,6 +912,7 @@ function list_form_content($form_name,$records=false,$insert_default_params=fals
       $header_params["border_left"]=0;
       if (isset($bold_borders[$field_name])==true)
       {
+        #$header_params["border_left"]=-1;
         $header_params["border_left"]=-1;
       }
     }
@@ -1028,6 +1034,10 @@ function advanced_search($form_name)
   $sql_params=array();
   foreach ($form_config["control_types"] as $field_name => $control_type)
   {
+    if ($form_config["visible"][$field_name]==false)
+    {
+      continue;
+    }
     $field_value="";
     if (isset($_POST[$field_name])==true)
     {
