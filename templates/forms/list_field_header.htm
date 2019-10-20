@@ -1,11 +1,10 @@
 <th class="rotate" style="height: %%rotate_height%%px; z-index: %%z_index%%;">
-  <!--<div class="verticaltick" style="border-left-width: %%border_width%%px; border-left-color: #%%border_color%%; left: %%border_left%%px;">-->
-  <div class="verticaltick" style="left: %%border_left%%px;">
+  <div class="verticaltick_left" style="border-left-width: %%left_border_width%%px; border-left-color: #%%left_border_color%%; left: %%border_left%%px;">
     <div class="rotatediv">
-      <span class="rotatespan" style="border-top-width: %%border_width%%px; border-top-color: #%%border_color%%; width: %%rotate_span_width%%px;">
+      <span class="rotatespan" style="border-top-width: %%rotate_border_width%%px; border-top-color: #%%rotate_border_color%%; width: %%rotate_span_width%%px;">
         %%field_name%%
       </span>
     </div>
   </div>
-  <div style="position: absolute; background-color: yellow; bottom: 0; height: 20px; width: 10px; right: -1px; border-right: %%right_border_width%%px #%%right_border_color%% solid; z-index: 2000;"></div>
+  <div class="verticaltick_right" style="border-right: %%right_border_width%%px #%%right_border_color%% solid;"></div>
 </th>
