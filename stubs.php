@@ -67,7 +67,6 @@ function list_insert($form_name)
     switch ($param_name)
     {
       case "page":
-      case "manage":
       case "cmd":
       case "ajax":
         continue;

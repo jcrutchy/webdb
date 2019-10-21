@@ -17,10 +17,8 @@ chdir(__DIR__);
 require_once("utils.php");
 require_once("users.php");
 require_once("forms.php");
-require_once("graphics.php");
 require_once("sql.php");
 require_once("stubs.php");
-require_once("manage.php");
 
 set_error_handler('\webdb\utils\error_handler',E_ALL);
 set_exception_handler('\webdb\utils\exception_handler');
@@ -33,7 +31,6 @@ define("webdb\index\LINEBREAK_DB_DELIM","\\n");
 
 $settings=array();
 
-$settings["manage_flag"]="";
 $settings["permissions"]=array();
 
 $settings["parent_path"]=dirname(dirname(__FILE__)).DIRECTORY_SEPARATOR;
@@ -146,7 +143,6 @@ $required_settings=array(
   "apps_list",
   "gd_ttf",
   "webdb_default_form",
-  "webdb_manage_form",
   "list_border_color",
   "list_border_width",
   "list_group_border_color",
@@ -251,16 +247,7 @@ if ((\webdb\utils\is_cli_mode()==true) and (isset($argv[1])==true))
 
 if (isset($_GET["page"])==true)
 {
-  if (isset($_GET["manage"])==true)
-  {
-    $settings["manage_flag"]="&manage=".$_GET["manage"];
-  }
   \webdb\forms\form_dispatch($_GET["page"]);
-}
-
-if (isset($_GET["manage"])==true)
-{
-  \webdb\manage\manager_page();
 }
 
 \webdb\utils\static_page($settings["app_home_template"],$settings["app_name"]);

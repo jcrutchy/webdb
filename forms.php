@@ -53,6 +53,8 @@ function form_dispatch($url_page)
   }
   switch ($form_config["form_type"])
   {
+    case "checklist":
+      \webdb\utils\show_message("checklist form type"); # TODO
     case "list":
       if ($form_config["records_sql"]=="")
       {
@@ -126,10 +128,6 @@ function form_dispatch($url_page)
       $list_params=array();
       $event_params=array();
       $event_params["form_name"]=$form_name;
-      if (isset($_GET["manage"])==true)
-      {
-        $event_params["manage_form"]=$_GET["manage"];
-      }
       $event_params["form_name"]=$form_name;
       $event_params["form_config"]=$form_config;
       $event_params["custom_list_content"]=false;
@@ -1783,10 +1781,6 @@ function get_record_by_id($form_name,$id,$config_key)
 {
   global $settings;
   $form_config=$settings["forms"][$form_name];
-  if (isset($_GET["manage"])==true)
-  {
-    $form_config=$settings["forms"][$settings["webdb_manage_form"]];
-  }
   if (isset($form_config["event_handlers"]["on_get_record_by_id"])==true)
   {
     $func_name=$form_config["event_handlers"]["on_get_record_by_id"];

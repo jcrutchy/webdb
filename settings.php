@@ -17,8 +17,6 @@ $settings["webdb_sql_path"]=$settings["webdb_root_path"]."sql".DIRECTORY_SEPARAT
 $settings["webdb_resources_path"]=$settings["webdb_root_path"]."resources".DIRECTORY_SEPARATOR;
 $settings["webdb_forms_path"]=$settings["webdb_root_path"]."forms".DIRECTORY_SEPARATOR;
 
-$settings["webdb_manage_form"]="form_config";
-
 $settings["webdb_default_form"]="default";
 
 $settings["links_template"]="";
@@ -52,14 +50,9 @@ $settings["list_group_border_width"]=2;
 # webdb template permissions
 # $settings["permissions"]["group_name"]["templates"]["template_name"]="template_name_on_success (or empty for no substitution)";
 
-$settings["permissions"]["admin"]["templates"]["admin_links"]="";
 $settings["permissions"]["admin"]["templates"]["groups_page_link"]="";
 $settings["permissions"]["admin"]["templates"]["user_groups_page_link"]="";
 $settings["permissions"]["admin"]["templates"]["users_page_link"]="";
-
-$settings["permissions"]["admin"]["templates"]["manage_page_link"]="";
-$settings["permissions"]["admin"]["templates"]["manage".DIRECTORY_SEPARATOR."form_select"]="";
-$settings["permissions"]["admin"]["templates"]["manage".DIRECTORY_SEPARATOR."form_config_above"]="";
 
 # webdb form permissions
 # $settings["permissions"]["group_name"]["forms"]["form_name"]="riud";
@@ -68,5 +61,3 @@ $settings["permissions"]["admin"]["templates"]["manage".DIRECTORY_SEPARATOR."for
 $settings["permissions"]["admin"]["forms"]["groups"]="riud";
 $settings["permissions"]["admin"]["forms"]["users"]="riud";
 $settings["permissions"]["admin"]["forms"]["user_group_links"]="riud";
-
-$settings["permissions"]["admin"]["forms"]["form_config"]="riud";

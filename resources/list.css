@@ -493,34 +493,3 @@ th.list_controls_head
     font-size: 14px;
     color: red;
   }
-
-/* manage */
-
-.form_config_above td
-  {
-    vertical-align: top;
-    border: 0;
-  }
-
-.form_config_above textarea
-  {
-    width: 400px;
-    height: 100px;
-  }
-
-.long_text_input
-  {
-    width: 400px;
-  }
-
-textarea.event_handlers
-  {
-    width: 700px;
-  }
-
-#update_status
-  {
-    font-weight: bold;
-    margin-left: 10px;
-    color: #993300;
-  }
