@@ -188,6 +188,12 @@ th.list_controls_head
     text-shadow: 0 0 4px #999999;
   }
 
+#update_status
+  {
+    font-weight: bold;
+    padding-left: 10px;
+  }
+
 #header_links_bar
   {
     text-align: left;

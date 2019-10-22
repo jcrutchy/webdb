@@ -58,5 +58,11 @@
     "table": "",
     "sort_sql": "",
     "records_sql": "",
-    "group_by": []
+    "group_by": [],
+    "checklist": false,
+    "parent_key": "",
+    "link_key": "",
+    "link_database": "",
+    "link_table": "",
+    "link_fields": []
 }
