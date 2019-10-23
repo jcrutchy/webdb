@@ -71,6 +71,8 @@ function form_dispatch($url_page)
             case "delete":
               $id=\webdb\utils\get_child_array_key($_POST["form_cmd"],"delete");
               $data=\webdb\forms\delete_confirmation($form_name,$id);
+              var_dump($data);
+              die;
               $data["form_script_modified"]=\webdb\utils\resource_modified_timestamp("list.js");
               $data["form_styles_modified"]=\webdb\utils\resource_modified_timestamp("list.css");
               $data["content"].=\webdb\forms\output_html_includes($form_config);
