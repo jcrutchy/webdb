@@ -71,21 +71,13 @@ function form_dispatch($url_page)
             case "delete":
               $id=\webdb\utils\get_child_array_key($_POST["form_cmd"],"delete");
               $data=\webdb\forms\delete_confirmation($form_name,$id);
-              var_dump($data);
-              die;
-              $data["form_script_modified"]=\webdb\utils\resource_modified_timestamp("list.js");
-              $data["form_styles_modified"]=\webdb\utils\resource_modified_timestamp("list.css");
               $data["content"].=\webdb\forms\output_html_includes($form_config);
               $data["content"].=\webdb\forms\output_js_includes($form_config);
               $data["content"].=\webdb\forms\output_css_includes($form_config);
               \webdb\utils\output_page($data["content"],$data["title"]);
             case "delete_confirm":
               $id=\webdb\utils\get_child_array_key($_POST["form_cmd"],"delete_confirm");
-              $data=\webdb\forms\delete_record($form_name,$id);
-              $data["content"].=\webdb\forms\output_html_includes($form_config);
-              $data["content"].=\webdb\forms\output_js_includes($form_config);
-              $data["content"].=\webdb\forms\output_css_includes($form_config);
-              \webdb\utils\output_page($data["content"],$data["title"]);
+              \webdb\forms\delete_record($form_name,$id);
             case "delete_selected":
               \webdb\forms\delete_selected_confirmation($form_name);
             case "delete_selected_confirm":
@@ -1980,6 +1972,15 @@ function delete_confirmation($form_name,$id)
   {
     $form_params["delete_button"]=\webdb\forms\form_template_fill("delete_confirm_controls",$form_params);
   }
+  $form_params["form_script_modified"]=\webdb\utils\resource_modified_timestamp("list.js");
+  $form_params["form_styles_modified"]=\webdb\utils\resource_modified_timestamp("list.css");
+  $form_params["redirect"]="";
+  if (isset($_GET["redirect"])==true)
+  {
+    $url_params=array();
+    $url_params["redirect_url"]=urlencode($_GET["redirect"]);
+    $form_params["redirect"]=\webdb\forms\form_template_fill("redirect_url_param",$url_params);
+  }
   $result=array();
   $result["title"]=$form_name.": confirm deletion";
   $result["content"]=\webdb\forms\form_template_fill("delete_confirm",$form_params);
@@ -1992,9 +1993,9 @@ function page_redirect($form_name=false,$additional_params="")
 {
   if ($form_name===false)
   {
-    if (isset($_GET["source_url"])==true)
+    if (isset($_GET["redirect"])==true)
     {
-      $url=$_GET["source_url"];
+      $url=$_GET["redirect"];
     }
     else
     {
