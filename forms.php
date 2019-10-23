@@ -700,8 +700,6 @@ function list_row_controls($form_name,$form_config,&$submit_fields,&$calendar_fi
   foreach ($form_config["control_types"] as $field_name => $control_type)
   {
     $field_params=array();
-    $field_params["disabled"]=\webdb\forms\field_disabled($form_config,$field_name);
-    $field_params["js_events"]=\webdb\forms\field_js_events($form_config,$field_name,$record);
     $field_params["handlers"]="";
     $field_params["border_color"]=$settings["list_border_color"];
     $field_params["border_width"]=$settings["list_border_width"];
@@ -716,11 +714,6 @@ function list_row_controls($form_name,$form_config,&$submit_fields,&$calendar_fi
     if (isset($form_config["table_cell_styles"][$field_name])==true)
     {
       $field_params["table_cell_style"]=$form_config["table_cell_styles"][$field_name];
-    }
-    $field_params["control_style"]="";
-    if (isset($form_config["control_styles"][$field_name])==true)
-    {
-      $field_params["control_style"]=$form_config["control_styles"][$field_name];
     }
     $control_type_suffix="";
     if ($control_type=="check")
@@ -756,6 +749,13 @@ function output_editable_field(&$field_params,$record,$field_name,$control_type,
   {
     $field_params["field_value"]=$record[$field_name];
   }
+  $field_params["control_style"]="";
+  if (isset($form_config["control_styles"][$field_name])==true)
+  {
+    $field_params["control_style"]=$form_config["control_styles"][$field_name];
+  }
+  $field_params["disabled"]=\webdb\forms\field_disabled($form_config,$field_name);
+  $field_params["js_events"]=\webdb\forms\field_js_events($form_config,$field_name,$record);
   switch ($control_type)
   {
     case "lookup":
