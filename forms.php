@@ -1591,6 +1591,10 @@ function field_js_events($form_config,$field_name,$record)
     $result="";
     foreach ($events as $event_type => $event_data)
     {
+      if ($event_data["handler"]=="")
+      {
+        continue;
+      }
       $event_data["event_type"]=$event_type;
       $event_data["field_name"]=$field_name;
       $result.=\webdb\forms\form_template_fill("field_js_event",$event_data);
