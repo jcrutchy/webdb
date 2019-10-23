@@ -1870,14 +1870,10 @@ function delete_confirmation($form_name,$id)
   global $settings;
   $form_config=$settings["forms"][$form_name];
   $record=\webdb\forms\get_record_by_id($form_name,$id,"primary_key");
-
   $form_params=array();
-
   $records=array();
   $records[]=$record;
-
   $list_form_config=$form_config;
-
   $list_form_config["multi_row_delete"]=false;
   $list_form_config["individual_delete"]=false;
   $list_form_config["individual_edit"]="none";
@@ -1888,59 +1884,7 @@ function delete_confirmation($form_name,$id)
   {
     $list_form_config["visible"][$field_name]=true;
   }
-
   $form_params["list"]=list_form_content($form_name,$records,false,$list_form_config);
-
-
-  /*\webdb\forms\process_computed_fields($form_config,$record);
-  $rows="";
-  foreach ($form_config["control_types"] as $field_name => $control_type)
-  {
-    if ($control_type=="lookup")
-    {
-      continue;
-    }
-    $field_value=$record[$field_name];
-    $field_params=array();
-    $field_params["field_name"]=$field_name;
-    $field_params["field_value"]=htmlspecialchars($field_value);
-    $field_params["interface_button"]=\webdb\utils\template_fill("empty_cell");
-    switch ($control_type)
-    {
-      case "span":
-      case "text":
-      case "combobox":
-      case "listbox":
-      case "radiogroup":
-        break;
-      case "memo":
-        $field_params["field_value"]=htmlspecialchars(str_replace(\webdb\index\LINEBREAK_DB_DELIM,\webdb\index\LINEBREAK_PLACEHOLDER,$field_value));
-        $field_params["field_value"]=str_replace(\webdb\index\LINEBREAK_PLACEHOLDER,PHP_EOL,$field_params["field_value"]);
-        break;
-      case "date":
-        if (($field_value==\webdb\sql\zero_sql_timestamp()) or ($field_value==""))
-        {
-          $field_params["field_value"]="";
-        }
-        else
-        {
-          $field_params["field_value"]=date($settings["app_date_format"],strtotime($field_value));
-        }
-        break;
-      case "checkbox":
-        $field_params["checked"]="";
-        if ($field_value==1)
-        {
-          $field_params["checked"]=\webdb\utils\template_fill("checkbox_checked");
-        }
-        break;
-      default:
-        \webdb\utils\show_message("error: invalid control type '".$control_type."' for field '".$field_name."' on form '".$form_name."'");
-    }
-    $rows.=\webdb\forms\form_template_fill("field_row",$field_params);
-  }
-  $form_params["rows"]=$rows;*/
-
   $form_params["url_page"]=$form_config["url_page"];
   $form_params["individual_delete_url_page"]=$form_config["url_page"];
   if ($form_config["individual_delete_url_page"]<>"")
@@ -2109,6 +2053,15 @@ function delete_selected_confirmation($form_name)
   if ($foreign_key_used==false)
   {
     $form_params["delete_all_button"]=\webdb\forms\form_template_fill("delete_selected_confirm_controls",$form_params);
+  }
+  $form_params["form_script_modified"]=\webdb\utils\resource_modified_timestamp("list.js");
+  $form_params["form_styles_modified"]=\webdb\utils\resource_modified_timestamp("list.css");
+  $form_params["redirect"]="";
+  if (isset($_GET["redirect"])==true)
+  {
+    $url_params=array();
+    $url_params["redirect_url"]=urlencode($_GET["redirect"]);
+    $form_params["redirect"]=\webdb\forms\form_template_fill("redirect_url_param",$url_params);
   }
   $content=\webdb\forms\form_template_fill("list_del_selected_confirm",$form_params);
   $title=$form_name.": confirm selected deletion";
