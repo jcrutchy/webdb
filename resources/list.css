@@ -126,7 +126,6 @@ th.list_controls_head
     bottom: 0;
     height: 20px;
     width: 10px;
-    right: -1px;
     z-index: 2000;
   }
 
@@ -155,10 +154,12 @@ th.list_controls_head
 
 .subform_title
   {
+    position: absolute;
     font-weight: bold;
     text-shadow: 0 0 4px #999999;
     font-size: 16px;
-    float: right;
+    right: 30px;
+    top: 10px;
   }
 
 #global_page_header
@@ -303,6 +304,7 @@ th.list_controls_head
 
 .subform_outer
   {
+    position: relative;
     padding: 0;
     overflow: hidden;
     border-style: solid;

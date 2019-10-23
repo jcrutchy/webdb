@@ -165,7 +165,8 @@ function list_insert_row_load()
   }
   catch (e)
   {
-    alert(this.responseText);
+    //alert(this.responseText);
+    console.log(this.responseText);
     return;
   }
   if (data.hasOwnProperty("error")==true)

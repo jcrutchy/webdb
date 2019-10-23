@@ -283,7 +283,6 @@ function get_subform_content($subform_name,$subform_link_field,$id,$list_only=fa
   $subform_params=array();
   $url_params=array();
   $url_params[$subform_link_field]=$id;
-  $subform_config["parent_form_config"]=$parent_form_config;
   $subform_config["parent_form_id"]=$id;
   $subform_params["subform"]=list_form_content($subform_name,$records,$url_params,$subform_config,$checklist_link_records);
   $subform_params["subform_style"]="";
@@ -1034,14 +1033,16 @@ function list_form_content($form_name,$records=false,$insert_default_params=fals
     $header_params["z_index"]=$z_index;
     $z_index--;
     $header_params["field_name"]=$form_config["captions"][$field_name];
+    $header_params["border_left"]=0;
+    $header_params["border_right"]=0;
     $header_params["rotate_height"]=$column_format["rotate_height"];
     $header_params["rotate_span_width"]=$column_format["rotate_span_width"];
-    $header_params["left_border_color"]=$settings["list_border_color"];
-    $header_params["left_border_width"]=$settings["list_border_width"];
-    $header_params["right_border_width"]="0";
-    $header_params["right_border_color"]=$settings["list_border_color"];
     $header_params["rotate_border_color"]=$settings["list_border_color"];
     $header_params["rotate_border_width"]=$settings["list_border_width"];
+    $header_params["left_border_color"]=$settings["list_border_color"];
+    $header_params["left_border_width"]=$settings["list_border_width"];
+    $header_params["right_border_color"]=$settings["list_border_color"];
+    $header_params["right_border_width"]="0";
     if (isset($rotate_group_borders[$field_name])==true)
     {
       $header_params["rotate_border_color"]=$settings["list_group_border_color"];
@@ -1060,23 +1061,23 @@ function list_form_content($form_name,$records=false,$insert_default_params=fals
     if (strpos(strtolower($settings["user_agent"]),"firefox")!==false)
     {
       $header_params["border_left"]=-1;
-      if (isset($bold_borders_left[$field_name])==true)
+      if (isset($left_group_borders[$field_name])==true)
       {
         $header_params["border_left"]=-1;
       }
-      if (isset($bold_borders_right[$field_name])==true)
+      if (isset($right_group_borders[$field_name])==true)
       {
         $header_params["border_right"]=-1;
       }
     }
-    else # chrome browser
+    else # chrome/edge/safari
     {
       $header_params["border_left"]=0;
-      if (isset($bold_borders_left[$field_name])==true)
+      if (isset($left_group_borders[$field_name])==true)
       {
         $header_params["border_right"]=-1;
       }
-      if (isset($bold_borders_right[$field_name])==true)
+      if (isset($right_group_borders[$field_name])==true)
       {
         $header_params["border_right"]=-1;
       }
@@ -1206,15 +1207,19 @@ function list_form_content($form_name,$records=false,$insert_default_params=fals
   $form_params=\webdb\forms\handle_custom_form_below_event($form_config,$form_params);
   $form_params["redirect"]="";
   $form_params["parent_id"]="";
-  if (isset($form_config["parent_form_config"])==true)
+  if (isset($form_config["parent_form_id"])==true)
   {
-    if ($form_config["parent_form_config"]!==false)
+    $form_params["parent_id"]=$form_config["parent_form_id"];
+    $url_params=array();
+    if (isset($_GET["redirect"])==true)
     {
-      $url_params=array();
-      $url_params["redirect_url"]=urlencode(\webdb\utils\get_url());
-      $form_params["redirect"]=\webdb\forms\form_template_fill("redirect_url_param",$url_params);
-      $form_params["parent_id"]=$form_config["parent_form_id"];
+      $url_params["redirect_url"]=urlencode($_GET["redirect"]);
     }
+    else
+    {
+      $url_params["redirect_url"]=urlencode(\webdb\utils\get_url());
+    }
+    $form_params["redirect"]=\webdb\forms\form_template_fill("redirect_url_param",$url_params);
   }
   return \webdb\forms\form_template_fill("list",$form_params);
 }

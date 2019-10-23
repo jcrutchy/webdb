@@ -8,6 +8,7 @@ CREATE SCHEMA IF NOT EXISTS `webdb` DEFAULT CHARACTER SET utf8 ;
 DROP TABLE IF EXISTS `webdb`.`users`;
 CREATE TABLE IF NOT EXISTS `webdb`.`users` (
   `user_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `created_timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `login_cookie` VARCHAR(255) DEFAULT "",
   `enabled` TINYINT NOT NULL DEFAULT 1,
   `email` VARCHAR(255) NOT NULL,
@@ -28,14 +29,14 @@ INSERT INTO `webdb`.`users` (`email`,`pw_hash`) VALUES ("admin","$2y$13$Vn8rJB73
 DROP TABLE IF EXISTS `webdb`.`row_locks` ;
 CREATE TABLE IF NOT EXISTS `webdb`.`row_locks` (
   `lock_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `created_timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `user_id` INT UNSIGNED NOT NULL,
-  `lock_timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `lock_schema` VARCHAR(255) NOT NULL,
   `lock_table` VARCHAR(255) NOT NULL,
   `lock_key_field` VARCHAR(255) NOT NULL,
   `lock_key_value` INT UNSIGNED NOT NULL,
   PRIMARY KEY (`lock_id`),
-  INDEX `lock_timestamp` (`lock_timestamp` ASC),
+  INDEX `created_timestamp` (`created_timestamp` ASC),
   INDEX `lock_schema` (`lock_schema` ASC),
   INDEX `lock_table` (`lock_table` ASC),
   INDEX `lock_key_field` (`lock_key_field` ASC),
@@ -52,11 +53,11 @@ AUTO_INCREMENT = 1;
 DROP TABLE IF EXISTS `webdb`.`sql_log` ;
 CREATE TABLE IF NOT EXISTS `webdb`.`sql_log` (
   `log_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `created_timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `user_id` INT UNSIGNED NOT NULL,
-  `sql_timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `sql_statement` LONGTEXT NOT NULL,
   PRIMARY KEY (`log_id`),
-  INDEX `sql_timestamp` (`sql_timestamp` ASC),
+  INDEX `created_timestamp` (`created_timestamp` ASC),
   INDEX `fk_sql_log_users_idx` (`user_id` ASC),
   CONSTRAINT `fk_sql_log_users`
     FOREIGN KEY (`user_id`)
@@ -69,16 +70,16 @@ AUTO_INCREMENT = 1;
 DROP TABLE IF EXISTS `webdb`.`sql_changes` ;
 CREATE TABLE IF NOT EXISTS `webdb`.`sql_changes` (
   `change_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `created_timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `user_id` INT UNSIGNED NOT NULL,
   `log_id` INT UNSIGNED NOT NULL,
-  `change_timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `change_schema` VARCHAR(255) NOT NULL,
   `change_table` VARCHAR(255) NOT NULL,
   `change_key_field` VARCHAR(255) NOT NULL,
   `old_record_json` LONGTEXT NOT NULL,
   `new_record_json` LONGTEXT NOT NULL,
   PRIMARY KEY (`change_id`),
-  INDEX `change_timestamp` (`change_timestamp` ASC),
+  INDEX `created_timestamp` (`created_timestamp` ASC),
   INDEX `fk_sql_changes_users_idx` (`user_id` ASC),
   CONSTRAINT `fk_sql_changes_users`
     FOREIGN KEY (`user_id`)
@@ -96,6 +97,7 @@ AUTO_INCREMENT = 1;
 DROP TABLE IF EXISTS `webdb`.`groups`;
 CREATE TABLE IF NOT EXISTS `webdb`.`groups` (
   `group_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `created_timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `enabled` TINYINT NOT NULL DEFAULT 1,
   `group_name` VARCHAR(255) NOT NULL,
   PRIMARY KEY (`group_id`),

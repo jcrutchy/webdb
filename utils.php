@@ -34,6 +34,19 @@ function show_message($message)
 
 function ob_postprocess($buffer)
 {
+  if (strpos($buffer,"%%")!==false)
+  {
+    $buffer="error: unassigned % template found: ".htmlspecialchars($buffer);
+  }
+  if (strpos($buffer,"$$")!==false)
+  {
+    $buffer="error: unassigned $ template found: ".htmlspecialchars($buffer);
+  }
+  if (strpos($buffer,"@@")!==false)
+  {
+    $buffer="error: unassigned @ template found: ".htmlspecialchars($buffer);
+  }
+  # TODO: CALL AUTOMATED W3C VALIDATION HERE
   #global $t;
   #return (microtime(true)-$t);
   if (isset($_SERVER["HTTP_ACCEPT_ENCODING"])==true)
@@ -489,18 +502,6 @@ function output_page($content,$title)
   $page_params["global_script_modified"]=\webdb\utils\resource_modified_timestamp("global.js");
   $page_params["body_text"]=$content;
   $output=\webdb\utils\template_fill("global".DIRECTORY_SEPARATOR."page",$page_params);
-  if (strpos($output,"%%")!==false)
-  {
-    \webdb\utils\show_message("error: unassigned % template found: ".htmlspecialchars($output));
-  }
-  if (strpos($output,"$$")!==false)
-  {
-    \webdb\utils\show_message("error: unassigned $ template found: ".htmlspecialchars($output));
-  }
-  if (strpos($output,"@@")!==false)
-  {
-    \webdb\utils\show_message("error: unassigned @ template found: ".htmlspecialchars($output));
-  }
   die($output);
 }
 

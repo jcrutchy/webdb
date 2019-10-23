@@ -215,7 +215,7 @@ if ((\webdb\utils\is_cli_mode()==true) and (isset($argv[1])==true))
   {
     case "init_webdb_schema":
       \webdb\sql\file_execute_prepare("webdb_schema",array(),true);
-      \webdb\utils\system_message("webdb schema created");
+      \webdb\utils\system_message("webdb schema initialised");
     case "validate_json":
       echo "validating forms...".PHP_EOL;
       foreach ($settings["forms"] as $form_name => $form_data)

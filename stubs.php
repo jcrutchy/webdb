@@ -90,6 +90,8 @@ function list_insert($form_name)
     \webdb\sql\sql_insert($params,$form_config["table"],$form_config["database"]);
     $data["html"]=\webdb\forms\list_form_content($form_name);
   }
+  #var_dump($data["html"]);
+  #die;
   $data=json_encode($data);
   die($data);
 }
