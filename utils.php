@@ -488,7 +488,20 @@ function output_page($content,$title)
   $page_params["global_styles_modified"]=\webdb\utils\resource_modified_timestamp("global.css");
   $page_params["global_script_modified"]=\webdb\utils\resource_modified_timestamp("global.js");
   $page_params["body_text"]=$content;
-  die(\webdb\utils\template_fill("global".DIRECTORY_SEPARATOR."page",$page_params));
+  $output=\webdb\utils\template_fill("global".DIRECTORY_SEPARATOR."page",$page_params);
+  if (strpos($output,"%%")!==false)
+  {
+    \webdb\utils\show_message("error: unassigned % template found: ".htmlspecialchars($output));
+  }
+  if (strpos($output,"$$")!==false)
+  {
+    \webdb\utils\show_message("error: unassigned $ template found: ".htmlspecialchars($output));
+  }
+  if (strpos($output,"@@")!==false)
+  {
+    \webdb\utils\show_message("error: unassigned @ template found: ".htmlspecialchars($output));
+  }
+  die();
 }
 
 #####################################################################################################

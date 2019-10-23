@@ -68,6 +68,7 @@ function list_insert($form_name)
     {
       case "page":
       case "cmd":
+      case "redirect":
       case "ajax":
         continue;
       default:
@@ -153,8 +154,9 @@ function list_edit($id,$form_name)
   if (isset($_GET["reset"])==true)
   {
     $row_spans=array();
-    $lookup_records=\webdb\forms\lookup_records($form_name);
-    $data["html"]=\webdb\forms\list_row($form_config,$record,$column_format,$row_spans,$lookup_records,0);
+    $lookup_records=\webdb\forms\lookup_records($form_config);
+    $calendar_fields=array();
+    $data["html"]=\webdb\forms\list_row($form_config,$record,$column_format,$row_spans,$lookup_records,0,$calendar_fields);
     $data["primary_key"]=$id;
     $data["calendar_fields"]=json_encode(array());
     $data["edit_fields"]=json_encode(array());

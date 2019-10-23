@@ -71,6 +71,8 @@ function form_dispatch($url_page)
             case "delete":
               $id=\webdb\utils\get_child_array_key($_POST["form_cmd"],"delete");
               $data=\webdb\forms\delete_confirmation($form_name,$id);
+              $data["form_script_modified"]=\webdb\utils\resource_modified_timestamp("list.js");
+              $data["form_styles_modified"]=\webdb\utils\resource_modified_timestamp("list.css");
               $data["content"].=\webdb\forms\output_html_includes($form_config);
               $data["content"].=\webdb\forms\output_js_includes($form_config);
               $data["content"].=\webdb\forms\output_css_includes($form_config);
@@ -170,8 +172,17 @@ function form_dispatch($url_page)
 
 function checklist_update($form_name)
 {
-  echo "TODO";
-  die;
+  global $settings;
+  if (\webdb\utils\check_user_form_permission($form_name,"u")==false)
+  {
+    \webdb\utils\show_message("error: form record(s) update permission denied");
+  }
+  $form_config=$settings["forms"][$form_name];
+  foreach ($_POST["list_select"] as $id => $value)
+  {
+    var_dump($id);
+  }
+  \webdb\forms\page_redirect();
 }
 
 #####################################################################################################
@@ -266,6 +277,7 @@ function get_subform_content($subform_name,$subform_link_field,$id,$list_only=fa
   $subform_params=array();
   $url_params=array();
   $url_params[$subform_link_field]=$id;
+  $subform_config["parent_form_config"]=$parent_form_config;
   $subform_params["subform"]=list_form_content($subform_name,$records,$url_params,$subform_config,$checklist_link_records);
   $subform_params["subform_style"]="";
   if ($parent_form_config!==false)
@@ -455,7 +467,7 @@ function config_id_url_value($form_config,$record,$config_key)
 
 #####################################################################################################
 
-function list_row($form_config,$record,$column_format,$row_spans,$lookup_records,$record_index,$checklist_link_record=false)
+function list_row($form_config,$record,$column_format,$row_spans,$lookup_records,$record_index,&$calendar_fields,$checklist_link_record=false)
 {
   global $settings;
   $rotate_group_borders=$column_format["rotate_group_borders"];
@@ -554,7 +566,13 @@ function list_row($form_config,$record,$column_format,$row_spans,$lookup_records
     {
       if (($checklist_row_linked==true) and ($form_config["checklist"]==true) and (in_array($field_name,$form_config["link_fields"])==true))
       {
-        $fields.="<td>TODO</td>";
+        $control_type_suffix="";
+        if ($control_type=="check")
+        {
+          $control_type_suffix="_check";
+        }
+        $field_params["value"]=output_editable_field($field_params,$display_record,$field_name,$control_type,$form_config,$calendar_fields,$lookup_records);
+        $fields.=\webdb\forms\form_template_fill("list_field".$control_type_suffix,$field_params);
       }
       else
       {
@@ -588,6 +606,7 @@ function list_row($form_config,$record,$column_format,$row_spans,$lookup_records
 
 function output_readonly_field($field_params,$control_type,$form_config,$field_name,$lookup_records,$display_record)
 {
+  global $settings;
   switch ($control_type)
   {
     case "lookup":
@@ -676,7 +695,7 @@ function list_row_controls($form_name,$form_config,&$submit_fields,&$calendar_fi
   $row_params=array();
   $row_params["url_page"]=$form_config["url_page"];
   $row_params["check"]=\webdb\forms\check_column($form_config,"list_check_insert");
-  $lookup_records=lookup_records($form_name);
+  $lookup_records=lookup_records($form_config);
   $fields="";
   foreach ($form_config["control_types"] as $field_name => $control_type)
   {
@@ -712,7 +731,7 @@ function list_row_controls($form_name,$form_config,&$submit_fields,&$calendar_fi
     {
       $submit_fields[]=$field_params["field_name"];
     }
-    $field_params["value"]=output_editable_field($form_name,$field_params,$record,$field_name,$control_type,$form_config,$calendar_fields,$lookup_records);
+    $field_params["value"]=output_editable_field($field_params,$record,$field_name,$control_type,$form_config,$calendar_fields,$lookup_records);
     if ($form_config["visible"][$field_name]==true)
     {
       $fields.=\webdb\forms\form_template_fill("list_field".$control_type_suffix,$field_params);
@@ -729,7 +748,7 @@ function list_row_controls($form_name,$form_config,&$submit_fields,&$calendar_fi
 
 #####################################################################################################
 
-function output_editable_field($form_name,&$field_params,$record,$field_name,$control_type,$form_config,&$calendar_fields,$lookup_records)
+function output_editable_field(&$field_params,$record,$field_name,$control_type,$form_config,&$calendar_fields,$lookup_records)
 {
   global $settings;
   $field_params["field_value"]="";
@@ -740,6 +759,7 @@ function output_editable_field($form_name,&$field_params,$record,$field_name,$co
   switch ($control_type)
   {
     case "lookup":
+      $field_params["field_key"]="";
       $lookup_data=$form_config["lookups"][$field_name];
       $key_field_name=$lookup_data["key_field"];
       $sibling_field_name=$lookup_data["sibling_field"];
@@ -780,7 +800,7 @@ function output_editable_field($form_name,&$field_params,$record,$field_name,$co
       $option_params["disabled"]=\webdb\forms\field_disabled($form_config,$field_name);
       $option_params["js_events"]=\webdb\forms\field_js_events($form_config,$field_name,$record);
       $options=\webdb\utils\template_fill($option_template."_option",$option_params);
-      $records=\webdb\forms\lookup_field_data($form_name,$field_name);
+      $records=\webdb\forms\lookup_field_data($form_config,$field_name);
       $lookup_config=$form_config["lookups"][$field_name];
       for ($i=0;$i<count($records);$i++)
       {
@@ -938,17 +958,14 @@ function get_column_format_data($form_name)
     $row_params["field_headers"]=$field_headers;
     $data["caption_groups"]=\webdb\forms\form_template_fill("group_header_row",$row_params);
   }
-  #var_dump($data);
-  #die;
   return $data;
 }
 
 #####################################################################################################
 
-function lookup_records($form_name)
+function lookup_records($form_config)
 {
   global $settings;
-  $form_config=$settings["forms"][$form_name];
   $lookup_records=array();
   foreach ($form_config["control_types"] as $field_name => $control_type)
   {
@@ -959,7 +976,7 @@ function lookup_records($form_name)
       {
         $sibling_field=$form_config["lookups"][$field_name]["sibling_key_field"];
       }
-      $lookup_records[$field_name]=\webdb\forms\lookup_field_data($form_name,$field_name,$sibling_field);
+      $lookup_records[$field_name]=\webdb\forms\lookup_field_data($form_config,$field_name,$sibling_field);
     }
   }
   return $lookup_records;
@@ -1106,7 +1123,7 @@ function list_form_content($form_name,$records=false,$insert_default_params=fals
       $previous_group_by_fields=$group_by_fields;
     }
   }
-  $lookup_records=lookup_records($form_name);
+  $lookup_records=lookup_records($form_config);
   for ($i=0;$i<count($records);$i++)
   {
     $record=$records[$i];
@@ -1127,7 +1144,7 @@ function list_form_content($form_name,$records=false,$insert_default_params=fals
       }
     }
     \webdb\forms\process_computed_fields($form_config,$record);
-    $rows.=\webdb\forms\list_row($form_config,$record,$column_format,$row_spans,$lookup_records,$i,$checklist_link_record);
+    $rows.=\webdb\forms\list_row($form_config,$record,$column_format,$row_spans,$lookup_records,$i,$calendar_fields,$checklist_link_record);
   }
   $form_params["insert_row_controls"]="";
   if (($form_config["insert_row"]==true) and ($form_config["records_sql"]==""))
@@ -1179,6 +1196,16 @@ function list_form_content($form_name,$records=false,$insert_default_params=fals
   }
   $form_params=\webdb\forms\handle_custom_form_above_event($form_config,$form_params);
   $form_params=\webdb\forms\handle_custom_form_below_event($form_config,$form_params);
+  $form_params["redirect"]="";
+  if (isset($form_config["parent_form_config"])==true)
+  {
+    if ($form_config["parent_form_config"]!==false)
+    {
+      $url_params=array();
+      $url_params["redirect_url"]=urlencode(\webdb\utils\get_url());
+      $form_params["redirect"]=\webdb\forms\form_template_fill("redirect_url_param",$url_params);
+    }
+  }
   return \webdb\forms\form_template_fill("list",$form_params);
 }
 
@@ -1427,10 +1454,9 @@ function edit_form($form_name,$id)
 
 #####################################################################################################
 
-function lookup_field_data($form_name,$field_name,$sibling_field=false)
+function lookup_field_data($form_config,$field_name,$sibling_field=false)
 {
   global $settings;
-  $form_config=$settings["forms"][$form_name];
   if (isset($form_config["lookups"][$field_name])==false)
   {
     \webdb\utils\show_message("error: invalid lookup config for field '".$field_name."' in form '".$form_name."' (lookup config missing)");
@@ -1480,7 +1506,7 @@ function output_editor($form_name,$record,$command,$verb,$id)
   global $settings;
   $form_config=$settings["forms"][$form_name];
   $calendar_fields=array();
-  $lookup_records=lookup_records($form_name);
+  $lookup_records=lookup_records($form_config);
   $rows="";
   foreach ($form_config["control_types"] as $field_name => $control_type)
   {
@@ -1506,7 +1532,7 @@ function output_editor($form_name,$record,$command,$verb,$id)
     {
       $field_params["control_style"]=$form_config["control_styles"][$field_name];
     }
-    $row_params["field_value"]=output_editable_field($form_name,$field_params,$record,$field_name,$control_type,$form_config,$calendar_fields,$lookup_records);
+    $row_params["field_value"]=output_editable_field($field_params,$record,$field_name,$control_type,$form_config,$calendar_fields,$lookup_records);
     $row_params["interface_button"]=\webdb\forms\get_interface_button($form_config,$record,$field_name,$field_value);
     $rows.=\webdb\forms\form_template_fill("field_row",$row_params);
   }
@@ -1845,7 +1871,29 @@ function delete_confirmation($form_name,$id)
   global $settings;
   $form_config=$settings["forms"][$form_name];
   $record=\webdb\forms\get_record_by_id($form_name,$id,"primary_key");
-  \webdb\forms\process_computed_fields($form_config,$record);
+
+  $form_params=array();
+
+  $records=array();
+  $records[]=$record;
+
+  $list_form_config=$form_config;
+
+  $list_form_config["multi_row_delete"]=false;
+  $list_form_config["individual_delete"]=false;
+  $list_form_config["individual_edit"]="none";
+  $list_form_config["insert_new"]=false;
+  $list_form_config["insert_row"]=false;
+  $list_form_config["advanced_search"]=false;
+  foreach ($list_form_config["control_types"] as $field_name => $control_type)
+  {
+    $list_form_config["visible"][$field_name]=true;
+  }
+
+  $form_params["list"]=list_form_content($form_name,$records,false,$list_form_config);
+
+
+  /*\webdb\forms\process_computed_fields($form_config,$record);
   $rows="";
   foreach ($form_config["control_types"] as $field_name => $control_type)
   {
@@ -1892,8 +1940,8 @@ function delete_confirmation($form_name,$id)
     }
     $rows.=\webdb\forms\form_template_fill("field_row",$field_params);
   }
-  $form_params=array();
-  $form_params["rows"]=$rows;
+  $form_params["rows"]=$rows;*/
+
   $form_params["url_page"]=$form_config["url_page"];
   $form_params["individual_delete_url_page"]=$form_config["url_page"];
   if ($form_config["individual_delete_url_page"]<>"")
@@ -1937,7 +1985,14 @@ function page_redirect($form_name=false,$additional_params="")
 {
   if ($form_name===false)
   {
-    $url=\webdb\utils\get_url();
+    if (isset($_GET["source_url"])==true)
+    {
+      $url=$_GET["source_url"];
+    }
+    else
+    {
+      $url=\webdb\utils\get_url();
+    }
   }
   else
   {
@@ -2000,6 +2055,7 @@ function delete_selected_confirmation($form_name)
   foreach ($_POST["list_select"] as $id => $value)
   {
     $record=\webdb\forms\get_record_by_id($form_name,$id,"primary_key");
+    $record["fk_table_list"]="NONE";
     \webdb\forms\process_computed_fields($form_config,$record);
     $foreign_keys=\webdb\sql\foreign_key_used($form_config["database"],$form_config["table"],$record,$foreign_key_defs);
     if ($foreign_keys!==false)
