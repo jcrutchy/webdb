@@ -176,6 +176,18 @@ function checklist_update($form_name)
   {
     var_dump($id);
   }
+  var_dump($_POST);
+  var_dump($_GET);
+  var_dump($_POST["parent_id:".$form_name]);
+  die;
+  /*
+    TODO:
+      - query existing links with matching id's
+      - update those links with additional field data
+      - assemble list of id's that don't yet exist in links table
+      - insert new link records
+      - redirect
+  */
   \webdb\forms\page_redirect();
 }
 
@@ -272,6 +284,7 @@ function get_subform_content($subform_name,$subform_link_field,$id,$list_only=fa
   $url_params=array();
   $url_params[$subform_link_field]=$id;
   $subform_config["parent_form_config"]=$parent_form_config;
+  $subform_config["parent_form_id"]=$id;
   $subform_params["subform"]=list_form_content($subform_name,$records,$url_params,$subform_config,$checklist_link_records);
   $subform_params["subform_style"]="";
   if ($parent_form_config!==false)
@@ -1192,6 +1205,7 @@ function list_form_content($form_name,$records=false,$insert_default_params=fals
   $form_params=\webdb\forms\handle_custom_form_above_event($form_config,$form_params);
   $form_params=\webdb\forms\handle_custom_form_below_event($form_config,$form_params);
   $form_params["redirect"]="";
+  $form_params["parent_id"]="";
   if (isset($form_config["parent_form_config"])==true)
   {
     if ($form_config["parent_form_config"]!==false)
@@ -1199,6 +1213,7 @@ function list_form_content($form_name,$records=false,$insert_default_params=fals
       $url_params=array();
       $url_params["redirect_url"]=urlencode(\webdb\utils\get_url());
       $form_params["redirect"]=\webdb\forms\form_template_fill("redirect_url_param",$url_params);
+      $form_params["parent_id"]=$form_config["parent_form_id"];
     }
   }
   return \webdb\forms\form_template_fill("list",$form_params);
