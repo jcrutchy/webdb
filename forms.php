@@ -749,6 +749,7 @@ function output_editable_field(&$field_params,$record,$field_name,$control_type,
   {
     $field_params["field_value"]=$record[$field_name];
   }
+  $field_params["url_page"]=$form_config["url_page"];
   $field_params["control_style"]="";
   if (isset($form_config["control_styles"][$field_name])==true)
   {
