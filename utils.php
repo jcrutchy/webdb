@@ -501,7 +501,7 @@ function output_page($content,$title)
   {
     \webdb\utils\show_message("error: unassigned @ template found: ".htmlspecialchars($output));
   }
-  die();
+  die($output);
 }
 
 #####################################################################################################
