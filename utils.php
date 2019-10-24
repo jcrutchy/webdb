@@ -23,6 +23,18 @@ function system_message($message)
 
 function show_message($message)
 {
+  if (isset($_GET["ajax"])==true)
+  {
+    $buf=ob_get_contents();
+    if (strlen($buf)<>0)
+    {
+      ob_end_clean();
+    }
+    $data=array();
+    $data["error"]=$message;
+    $data=json_encode($data);
+    die($data);
+  }
   global $settings;
   $params=array();
   $params["page_title"]=$settings["app_name"];

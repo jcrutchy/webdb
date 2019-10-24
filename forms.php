@@ -139,7 +139,7 @@ function form_dispatch($url_page)
       }
       if ($event_params["custom_list_content"]==false)
       {
-        $list_params["list"]=\webdb\forms\list_form_content($form_name,$event_params["records"]);
+        $list_params["list"]=\webdb\forms\list_form_content($form_config,$event_params["records"]);
       }
       else
       {
@@ -311,10 +311,9 @@ function process_filter_sql(&$form_config)
 
 #####################################################################################################
 
-function get_subform_content($subform_name,$subform_link_field,$id,$list_only=false,$parent_form_config=false)
+function get_subform_content($subform_config,$subform_link_field,$id,$list_only=false,$parent_form_config=false)
 {
   global $settings;
-  $subform_config=$settings["forms"][$subform_name];
   if ($subform_config["checklist"]==true)
   {
     $subform_config["multi_row_delete"]=false;
@@ -350,10 +349,11 @@ function get_subform_content($subform_name,$subform_link_field,$id,$list_only=fa
   $url_params=array();
   $url_params[$subform_link_field]=$id;
   $subform_config["parent_form_id"]=$id;
-  $subform_params["subform"]=list_form_content($subform_name,$records,$url_params,$subform_config,$checklist_link_records);
+  $subform_params["subform"]=list_form_content($subform_config,$records,$url_params,$checklist_link_records);
   $subform_params["subform_style"]="";
   if ($parent_form_config!==false)
   {
+    $subform_name=$subform_config["url_page"];
     if (isset($parent_form_config["edit_subforms_styles"][$subform_name])==true)
     {
       $subform_params["subform_style"]=$parent_form_config["edit_subforms_styles"][$subform_name];
@@ -764,7 +764,7 @@ function check_column($form_config,$template,$params=array())
 
 #####################################################################################################
 
-function list_row_controls($form_name,$form_config,&$submit_fields,&$calendar_fields,$operation,$column_format,$record,$field_name_prefix="")
+function list_row_controls($form_config,&$submit_fields,&$calendar_fields,$operation,$column_format,$record,$field_name_prefix="")
 {
   global $settings;
   $rotate_group_borders=$column_format["rotate_group_borders"];
@@ -927,10 +927,9 @@ function output_editable_field(&$field_params,$record,$field_name,$control_type,
 
 #####################################################################################################
 
-function get_column_format_data($form_name)
+function get_column_format_data($form_config)
 {
   global $settings;
-  $form_config=$settings["forms"][$form_name];
   $data=array();
   $data["max_field_name_width"]=0;
   foreach ($form_config["control_types"] as $field_name => $control_type)
@@ -1061,14 +1060,9 @@ function lookup_records($form_config)
 
 #####################################################################################################
 
-function list_form_content($form_name,$records=false,$insert_default_params=false,$form_config_override=false,$checklist_link_records=false)
+function list_form_content($form_config,$records=false,$insert_default_params=false,$checklist_link_records=false)
 {
   global $settings;
-  $form_config=$settings["forms"][$form_name];
-  if ($form_config_override!==false)
-  {
-    $form_config=$form_config_override;
-  }
   if ($form_config["records_sql"]<>"")
   {
     $sql=\webdb\utils\sql_fill($form_config["records_sql"]);
@@ -1086,7 +1080,7 @@ function list_form_content($form_name,$records=false,$insert_default_params=fals
       $form_params["insert_default_params"].="&".urlencode($param_name)."=".urlencode($param_value);
     }
   }
-  $column_format=\webdb\forms\get_column_format_data($form_name);
+  $column_format=\webdb\forms\get_column_format_data($form_config);
   $left_group_borders=$column_format["left_group_borders"];
   $right_group_borders=$column_format["right_group_borders"];
   $rotate_group_borders=$column_format["rotate_group_borders"];
@@ -1253,7 +1247,7 @@ function list_form_content($form_name,$records=false,$insert_default_params=fals
   if (($form_config["insert_row"]==true) and ($form_config["records_sql"]==""))
   {
     $insert_fields=array();
-    $rows.=\webdb\forms\list_row_controls($form_name,$form_config,$insert_fields,$calendar_fields,"insert",$column_format,$form_config["default_values"]);
+    $rows.=\webdb\forms\list_row_controls($form_config,$insert_fields,$calendar_fields,"insert",$column_format,$form_config["default_values"]);
     for ($i=0;$i<count($insert_fields);$i++)
     {
       $insert_fields[$i]="'".$insert_fields[$i]."'";
@@ -1496,7 +1490,7 @@ function advanced_search($form_name)
   $form_config["advanced_search"]=false;
   $form_config["individual_delete"]=false;
   $form_config["multi_row_delete"]=false;
-  $search_page_params["advanced_search_results"]=\webdb\forms\list_form_content($form_name,$records,false,$form_config);
+  $search_page_params["advanced_search_results"]=\webdb\forms\list_form_content($form_config,$records,false);
   $search_page_params["form_script_modified"]=\webdb\utils\resource_modified_timestamp("list.js");
   $search_page_params["form_styles_modified"]=\webdb\utils\resource_modified_timestamp("list.css");
   $search_page_params["title"]=$form_config["title"];
@@ -1543,7 +1537,8 @@ function edit_form($form_name,$id)
   $subforms="";
   foreach ($form_config["edit_subforms"] as $subform_name => $subform_link_field)
   {
-    $subforms.=get_subform_content($subform_name,$subform_link_field,$id,false,$form_config);
+    $subform_config=$settings["forms"][$subform_name];
+    $subforms.=get_subform_content($subform_config,$subform_link_field,$id,false,$form_config);
   }
   $data=\webdb\forms\output_editor($form_name,$record,"Edit","Update",$id);
   $edit_page_params=array();
@@ -2000,7 +1995,7 @@ function delete_confirmation($form_name,$id)
   {
     $list_form_config["visible"][$field_name]=true;
   }
-  $form_params["list"]=list_form_content($form_name,$records,false,$list_form_config);
+  $form_params["list"]=list_form_content($list_form_config,$records,false);
   $form_params["url_page"]=$form_config["url_page"];
   $form_params["individual_delete_url_page"]=$form_config["url_page"];
   if ($form_config["individual_delete_url_page"]<>"")
@@ -2162,7 +2157,7 @@ function delete_selected_confirmation($form_name)
   $list_form_config["insert_new"]=false;
   $list_form_config["insert_row"]=false;
   $list_form_config["advanced_search"]=false;
-  $form_params["records"]=\webdb\forms\list_form_content($form_name,$records,false,$list_form_config);
+  $form_params["records"]=\webdb\forms\list_form_content($list_form_config,$records,false);
   $form_params["url_page"]=$form_config["url_page"];
   $form_params["command_caption_noun"]=$form_config["command_caption_noun"];
   $form_params["delete_all_button"]=\webdb\forms\form_template_fill("delete_selected_cancel_controls",$form_params);

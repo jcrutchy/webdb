@@ -6,6 +6,22 @@ function page_load()
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
+function custom_alert(message)
+{
+  document.getElementById("custom_alert_message").innerHTML=message;
+  document.getElementById("custom_alert_background").style.display="block";
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function custom_alert_close()
+{
+  document.getElementById("custom_alert_message").innerHTML="";
+  document.getElementById("custom_alert_background").style.display="none";
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
 function ajax(url,method,load,error,timeout,body="",timeout_sec=30)
 {
   var xhttp=new XMLHttpRequest();

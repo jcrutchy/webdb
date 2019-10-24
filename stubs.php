@@ -81,17 +81,16 @@ function list_insert($form_name)
     {
       $params[$param_name]=$param_value;
       \webdb\sql\sql_insert($params,$form_config["table"],$form_config["database"]);
-      $data["html"]=\webdb\forms\get_subform_content($form_name,$param_name,$param_value,true);
+      $subform_config=$settings["forms"][$form_name];
+      $data["html"]=\webdb\forms\get_subform_content($subform_config,$param_name,$param_value,true);
       break;
     }
   }
   else
   {
     \webdb\sql\sql_insert($params,$form_config["table"],$form_config["database"]);
-    $data["html"]=\webdb\forms\list_form_content($form_name);
+    $data["html"]=\webdb\forms\list_form_content($form_config);
   }
-  #var_dump($data["html"]);
-  #die;
   $data=json_encode($data);
   die($data);
 }
@@ -168,7 +167,7 @@ function list_edit($id,$form_name)
   $calendar_fields=array();
   $edit_fields=array();
   $field_name_prefix="edit_control:".$form_config["url_page"].":".$id.":";
-  $data["html"]=\webdb\forms\list_row_controls($form_name,$form_config,$edit_fields,$calendar_fields,"edit",$column_format,$record,$field_name_prefix);
+  $data["html"]=\webdb\forms\list_row_controls($form_config,$edit_fields,$calendar_fields,"edit",$column_format,$record,$field_name_prefix);
   $data["primary_key"]=$id;
   $data["calendar_fields"]=json_encode($calendar_fields);
   $data["edit_fields"]=json_encode($edit_fields);

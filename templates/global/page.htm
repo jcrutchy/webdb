@@ -6,6 +6,19 @@
 </head>
 <body>
 
+<div id="custom_alert_background">
+  <div class="custom_alert_outside">
+    <div class="custom_alert_inside">
+      <div class="custom_alert">
+        <div id="custom_alert_message"></div>
+        <div class="custom_alert_controls_div">
+          <input type="button" value="OK" onclick="custom_alert_close(); return false;">
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 %%body_text%%
 
 <script type="text/javascript" src="$$webdb_web_resources$$global.js?mod=%%global_script_modified%%"></script>
