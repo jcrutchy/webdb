@@ -64,5 +64,8 @@
     "link_key": "",
     "link_database": "",
     "link_table": "",
-    "link_fields": []
+    "link_fields": [],
+    "default_filter": "",
+    "filter_options": {
+    }
 }

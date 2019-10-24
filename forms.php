@@ -292,6 +292,25 @@ function form_template_fill($name,$params=false)
 
 #####################################################################################################
 
+function process_filter_sql(&$form_config)
+{
+  if ($form_config["default_filter"]<>"")
+  {
+    $filter_name=$form_config["default_filter"];
+    if (isset($form_config["filter_options"][$filter_name])==true)
+    {
+      $form_config["default_filter"]=$form_config["filter_options"][$filter_name];
+      $form_config["default_filter"]=\webdb\utils\sql_fill("default_filter",$form_config);
+    }
+    else
+    {
+      $form_config["default_filter"]="";
+    }
+  }
+}
+
+#####################################################################################################
+
 function get_subform_content($subform_name,$subform_link_field,$id,$list_only=false,$parent_form_config=false)
 {
   global $settings;
@@ -303,17 +322,8 @@ function get_subform_content($subform_name,$subform_link_field,$id,$list_only=fa
     $subform_config["insert_new"]=false;
     $subform_config["insert_row"]=false;
     $subform_config["advanced_search"]=false;
-    $sql_params=array();
-    $sql_params["database"]=$subform_config["database"];
-    $sql_params["table"]=$subform_config["table"];
-    $sql_params["sort_sql"]=$subform_config["sort_sql"];
-    $sql_params["subform_checklist_where"]="";
-    if ($subform_config["where_sql"]<>"")
-    {
-      $sql_params["subform_checklist_where"]=\webdb\utils\sql_fill("subform_checklist_where",$sql_params);;
-    }
-    $sql_params["where_sql"]=$subform_config["where_sql"];
-    $sql=\webdb\utils\sql_fill("subform_checklist_fetch",$sql_params);
+    \webdb\forms\process_filter_sql($subform_config);
+    $sql=\webdb\utils\sql_fill("form_list_fetch_all",$subform_config);
     $records=\webdb\sql\fetch_query($sql);
   }
   else
@@ -1170,6 +1180,7 @@ function list_form_content($form_name,$records=false,$insert_default_params=fals
         $form_config["sort_sql"]=$sort_sql;
       }
     }
+    \webdb\forms\process_filter_sql($form_config);
     $sql=\webdb\utils\sql_fill("form_list_fetch_all",$form_config);
     $records=\webdb\sql\fetch_query($sql);
   }
@@ -1193,9 +1204,9 @@ function list_form_content($form_name,$records=false,$insert_default_params=fals
     }
   }
   $lookup_records=lookup_records($form_config);
-  # ~~~~~~~~~~~~~~~~~~~~~~~
   if ($form_config["checklist"]==true)
   {
+    # arrange checklist records with checked first
     $primary_key=$form_config["primary_key"];
     $link_key=$form_config["link_key"];
     $checked_records=array();
@@ -1216,7 +1227,6 @@ function list_form_content($form_name,$records=false,$insert_default_params=fals
     }
     $records=array_merge($checked_records,$unchecked_records);
   }
-  # ~~~~~~~~~~~~~~~~~~~~~~~
   for ($i=0;$i<count($records);$i++)
   {
     $record=$records[$i];
@@ -1734,6 +1744,7 @@ function process_form_data_fields($form_name,$post_override=false)
     switch ($control_type)
     {
       case "text":
+      case "hidden":
         $value_items[$field_name]=$post_fields[$field_name];
         break;
       case "combobox":

@@ -1,1 +1,1 @@
-SELECT * FROM `%%database%%`.`%%table%%` ORDER BY %%sort_sql%%;
+SELECT * FROM `%%database%%`.`%%table%%` %%default_filter%% ORDER BY %%sort_sql%%;
