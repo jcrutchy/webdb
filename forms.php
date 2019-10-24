@@ -172,22 +172,78 @@ function checklist_update($form_name)
     \webdb\utils\show_message("error: form record(s) update permission denied");
   }
   $form_config=$settings["forms"][$form_name];
-  foreach ($_POST["list_select"] as $id => $value)
+  $parent_id=$_POST["parent_id:".$form_name];
+  $link_database=$form_config["link_database"];
+  $link_table=$form_config["link_table"];
+  $parent_key=$form_config["parent_key"];
+  $link_key=$form_config["link_key"];
+  $link_fields=$form_config["link_fields"];
+  $sql_params=array();
+  $sql_params["link_database"]=$link_database;
+  $sql_params["link_table"]=$link_table;
+  $sql_params["parent_key"]=$parent_key;
+  $sql=\webdb\utils\sql_fill("checklist_link_records",$sql_params);
+  $sql_params=array();
+  $sql_params["parent_key"]=$parent_id;
+  $exist_parent_link_records=\webdb\sql\fetch_prepare($sql,$sql_params);
+  $sql_params=array();
+  $sql_params["link_database"]=$link_database;
+  $sql_params["link_table"]=$link_table;
+  $sql_params["parent_key"]=$parent_key;
+  $sql_params["link_key"]=$link_key;
+  $sql=\webdb\utils\sql_fill("checklist_exist_links",$sql_params);
+  for ($i=0;$i<count($exist_parent_link_records);$i++)
   {
-    var_dump($id);
+    $link=$exist_parent_link_records[$i];
+    $child_id=$link[$link_key];
+    if (isset($_POST["list_select"][$child_id])==false)
+    {
+      $where_items=array();
+      $where_items[$parent_key]=$parent_id;
+      $where_items[$link_key]=$child_id;
+      \webdb\sql\sql_delete($where_items,$link_table,$link_database);
+    }
   }
-  var_dump($_POST);
-  var_dump($_GET);
-  var_dump($_POST["parent_id:".$form_name]);
-  die;
-  /*
-    TODO:
-      - query existing links with matching id's
-      - update those links with additional field data
-      - assemble list of id's that don't yet exist in links table
-      - insert new link records
-      - redirect
-  */
+  if (isset($_POST["list_select"])==true)
+  {
+    foreach ($_POST["list_select"] as $child_id => $check_value)
+    {
+      $where_items=array();
+      $where_items[$parent_key]=$parent_id;
+      $where_items[$link_key]=$child_id;
+      $value_items=array();
+      for ($i=0;$i<count($link_fields);$i++)
+      {
+        $field_name=$link_fields[$i];
+        $field_id=$parent_id.\webdb\index\CONFIG_ID_DELIMITER.$child_id;
+        if (isset($_POST[$field_name][$field_id])==true)
+        {
+          $value_items[$field_name]=$_POST[$field_name][$field_id];
+        }
+      }
+      $records=\webdb\sql\fetch_prepare($sql,$where_items);
+      if (count($records)==1)
+      {
+        $record=$records[0];
+        foreach ($value_items as $field_name => $field_value)
+        {
+          if ($record[$field_name]==$field_value)
+          {
+            unset($value_items[$field_name]);
+          }
+        }
+        if (count($value_items)>0)
+        {
+          \webdb\sql\sql_update($value_items,$where_items,$link_table,$link_database);
+        }
+      }
+      else
+      {
+        $value_items+=$where_items;
+        \webdb\sql\sql_insert($value_items,$link_table,$link_database);
+      }
+    }
+  }
   \webdb\forms\page_redirect();
 }
 
@@ -531,6 +587,10 @@ function list_row($form_config,$record,$column_format,$row_spans,$lookup_records
       }
     }
     $field_params["field_name"]=$field_name;
+    if ((isset($form_config["parent_form_id"])==true) and ($form_config["checklist"]==true))
+    {
+      $field_params["field_name"].="[".$form_config["parent_form_id"].\webdb\index\CONFIG_ID_DELIMITER.$field_params["primary_key"]."]";
+    }
     $field_params["url_page"]=$form_config["url_page"];
     $field_params["group_span"]="";
     $field_params["handlers"]="";
@@ -1133,6 +1193,30 @@ function list_form_content($form_name,$records=false,$insert_default_params=fals
     }
   }
   $lookup_records=lookup_records($form_config);
+  # ~~~~~~~~~~~~~~~~~~~~~~~
+  if ($form_config["checklist"]==true)
+  {
+    $primary_key=$form_config["primary_key"];
+    $link_key=$form_config["link_key"];
+    $checked_records=array();
+    $unchecked_records=array();
+    for ($i=0;$i<count($records);$i++)
+    {
+      $record=$records[$i];
+      for ($j=0;$j<count($checklist_link_records);$j++)
+      {
+        $test_link_record=$checklist_link_records[$j];
+        if ($record[$primary_key]==$test_link_record[$link_key])
+        {
+          $checked_records[]=$record;
+          continue 2;
+        }
+      }
+      $unchecked_records[]=$record;
+    }
+    $records=array_merge($checked_records,$unchecked_records);
+  }
+  # ~~~~~~~~~~~~~~~~~~~~~~~
   for ($i=0;$i<count($records);$i++)
   {
     $record=$records[$i];
