@@ -1741,9 +1741,12 @@ function process_form_data_fields($form_name,$post_override=false)
     {
       continue;
     }
+    var_dump($_POST);
+    die;
     switch ($control_type)
     {
       case "text":
+      case "lookup":
       case "hidden":
         $value_items[$field_name]=$post_fields[$field_name];
         break;
