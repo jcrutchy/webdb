@@ -867,7 +867,15 @@ function output_editable_field(&$field_params,$record,$field_name,$control_type,
       $field_params["field_value"]=str_replace(\webdb\index\LINEBREAK_PLACEHOLDER,\webdb\utils\template_fill("break"),$field_params["field_value"]);
       break;
     case "span":
+      break;
     case "text":
+      if (isset($form_config["disabled"][$field_name])==true)
+      {
+        if ($form_config["disabled"][$field_name]==true)
+        {
+          $field_params["control_style"].=\webdb\forms\form_template_fill("disabled_text_control_style");
+        }
+      }
       break;
     case "memo":
       $field_params["field_value"]=htmlspecialchars(str_replace(\webdb\index\LINEBREAK_DB_DELIM,\webdb\index\LINEBREAK_PLACEHOLDER,$field_params["field_value"]));
