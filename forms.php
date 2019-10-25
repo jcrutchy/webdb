@@ -31,6 +31,10 @@ function get_form_config($url_page,$return=false)
 function form_dispatch($url_page)
 {
   global $settings;
+  if (isset($_GET["filters"])==true)
+  {
+    $settings["filters"]=json_decode($_GET["filters"],true);
+  }
   $form_config=\webdb\forms\get_form_config($url_page);
   $form_name=$form_config["form_name"];
   if ((isset($_GET["ajax"])==true) and (isset($_GET["field_name"])==true))
@@ -294,17 +298,24 @@ function form_template_fill($name,$params=false)
 
 function process_filter_sql(&$form_config)
 {
+  global $settings;
+  if (isset($settings["filters"])==true)
+  {
+    $filters=$settings["filters"];
+    $url_page=$form_config["url_page"];
+    if (isset($filters[$url_page])==true)
+    {
+      $form_config["default_filter"]=$filters[$url_page];
+    }
+  }
+  $form_config["default_filter_sql"]="";
   if ($form_config["default_filter"]<>"")
   {
     $filter_name=$form_config["default_filter"];
     if (isset($form_config["filter_options"][$filter_name])==true)
     {
-      $form_config["default_filter"]=$form_config["filter_options"][$filter_name];
-      $form_config["default_filter"]=\webdb\utils\sql_fill("default_filter",$form_config);
-    }
-    else
-    {
-      $form_config["default_filter"]="";
+      $form_config["default_filter_sql"]=$form_config["filter_options"][$filter_name];
+      $form_config["default_filter_sql"]=\webdb\utils\sql_fill("default_filter",$form_config);
     }
   }
 }

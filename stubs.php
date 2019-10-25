@@ -69,6 +69,7 @@ function list_insert($form_name)
       case "page":
       case "cmd":
       case "redirect":
+      case "filters":
       case "ajax":
         continue;
       default:

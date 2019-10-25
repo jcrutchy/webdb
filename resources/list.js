@@ -1,3 +1,4 @@
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function list_page_load()
@@ -165,8 +166,7 @@ function list_insert_row_load()
   }
   catch (e)
   {
-    //alert(this.responseText);
-    console.log(this.responseText);
+    custom_alert(this.responseText);
     return;
   }
   if (data.hasOwnProperty("error")==true)

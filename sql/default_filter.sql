@@ -1,1 +1,1 @@
-WHERE (%%default_filter%%)
+WHERE (%%default_filter_sql%%)
