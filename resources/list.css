@@ -363,7 +363,7 @@ th.list_controls_head
     left: 10px;
     width: 500px;
     top: 10px;
-    bottom: 214px;
+    bottom: 246px;
     padding: 0;
     overflow: hidden;
     border-style: solid;
@@ -474,8 +474,8 @@ th.list_controls_head
 #advanced_search_page_search_button
   {
     position: absolute;
-    left: 525px;
-    top: 10px;
+    left: 10px;
+    bottom: 224px;
   }
 
 #advanced_search_page_search_button input

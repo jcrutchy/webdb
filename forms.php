@@ -31,10 +31,6 @@ function get_form_config($url_page,$return=false)
 function form_dispatch($url_page)
 {
   global $settings;
-  if (isset($_GET["filters"])==true)
-  {
-    $settings["filters"]=json_decode($_GET["filters"],true);
-  }
   $form_config=\webdb\forms\get_form_config($url_page);
   $form_name=$form_config["form_name"];
   if ((isset($_GET["ajax"])==true) and (isset($_GET["field_name"])==true))
@@ -171,10 +167,6 @@ function form_dispatch($url_page)
 function checklist_update($form_name)
 {
   global $settings;
-  if (\webdb\utils\check_user_form_permission($form_name,"u")==false)
-  {
-    \webdb\utils\show_message("error: form record(s) update permission denied");
-  }
   $form_config=$settings["forms"][$form_name];
   $parent_id=$_POST["parent_id:".$form_name];
   $link_database=$form_config["link_database"];
@@ -182,6 +174,15 @@ function checklist_update($form_name)
   $parent_key=$form_config["parent_key"];
   $link_key=$form_config["link_key"];
   $link_fields=$form_config["link_fields"];
+  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  $list_records=false;
+  \webdb\forms\process_filter_sql($form_config);
+  if ($form_config["default_filter_sql"]<>"")
+  {
+    $sql=\webdb\utils\sql_fill("form_list_fetch_all",$form_config);
+    $list_records=\webdb\sql\fetch_query($sql);
+  }
+  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   $sql_params=array();
   $sql_params["link_database"]=$link_database;
   $sql_params["link_table"]=$link_table;
@@ -200,11 +201,20 @@ function checklist_update($form_name)
   {
     $link=$exist_parent_link_records[$i];
     $child_id=$link[$link_key];
+    $results=\webdb\utils\search_sql_records($list_records,$link_key,$child_id);
+    if (count($results)==0)
+    {
+      continue;
+    }
     if (isset($_POST["list_select"][$child_id])==false)
     {
       $where_items=array();
       $where_items[$parent_key]=$parent_id;
       $where_items[$link_key]=$child_id;
+      if (\webdb\utils\check_user_form_permission($form_name,"d")==false)
+      {
+        \webdb\utils\show_message("error: form record(s) delete permission denied");
+      }
       \webdb\sql\sql_delete($where_items,$link_table,$link_database);
     }
   }
@@ -238,11 +248,19 @@ function checklist_update($form_name)
         }
         if (count($value_items)>0)
         {
+          if (\webdb\utils\check_user_form_permission($form_name,"u")==false)
+          {
+            \webdb\utils\show_message("error: form record(s) update permission denied");
+          }
           \webdb\sql\sql_update($value_items,$where_items,$link_table,$link_database);
         }
       }
       else
       {
+        if (\webdb\utils\check_user_form_permission($form_name,"i")==false)
+        {
+          \webdb\utils\show_message("error: form record(s) insert permission denied");
+        }
         $value_items+=$where_items;
         \webdb\sql\sql_insert($value_items,$link_table,$link_database);
       }
@@ -299,9 +317,9 @@ function form_template_fill($name,$params=false)
 function process_filter_sql(&$form_config)
 {
   global $settings;
-  if (isset($settings["filters"])==true)
+  if (isset($_GET["filters"])==true)
   {
-    $filters=$settings["filters"];
+    $filters=json_decode($_GET["filters"],true);
     $url_page=$form_config["url_page"];
     if (isset($filters[$url_page])==true)
     {
@@ -1328,6 +1346,11 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
     }
     $form_params["redirect"]=\webdb\forms\form_template_fill("redirect_url_param",$url_params);
   }
+  $form_params["filters"]="";
+  if (isset($_GET["filters"])==true)
+  {
+    $form_params["filters"]="&filters=".urlencode($_GET["filters"]);
+  }
   return \webdb\forms\form_template_fill("list",$form_params);
 }
 
@@ -1353,6 +1376,7 @@ function advanced_search($form_name)
     }
     $field_params=array();
     $field_params["field_name"]=$field_name;
+    $field_params["control_style"]="";
     $field_params["field_value"]=htmlspecialchars($field_value);
     $search_control_type="text";
     switch ($control_type)
@@ -1419,6 +1443,14 @@ function advanced_search($form_name)
     }
     $row_params=array();
     $row_params["field_name"]=$form_config["captions"][$field_name];
+    foreach ($form_config["caption_groups"] as $group_caption => $group_fields)
+    {
+      if (in_array($field_name,$group_fields)==true)
+      {
+        $row_params["field_name"]=$group_caption.": ".$row_params["field_name"];
+        break;
+      }
+    }
     $row_params["field_value"]=\webdb\forms\form_template_fill("advanced_search_".$search_control_type,$field_params);
     $row_params["interface_button"]="";
     $rows.=\webdb\forms\form_template_fill("field_row",$row_params);

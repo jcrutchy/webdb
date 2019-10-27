@@ -144,6 +144,21 @@ function sql_fill($sql_key,$params=false)
 
 #####################################################################################################
 
+function search_sql_records(&$records,$find_column,$find_value)
+{
+  $results=array();
+  for ($i=0;$i<count($records);$i++)
+  {
+    if ($records[$i][$find_column]==$find_value)
+    {
+      $results[]=$records[$i];
+    }
+  }
+  return $results;
+}
+
+#####################################################################################################
+
 function group_by_fields($form_config,$record)
 {
   $result=array();
