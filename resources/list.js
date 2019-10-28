@@ -84,12 +84,12 @@ function list_edit_row_reset_load()
   }
   catch (e)
   {
-    alert(this.responseText);
+    custom_alert(this.responseText);
     return;
   }
   if (data.hasOwnProperty("error")==true)
   {
-    alert(data.error);
+    custom_alert(data.error);
     return;
   }
   if ((data.hasOwnProperty("url_page")==true) && (data.hasOwnProperty("primary_key")==true) && (data.hasOwnProperty("html")==true))
@@ -116,7 +116,7 @@ function list_edit_row_reset_load()
 
 function list_edit_row_reset_error()
 {
-  alert("error");
+  custom_alert("error");
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -171,7 +171,7 @@ function list_insert_row_load()
   }
   if (data.hasOwnProperty("error")==true)
   {
-    alert(data.error);
+    custom_alert(data.error);
     return;
   }
   if ((data.hasOwnProperty("url_page")==true) && (data.hasOwnProperty("html")==true))
@@ -186,7 +186,7 @@ function list_insert_row_load()
 
 function list_insert_row_error()
 {
-  alert("error");
+  custom_alert("error");
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -246,12 +246,12 @@ function list_edit_row_load()
   }
   catch (e)
   {
-    alert(this.responseText);
+    custom_alert(this.responseText);
     return;
   }
   if (data.hasOwnProperty("error")==true)
   {
-    alert(data.error);
+    custom_alert(data.error);
     return;
   }
   if ((data.hasOwnProperty("url_page")==true) && (data.hasOwnProperty("primary_key")==true) && (data.hasOwnProperty("calendar_fields")==true) && (data.hasOwnProperty("edit_fields")==true) && (data.hasOwnProperty("html")==true))
@@ -275,7 +275,7 @@ function list_edit_row_load()
 
 function list_edit_row_error()
 {
-  alert("error");
+  custom_alert("error");
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -323,12 +323,12 @@ function list_edit_row_update_load()
   }
   catch (e)
   {
-    alert(this.responseText);
+    custom_alert(this.responseText);
     return;
   }
   if (data.hasOwnProperty("error")==true)
   {
-    alert(data.error);
+    custom_alert(data.error);
     return;
   }
   location.reload();
@@ -338,7 +338,7 @@ function list_edit_row_update_load()
 
 function list_edit_row_update_error()
 {
-  alert("error");
+  custom_alert("error");
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////

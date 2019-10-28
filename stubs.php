@@ -108,7 +108,7 @@ function list_edit($id,$form_name)
   $form_config=$settings["forms"][$form_name];
   $data=array();
   $data["url_page"]=$form_config["url_page"];
-  $column_format=\webdb\forms\get_column_format_data($form_name);
+  $column_format=\webdb\forms\get_column_format_data($form_config);
   $record=\webdb\forms\get_record_by_id($form_name,$id,"primary_key");
   \webdb\forms\process_computed_fields($form_config,$record);
   if (count($_POST)>0)
