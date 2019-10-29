@@ -11,12 +11,13 @@ CREATE TABLE IF NOT EXISTS `webdb`.`users` (
   `created_timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `login_cookie` VARCHAR(255) DEFAULT "",
   `enabled` TINYINT NOT NULL DEFAULT 1,
+  `username` VARCHAR(255) NOT NULL,
   `email` VARCHAR(255) NOT NULL,
   `pw_hash` VARCHAR(255) NOT NULL,
   `pw_reset_key` VARCHAR(255) DEFAULT "",
   `pw_reset_time` BIGINT DEFAULT 0,
   PRIMARY KEY (`user_id`),
-  UNIQUE INDEX `email` (`email` ASC))
+  UNIQUE INDEX `username` (`username` ASC))
 ENGINE = InnoDB
 AUTO_INCREMENT = 1;
 
@@ -24,7 +25,7 @@ AUTO_INCREMENT = 1;
 username: admin
 password: password
 */
-INSERT INTO `webdb`.`users` (`email`,`pw_hash`) VALUES ("admin","$2y$13$Vn8rJB73AHq56cAqbBwkEuKrQt3lSdoA3sDmKULZEgQLE4.nmsKzW");
+INSERT INTO `webdb`.`users` (`username`,`pw_hash`) VALUES ("admin","$2y$13$Vn8rJB73AHq56cAqbBwkEuKrQt3lSdoA3sDmKULZEgQLE4.nmsKzW");
 
 DROP TABLE IF EXISTS `webdb`.`row_locks` ;
 CREATE TABLE IF NOT EXISTS `webdb`.`row_locks` (

@@ -24,21 +24,21 @@ function auth_dispatch()
     \webdb\users\change_password();
   }
   $settings["user_record"]=\webdb\users\login();
-  $settings["logged_in_email"]=$settings["user_record"]["email"];
+  $settings["logged_in_username"]=$settings["user_record"]["username"];
 }
 
 #####################################################################################################
 
-function get_user_record($email)
+function get_user_record($username)
 {
   global $settings;
   $sql_params=array();
-  $sql_params["email"]=$email;
-  $records=\webdb\sql\file_fetch_prepare("user_get_by_email",$sql_params);
+  $sql_params["username"]=$username;
+  $records=\webdb\sql\file_fetch_prepare("user_get_by_username",$sql_params);
   if (count($records)<>1)
   {
     setcookie($settings["login_cookie"],null,-1,"/");
-    \webdb\utils\show_message("error: email address not found");
+    \webdb\utils\show_message("error: username not found");
   }
   return $records[0];
 }
@@ -72,20 +72,20 @@ function login()
 {
   global $settings;
   $login_form_params=array();
-  $login_form_params["default_email"]="";
-  if (isset($_COOKIE[$settings["email_cookie"]])==true)
+  $login_form_params["default_username"]="";
+  if (isset($_COOKIE[$settings["username_cookie"]])==true)
   {
-    $login_form_params["default_email"]=$_COOKIE[$settings["email_cookie"]];
+    $login_form_params["default_username"]=$_COOKIE[$settings["username_cookie"]];
   }
   $login_form_params["default_remember_me"]=\webdb\utils\template_fill("checkbox_checked");
   $login_form_params["login_script_modified"]=\webdb\utils\resource_modified_timestamp("login.js");
   $login_form_params["login_styles_modified"]=\webdb\utils\resource_modified_timestamp("login.css");
-  if ((isset($_POST["login_email"])==true) and (isset($_POST["login_password"])==true))
+  if ((isset($_POST["login_username"])==true) and (isset($_POST["login_password"])==true))
   {
     $expiry=time()+$settings["max_cookie_age"];
-    setcookie($settings["email_cookie"],$_POST["login_email"],$expiry,"/");
-    $login_form_params["default_email"]=$_POST["login_email"];
-    $user_record=\webdb\users\get_user_record($_POST["login_email"]);
+    setcookie($settings["username_cookie"],$_POST["login_username"],$expiry,"/");
+    $login_form_params["default_username"]=$_POST["login_username"];
+    $user_record=\webdb\users\get_user_record($_POST["login_username"]);
     if (password_verify($_POST["login_password"],$user_record["pw_hash"])==false)
     {
       setcookie($settings["login_cookie"],null,-1,"/");
@@ -109,9 +109,9 @@ function login()
     \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
     \webdb\utils\redirect($settings["app_web_index"]);
   }
-  elseif ((isset($_COOKIE[$settings["login_cookie"]])==true) and (isset($_COOKIE[$settings["email_cookie"]])==true))
+  elseif ((isset($_COOKIE[$settings["login_cookie"]])==true) and (isset($_COOKIE[$settings["username_cookie"]])==true))
   {
-    $user_record=\webdb\users\get_user_record($_COOKIE[$settings["email_cookie"]]);
+    $user_record=\webdb\users\get_user_record($_COOKIE[$settings["username_cookie"]]);
     if ($user_record["pw_reset_key"]<>"")
     {
       \webdb\users\cancel_password_reset($user_record);
@@ -175,17 +175,17 @@ function reset_password()
 function send_reset_password_message()
 {
   global $settings;
-  if (isset($_POST["login_email"])==false)
+  if (isset($_POST["login_username"])==false)
   {
-    \webdb\utils\show_message("error: missing email address");
+    \webdb\utils\show_message("error: missing username");
   }
   $sql_params=array();
-  $sql_params["email"]=$_POST["login_email"];
-  $records=\webdb\sql\file_fetch_prepare("user_get_by_email",$sql_params);
+  $sql_params["username"]=$_POST["login_username"];
+  $records=\webdb\sql\file_fetch_prepare("user_get_by_username",$sql_params);
   if (count($records)<>1)
   {
     setcookie($settings["login_cookie"],null,-1,"/");
-    \webdb\utils\show_message("error: email address not found");
+    \webdb\utils\show_message("error: username not found");
   }
   $user_record=$records[0];
   $value_items=array();
@@ -202,7 +202,7 @@ function send_reset_password_message()
   $msg_params["key"]=urlencode($key);
   $message=\webdb\utils\template_fill("password_reset_message",$msg_params);
   \webdb\utils\show_message($message); # TESTING
-  \webdb\utils\send_email($_POST["login_email"],$settings["app_name"]." password reset",$message);
+  \webdb\utils\send_email($user_record["email"],$settings["app_name"]." password reset",$message);
   setcookie($settings["login_cookie"],null,-1,"/");
   $t=$value_items["pw_reset_time"]+$settings["password_reset_timeout"];
   \webdb\utils\show_message("Password reset link sent to registered email address, valid till ".date("g:i a",$t)." on ".date("l, j F Y (T)",$t).".");
@@ -223,7 +223,7 @@ function change_password($password_reset_user=false)
       setcookie($settings["login_cookie"],null,-1,"/");
       \webdb\utils\show_message("error: new passwords do not match");
     }
-    $user_record=\webdb\users\get_user_record($_POST["login_email"]);
+    $user_record=\webdb\users\get_user_record($_POST["login_username"]);
     if (password_verify($pw_old,$user_record["pw_hash"])==false)
     {
       setcookie($settings["login_cookie"],null,-1,"/");
@@ -247,7 +247,7 @@ function change_password($password_reset_user=false)
     $change_password_params["old_password_default"]="";
     $change_password_params["old_password_display"]="table-row";
     $user_record=\webdb\users\login();
-    $change_password_params["login_email"]=$user_record["email"];
+    $change_password_params["login_username"]=$user_record["username"];
   }
   else
   {
@@ -262,7 +262,7 @@ function change_password($password_reset_user=false)
     \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
     $change_password_params["old_password_default"]=$temp_password;
     $change_password_params["old_password_display"]="none";
-    $change_password_params["login_email"]=$password_reset_user["email"];
+    $change_password_params["login_username"]=$password_reset_user["username"];
   }
   $content=\webdb\utils\template_fill("change_password",$change_password_params);
   \webdb\utils\output_page($content,"Change Password");

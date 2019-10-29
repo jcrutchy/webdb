@@ -128,7 +128,7 @@ $required_settings=array(
   "app_root_namespace",
   "app_date_format",
   "login_cookie",
-  "email_cookie",
+  "username_cookie",
   "max_cookie_age",
   "password_reset_timeout",
   "row_lock_expiration",

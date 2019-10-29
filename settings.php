@@ -23,7 +23,7 @@ $settings["links_template"]="";
 $settings["footer_template"]="";
 
 $settings["login_cookie"]="webdb_login";
-$settings["email_cookie"]="webdb_email";
+$settings["username_cookie"]="webdb_username";
 $settings["max_cookie_age"]=60*60*24*365;
 $settings["password_reset_timeout"]=60*60*24;
 $settings["password_bcrypt_cost"]=10; # 10 is a good baseline, 13 is very difficult to crack (but slower to hash)

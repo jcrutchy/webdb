@@ -327,10 +327,10 @@ function sql_log($result,$sql,$params=array())
   {
     return;
   }
-  $email="(no user email)";
-  if (isset($settings["user_record"]["email"])==true)
+  $username="(no username)";
+  if (isset($settings["user_record"]["username"])==true)
   {
-    $email=$settings["user_record"]["email"];
+    $username=$settings["user_record"]["username"];
   }
   $log_filename=$settings["sql_log_path"].date("Ymd").".log";
   if (isset($params["login_cookie_value"])==true)
@@ -346,7 +346,7 @@ function sql_log($result,$sql,$params=array())
     $params["pw_reset_key"]="(obfuscated)";
   }
   $sql=str_replace(PHP_EOL," ",$sql);
-  $content=date("Y-m-d H:i:s")."\t".$email."\t".$result."\t".$sql."\t".serialize($params).PHP_EOL;
+  $content=date("Y-m-d H:i:s")."\t".$username."\t".$result."\t".$sql."\t".serialize($params).PHP_EOL;
   file_put_contents($log_filename,$content,FILE_APPEND);
 }
 

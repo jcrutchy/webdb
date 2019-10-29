@@ -11,7 +11,7 @@
         "group_id": "combobox"
     },
     "captions": {
-        "user_id": "user email",
+        "user_id": "username",
         "group_id": "group name"
     },
     "caption_groups": [],
@@ -34,7 +34,7 @@
             "database": "webdb",
             "table": "users",
             "key_field": "user_id",
-            "display_field": "email"
+            "display_field": "username"
         },
         "group_id": {
             "database": "webdb",
