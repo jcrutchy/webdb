@@ -189,10 +189,11 @@ th.list_controls_head
     text-shadow: 0 0 4px #999999;
   }
 
-#update_status
+.update_status
   {
     font-weight: bold;
     padding-left: 10px;
+    display: none;
   }
 
 #header_links_bar
@@ -500,4 +501,28 @@ th.list_controls_head
     font-weight: bold;
     font-size: 14px;
     color: red;
+  }
+
+.check_cross
+  {
+    color: red;
+    font-size: 11pt;
+    font-weight: bold;
+  }
+
+.check_tick
+  {
+    color: green;
+    font-size: 15pt;
+    font-weight: bold;
+  }
+
+.check_cross_override
+  {
+    color: red;
+  }
+
+.check_tick_override
+  {
+    color: green;
   }

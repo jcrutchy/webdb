@@ -174,7 +174,6 @@ function checklist_update($form_name)
   $parent_key=$form_config["parent_key"];
   $link_key=$form_config["link_key"];
   $link_fields=$form_config["link_fields"];
-  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   $list_records=false;
   \webdb\forms\process_filter_sql($form_config);
   if ($form_config["default_filter_sql"]<>"")
@@ -182,7 +181,6 @@ function checklist_update($form_name)
     $sql=\webdb\utils\sql_fill("form_list_fetch_all",$form_config);
     $list_records=\webdb\sql\fetch_query($sql);
   }
-  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   $sql_params=array();
   $sql_params["link_database"]=$link_database;
   $sql_params["link_table"]=$link_table;
@@ -266,7 +264,9 @@ function checklist_update($form_name)
       }
     }
   }
-  \webdb\forms\page_redirect();
+  $params=array();
+  $params["update"]=$form_config["url_page"];
+  \webdb\forms\page_redirect(false,$params);
 }
 
 #####################################################################################################
@@ -766,11 +766,21 @@ function output_readonly_field($field_params,$control_type,$form_config,$field_n
     case "checkbox":
       if ($display_record[$field_name]==true)
       {
-        $field_params["value"]=\webdb\utils\template_fill("check_tick");
+        $field_params["check_tick_class"]="check_tick";
+        if (isset($form_config["table_cell_styles"][$field_name])==true)
+        {
+          $field_params["check_tick_class"]="check_tick_override";
+        }
+        $field_params["value"]=\webdb\forms\form_template_fill("check_tick",$field_params);
       }
       else
       {
-        $field_params["value"]=\webdb\utils\template_fill("check_cross");
+        $field_params["check_cross_class"]="check_cross";
+        if (isset($form_config["table_cell_styles"][$field_name])==true)
+        {
+          $field_params["check_cross_class"]="check_cross_override";
+        }
+        $field_params["value"]=\webdb\forms\form_template_fill("check_cross",$field_params);
       }
       return \webdb\forms\form_template_fill("list_field_check",$field_params);
   }
@@ -1314,7 +1324,7 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
     }
     if ($form_config["checklist"]==true)
     {
-      $form_params["checklist_update_control"]=\webdb\forms\form_template_fill("checklist_update");
+      $form_params["checklist_update_control"]=\webdb\forms\form_template_fill("checklist_update",$form_config);
     }
   }
   $form_params["row_edit_mode"]=$form_config["individual_edit"];
@@ -1698,19 +1708,6 @@ function output_editor($form_name,$record,$command,$verb,$id)
   $form_params["individual_edit_id"]=$id;
   $form_params["command_caption_noun"]=$form_config["command_caption_noun"];
   $form_params["confirm_caption"]=$verb." ".$form_config["command_caption_noun"];
-  $form_params["update_status"]="";
-  if (isset($_GET["update_status"])==true)
-  {
-    switch ($_GET["update_status"])
-    {
-      case "success":
-        $form_params["update_status"]="UPDATED RECORD SUCCESSFULLY";
-        break;
-      case "fail":
-        $form_params["update_status"]="ERROR UPDATING RECORD";
-        break;
-    }
-  }
   $content=\webdb\forms\form_template_fill(strtolower($command),$form_params);
   $title=$form_config["title"].": ".$command;
   $result=array();
@@ -1852,7 +1849,7 @@ function insert_record($form_name)
   {
     $id=$handled;
   }
-  \webdb\forms\page_redirect(false,$id);
+  \webdb\forms\page_redirect(false,false,$id);
 }
 
 #####################################################################################################
@@ -1961,20 +1958,14 @@ function update_record($form_name,$id)
   $value_items=\webdb\forms\process_form_data_fields($form_name);
   $where_items=\webdb\forms\config_id_conditions($form_config,$id,"individual_edit_id");
   $handled=\webdb\forms\handle_update_record_event($form_name,$id,$where_items,$value_items,$form_config);
-  $additional_params="";
+  $params=false;
   if ($handled==false)
   {
-    $success=\webdb\sql\sql_update($value_items,$where_items,$form_config["table"],$form_config["database"]);
-    if ($success==true)
-    {
-      $additional_params="&update_status=success";
-    }
-    else
-    {
-      $additional_params="&update_status=fail";
-    }
+    \webdb\sql\sql_update($value_items,$where_items,$form_config["table"],$form_config["database"]);
+    $params=array();
+    $params["update"]=$form_config["url_page"];
   }
-  \webdb\forms\page_redirect(false,$additional_params);
+  \webdb\forms\page_redirect(false,$params);
 }
 
 #####################################################################################################
@@ -2095,7 +2086,7 @@ function delete_confirmation($form_name,$id)
 
 #####################################################################################################
 
-function page_redirect($form_name=false,$additional_params="")
+function page_redirect($form_name=false,$params=false,$append="")
 {
   if ($form_name===false)
   {
@@ -2112,7 +2103,31 @@ function page_redirect($form_name=false,$additional_params="")
   {
     $url=\webdb\forms\form_url($form_name);
   }
-  \webdb\utils\redirect($url.$additional_params);
+  if ($params!==false)
+  {
+    $query=parse_url($url,PHP_URL_QUERY);
+    $base_url=substr($url,0,strpos($url,$query));
+    $query_params=array();
+    parse_str($query,$query_params);
+    foreach ($params as $param_name => $param_value)
+    {
+      $query_params[$param_name]=$param_value;
+    }
+    $params=array();
+    foreach ($query_params as $param_name => $param_value)
+    {
+      if ($param_value=="")
+      {
+        $params[]=$param_name;
+      }
+      else
+      {
+        $params[]=$param_name."=".$param_value;
+      }
+    }
+    $url=$base_url.implode("&",$params);
+  }
+  \webdb\utils\redirect($url.$append);
 }
 
 #####################################################################################################

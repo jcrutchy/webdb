@@ -3,18 +3,20 @@
 
 function list_page_load()
 {
-  var update_status=document.getElementById("update_status");
-  if (update_status)
+  var url=window.location.href;
+  var url_obj=new URL(url);
+  var update_page=url_obj.searchParams.get("update");
+  if (update_page!=null)
   {
-    if (update_status.innerHTML!=="")
-    {
-      var url=window.location.href;
-      url=remove_url_param("update_status",url);
-      var current_state=history.state;
-      history.replaceState(current_state,document.title,url);
-      update_status.style.color="rgba(153,51,0,"+update_status_fade_alpha+")";
-      setTimeout(update_status_fadeout,2000); // 2 sec
-    }
+    url=remove_url_param("update",url);
+    var current_state=history.state;
+    history.replaceState(current_state,document.title,url);
+    update_status_fade_id="update_status:"+update_page;
+    update_status_fade_alpha=1.0;
+    var update_status=document.getElementById(update_status_fade_id);
+    update_status.style.color="rgba(153,51,0,"+update_status_fade_alpha+")";
+    update_status.style.display="inline";
+    setTimeout(update_status_fadeout,2000); // 2 sec
   }
 }
 
@@ -42,10 +44,11 @@ function list_body_click(element)
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 var update_status_fade_alpha=1.0;
+var update_status_fade_id="";
 
 function update_status_fadeout()
 {
-  var update_status=document.getElementById("update_status");
+  var update_status=document.getElementById(update_status_fade_id);
   update_status_fade_alpha=update_status_fade_alpha-0.05;
   if (update_status)
   {
