@@ -4,8 +4,8 @@
     "enabled": true,
     "title": "User Groups",
     "url_page": "user_groups",
-    "edit_subforms": {
-    },
+    "edit_subforms": [],
+    "edit_subforms_styles": [],
     "control_types": {
         "user_id": "combobox",
         "group_id": "combobox"
@@ -14,16 +14,21 @@
         "user_id": "user email",
         "group_id": "group name"
     },
-    "caption_groups": {
-    },
+    "caption_groups": [],
     "visible": {
         "user_id": true,
         "group_id": true
     },
+    "disabled": [],
     "default_values": {
         "user_id": "",
         "group_id": ""
     },
+    "js_events": [],
+    "computed_values": [],
+    "custom_interfaces": [],
+    "table_cell_styles": [],
+    "control_styles": [],
     "lookups": {
         "user_id": {
             "database": "webdb",
@@ -38,16 +43,36 @@
             "display_field": "group_name"
         }
     },
+    "event_handlers": [],
+    "html_includes": [],
+    "js_includes": [],
+    "css_includes": [],
     "primary_key": "user_id,group_id",
     "command_caption_noun": "User Group Link",
+    "custom_form_above_template": "",
+    "custom_form_below_template": "",
     "multi_row_delete": true,
     "individual_delete": true,
+    "individual_delete_url_page": "",
     "individual_edit": "row",
     "individual_edit_url_page": "user_groups",
     "individual_edit_id": "user_id,group_id",
     "insert_new": true,
+    "insert_row": true,
     "advanced_search": true,
+    "sort_field_select": true,
+    "allow_field_sort": true,
     "database": "webdb",
     "table": "user_group_links",
-    "sort_sql": "user_id asc,group_id asc"
+    "sort_sql": "user_id asc,group_id asc",
+    "records_sql": "",
+    "group_by": [],
+    "checklist": false,
+    "parent_key": "",
+    "link_key": "",
+    "link_database": "",
+    "link_table": "",
+    "link_fields": [],
+    "default_filter": "",
+    "filter_options": []
 }

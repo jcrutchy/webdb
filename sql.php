@@ -6,19 +6,19 @@ namespace webdb\sql;
 
 function query_error($sql,$source="",$filename="")
 {
-  $params=array();
-  $params["filename"]=$filename;
-  $params["source_error"]="";
-  $params["sql"]=$sql;
+  $msg_params=array();
+  $msg_params["filename"]=$filename;
+  $msg_params["source_error"]="";
+  $msg_params["sql"]=$sql;
   if ($source!=="")
   {
     $err=$source->errorInfo();
     if ($err[0]<>null)
     {
-      $params["source_error"]=$err[2];
+      $msg_params["source_error"]=$err[2];
     }
   }
-  \webdb\utils\show_message(\webdb\utils\template_fill("global".DIRECTORY_SEPARATOR."sql_error",$params));
+  \webdb\utils\show_message(\webdb\utils\template_fill("global".DIRECTORY_SEPARATOR."sql_error",$msg_params));
 }
 
 #####################################################################################################

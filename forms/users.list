@@ -7,6 +7,7 @@
     "edit_subforms": {
         "user_groups_subform": "user_id"
     },
+    "edit_subforms_styles": [],
     "control_types": {
         "user_id": "span",
         "login_cookie": "span",
@@ -35,6 +36,7 @@
         "pw_reset_key": false,
         "pw_reset_time": false
     },
+    "disabled": [],
     "default_values": {
         "user_id": "(auto)",
         "login_cookie": "(auto)",
@@ -44,9 +46,11 @@
         "pw_reset_key": "(auto)",
         "pw_reset_time": "(auto)"
     },
+    "js_events": [],
     "computed_values": {
         "login_cookie": ""
     },
+    "custom_interfaces": [],
     "table_cell_styles": {
         "login_cookie": ""
     },
@@ -54,19 +58,36 @@
         "login_cookie": ""
     },
     "lookups": [],
+    "event_handlers": [],
+    "html_includes": [],
+    "js_includes": [],
+    "css_includes": [],
     "primary_key": "user_id",
     "command_caption_noun": "User",
+    "custom_form_above_template": "",
+    "custom_form_below_template": "",
     "multi_row_delete": false,
     "individual_delete": true,
+    "individual_delete_url_page": "",
     "individual_edit": "row",
     "individual_edit_url_page": "users",
     "individual_edit_id": "user_id",
     "insert_new": true,
     "insert_row": true,
     "advanced_search": false,
+    "sort_field_select": true,
+    "allow_field_sort": true,
     "database": "webdb",
     "table": "users",
     "sort_sql": "email asc",
     "records_sql": "",
-    "group_by": []
+    "group_by": [],
+    "checklist": false,
+    "parent_key": "",
+    "link_key": "",
+    "link_database": "",
+    "link_table": "",
+    "link_fields": [],
+    "default_filter": "",
+    "filter_options": []
 }

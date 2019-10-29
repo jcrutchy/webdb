@@ -71,7 +71,7 @@ function list_insert($form_name)
       case "redirect":
       case "filters":
       case "ajax":
-        continue;
+        break;
       default:
         $insert_default_params[$param_name]=$param_value;
     }

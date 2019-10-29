@@ -7,6 +7,7 @@
     "edit_subforms": {
         "group_users_subform": "group_id"
     },
+    "edit_subforms_styles": [],
     "control_types": {
         "group_id": "span",
         "enabled": "checkbox",
@@ -17,30 +18,54 @@
         "enabled": "enabled",
         "group_name": "group_name"
     },
-    "caption_groups": {
-    },
+    "caption_groups": [],
     "visible": {
         "group_id": true,
         "enabled": true,
         "group_name": true
     },
+    "disabled": [],
     "default_values": {
         "group_id": "(auto)",
         "enabled": true,
         "group_name": ""
     },
-    "lookups": {
-    },
+    "js_events": [],
+    "computed_values": [],
+    "custom_interfaces": [],
+    "table_cell_styles": [],
+    "control_styles": [],
+    "lookups": [],
+    "event_handlers": [],
+    "html_includes": [],
+    "js_includes": [],
+    "css_includes": [],
     "primary_key": "group_id",
     "command_caption_noun": "Group",
+    "custom_form_above_template": "",
+    "custom_form_below_template": "",
     "multi_row_delete": false,
     "individual_delete": true,
+    "individual_delete_url_page": "",
     "individual_edit": "row",
     "individual_edit_url_page": "groups",
     "individual_edit_id": "group_id",
     "insert_new": true,
+    "insert_row": true,
     "advanced_search": false,
+    "sort_field_select": true,
+    "allow_field_sort": true,
     "database": "webdb",
     "table": "groups",
-    "sort_sql": "group_name asc"
+    "sort_sql": "group_name asc",
+    "records_sql": "",
+    "group_by": [],
+    "checklist": false,
+    "parent_key": "",
+    "link_key": "",
+    "link_database": "",
+    "link_table": "",
+    "link_fields": [],
+    "default_filter": "",
+    "filter_options": []
 }

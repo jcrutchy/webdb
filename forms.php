@@ -979,7 +979,7 @@ function get_column_format_data($form_config)
     {
       continue;
     }
-    $box=imagettfbbox(10,0,$settings["gd_ttf"],$form_config["captions"][$field_name]);
+    $box=\imagettfbbox(10,0,$settings["gd_ttf"],$form_config["captions"][$field_name]); # requires php-gd package
     $width=abs($box[4]-$box[0]);
     if ($width>$data["max_field_name_width"])
     {
