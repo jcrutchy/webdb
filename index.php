@@ -30,9 +30,6 @@ ob_start("\webdb\utils\ob_postprocess");
 define("webdb\index\CONFIG_ID_DELIMITER",",");
 define("webdb\index\LINEBREAK_PLACEHOLDER","@@@@");
 define("webdb\index\LINEBREAK_DB_DELIM","\\n");
-define("webdb\index\DEFAULT_PASSWORD","password");
-define("webdb\index\MIN_PASSWORD_LENGTH",6);
-define("webdb\index\MAX_LOGIN_ATTEMPTS",7);
 
 $settings=array();
 $settings_ref=&$settings;

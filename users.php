@@ -108,6 +108,21 @@ function login_failure($user_record,$message)
 
 #####################################################################################################
 
+function login_lockout($user_record)
+{
+  global $settings;
+  $where_items=array();
+  $where_items["user_id"]=$user_record["user_id"];
+  $value_items=array();
+  $value_items["pw_hash"]="*"; # disable login with password
+  $value_items["login_cookie"]="*"; # disable login with cookie
+  \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
+  setcookie($settings["login_cookie"],null,-1,"/");
+  \webdb\utils\show_message(\webdb\utils\template_fill("lockout_error"));
+}
+
+#####################################################################################################
+
 function login()
 {
   global $settings;
@@ -126,24 +141,17 @@ function login()
     setcookie($settings["username_cookie"],$_POST["login_username"],$expiry,"/");
     $login_form_params["default_username"]=$_POST["login_username"];
     $user_record=\webdb\users\get_user_record($_POST["login_username"]);
-    if ($user_record["failed_login_count"]>\webdb\index\MAX_LOGIN_ATTEMPTS)
+    if ($user_record["pw_reset_key"]<>"")
     {
-      $where_items=array();
-      $where_items["user_id"]=$user_record["user_id"];
-      $value_items=array();
-      $value_items["pw_hash"]="*"; # disable login with password
-      $value_items["login_cookie"]="*"; # disable login with cookie
-      \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
-      setcookie($settings["login_cookie"],null,-1,"/");
-      \webdb\utils\show_message(\webdb\utils\template_fill("lockout_error"));
+      \webdb\users\cancel_password_reset($user_record);
+    }
+    if ($user_record["failed_login_count"]>$settings["max_login_attempts"])
+    {
+      \webdb\users\login_lockout($user_record);
     }
     if (password_verify($_POST["login_password"],$user_record["pw_hash"])==false)
     {
       \webdb\users\login_failure($user_record,"error: incorrect password");
-    }
-    if ($user_record["pw_reset_key"]<>"")
-    {
-      \webdb\users\cancel_password_reset($user_record);
     }
     \webdb\users\initialise_login_cookie($user_record["user_id"]);
     $settings["user_record"]=$user_record;
@@ -156,8 +164,12 @@ function login()
     {
       \webdb\users\cancel_password_reset($user_record);
     }
-    if ((\webdb\users\remote_address_changed($user_record)==true) or ($settings["user_agent"]<>$user_record["user_agent"]))
+    if ((\webdb\users\remote_address_changed($user_record)==false) and ($settings["user_agent"]==$user_record["user_agent"]))
     {
+      if ($user_record["failed_login_count"]>$settings["max_login_attempts"])
+      {
+        \webdb\users\login_lockout($user_record);
+      }
       if (password_verify($_COOKIE[$settings["login_cookie"]],$user_record["login_cookie"])==true)
       {
         $where_items=array();
@@ -227,31 +239,31 @@ function logout()
 
 #####################################################################################################
 
-function remote_address_changed($user_record)
+function remote_address_changed($user_record) # allow right/lowest octet to change (dhcp subnet)
 {
   if ($user_record["remote_address"]=="")
   {
-    return false;
+    return true;
   }
   if ($_SERVER["REMOTE_ADDR"]=="")
   {
-    return false;
+    return true;
   }
   $octets_d=explode(".",$user_record["remote_address"]);
   $octets_r=explode(".",$_SERVER["REMOTE_ADDR"]);
   if (count($octets_d)<>4)
   {
-    return false;
+    return true;
   }
   if (count($octets_r)<>4)
   {
-    return false;
+    return true;
   }
   if (($octets_d[0]==$octets_r[0]) and ($octets_d[1]==$octets_r[1]) and ($octets_d[2]==$octets_r[2]))
   {
-    return true;
+    return false;
   }
-  return false;
+  return true;
 }
 
 #####################################################################################################
@@ -340,15 +352,15 @@ function change_password($password_reset_user=false)
       setcookie($settings["login_cookie"],null,-1,"/");
       \webdb\utils\show_message("error: new passwords do not match");
     }
-    if ($pw_new==\webdb\index\DEFAULT_PASSWORD)
+    if (in_array($pw_new,$settings["prohibited_passwords"])==true)
     {
       setcookie($settings["login_cookie"],null,-1,"/");
-      \webdb\utils\show_message("error: cannot use default password of 'password' for your new password");
+      \webdb\utils\show_message("error: cannot use any of the following for your new password: ".implode(" ",$settings["prohibited_passwords"]));
     }
-    if (strlen($pw_new)<\webdb\index\MIN_PASSWORD_LENGTH)
+    if (strlen($pw_new)<$settings["min_password_length"])
     {
       setcookie($settings["login_cookie"],null,-1,"/");
-      \webdb\utils\show_message("error: new password must be at least ".\webdb\index\MIN_PASSWORD_LENGTH." characters");
+      \webdb\utils\show_message("error: new password must be at least ".$settings["min_password_length"]." characters");
     }
     if ($pw_new==$pw_old)
     {

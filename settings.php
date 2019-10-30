@@ -29,6 +29,10 @@ $settings["password_reset_timeout"]=60*60*24;
 $settings["password_bcrypt_cost"]=10; # 10 is a good baseline, 13 is very difficult to crack (but slower to hash)
 $settings["row_lock_expiration"]=60*5;
 
+$settings["prohibited_passwords"]=array("password");
+$settings["min_password_length"]=6;
+$settings["max_login_attempts"]=7;
+
 $settings["db_host"]="localhost";
 
 $settings["gd_ttf"]="/usr/share/fonts/truetype/msttcorefonts/arial.ttf";

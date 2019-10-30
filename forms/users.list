@@ -63,20 +63,20 @@
     "disabled": [],
     "default_values": {
         "user_id": "(auto)",
-        "login_cookie": "",
+        "login_cookie": "*",
         "enabled": false,
         "username": "",
         "email": "",
-        "pw_hash": "",
+        "pw_hash": "*",
         "pw_change": false,
-        "pw_reset_key": "",
-        "pw_reset_time": "0",
-        "pw_login_time": "0",
-        "cookie_login_time": "0",
+        "pw_reset_key": "*",
+        "pw_reset_time": 0,
+        "pw_login_time": 0,
+        "cookie_login_time": 0,
         "user_agent": "",
         "remote_address": "",
-        "failed_login_count": "",
-        "failed_login_time": "0"
+        "failed_login_count": 0,
+        "failed_login_time": 0
     },
     "required_values": [
         "username",

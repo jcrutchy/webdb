@@ -13,19 +13,25 @@ FRAMEWORK SECURITY
 ==================
 
 - if any of the higher 3 octets of the user's remote address change, invalidate cookie login (require password)
+- changes to the right/lowest octet are permitted for login by cookie to allow for dhcp subnets
 - if user's user agent changes, invalidate cookie login (require password)
+- user agent changes will occur when a web browser is updated, so every time a user updates their web browser they will be prompted to login next
+- user agent changes will also occur if a different browser is used (eg: chrome vs firefox)
 
-- when user first logs in, trigger password reset by email (implemented via default value of 1 for pw_change field in users.list)
+- when user first logs in, trigger password change (implemented via default value of 1 for pw_change field in users.list)
 - when password reset has been triggered, disable login by password/cookie (allow 'reset password' button to resend new email)
 
 - when changing password, don't allow old and new passwords to be the same
-- when changing password, don't allow new password to be the default ('password')
+- when changing password, don't allow new password to be any of a list of prohibited passwords (eg: 'password')
 - when changing password, new password must be at least 6 characters
 
-- if password reset flag is set, prompt user to change their password on login (no ability to skip or navigate directly to different page)
+- if pw_change flag is set in a user record, prompt user to change their password on login (no ability to skip or navigate directly to different page)
+- pw_change flag can either be manually set by admin in user edit form, or if required a crontab script could be implemented later to force password change every 2 months or so if required
 
-- lock out password and cookie login after 10 failed attempts
-- locked out accounts can only be unlocked by password reset (or by manual clearing of pw_reset fields in user record by admin)
+- lock out password and cookie login after 7 failed attempts
+- locked out accounts can only be unlocked by password reset (or by manual setting of failed_login_count to 0 in user record by admin)
+- failed login attemps can occur either by incorrect password or invalidated cookie (except when remote address or user agent changes)
+- changes to remote address or user agent will invalidate a login cookie but not increment the failed login attempt counter
 
 - for production, remove the testing show_message in the \webdb\users\send_reset_password_message function that outputs the emailed message (including link) to the browser window
 

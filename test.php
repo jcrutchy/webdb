@@ -62,7 +62,10 @@ function check_app_settings()
     "footer_template",
     "server_email_from",
     "server_email_reply_to",
-    "server_email_bounce_to");
+    "server_email_bounce_to",
+    "prohibited_passwords",
+    "min_password_length",
+    "max_login_attempts");
   for ($i=0;$i<count($required_settings);$i++)
   {
     \webdb\utils\check_required_setting_exists($required_settings[$i]);
