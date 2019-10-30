@@ -95,14 +95,14 @@ function computed_field_iso_datetime_format($field_name,$field_data)
   $value=$field_data[$field_name];
   if (empty($value)==true)
   {
-    return "";
+    return "0";
   }
   return date("c",$value);
 }
 
 #####################################################################################################
 
-function get_url()
+function get_url($request_uri=false)
 {
   $url="http://";
   if (isset($_SERVER["HTTPS"])==true)
@@ -112,7 +112,15 @@ function get_url()
       $url="https://";
     }
   }
-  $url.=$_SERVER["HTTP_HOST"].$_SERVER["REQUEST_URI"];
+  $url.=$_SERVER["HTTP_HOST"];
+  if ($request_uri===false)
+  {
+    $url.=$_SERVER["REQUEST_URI"];
+  }
+  else
+  {
+    $url.=$request_uri;
+  }
   return $url;
 }
 

@@ -141,25 +141,11 @@ function login()
     {
       \webdb\users\login_failure($user_record,"error: incorrect password");
     }
-    $where_items=array();
-    $where_items["user_id"]=$user_record["user_id"];
     if ($user_record["pw_reset_key"]<>"")
     {
       \webdb\users\cancel_password_reset($user_record);
     }
-    $value_items=array();
-    $value_items["pw_login_time"]=microtime(true);
-    $value_items["user_agent"]=$settings["user_agent"];
-    $value_items["remote_address"]=$_SERVER["REMOTE_ADDR"];
-    $value_items["failed_login_count"]=0;
-    $crypto_strong=true;
-    $key=base64_encode(openssl_random_pseudo_bytes(30,$crypto_strong));
-    $options=array();
-    $options["cost"]=$settings["password_bcrypt_cost"];
-    $cookie=password_hash($key,PASSWORD_BCRYPT,$options);
-    $value_items["login_cookie"]=$cookie;
-    setcookie($settings["login_cookie"],$key,$expiry,"/");
-    \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
+    \webdb\users\initialise_login_cookie($user_record["user_id"]);
     $settings["user_record"]=$user_record;
     \webdb\utils\redirect($settings["app_web_index"]);
   }
@@ -170,20 +156,30 @@ function login()
     {
       \webdb\users\cancel_password_reset($user_record);
     }
-    if (password_verify($_COOKIE[$settings["login_cookie"]],$user_record["login_cookie"])==true)
+    if ((\webdb\users\remote_address_changed($user_record)==true) or ($settings["user_agent"]<>$user_record["user_agent"]))
     {
-      $where_items=array();
-      $where_items["user_id"]=$user_record["user_id"];
-      $value_items=array();
-      $value_items["cookie_login_time"]=microtime(true);
-      $value_items["user_agent"]=$settings["user_agent"];
-      $value_items["remote_address"]=$_SERVER["REMOTE_ADDR"];
-      $value_items["failed_login_count"]=0;
-      \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
-      $settings["user_record"]=$user_record;
-      return;
+      if (password_verify($_COOKIE[$settings["login_cookie"]],$user_record["login_cookie"])==true)
+      {
+        $where_items=array();
+        $where_items["user_id"]=$user_record["user_id"];
+        $value_items=array();
+        $value_items["cookie_login_time"]=microtime(true);
+        $value_items["user_agent"]=$settings["user_agent"];
+        $value_items["remote_address"]=$_SERVER["REMOTE_ADDR"];
+        $value_items["failed_login_count"]=0;
+        \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
+        $settings["user_record"]=$user_record;
+        if ($user_record["pw_reset"]==1)
+        {
+          \webdb\users\change_password();
+        }
+        return;
+      }
+      else
+      {
+        login_failure($user_record,false);
+      }
     }
-    login_failure($user_record,false);
   }
   setcookie($settings["login_cookie"],null,-1,"/");
   $content=\webdb\utils\template_fill("login_form",$login_form_params);
@@ -198,12 +194,64 @@ function login()
 
 #####################################################################################################
 
+function initialise_login_cookie($user_id)
+{
+  global $settings;
+  $expiry=time()+$settings["max_cookie_age"];
+  $where_items=array();
+  $where_items["user_id"]=$user_id;
+  $value_items=array();
+  $value_items["pw_login_time"]=microtime(true);
+  $value_items["user_agent"]=$settings["user_agent"];
+  $value_items["remote_address"]=$_SERVER["REMOTE_ADDR"];
+  $value_items["failed_login_count"]=0;
+  $crypto_strong=true;
+  $key=base64_encode(openssl_random_pseudo_bytes(30,$crypto_strong));
+  $options=array();
+  $options["cost"]=$settings["password_bcrypt_cost"];
+  $cookie=password_hash($key,PASSWORD_BCRYPT,$options);
+  $value_items["login_cookie"]=$cookie;
+  setcookie($settings["login_cookie"],$key,$expiry,"/");
+  \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
+}
+
+#####################################################################################################
+
 function logout()
 {
   global $settings;
   setcookie($settings["login_cookie"],null,-1,"/");
   $url=$settings["app_web_index"];
   \webdb\utils\redirect($url,false);
+}
+
+#####################################################################################################
+
+function remote_address_changed($user_record)
+{
+  if ($user_record["remote_address"]=="")
+  {
+    return false;
+  }
+  if ($_SERVER["REMOTE_ADDR"]=="")
+  {
+    return false;
+  }
+  $octets_d=explode(".",$user_record["remote_address"]);
+  $octets_r=explode(".",$_SERVER["REMOTE_ADDR"]);
+  if (count($octets_d)<>4)
+  {
+    return false;
+  }
+  if (count($octets_r)<>4)
+  {
+    return false;
+  }
+  if (($octets_d[0]==$octets_r[0]) and ($octets_d[1]==$octets_r[1]) and ($octets_d[2]==$octets_r[2]))
+  {
+    return true;
+  }
+  return false;
 }
 
 #####################################################################################################
@@ -234,7 +282,7 @@ function reset_password()
   if ($validated===false)
   {
     setcookie($settings["login_cookie"],null,-1,"/");
-    \webdb\utils\show_message("Invalid password reset key.");
+    \webdb\utils\show_message("error: invalid password reset key");
   }
   \webdb\users\cancel_password_reset($validated);
   \webdb\users\change_password($validated);
@@ -317,10 +365,13 @@ function change_password($password_reset_user=false)
     $options["cost"]=$settings["password_bcrypt_cost"];
     $value_items=array();
     $value_items["pw_hash"]=password_hash($pw_new,PASSWORD_BCRYPT,$options);
+    $value_items["pw_reset"]=0;
     $where_items=array();
     $where_items["user_id"]=$user_record["user_id"];
     \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
     \webdb\users\cancel_password_reset($user_record);
+    \webdb\users\initialise_login_cookie($user_record["user_id"]);
+    $settings["user_record"]=$user_record;
     \webdb\utils\redirect($settings["app_web_index"]);
   }
   $change_password_params=array();
@@ -330,23 +381,32 @@ function change_password($password_reset_user=false)
   {
     $change_password_params["old_password_default"]="";
     $change_password_params["old_password_display"]="table-row";
-    $user_record=\webdb\users\login();
-    $change_password_params["login_username"]=$user_record["username"];
+    if (isset($settings["user_record"])==false)
+    {
+      \webdb\users\login();
+    }
+    $change_password_params["login_username"]=$settings["user_record"]["username"];
   }
   else
   {
+    # from password reset
     $value_items=array();
     $crypto_strong=true;
     $temp_password=base64_encode(openssl_random_pseudo_bytes(30,$crypto_strong));
     $options=array();
     $options["cost"]=$settings["password_bcrypt_cost"];
     $value_items["pw_hash"]=password_hash($temp_password,PASSWORD_BCRYPT,$options);
+    $value_items["pw_login_time"]=microtime(true);
+    $value_items["user_agent"]=$settings["user_agent"];
+    $value_items["remote_address"]=$_SERVER["REMOTE_ADDR"];
+    $value_items["failed_login_count"]=0;
     $where_items=array();
     $where_items["user_id"]=$password_reset_user["user_id"];
     \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
     $change_password_params["old_password_default"]=$temp_password;
     $change_password_params["old_password_display"]="none";
     $change_password_params["login_username"]=$password_reset_user["username"];
+    $settings["user_record"]=$password_reset_user;
   }
   $content=\webdb\utils\template_fill("change_password",$change_password_params);
   \webdb\utils\output_page($content,"Change Password");

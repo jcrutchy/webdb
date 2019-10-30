@@ -64,11 +64,11 @@
     "default_values": {
         "user_id": "(auto)",
         "login_cookie": "",
-        "enabled": true,
+        "enabled": false,
         "username": "",
         "email": "",
         "pw_hash": "",
-        "pw_reset": true,
+        "pw_reset": false,
         "pw_reset_key": "",
         "pw_reset_time": "0",
         "pw_login_time": "0",
