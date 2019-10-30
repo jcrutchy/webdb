@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS `webdb`.`users` (
   `username` VARCHAR(255) NOT NULL,
   `email` VARCHAR(255) NOT NULL,
   `pw_hash` VARCHAR(255) DEFAULT "*",
-  `pw_reset` TINYINT NOT NULL DEFAULT 1,
+  `pw_change` TINYINT NOT NULL DEFAULT 1,
   `pw_reset_key` VARCHAR(255) DEFAULT "*",
   `pw_reset_time` BIGINT DEFAULT 0,
   `pw_login_time` BIGINT DEFAULT NULL,

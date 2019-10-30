@@ -15,7 +15,7 @@ FRAMEWORK SECURITY
 - if any of the higher 3 octets of the user's remote address change, invalidate cookie login (require password)
 - if user's user agent changes, invalidate cookie login (require password)
 
-- when user first logs in, trigger password reset by email
+- when user first logs in, trigger password reset by email (implemented via default value of 1 for pw_change field in users.list)
 - when password reset has been triggered, disable login by password/cookie (allow 'reset password' button to resend new email)
 
 - when changing password, don't allow old and new passwords to be the same

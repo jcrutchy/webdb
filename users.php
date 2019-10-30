@@ -169,7 +169,7 @@ function login()
         $value_items["failed_login_count"]=0;
         \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
         $settings["user_record"]=$user_record;
-        if ($user_record["pw_reset"]==1)
+        if ($user_record["pw_change"]==1)
         {
           \webdb\users\change_password();
         }
@@ -365,7 +365,7 @@ function change_password($password_reset_user=false)
     $options["cost"]=$settings["password_bcrypt_cost"];
     $value_items=array();
     $value_items["pw_hash"]=password_hash($pw_new,PASSWORD_BCRYPT,$options);
-    $value_items["pw_reset"]=0;
+    $value_items["pw_change"]=0;
     $where_items=array();
     $where_items["user_id"]=$user_record["user_id"];
     \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
