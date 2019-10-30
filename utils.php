@@ -490,11 +490,17 @@ function load_db_credentials($type)
 
 #####################################################################################################
 
-function send_email($recipient,$subject,$message)
+function send_email($recipient,$cc,$subject,$message,$from,$reply_to,$bounce_to)
 {
-  $headers="MIME-Version: 1.0".PHP_EOL;
-  $headers=$headers."Content-type: text/html; charset=iso-8859-1".PHP_EOL;
-  mail($recipient,$subject,$message,$headers);
+  $headers=array();
+  $headers[]="From: ".$from;
+  $headers[]="Cc: ".$cc;
+  $headers[]="Reply-To: ".$reply_to;
+  $headers[]="X-Sender: ".$from;
+  $headers[]="X-Mailer: PHP/".phpversion();
+  $headers[]="MIME-Version: 1.0";
+  $headers[]="Content-Type: text/html; charset=iso-8859-1";
+  mail($recipient,$subject,$message,implode(PHP_EOL,$headers),"-f".$bounce_to);
 }
 
 #####################################################################################################

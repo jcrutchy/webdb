@@ -20,6 +20,7 @@ FRAMEWORK SECURITY
 
 - when changing password, don't allow old and new passwords to be the same
 - when changing password, don't allow new password to be the default ('password')
+- when changing password, new password must be at least 6 characters
 
 - if password reset flag is set, prompt user to change their password on login (no ability to skip or navigate directly to different page)
 

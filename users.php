@@ -317,9 +317,9 @@ function send_reset_password_message()
   $msg_params["valid_to_date"]=date("l, j F Y (T)",$t);
   $message=\webdb\utils\template_fill("password_reset_message",$msg_params);
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  \webdb\utils\show_message($message); # TESTING (REMOVE/COMMENT OUT FOR PROD)
+  #\webdb\utils\show_message($message); # TESTING (REMOVE/COMMENT OUT FOR PROD)
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  \webdb\utils\send_email($user_record["email"],$settings["app_name"]." password reset",$message);
+  \webdb\utils\send_email($user_record["email"],"",$settings["app_name"]." password reset",$message,$settings["server_email_from"],$settings["server_email_reply_to"],$settings["server_email_bounce_to"]);
   setcookie($settings["login_cookie"],null,-1,"/");
   $message=\webdb\utils\template_fill("password_reset_valid_to_message",$msg_params);
   \webdb\utils\show_message($message);

@@ -134,6 +134,11 @@ webdb and application setup
 
 $ sudo dpkg-reconfigure exim4-config
 follow prompts: internet site
+get external ip address (whatismyip.com) and replace 0.0.0.0 is following command with actual external ip address
+$ dig -x 0.0.0.0 @8.8.8.8
+result should indicate the hostname from the PTR record (if the address has a PTR record)
+if there is only an authority section and no answer section, the address has no PTR record (need to speak with ISP who owns the address)
+
 
 $ ssk-keygen
 follow prompts with default filename and no passphrase

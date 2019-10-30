@@ -59,7 +59,10 @@ function check_app_settings()
     "list_group_border_color",
     "list_group_border_width",
     "links_template",
-    "footer_template");
+    "footer_template",
+    "server_email_from",
+    "server_email_reply_to",
+    "server_email_bounce_to");
   for ($i=0;$i<count($required_settings);$i++)
   {
     \webdb\utils\check_required_setting_exists($required_settings[$i]);
