@@ -323,7 +323,7 @@ function fetch_all_records($table,$sort_field="",$sort_dir="",$schema,$is_admin=
 function sql_log($result,$sql,$params=array())
 {
   global $settings;
-  if (\webdb\utils\is_cli_mode()==true)
+  if (\webdb\cli\is_cli_mode()==true)
   {
     return;
   }
@@ -333,18 +333,7 @@ function sql_log($result,$sql,$params=array())
     $username=$settings["user_record"]["username"];
   }
   $log_filename=$settings["sql_log_path"].date("Ymd").".log";
-  if (isset($params["login_cookie_value"])==true)
-  {
-    $params["login_cookie_value"]="(obfuscated)";
-  }
-  if (isset($params["pw_hash"])==true)
-  {
-    $params["pw_hash"]="(obfuscated)";
-  }
-  if (isset($params["pw_reset_key"])==true)
-  {
-    $params["pw_reset_key"]="(obfuscated)";
-  }
+  \webdb\users\obfuscate_hashes($params);
   $sql=str_replace(PHP_EOL," ",$sql);
   $content=date("Y-m-d H:i:s")."\t".$username."\t".$result."\t".$sql."\t".serialize($params).PHP_EOL;
   file_put_contents($log_filename,$content,FILE_APPEND);

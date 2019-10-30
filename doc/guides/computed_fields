@@ -14,11 +14,13 @@ the following section of a form config must be added for computed fields (in add
 
 include a php file created in the application root directory into the application index script before including the webdb index script
 
-computed field functions must accept a single associative array parameter of any name
+computed field functions must accept two arguments (can each be any name):
+- string containing field name
+- associative array containing complete record
 
 the return value from the function is assigned to the field value that is displayed
 
-function function_name($field_data)
+function function_name($field_name,$field_data)
 {
   return $some_computed_value;
 }

@@ -175,13 +175,13 @@ textarea
 
 .custom_alert_outside
   {
-    width: 500px;
-    height: 120px;
     position: absolute;
     top: 50%;
-    margin-top: -60px;
     left: 50%;
-    margin-left: -250px;
+    width: 700px;
+    height: 400px;
+    margin-top: -200px;
+    margin-left: -350px;
     border-style: solid;
     border-width: 1px;
     border-top-color: #CCCCCC;
@@ -195,6 +195,11 @@ textarea
 
 .custom_alert_inside
   {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     background-color: #EEEEFF;
     border-style: solid;
     border-width: 1px;
@@ -203,7 +208,6 @@ textarea
     border-bottom-color: #999999;
     border-right-color: #999999;
     overflow: hidden;
-    height: 118px;
     background-color: #f7eaed;
   }
 

@@ -7,16 +7,27 @@ namespace webdb\utils;
 function system_message($message)
 {
   global $settings;
-  if (\webdb\utils\is_cli_mode()==true)
+  $settings["unauthenticated_content"]=true;
+  if (\webdb\cli\is_cli_mode()==true)
   {
     die(str_replace(PHP_EOL,", ",$message).PHP_EOL);
   }
   $buf=ob_get_contents();
   if (strlen($buf)<>0)
   {
-    ob_end_clean();
+    ob_end_clean(); # discard buffer
   }
   die($message);
+}
+
+#####################################################################################################
+
+function debug_var_dump($data)
+{
+  global $settings;
+  $settings["unauthenticated_content"]=true;
+  var_dump($data);
+  die;
 }
 
 #####################################################################################################
@@ -28,7 +39,7 @@ function show_message($message)
     $buf=ob_get_contents();
     if (strlen($buf)<>0)
     {
-      ob_end_clean();
+      ob_end_clean(); # discard buffer
     }
     $data=array();
     $data["error"]=$message;
@@ -46,6 +57,7 @@ function show_message($message)
 
 function ob_postprocess($buffer)
 {
+  global $settings;
   if (strpos($buffer,"%%")!==false)
   {
     $buffer="error: unassigned % template found: ".htmlspecialchars($buffer);
@@ -57,6 +69,10 @@ function ob_postprocess($buffer)
   if (strpos($buffer,"@@")!==false)
   {
     $buffer="error: unassigned @ template found: ".htmlspecialchars($buffer);
+  }
+  if ((isset($settings["unauthenticated_content"])==false) and (isset($settings["user_record"])==false))
+  {
+    $buffer="error: authentication failure";
   }
   # TODO: CALL AUTOMATED W3C VALIDATION HERE
   #global $t;
@@ -70,6 +86,18 @@ function ob_postprocess($buffer)
     }
   }
   return $buffer;
+}
+
+#####################################################################################################
+
+function computed_field_iso_datetime_format($field_name,$field_data)
+{
+  $value=$field_data[$field_name];
+  if (empty($value)==true)
+  {
+    return "";
+  }
+  return date("c",$value);
 }
 
 #####################################################################################################
@@ -390,10 +418,10 @@ function redirect($url,$clean_buffer=true)
 {
   if ($clean_buffer==true)
   {
-    ob_end_clean();
+    ob_end_clean(); # discard buffer
   }
   header("Location: ".$url);
-  die();
+  die;
 }
 
 #####################################################################################################
@@ -473,20 +501,6 @@ function is_app_mode()
   else
   {
     return true;
-  }
-}
-
-#####################################################################################################
-
-function is_cli_mode()
-{
-  if (isset($_SERVER["argv"])==true)
-  {
-    return true;
-  }
-  else
-  {
-    return false;
   }
 }
 

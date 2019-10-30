@@ -20,6 +20,7 @@
     },
     "default_values": {
     },
+    "required_values": [],
     "js_events": {
     },
     "computed_values": {

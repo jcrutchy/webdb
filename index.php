@@ -19,6 +19,8 @@ require_once("users.php");
 require_once("forms.php");
 require_once("sql.php");
 require_once("stubs.php");
+require_once("test.php");
+require_once("cli.php");
 
 set_error_handler('\webdb\utils\error_handler',E_ALL);
 set_exception_handler('\webdb\utils\exception_handler');
@@ -28,39 +30,12 @@ ob_start("\webdb\utils\ob_postprocess");
 define("webdb\index\CONFIG_ID_DELIMITER",",");
 define("webdb\index\LINEBREAK_PLACEHOLDER","@@@@");
 define("webdb\index\LINEBREAK_DB_DELIM","\\n");
+define("webdb\index\DEFAULT_PASSWORD","password");
+define("webdb\index\MIN_PASSWORD_LENGTH",6);
+define("webdb\index\MAX_LOGIN_ATTEMPTS",7);
 
 $settings=array();
-
-$settings["permissions"]=array();
-
-$settings["parent_path"]=dirname(dirname(__FILE__)).DIRECTORY_SEPARATOR;
-$settings["webdb_root_path"]=__DIR__.DIRECTORY_SEPARATOR;
-
-$includes=get_included_files();
-$settings["app_root_path"]=dirname($includes[0]).DIRECTORY_SEPARATOR;
-
-$settings["webdb_directory_name"]=basename($settings["webdb_root_path"]);
-$settings["app_directory_name"]=basename($settings["app_root_path"]);
-
-$webdb_settings_filename=$settings["webdb_root_path"]."settings.php";
-if (file_exists($webdb_settings_filename)==true)
-{
-  require_once($webdb_settings_filename);
-}
-else
-{
-  \webdb\utils\system_message("error: webdb settings file not found");
-}
-
-$common_settings_filename=$settings["parent_path"]."webdb_common_settings.php";
-if (file_exists($common_settings_filename)==true)
-{
-  require_once($common_settings_filename);
-}
-else
-{
-  \webdb\utils\system_message("error: webdb common settings file not found");
-}
+$settings_ref=&$settings;
 
 $settings["user_agent"]="";
 if (isset($_SERVER["HTTP_USER_AGENT"])==true)
@@ -77,19 +52,40 @@ for ($i=0;$i<count($incompatible_agents);$i++)
   }
 }
 
-$required_settings=array(
-  "webdb_templates_path",
-  "webdb_sql_path",
-  "webdb_resources_path",
-  "webdb_forms_path");
-for ($i=0;$i<count($required_settings);$i++)
+$settings["permissions"]=array();
+
+$settings["parent_path"]=dirname(dirname(__FILE__)).DIRECTORY_SEPARATOR;
+$settings["webdb_root_path"]=__DIR__.DIRECTORY_SEPARATOR;
+
+$includes=get_included_files();
+$settings["app_root_path"]=dirname($includes[0]).DIRECTORY_SEPARATOR;
+
+$settings["webdb_directory_name"]=basename($settings["webdb_root_path"]);
+$settings["app_directory_name"]=basename($settings["app_root_path"]);
+
+# load webdb settings
+$webdb_settings_filename=$settings["webdb_root_path"]."settings.php";
+if (file_exists($webdb_settings_filename)==true)
 {
-  \webdb\utils\check_required_setting_exists($required_settings[$i]);
+  require_once($webdb_settings_filename);
 }
-\webdb\utils\check_required_file_exists($settings["webdb_templates_path"],true);
-\webdb\utils\check_required_file_exists($settings["webdb_sql_path"],true);
-\webdb\utils\check_required_file_exists($settings["webdb_resources_path"],true);
-\webdb\utils\check_required_file_exists($settings["webdb_forms_path"],true);
+else
+{
+  \webdb\utils\system_message("error: webdb settings file not found");
+}
+
+# load common application settings
+$common_settings_filename=$settings["parent_path"]."webdb_common_settings.php";
+if (file_exists($common_settings_filename)==true)
+{
+  require_once($common_settings_filename);
+}
+else
+{
+  \webdb\utils\system_message("error: webdb common settings file not found");
+}
+
+\webdb\test\check_webdb_settings();
 
 $settings["templates"]=\webdb\utils\load_files($settings["webdb_templates_path"],"","htm",true);
 $settings["webdb_templates"]=$settings["templates"];
@@ -97,97 +93,37 @@ $settings["webdb_templates"]=$settings["templates"];
 $settings["sql"]=\webdb\utils\load_files($settings["webdb_sql_path"],"","sql",true);
 $settings["webdb_sql"]=$settings["sql"];
 
-if (\webdb\utils\is_cli_mode()==false)
+if (\webdb\cli\is_cli_mode()==false)
 {
   header("Cache-Control: no-cache");
   header("Expires: -1");
   header("Pragma: no-cache");
   if (\webdb\utils\is_app_mode()==false)
   {
+    $settings["unauthenticated_content"]=true;
     \webdb\utils\static_page("home","WebDB");
   }
 }
 
-# TODO: MOVE SETTINGS VALIDATIONS INTO A TESTING ROUTINE (DON'T RUN EVERY REQUEST)
-
+# load application settings
 $settings_filename=$settings["app_root_path"]."settings.php";
 if (file_exists($settings_filename)==false)
 {
   \webdb\utils\system_message("error: settings file not found: ".$settings_filename);
 }
 require_once($settings_filename);
-$required_settings=array(
-  "db_host",
-  "app_name",
-  "webdb_web_root",
-  "webdb_web_index",
-  "webdb_web_resources",
-  "app_web_root",
-  "app_web_index",
-  "app_web_resources",
-  "app_root_namespace",
-  "app_date_format",
-  "login_cookie",
-  "username_cookie",
-  "max_cookie_age",
-  "password_reset_timeout",
-  "row_lock_expiration",
-  "app_home_template",
-  "db_admin_file",
-  "db_user_file",
-  "app_templates_path",
-  "app_sql_path",
-  "app_resources_path",
-  "app_forms_path",
-  "sql_log_path",
-  "apps_list",
-  "gd_ttf",
-  "webdb_default_form",
-  "list_border_color",
-  "list_border_width",
-  "list_group_border_color",
-  "list_group_border_width",
-  "links_template",
-  "footer_template");
-for ($i=0;$i<count($required_settings);$i++)
-{
-  \webdb\utils\check_required_setting_exists($required_settings[$i]);
-}
+
+\webdb\test\check_app_settings();
+
 if (in_array($settings["app_directory_name"],$settings["apps_list"])==false)
 {
   \webdb\utils\system_message("error: app not registered");
 }
-$required_files=array(
-  "db_admin_file",
-  "db_user_file",
-  "gd_ttf");
-for ($i=0;$i<count($required_files);$i++)
-{
-  $file=$required_files[$i];
-  \webdb\utils\check_required_file_exists($settings[$file]);
-}
-$required_paths=array(
-  "app_templates_path",
-  "app_sql_path",
-  "app_resources_path",
-  "app_forms_path",
-  "sql_log_path");
-for ($i=0;$i<count($required_paths);$i++)
-{
-  $path=$required_paths[$i];
-  \webdb\utils\check_required_file_exists($settings[$path],true);
-}
+
 \webdb\utils\load_db_credentials("admin");
 \webdb\utils\load_db_credentials("user");
-$required_settings=array(
-  "db_admin_username",
-  "db_admin_password",
-  "db_user_username",
-  "db_user_password");
-for ($i=0;$i<count($required_settings);$i++)
-{
-  \webdb\utils\check_required_setting_exists($required_settings[$i]);
-}
+
+\webdb\test\check_sql_settings();
 
 $settings["app_templates"]=\webdb\utils\load_files($settings["app_templates_path"],"","htm",true);
 $settings["templates"]=array_merge($settings["webdb_templates"],$settings["app_templates"]);
@@ -209,56 +145,9 @@ if ($settings["pdo_user"]===false)
 $settings["forms"]=array();
 \webdb\forms\load_form_defs();
 
-if ((\webdb\utils\is_cli_mode()==true) and (isset($argv[1])==true))
+if (\webdb\cli\is_cli_mode()==true)
 {
-  switch ($argv[1])
-  {
-    case "init_webdb_schema":
-      \webdb\sql\file_execute_prepare("webdb_schema",array(),true);
-      \webdb\utils\system_message("webdb schema initialised");
-    case "validate_json":
-      echo "validating forms...".PHP_EOL;
-      foreach ($settings["forms"] as $form_name => $form_data)
-      {
-        $result=trim(shell_exec("jsonlint-php ".escapeshellarg($form_data["filename"])));
-        echo "validating form '".$form_name."': ".$result.PHP_EOL;
-        if ($result<>"Valid JSON")
-        {
-          die;
-        }
-      }
-      die;
-    case "format_json":
-      echo "formatting forms...".PHP_EOL;
-      foreach ($settings["forms"] as $form_name => $form_data)
-      {
-        $filename=$form_data["filename"];
-        unset($form_data["filename"]);
-        $data=json_encode($form_data,JSON_PRETTY_PRINT);
-        if ($data===false)
-        {
-          \webdb\utils\system_message("error encoding form json: ".$filename);
-        }
-        if (file_put_contents($filename,$data)===false)
-        {
-          \webdb\utils\system_message("error writing form file: ".$filename);
-        }
-        echo "formatted form: ".$filename.PHP_EOL;
-      }
-      die;
-    case "init_app_schema":
-      $filename=$settings["app_sql_path"]."schema.sql";
-      if (file_exists($filename)==true)
-      {
-        $sql=trim(file_get_contents($filename));
-        \webdb\sql\execute_prepare($sql,array(),"",true);
-        \webdb\utils\system_message("app schema initialised");
-      }
-      else
-      {
-        \webdb\utils\system_message("error: schema file not found: ".$filename);
-      }
-  }
+  \webdb\cli\cli_dispatch();
 }
 
 \webdb\users\auth_dispatch();

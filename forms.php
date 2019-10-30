@@ -250,6 +250,7 @@ function checklist_update($form_name)
           {
             \webdb\utils\show_message("error: form record(s) update permission denied");
           }
+          \webdb\forms\check_required_values($form_config,$value_items);
           \webdb\sql\sql_update($value_items,$where_items,$link_table,$link_database);
         }
       }
@@ -260,6 +261,7 @@ function checklist_update($form_name)
           \webdb\utils\show_message("error: form record(s) insert permission denied");
         }
         $value_items+=$where_items;
+        \webdb\forms\check_required_values($form_config,$value_items);
         \webdb\sql\sql_insert($value_items,$link_table,$link_database);
       }
     }
@@ -1839,6 +1841,7 @@ function insert_record($form_name)
   }
   $form_config=$settings["forms"][$form_name];
   $value_items=\webdb\forms\process_form_data_fields($form_name);
+  \webdb\forms\check_required_values($form_config,$value_items);
   $handled=\webdb\forms\handle_insert_record_event($form_name,$value_items,$form_config);
   if ($handled===false)
   {
@@ -1865,7 +1868,7 @@ function process_computed_fields($form_config,&$value_items)
     $func_name=$form_config["computed_values"][$field_name];
     if (function_exists($func_name)==true)
     {
-      $value_items[$field_name]=call_user_func($func_name,$value_items);
+      $value_items[$field_name]=call_user_func($func_name,$field_name,$value_items);
     }
   }
 }
@@ -1956,6 +1959,7 @@ function update_record($form_name,$id)
   }
   $form_config=$settings["forms"][$form_name];
   $value_items=\webdb\forms\process_form_data_fields($form_name);
+  \webdb\forms\check_required_values($form_config,$value_items);
   $where_items=\webdb\forms\config_id_conditions($form_config,$id,"individual_edit_id");
   $handled=\webdb\forms\handle_update_record_event($form_name,$id,$where_items,$value_items,$form_config);
   $params=false;
@@ -1966,6 +1970,20 @@ function update_record($form_name,$id)
     $params["update"]=$form_config["url_page"];
   }
   \webdb\forms\page_redirect(false,$params);
+}
+
+#####################################################################################################
+
+function check_required_values($form_config,$value_items)
+{
+  for ($i=0;$i<count($form_config["required_values"]);$i++)
+  {
+    $field_name=$form_config["required_values"][$i];
+    if (empty($value_items[$field_name])==true)
+    {
+      \webdb\utils\show_message("error: value required for field `".$field_name."`");
+    }
+  }
 }
 
 #####################################################################################################

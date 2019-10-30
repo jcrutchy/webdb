@@ -5,9 +5,9 @@ if (isset($argv[1])==true)
   $source_url=$argv[1];
   echo "validating: ".$source_url.PHP_EOL;
   $page_content=file_get_contents($source_url);
-  var_dump($page_content);
+  \webdb\utils\debug_var_dump($page_content);
   $is_valid=validator($page_content);
-  var_dump($is_valid);
+  \webdb\utils\debug_var_dump($is_valid);
 }
 
 #####################################################################################################

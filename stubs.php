@@ -81,6 +81,7 @@ function list_insert($form_name)
     foreach ($insert_default_params as $param_name => $param_value)
     {
       $params[$param_name]=$param_value;
+      \webdb\forms\check_required_values($form_config,$params);
       \webdb\sql\sql_insert($params,$form_config["table"],$form_config["database"]);
       $subform_config=$settings["forms"][$form_name];
       $data["html"]=\webdb\forms\get_subform_content($subform_config,$param_name,$param_value,true);
@@ -89,6 +90,7 @@ function list_insert($form_name)
   }
   else
   {
+    \webdb\forms\check_required_values($form_config,$params);
     \webdb\sql\sql_insert($params,$form_config["table"],$form_config["database"]);
     $data["html"]=\webdb\forms\list_form_content($form_config);
   }
@@ -129,6 +131,7 @@ function list_edit($id,$form_name)
       $subform_form_config=\webdb\forms\get_form_config($subform_url_page);
       $subform_form_name=$subform_form_config["form_name"];
       $value_items=\webdb\forms\process_form_data_fields($subform_form_name,$post_fields);
+      \webdb\forms\check_required_values($subform_form_config,$value_items);
       $where_items=\webdb\forms\config_id_conditions($subform_form_config,$id,"primary_key");
       $handled=\webdb\forms\handle_update_record_event($subform_form_name,$id,$where_items,$value_items,$subform_form_config);
       if ($handled==false)
@@ -143,6 +146,7 @@ function list_edit($id,$form_name)
         \webdb\utils\show_message("error: form record update permission denied");
       }
       $value_items=\webdb\forms\process_form_data_fields($form_name,$post_fields);
+      \webdb\forms\check_required_values($form_config,$value_items);
       $where_items=\webdb\forms\config_id_conditions($form_config,$id,"primary_key");
       $handled=\webdb\forms\handle_update_record_event($form_name,$id,$where_items,$value_items,$form_config);
       if ($handled==false)

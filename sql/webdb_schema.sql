@@ -9,13 +9,20 @@ DROP TABLE IF EXISTS `webdb`.`users`;
 CREATE TABLE IF NOT EXISTS `webdb`.`users` (
   `user_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `created_timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `login_cookie` VARCHAR(255) DEFAULT "",
-  `enabled` TINYINT NOT NULL DEFAULT 1,
+  `login_cookie` VARCHAR(255) DEFAULT "*",
+  `enabled` TINYINT NOT NULL DEFAULT 0,
   `username` VARCHAR(255) NOT NULL,
   `email` VARCHAR(255) NOT NULL,
-  `pw_hash` VARCHAR(255) NOT NULL,
-  `pw_reset_key` VARCHAR(255) DEFAULT "",
+  `pw_hash` VARCHAR(255) DEFAULT "*",
+  `pw_reset` TINYINT NOT NULL DEFAULT 1,
+  `pw_reset_key` VARCHAR(255) DEFAULT "*",
   `pw_reset_time` BIGINT DEFAULT 0,
+  `pw_login_time` BIGINT DEFAULT NULL,
+  `cookie_login_time` BIGINT DEFAULT NULL,
+  `user_agent` VARCHAR(255) DEFAULT NULL,
+  `remote_address` VARCHAR(255) DEFAULT NULL,
+  `failed_login_count` INT UNSIGNED DEFAULT NULL,
+  `failed_login_time` BIGINT DEFAULT NULL,
   PRIMARY KEY (`user_id`),
   UNIQUE INDEX `username` (`username` ASC))
 ENGINE = InnoDB
@@ -25,7 +32,7 @@ AUTO_INCREMENT = 1;
 username: admin
 password: password
 */
-INSERT INTO `webdb`.`users` (`username`,`pw_hash`) VALUES ("admin","$2y$13$Vn8rJB73AHq56cAqbBwkEuKrQt3lSdoA3sDmKULZEgQLE4.nmsKzW");
+INSERT INTO `webdb`.`users` (`username`,`pw_hash`,`enabled`) VALUES ("admin","$2y$13$Vn8rJB73AHq56cAqbBwkEuKrQt3lSdoA3sDmKULZEgQLE4.nmsKzW",1);
 
 DROP TABLE IF EXISTS `webdb`.`row_locks` ;
 CREATE TABLE IF NOT EXISTS `webdb`.`row_locks` (

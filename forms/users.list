@@ -15,8 +15,15 @@
         "username": "text",
         "email": "text",
         "pw_hash": "text",
-        "pw_reset_key": "span",
-        "pw_reset_time": "span"
+        "pw_reset": "checkbox",
+        "pw_reset_key": "text",
+        "pw_reset_time": "text",
+        "pw_login_time": "span",
+        "cookie_login_time": "span",
+        "user_agent": "span",
+        "remote_address": "span",
+        "failed_login_count": "span",
+        "failed_login_time": "span"
     },
     "captions": {
         "user_id": "user_id",
@@ -25,8 +32,15 @@
         "username": "username",
         "email": "email",
         "pw_hash": "pw_hash",
+        "pw_reset": "pw_reset",
         "pw_reset_key": "pw_reset_key",
-        "pw_reset_time": "pw_reset_time"
+        "pw_reset_time": "pw_reset_time",
+        "pw_login_time": "pw_login_time",
+        "cookie_login_time": "cookie_login_time",
+        "user_agent": "user_agent",
+        "remote_address": "remote_address",
+        "failed_login_count": "failed_login_count",
+        "failed_login_time": "failed_login_time"
     },
     "caption_groups": [],
     "visible": {
@@ -36,23 +50,44 @@
         "username": true,
         "email": true,
         "pw_hash": false,
+        "pw_reset": true,
         "pw_reset_key": false,
-        "pw_reset_time": false
+        "pw_reset_time": true,
+        "pw_login_time": true,
+        "cookie_login_time": true,
+        "user_agent": true,
+        "remote_address": true,
+        "failed_login_count": true,
+        "failed_login_time": true
     },
     "disabled": [],
     "default_values": {
         "user_id": "(auto)",
-        "login_cookie": "(auto)",
+        "login_cookie": "",
         "enabled": true,
         "username": "",
         "email": "",
-        "pw_hash": "$2y$13$Vn8rJB73AHq56cAqbBwkEuKrQt3lSdoA3sDmKULZEgQLE4.nmsKzW",
-        "pw_reset_key": "(auto)",
-        "pw_reset_time": "(auto)"
+        "pw_hash": "",
+        "pw_reset": true,
+        "pw_reset_key": "",
+        "pw_reset_time": "0",
+        "pw_login_time": "0",
+        "cookie_login_time": "0",
+        "user_agent": "",
+        "remote_address": "",
+        "failed_login_count": "",
+        "failed_login_time": "0"
     },
+    "required_values": [
+        "username",
+        "email"
+    ],
     "js_events": [],
     "computed_values": {
-        "login_cookie": ""
+        "pw_reset_time": "\\webdb\\utils\\computed_field_iso_datetime_format",
+        "pw_login_time": "\\webdb\\utils\\computed_field_iso_datetime_format",
+        "cookie_login_time": "\\webdb\\utils\\computed_field_iso_datetime_format",
+        "failed_login_time": "\\webdb\\utils\\computed_field_iso_datetime_format"
     },
     "custom_interfaces": [],
     "table_cell_styles": {

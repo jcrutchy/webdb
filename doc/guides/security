@@ -1,0 +1,55 @@
+
+SERVER SECURITY
+===============
+
+- framework and application files to be write protected (only owner user to be able to edit)
+- limit the schemas that webdb_user mysql user can access (block access to webdb.users/groups/user_groups tables)
+
+- https://www.cirt.net/Nikto2 (web server scanner)
+
+
+
+FRAMEWORK SECURITY
+==================
+
+- if any of the higher 3 octets of the user's remote address change, invalidate cookie login (require password)
+- if user's user agent changes, invalidate cookie login (require password)
+
+- when user first logs in, trigger password reset by email
+- when password reset has been triggered, disable login by password/cookie (allow 'reset password' button to resend new email)
+
+- when changing password, don't allow old and new passwords to be the same
+- when changing password, don't allow new password to be the default ('password')
+
+- if password reset flag is set, prompt user to change their password on login (no ability to skip or navigate directly to different page)
+
+- lock out password and cookie login after 10 failed attempts
+- locked out accounts can only be unlocked by password reset (or by manual clearing of pw_reset fields in user record by admin)
+
+- for production, remove the testing show_message in the \webdb\users\send_reset_password_message function that outputs the emailed message (including link) to the browser window
+
+- when viewing users list, all user record data (including hashes) will be passed to the \webdb\utils\computed_field_iso_datetime_format function via computed field config in users.list
+
+- all content output to the browser must either be authenticated by assignment of $settings["user_record"] or permitted by the $settings["unauthenticated_content"] flag (or both)
+- this is checked in the output buffer callback function \webdb\utils\ob_postprocess
+- also applies to ajax responses
+- the \webdb\utils\system_message function (and by reference the \webdb\utils\show_message function) sets the $settings["unauthenticated_content"]
+- on failure to find either of these settings, a simple authentication failure message is sent to the browser (whatever buffer was prepared to be sent to the user is overwritten)
+- if a var_dump() followed by die is required outside an already authenticated program route, the \webdb\utils\debug_var_dump function is available, which sets the $settings["unauthenticated_content"] flag
+
+
+
+
+APPLICATION SECURITY
+====================
+
+
+
+
+SECURITY REFERENCES
+===================
+
+
+https://cheatsheetseries.owasp.org/
+https://www.owasp.org/index.php/Top_10-2017_Top_10
+https://www.owasp.org/index.php/OWASP_Proactive_Controls

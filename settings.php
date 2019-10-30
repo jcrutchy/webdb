@@ -50,6 +50,7 @@ $settings["list_group_border_width"]=2;
 # webdb template permissions
 # $settings["permissions"]["group_name"]["templates"]["template_name"]="template_name_on_success (or empty for no substitution)";
 
+$settings["permissions"]["admin"]["templates"]["admin_links"]="";
 $settings["permissions"]["admin"]["templates"]["groups_page_link"]="";
 $settings["permissions"]["admin"]["templates"]["user_groups_page_link"]="";
 $settings["permissions"]["admin"]["templates"]["users_page_link"]="";
