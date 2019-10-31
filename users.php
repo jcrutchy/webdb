@@ -209,7 +209,7 @@ function login()
       }
       else
       {
-        login_failure($user_record,false);
+        login_failure($user_record,"invalid login cookie");
       }
     }
   }
@@ -372,7 +372,7 @@ function send_reset_password_message()
   $msg_params["valid_to_date"]=date("l, j F Y (T)",$t);
   $message=\webdb\utils\template_fill("password_reset_message",$msg_params);
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  #\webdb\utils\show_message($message); # TESTING (REMOVE/COMMENT OUT FOR PROD)
+  \webdb\utils\show_message($message); # TESTING (REMOVE/COMMENT OUT FOR PROD)
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   \webdb\utils\send_email($user_record["email"],"",$settings["app_name"]." password reset",$message,$settings["server_email_from"],$settings["server_email_reply_to"],$settings["server_email_bounce_to"]);
   \webdb\users\webdb_unsetcookie("login_cookie");
@@ -382,22 +382,28 @@ function send_reset_password_message()
 
 #####################################################################################################
 
-function webdb_setcookie($setting_key,$value)
+function webdb_setcookie($setting_key,$value,$max_age=false)
 {
   global $settings;
-  $expiry=time()+$settings["max_cookie_age"]; # integer (seconds)
-  $cookie_name=$settings[$setting_key];
-  #setcookie($settings[$setting_key],$value,$expiry,"/",$_SERVER["HTTP_HOST"],false,true);
-  header("Set-Cookie: ".$cookie_name."=".$value."; expires=".date("l, d-M-Y H:i:s T",$expiry)."; Max-Age=".$settings["max_cookie_age"]."; path=/; domain=".$_SERVER["HTTP_HOST"]."; HttpOnly; SameSite=Strict");
+  if ($max_age===false)
+  {
+    $max_age=$settings["max_cookie_age"];
+  }
+  $expiry=time()+$max_age;
+  $params=array();
+  $params["cookie_name"]=$settings[$setting_key];
+  $params["value"]=$value;
+  $params["expires"]=date("l, d-M-Y H:i:s T",$expiry);
+  $params["max_age"]=$max_age;
+  $params["domain"]=$_SERVER["HTTP_HOST"];
+  header(trim(\webdb\utils\template_fill("cookie_header",$params)));
 }
 
 #####################################################################################################
 
 function webdb_unsetcookie($setting_key)
 {
-  global $settings;
-  $cookie_name=$settings[$setting_key];
-  setcookie($cookie_name,null,-1,"/");
+  webdb_setcookie($setting_key,"deleted",-1);
 }
 
 #####################################################################################################
