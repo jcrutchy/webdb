@@ -65,7 +65,8 @@ function check_app_settings()
     "server_email_bounce_to",
     "prohibited_passwords",
     "min_password_length",
-    "max_login_attempts");
+    "max_login_attempts",
+    "admin_remote_address_whitelist");
   for ($i=0;$i<count($required_settings);$i++)
   {
     \webdb\utils\check_required_setting_exists($required_settings[$i]);

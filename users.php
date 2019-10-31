@@ -123,6 +123,20 @@ function login_lockout($user_record)
 
 #####################################################################################################
 
+function check_admin($user_record)
+{
+  global $settings;
+  if ($user_record["username"]=="admin")
+  {
+    if (in_array($_SERVER["REMOTE_ADDR"],$settings["admin_remote_address_whitelist"])==false)
+    {
+      \webdb\users\login_failure($user_record,"error: admin login not permitted from this address [".$_SERVER["REMOTE_ADDR"]."]");
+    }
+  }
+}
+
+#####################################################################################################
+
 function login()
 {
   global $settings;
@@ -150,6 +164,7 @@ function login()
     {
       \webdb\users\login_lockout($user_record);
     }
+    \webdb\users\check_admin($user_record);
     if (password_verify($_POST["login_password"],$user_record["pw_hash"])==false)
     {
       \webdb\users\login_failure($user_record,"error: incorrect password");
@@ -171,6 +186,7 @@ function login()
       {
         \webdb\users\login_lockout($user_record);
       }
+      \webdb\users\check_admin($user_record);
       if (password_verify($_COOKIE[$settings["login_cookie"]],$user_record["login_cookie"])==true)
       {
         $where_items=array();
