@@ -10,7 +10,8 @@ function system_message($message)
   $settings["unauthenticated_content"]=true;
   if (\webdb\cli\is_cli_mode()==true)
   {
-    die(str_replace(PHP_EOL,", ",$message).PHP_EOL);
+    \webdb\cli\term_echo(str_replace(PHP_EOL," ",$message),33);
+    die;
   }
   $buf=ob_get_contents();
   if (strlen($buf)<>0)

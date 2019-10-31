@@ -12,7 +12,7 @@ SERVER SECURITY
 FRAMEWORK SECURITY
 ==================
 
-TODO: CHANGE FROM PASSWORD_BCRYPT TO PASSWORD_ARGON2ID (REQUIRES PHP 7.3.0) => REQUIRES CHANGE TO OPTIONS (https://www.php.net/manual/en/function.password-hash.php)
+TODO: CHANGE FROM PASSWORD_BCRYPT TO PASSWORD_ARGON2ID (REQUIRES PHP 7.3.0) => REQUIRES CHANGE TO OPTIONS (https://www.php.net/manual/en/function.password-hash.php) - refer to https://github.com/crutchy-/webdb/issues/24
 
 - if any of the higher 3 octets of the user's remote address change, invalidate cookie login (require password)
 - changes to the right/lowest octet are permitted for login by cookie to allow for dhcp subnets

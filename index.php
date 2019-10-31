@@ -19,15 +19,15 @@ require_once("users.php");
 require_once("forms.php");
 require_once("sql.php");
 require_once("stubs.php");
-require_once("test.php");
+require_once("test".DIRECTORY_SEPARATOR."test.php");
 require_once("cli.php");
 
 set_error_handler('\webdb\utils\error_handler',E_ALL);
 set_exception_handler('\webdb\utils\exception_handler');
 
-define("webdb\index\CONFIG_ID_DELIMITER",",");
-define("webdb\index\LINEBREAK_PLACEHOLDER","@@@@");
-define("webdb\index\LINEBREAK_DB_DELIM","\\n");
+define("webdb\\index\\CONFIG_ID_DELIMITER",",");
+define("webdb\\index\\LINEBREAK_PLACEHOLDER","@@@@");
+define("webdb\\index\\LINEBREAK_DB_DELIM","\\n");
 
 if (\webdb\cli\is_cli_mode()==false)
 {

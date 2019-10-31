@@ -4,6 +4,14 @@ namespace webdb\test;
 
 #####################################################################################################
 
+function security_tests()
+{
+  require_once("test".DIRECTORY_SEPARATOR."security.php");
+  \webdb\test\security\start();
+}
+
+#####################################################################################################
+
 function check_webdb_settings()
 {
   global $settings;

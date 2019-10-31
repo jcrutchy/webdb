@@ -18,7 +18,19 @@ function query_error($sql,$source="",$filename="")
       $msg_params["source_error"]=$err[2];
     }
   }
-  \webdb\utils\show_message(\webdb\utils\template_fill("global".DIRECTORY_SEPARATOR."sql_error",$msg_params));
+  if (\webdb\cli\is_cli_mode()==true)
+  {
+    $msg_params["source_error"]=str_replace(PHP_EOL," ",$msg_params["source_error"]);
+    $msg_params["sql"]=str_replace(PHP_EOL," ",$msg_params["sql"]);
+    \webdb\cli\term_echo("SQL ERROR",31);
+    \webdb\cli\term_echo("filename: ".$msg_params["filename"],31);
+    \webdb\cli\term_echo("error: ".$msg_params["source_error"],31);
+    \webdb\cli\term_echo("sql: ".$msg_params["sql"],31);
+  }
+  else
+  {
+    \webdb\utils\show_message(\webdb\utils\template_fill("global".DIRECTORY_SEPARATOR."sql_error",$msg_params));
+  }
 }
 
 #####################################################################################################

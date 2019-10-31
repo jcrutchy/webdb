@@ -4,6 +4,39 @@ namespace webdb\cli;
 
 #####################################################################################################
 
+function term_echo($msg,$color=false)
+{
+  if ($color===false)
+  {
+    echo $msg.PHP_EOL;
+  }
+  else
+  {
+    echo "\033[".$color."m".$msg."\033[0m".PHP_EOL;
+    /*
+      39 = default
+      30 = black
+      31 = red
+      32 = green
+      33 = yellow
+      34 = blue
+      35 = magenta
+      36 = cyan
+      37 = light gray
+      90 = dark gray
+      91 = light red
+      92 = light green
+      93 = light yellow
+      94 = light blue
+      95 = light magenta
+      96 = light cyan
+      97 = white
+    */
+  }
+}
+
+#####################################################################################################
+
 function is_cli_mode()
 {
   global $argv;
@@ -25,6 +58,9 @@ function cli_dispatch()
   global $argv;
   switch ($argv[1])
   {
+    case "security_tests":
+      \webdb\test\security_tests();
+      die;
     case "init_webdb_schema":
       \webdb\sql\file_execute_prepare("webdb_schema",array(),true);
       \webdb\utils\system_message("webdb schema initialised");

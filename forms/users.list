@@ -68,7 +68,7 @@
         "username": "",
         "email": "",
         "pw_hash": "*",
-        "pw_change": false,
+        "pw_change": true,
         "pw_reset_key": "*",
         "pw_reset_time": 0,
         "pw_login_time": 0,
