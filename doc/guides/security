@@ -47,6 +47,7 @@ FRAMEWORK SECURITY
 - username is case insensitive and spaces are not permitted at the beginning or end of a username
 - there is a separate field for email (username and email need not be the same)
 
+- admin logins must be made from whitelisted IP addresses, which are added to the $settings["admin_remote_address_whitelist"] array, which is initialised with 127.0.0.1
 
 
 APPLICATION SECURITY
