@@ -13,7 +13,7 @@
 
 function my_insert_record_php_stub($form_name,$value_items,$form_config)
 {
-  return false;
+  return false; # handled
 }
 
 function my_custom_form_above_php_stub($form_config,$form_params)
@@ -38,5 +38,5 @@ function my_list_php_stub($event_params)
 
 function my_update_record_php_stub($form_name,$id,$where_items,$value_items,$form_config)
 {
-  return true;
+  return true; # handled
 }

@@ -19,3 +19,6 @@ function my_field__change(form,value)
       }
     }
   },
+
+
+all the parameters can be fudged as required. they are only for the purpose of routing through the framework ajax dispatch system

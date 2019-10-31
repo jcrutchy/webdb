@@ -52,7 +52,7 @@ function get_user_record($username)
 {
   global $settings;
   $sql_params=array();
-  $sql_params["username"]=$username;
+  $sql_params["username"]=trim(strtolower($username));
   $records=\webdb\sql\file_fetch_prepare("user_get_by_username",$sql_params);
   if (count($records)<>1)
   {
@@ -137,10 +137,11 @@ function login()
   $login_form_params["login_styles_modified"]=\webdb\utils\resource_modified_timestamp("login.css");
   if ((isset($_POST["login_username"])==true) and (isset($_POST["login_password"])==true))
   {
+    $login_username=trim(strtolower($_POST["login_username"]));
     $expiry=time()+$settings["max_cookie_age"];
-    setcookie($settings["username_cookie"],$_POST["login_username"],$expiry,"/");
-    $login_form_params["default_username"]=$_POST["login_username"];
-    $user_record=\webdb\users\get_user_record($_POST["login_username"]);
+    setcookie($settings["username_cookie"],$login_username,$expiry,"/");
+    $login_form_params["default_username"]=$login_username;
+    $user_record=\webdb\users\get_user_record($login_username);
     if ($user_record["pw_reset_key"]<>"")
     {
       \webdb\users\cancel_password_reset($user_record);
@@ -235,6 +236,22 @@ function logout()
   setcookie($settings["login_cookie"],null,-1,"/");
   $url=$settings["app_web_index"];
   \webdb\utils\redirect($url,false);
+}
+
+#####################################################################################################
+
+function update_user_stub($form_name,$value_items,$form_config)
+{
+  $value_items["username"]=trim(strtolower($value_items["username"]));
+  return false;
+}
+
+#####################################################################################################
+
+function insert_user_stub($form_name,$id,$where_items,$value_items,$form_config)
+{
+  $value_items["username"]=trim(strtolower($value_items["username"]));
+  return false;
 }
 
 #####################################################################################################

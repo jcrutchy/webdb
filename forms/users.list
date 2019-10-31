@@ -97,7 +97,10 @@
         "login_cookie": ""
     },
     "lookups": [],
-    "event_handlers": [],
+    "event_handlers": {
+        "on_update_record": "\\webdb\\users\\update_user_stub",
+        "on_insert_record": "\\webdb\\users\\insert_user_stub"
+    },
     "html_includes": [],
     "js_includes": [],
     "css_includes": [],

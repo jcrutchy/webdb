@@ -44,6 +44,8 @@ FRAMEWORK SECURITY
 - on failure to find either of these settings, a simple authentication failure message is sent to the browser (whatever buffer was prepared to be sent to the user is overwritten)
 - if a var_dump() followed by die is required outside an already authenticated program route, the \webdb\utils\debug_var_dump function is available, which sets the $settings["unauthenticated_content"] flag
 
+- username is case insensitive and spaces are not permitted at the beginning or end of a username
+- there is a separate field for email (username and email need not be the same)
 
 
 
