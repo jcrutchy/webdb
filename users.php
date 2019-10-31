@@ -98,6 +98,7 @@ function login_failure($user_record,$message)
   $value_items=array();
   $value_items["failed_login_count"]=$user_record["failed_login_count"]+1;
   $value_items["failed_login_time"]=microtime(true);
+  $value_items["login_cookie"]="*"; # disable login with cookie
   \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
   \webdb\users\webdb_unsetcookie("login_cookie");
   if ($message!==false)
@@ -168,13 +169,16 @@ function login()
       \webdb\users\login_failure($user_record,"error: password is too long");
     }
     \webdb\users\check_admin($user_record);
-    if (password_verify($_POST["login_password"],$user_record["pw_hash"])==false)
+    if ($user_record["pw_hash"]<>"*")
     {
-      \webdb\users\login_failure($user_record,"error: incorrect password");
+      if (password_verify($_POST["login_password"],$user_record["pw_hash"])==false)
+      {
+        \webdb\users\login_failure($user_record,"error: incorrect password");
+      }
+      \webdb\users\initialise_login_cookie($user_record["user_id"]);
+      $settings["user_record"]=$user_record;
+      \webdb\utils\redirect($settings["app_web_index"]);
     }
-    \webdb\users\initialise_login_cookie($user_record["user_id"]);
-    $settings["user_record"]=$user_record;
-    \webdb\utils\redirect($settings["app_web_index"]);
   }
   elseif ((isset($_COOKIE[$settings["login_cookie"]])==true) and (isset($_COOKIE[$settings["username_cookie"]])==true))
   {
@@ -190,26 +194,29 @@ function login()
         \webdb\users\login_lockout($user_record);
       }
       \webdb\users\check_admin($user_record);
-      if (password_verify($_COOKIE[$settings["login_cookie"]],$user_record["login_cookie"])==true)
+      if ($user_record["login_cookie"]<>"*")
       {
-        $where_items=array();
-        $where_items["user_id"]=$user_record["user_id"];
-        $value_items=array();
-        $value_items["cookie_login_time"]=microtime(true);
-        $value_items["user_agent"]=$settings["user_agent"];
-        $value_items["remote_address"]=$_SERVER["REMOTE_ADDR"];
-        $value_items["failed_login_count"]=0;
-        \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
-        $settings["user_record"]=$user_record;
-        if ($user_record["pw_change"]==1)
+        if (password_verify($_COOKIE[$settings["login_cookie"]],$user_record["login_cookie"])==true)
         {
-          \webdb\users\change_password();
+          $where_items=array();
+          $where_items["user_id"]=$user_record["user_id"];
+          $value_items=array();
+          $value_items["cookie_login_time"]=microtime(true);
+          $value_items["user_agent"]=$settings["user_agent"];
+          $value_items["remote_address"]=$_SERVER["REMOTE_ADDR"];
+          $value_items["failed_login_count"]=0;
+          \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
+          $settings["user_record"]=$user_record;
+          if ($user_record["pw_change"]==1)
+          {
+            \webdb\users\change_password();
+          }
+          return;
         }
-        return;
-      }
-      else
-      {
-        login_failure($user_record,"invalid login cookie");
+        else
+        {
+          login_failure($user_record,"invalid login cookie");
+        }
       }
     }
   }
@@ -278,7 +285,7 @@ function insert_user_stub($form_name,$id,$where_items,$value_items,$form_config)
 
 #####################################################################################################
 
-function remote_address_changed($user_record) # allow right/lowest octet to change (dhcp subnet)
+function remote_address_changed($user_record) # allow right/lowest octet to change (ipv4 dhcp subnet); no ipv6 subnet changes allowed for
 {
   if ($user_record["remote_address"]=="")
   {
@@ -394,20 +401,23 @@ function webdb_setcookie($setting_key,$value,$max_age=false)
     $max_age=$settings["max_cookie_age"];
   }
   $expiry=time()+$max_age;
-  $params=array();
+  /*$params=array();
   $params["cookie_name"]=$settings[$setting_key];
   $params["value"]=$value;
   $params["expires"]=date("l, d-M-Y H:i:s T",$expiry);
   $params["max_age"]=$max_age;
   $params["domain"]=$_SERVER["HTTP_HOST"];
-  header(trim(\webdb\utils\template_fill("cookie_header",$params)));
+  header(trim(\webdb\utils\template_fill("cookie_header",$params)));*/
+  setcookie($settings[$setting_key],$value,$expiry,"/",$_SERVER["HTTP_HOST"],false,true);
 }
 
 #####################################################################################################
 
 function webdb_unsetcookie($setting_key)
 {
-  webdb_setcookie($setting_key,"deleted",-1);
+  #webdb_setcookie($setting_key,"deleted",-1);
+  global $settings;
+  setcookie($settings[$setting_key],null,-1,"/");
 }
 
 #####################################################################################################
