@@ -1645,6 +1645,10 @@ function lookup_field_data($form_config,$field_name,$sibling_field=false)
   {
     $lookup_config["key_field"]=$sibling_field;
   }
+  if (isset($lookup_config["order_by"])==false)
+  {
+    $lookup_config["order_by"]=$lookup_config["display_field"]." ASC";
+  }
   $sql=\webdb\utils\sql_fill("form_lookup",$lookup_config);
   return \webdb\sql\fetch_query($sql);
 }

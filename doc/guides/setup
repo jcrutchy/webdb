@@ -116,7 +116,7 @@ $ sudo mysql -u root -p
 > create user 'webdb_user'@'localhost' identified by '<password>';
 > grant select,insert,update,delete on *.* to 'webdb_user'@'localhost';
 > flush privileges;
-> set sql_mode='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION';
+> set sql_mode='STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION';
 > exit
 
 # systemctl restart mysqld

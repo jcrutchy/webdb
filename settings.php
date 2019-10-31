@@ -19,6 +19,8 @@ $settings["webdb_forms_path"]=$settings["webdb_root_path"]."forms".DIRECTORY_SEP
 
 $settings["webdb_default_form"]="default";
 
+$settings["favicon_source"]=$settings["app_web_resources"]."favicon.ico";
+
 $settings["links_template"]="";
 $settings["footer_template"]="";
 
