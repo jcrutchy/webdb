@@ -25,11 +25,14 @@ require_once("cli.php");
 set_error_handler('\webdb\utils\error_handler',E_ALL);
 set_exception_handler('\webdb\utils\exception_handler');
 
-ob_start("\webdb\utils\ob_postprocess");
-
 define("webdb\index\CONFIG_ID_DELIMITER",",");
 define("webdb\index\LINEBREAK_PLACEHOLDER","@@@@");
 define("webdb\index\LINEBREAK_DB_DELIM","\\n");
+
+if (\webdb\cli\is_cli_mode()==false)
+{
+  ob_start("\webdb\utils\ob_postprocess");
+}
 
 $settings=array();
 $settings_ref=&$settings;
