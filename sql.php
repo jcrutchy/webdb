@@ -332,7 +332,7 @@ function sql_log($result,$sql,$params=array())
   {
     $username=$settings["user_record"]["username"];
   }
-  $log_filename=$settings["sql_log_path"].date("Ymd").".log";
+  $log_filename=$settings["sql_log_path"]."sql_".date("Ymd").".log";
   \webdb\users\obfuscate_hashes($params);
   $sql=str_replace(PHP_EOL," ",$sql);
   $content=date("Y-m-d H:i:s")."\t".$username."\t".$result."\t".$sql."\t".serialize($params).PHP_EOL;

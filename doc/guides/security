@@ -12,6 +12,8 @@ SERVER SECURITY
 FRAMEWORK SECURITY
 ==================
 
+TODO: CHANGE FROM PASSWORD_BCRYPT TO PASSWORD_ARGON2ID (REQUIRES PHP 7.3.0) => REQUIRES CHANGE TO OPTIONS (https://www.php.net/manual/en/function.password-hash.php)
+
 - if any of the higher 3 octets of the user's remote address change, invalidate cookie login (require password)
 - changes to the right/lowest octet are permitted for login by cookie to allow for dhcp subnets
 - if user's user agent changes, invalidate cookie login (require password)
@@ -30,7 +32,9 @@ FRAMEWORK SECURITY
 - when changing password, don't allow new password to be any of a list of prohibited passwords (eg: 'password')
 - when changing password, new password must be at least 8 characters
 - when changing password, new password cannot be longer than 400 characters (only first 72 characters will be hashed anyway with the remainder truncated, but a longer password phrase may be easier for the user to remember)
-- a maximum password length also limits
+- a maximum password length also limits denial of service attacks (https://www.acunetix.com/vulnerabilities/web/long-password-denial-of-service/)
+
+- long passwords (>72 chars) aren't pre-hashed with sha512
 
 - if pw_change flag is set in a user record, prompt user to change their password on login (no ability to skip or navigate directly to different page)
 - pw_change flag can either be manually set by admin in user edit form, or if required a crontab script could be implemented later to force password change every 2 months or so if required
@@ -56,6 +60,13 @@ FRAMEWORK SECURITY
 
 - admin logins must be made from whitelisted IP addresses, which are added to the $settings["admin_remote_address_whitelist"] array, which is initialised with 127.0.0.1
 - admin passwords, cookies and password reset keys are hashed using a dedicated (higher) bcrypt hashing cost setting (13 vs 11)
+
+- login cookies have HttpOnly and SameSite=Strict attributes, and the domain attribute set to $_SERVER["HTTP_HOST"]
+- when a login failure occurs (using password or cookie), the login cookie field in the database for that user is set to *
+
+- authentication events are logged
+
+
 
 APPLICATION SECURITY
 ====================

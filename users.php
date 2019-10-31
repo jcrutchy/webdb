@@ -101,10 +101,34 @@ function login_failure($user_record,$message)
   $value_items["login_cookie"]="*"; # disable login with cookie
   \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
   \webdb\users\webdb_unsetcookie("login_cookie");
+  \webdb\users\auth_log($user_record,"FAILED",$message);
   if ($message!==false)
   {
     \webdb\utils\show_message($message);
   }
+}
+
+#####################################################################################################
+
+function auth_log($user_record,$status,$message)
+{
+  global $settings;
+  if ($user_record===false)
+  {
+    if (isset($settings["user_record"])==true)
+    {
+      $user_record=$settings["user_record"];
+    }
+    else
+    {
+      $user_record=array();
+      $user_record["username"]="<NOUSER>";
+    }
+  }
+  $log_filename=$settings["auth_log_path"]."auth_".date("Ymd").".log";
+  \webdb\users\obfuscate_hashes($user_record);
+  $content=date("Y-m-d H:i:s")."\t".$user_record["username"]."\t".$status."\t".$message."\t".serialize($user_record).PHP_EOL;
+  file_put_contents($log_filename,$content,FILE_APPEND);
 }
 
 #####################################################################################################
@@ -119,6 +143,7 @@ function login_lockout($user_record)
   $value_items["login_cookie"]="*"; # disable login with cookie
   \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
   \webdb\users\webdb_unsetcookie("login_cookie");
+  \webdb\users\auth_log($user_record,"LOCKOUT","");
   \webdb\utils\show_message(\webdb\utils\template_fill("lockout_error"));
 }
 
@@ -175,8 +200,9 @@ function login()
       {
         \webdb\users\login_failure($user_record,"error: incorrect password");
       }
-      \webdb\users\initialise_login_cookie($user_record["user_id"]);
+      \webdb\users\initialise_login_cookie($user_record);
       $settings["user_record"]=$user_record;
+      \webdb\users\auth_log($user_record,"PASSWORD_LOGIN","");
       \webdb\utils\redirect($settings["app_web_index"]);
     }
   }
@@ -207,6 +233,7 @@ function login()
           $value_items["failed_login_count"]=0;
           \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
           $settings["user_record"]=$user_record;
+          \webdb\users\auth_log($user_record,"COOKIE_LOGIN","");
           if ($user_record["pw_change"]==1)
           {
             \webdb\users\change_password();
@@ -228,16 +255,17 @@ function login()
     ob_end_clean(); # discard buffer
   }
   $settings["unauthenticated_content"]=true;
+  \webdb\users\auth_log(false,"LOGIN_FORM","");
   \webdb\utils\output_page($content,"Login");
 }
 
 #####################################################################################################
 
-function initialise_login_cookie($user_id)
+function initialise_login_cookie($user_record)
 {
   global $settings;
   $where_items=array();
-  $where_items["user_id"]=$user_id;
+  $where_items["user_id"]=$user_record["user_id"];
   $value_items=array();
   $value_items["pw_login_time"]=microtime(true);
   $value_items["user_agent"]=$settings["user_agent"];
@@ -247,13 +275,14 @@ function initialise_login_cookie($user_id)
   $key=base64_encode(openssl_random_pseudo_bytes(30,$crypto_strong));
   $options=array();
   $options["cost"]=$settings["password_bcrypt_cost"];
-  if ($user_id==1) # admin
+  if ($user_record["user_id"]==1) # admin
   {
     $options["cost"]=$settings["admin_password_bcrypt_cost"];
   }
   $cookie=password_hash($key,PASSWORD_BCRYPT,$options);
   $value_items["login_cookie"]=$cookie;
   \webdb\users\webdb_setcookie("login_cookie",$key);
+  \webdb\users\auth_log($user_record,"LOGIN_COOKIE_INIT","");
   \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
 }
 
@@ -262,6 +291,7 @@ function initialise_login_cookie($user_id)
 function logout()
 {
   global $settings;
+  \webdb\users\auth_log(false,"LOGOUT","");
   \webdb\users\webdb_unsetcookie("login_cookie");
   $url=$settings["app_web_index"];
   \webdb\utils\redirect($url,false);
@@ -344,9 +374,11 @@ function reset_password()
   if ($validated===false)
   {
     \webdb\users\webdb_unsetcookie("login_cookie");
+    \webdb\users\auth_log(false,"INVALID_RESET_KEY","");
     \webdb\utils\show_message("error: invalid password reset key");
   }
   \webdb\users\cancel_password_reset($validated);
+  \webdb\users\auth_log($validated,"RESET_PASSWORD","");
   \webdb\users\change_password($validated);
 }
 
@@ -373,6 +405,7 @@ function send_reset_password_message()
   $value_items["pw_reset_time"]=microtime(true);
   $value_items["pw_hash"]="*"; # disable login with password
   $value_items["login_cookie"]="*"; # disable login with cookie
+  $value_items["pw_change"]=1; # force password change on user clicking link from email
   $where_items=array();
   $where_items["user_id"]=$user_record["user_id"];
   \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
@@ -388,6 +421,7 @@ function send_reset_password_message()
   \webdb\utils\send_email($user_record["email"],"",$settings["app_name"]." password reset",$message,$settings["server_email_from"],$settings["server_email_reply_to"],$settings["server_email_bounce_to"]);
   \webdb\users\webdb_unsetcookie("login_cookie");
   $message=\webdb\utils\template_fill("password_reset_valid_to_message",$msg_params);
+  \webdb\users\auth_log($user_record,"RESET_PASSWORD_EMAIL","");
   \webdb\utils\show_message($message);
 }
 
@@ -477,8 +511,9 @@ function change_password($password_reset_user=false)
     $where_items["user_id"]=$user_record["user_id"];
     \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
     \webdb\users\cancel_password_reset($user_record);
-    \webdb\users\initialise_login_cookie($user_record["user_id"]);
+    \webdb\users\initialise_login_cookie($user_record);
     $settings["user_record"]=$user_record;
+    \webdb\users\auth_log($user_record,"CHANGED_PASSWORD","");
     \webdb\utils\redirect($settings["app_web_index"]);
   }
   $change_password_params=array();
@@ -518,6 +553,7 @@ function change_password($password_reset_user=false)
     $change_password_params["old_password_display"]="none";
     $change_password_params["login_username"]=$password_reset_user["username"];
     $settings["user_record"]=$password_reset_user;
+    \webdb\users\auth_log($user_record,"RESET_PASSWORD_CHANGE","");
   }
   $content=\webdb\utils\template_fill("change_password",$change_password_params);
   \webdb\utils\output_page($content,"Change Password");
