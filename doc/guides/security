@@ -23,14 +23,16 @@ FRAMEWORK SECURITY
 
 - when changing password, don't allow old and new passwords to be the same
 - when changing password, don't allow new password to be any of a list of prohibited passwords (eg: 'password')
-- when changing password, new password must be at least 6 characters
+- when changing password, new password must be at least 8 characters
+- when changing password, new password cannot be longer than 400 characters (only first 72 characters will be hashed anyway with the remainder truncated, but a longer password phrase may be easier for the user to remember)
+- a maximum password length also limits
 
 - if pw_change flag is set in a user record, prompt user to change their password on login (no ability to skip or navigate directly to different page)
 - pw_change flag can either be manually set by admin in user edit form, or if required a crontab script could be implemented later to force password change every 2 months or so if required
 
 - lock out password and cookie login after 7 failed attempts
 - locked out accounts can only be unlocked by password reset (or by manual setting of failed_login_count to 0 in user record by admin)
-- failed login attemps can occur either by incorrect password or invalidated cookie (except when remote address or user agent changes)
+- failed login attemps can occur either by incorrect password, invalidated cookie (except when remote address or user agent changes), admin login from non-whitelisted address or attempting to login with a password that exceeds the maximum length
 - changes to remote address or user agent will invalidate a login cookie but not increment the failed login attempt counter
 
 - for production, remove the testing show_message in the \webdb\users\send_reset_password_message function that outputs the emailed message (including link) to the browser window
@@ -48,7 +50,7 @@ FRAMEWORK SECURITY
 - there is a separate field for email (username and email need not be the same)
 
 - admin logins must be made from whitelisted IP addresses, which are added to the $settings["admin_remote_address_whitelist"] array, which is initialised with 127.0.0.1
-
+- admin passwords, cookies and password reset keys are hashed using a dedicated (higher) bcrypt hashing cost setting (13 vs 11)
 
 APPLICATION SECURITY
 ====================

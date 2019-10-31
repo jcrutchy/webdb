@@ -164,6 +164,10 @@ function login()
     {
       \webdb\users\login_lockout($user_record);
     }
+    if (strlen($_POST["login_password"])>$settings["max_password_length"])
+    {
+      \webdb\users\login_failure($user_record,"error: password is too long");
+    }
     \webdb\users\check_admin($user_record);
     if (password_verify($_POST["login_password"],$user_record["pw_hash"])==false)
     {
@@ -238,6 +242,10 @@ function initialise_login_cookie($user_id)
   $key=base64_encode(openssl_random_pseudo_bytes(30,$crypto_strong));
   $options=array();
   $options["cost"]=$settings["password_bcrypt_cost"];
+  if ($user_id==1) # admin
+  {
+    $options["cost"]=$settings["admin_password_bcrypt_cost"];
+  }
   $cookie=password_hash($key,PASSWORD_BCRYPT,$options);
   $value_items["login_cookie"]=$cookie;
   setcookie($settings["login_cookie"],$key,$expiry,"/");
@@ -348,6 +356,10 @@ function send_reset_password_message()
   $key=base64_encode(openssl_random_pseudo_bytes(30,$crypto_strong));
   $options=array();
   $options["cost"]=$settings["password_bcrypt_cost"];
+  if ($user_record["username"]=="admin")
+  {
+    $options["cost"]=$settings["admin_password_bcrypt_cost"];
+  }
   $value_items["pw_reset_key"]=password_hash($key,PASSWORD_BCRYPT,$options);
   $value_items["pw_reset_time"]=microtime(true);
   $value_items["pw_hash"]="*"; # disable login with password
@@ -395,6 +407,11 @@ function change_password($password_reset_user=false)
       setcookie($settings["login_cookie"],null,-1,"/");
       \webdb\utils\show_message("error: new password must be at least ".$settings["min_password_length"]." characters");
     }
+    if (strlen($pw_new)>$settings["max_password_length"])
+    {
+      setcookie($settings["login_cookie"],null,-1,"/");
+      \webdb\utils\show_message("error: a password of more than ".$settings["max_password_length"]." characters, while commendable, is considered a bit much. please try something shorter");
+    }
     if ($pw_new==$pw_old)
     {
       setcookie($settings["login_cookie"],null,-1,"/");
@@ -408,6 +425,10 @@ function change_password($password_reset_user=false)
     }
     $options=array();
     $options["cost"]=$settings["password_bcrypt_cost"];
+    if ($user_record["username"]=="admin")
+    {
+      $options["cost"]=$settings["admin_password_bcrypt_cost"];
+    }
     $value_items=array();
     $value_items["pw_hash"]=password_hash($pw_new,PASSWORD_BCRYPT,$options);
     $value_items["pw_change"]=0;
@@ -440,6 +461,10 @@ function change_password($password_reset_user=false)
     $temp_password=base64_encode(openssl_random_pseudo_bytes(30,$crypto_strong));
     $options=array();
     $options["cost"]=$settings["password_bcrypt_cost"];
+    if ($password_reset_user["username"]=="admin")
+    {
+      $options["cost"]=$settings["admin_password_bcrypt_cost"];
+    }
     $value_items["pw_hash"]=password_hash($temp_password,PASSWORD_BCRYPT,$options);
     $value_items["pw_login_time"]=microtime(true);
     $value_items["user_agent"]=$settings["user_agent"];

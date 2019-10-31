@@ -26,11 +26,13 @@ $settings["login_cookie"]="webdb_login";
 $settings["username_cookie"]="webdb_username";
 $settings["max_cookie_age"]=60*60*24*365;
 $settings["password_reset_timeout"]=60*60*24;
-$settings["password_bcrypt_cost"]=10; # 10 is a good baseline, 13 is very difficult to crack (but slower to hash)
+$settings["password_bcrypt_cost"]=11; # 10 is a good baseline, 13 is very difficult to crack (but slower to hash)
+$settings["admin_password_bcrypt_cost"]=13;
 $settings["row_lock_expiration"]=60*5;
 
 $settings["prohibited_passwords"]=array("password");
-$settings["min_password_length"]=6;
+$settings["min_password_length"]=8;
+$settings["max_password_length"]=400;
 $settings["max_login_attempts"]=7;
 
 $settings["admin_remote_address_whitelist"]=array("127.0.0.1");
