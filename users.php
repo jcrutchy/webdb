@@ -56,7 +56,7 @@ function get_user_record($username)
   $records=\webdb\sql\file_fetch_prepare("user_get_by_username",$sql_params);
   if (count($records)<>1)
   {
-    setcookie($settings["login_cookie"],null,-1,"/");
+    \webdb\users\webdb_unsetcookie("login_cookie");
     \webdb\utils\show_message("error: username not found");
   }
   return $records[0];
@@ -99,7 +99,7 @@ function login_failure($user_record,$message)
   $value_items["failed_login_count"]=$user_record["failed_login_count"]+1;
   $value_items["failed_login_time"]=microtime(true);
   \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
-  setcookie($settings["login_cookie"],null,-1,"/");
+  \webdb\users\webdb_unsetcookie("login_cookie");
   if ($message!==false)
   {
     \webdb\utils\show_message($message);
@@ -117,7 +117,7 @@ function login_lockout($user_record)
   $value_items["pw_hash"]="*"; # disable login with password
   $value_items["login_cookie"]="*"; # disable login with cookie
   \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
-  setcookie($settings["login_cookie"],null,-1,"/");
+  \webdb\users\webdb_unsetcookie("login_cookie");
   \webdb\utils\show_message(\webdb\utils\template_fill("lockout_error"));
 }
 
@@ -152,8 +152,7 @@ function login()
   if ((isset($_POST["login_username"])==true) and (isset($_POST["login_password"])==true))
   {
     $login_username=trim(strtolower($_POST["login_username"]));
-    $expiry=time()+$settings["max_cookie_age"];
-    setcookie($settings["username_cookie"],$login_username,$expiry,"/");
+    \webdb\users\webdb_setcookie("username_cookie",$login_username);
     $login_form_params["default_username"]=$login_username;
     $user_record=\webdb\users\get_user_record($login_username);
     if ($user_record["pw_reset_key"]<>"")
@@ -214,7 +213,7 @@ function login()
       }
     }
   }
-  setcookie($settings["login_cookie"],null,-1,"/");
+  \webdb\users\webdb_unsetcookie("login_cookie");
   $content=\webdb\utils\template_fill("login_form",$login_form_params);
   $buf=ob_get_contents();
   if (strlen($buf)<>0)
@@ -230,7 +229,6 @@ function login()
 function initialise_login_cookie($user_id)
 {
   global $settings;
-  $expiry=time()+$settings["max_cookie_age"];
   $where_items=array();
   $where_items["user_id"]=$user_id;
   $value_items=array();
@@ -248,7 +246,7 @@ function initialise_login_cookie($user_id)
   }
   $cookie=password_hash($key,PASSWORD_BCRYPT,$options);
   $value_items["login_cookie"]=$cookie;
-  setcookie($settings["login_cookie"],$key,$expiry,"/");
+  \webdb\users\webdb_setcookie("login_cookie",$key);
   \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
 }
 
@@ -257,7 +255,7 @@ function initialise_login_cookie($user_id)
 function logout()
 {
   global $settings;
-  setcookie($settings["login_cookie"],null,-1,"/");
+  \webdb\users\webdb_unsetcookie("login_cookie");
   $url=$settings["app_web_index"];
   \webdb\utils\redirect($url,false);
 }
@@ -334,7 +332,7 @@ function reset_password()
   }
   if ($validated===false)
   {
-    setcookie($settings["login_cookie"],null,-1,"/");
+    \webdb\users\webdb_unsetcookie("login_cookie");
     \webdb\utils\show_message("error: invalid password reset key");
   }
   \webdb\users\cancel_password_reset($validated);
@@ -377,9 +375,29 @@ function send_reset_password_message()
   #\webdb\utils\show_message($message); # TESTING (REMOVE/COMMENT OUT FOR PROD)
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   \webdb\utils\send_email($user_record["email"],"",$settings["app_name"]." password reset",$message,$settings["server_email_from"],$settings["server_email_reply_to"],$settings["server_email_bounce_to"]);
-  setcookie($settings["login_cookie"],null,-1,"/");
+  \webdb\users\webdb_unsetcookie("login_cookie");
   $message=\webdb\utils\template_fill("password_reset_valid_to_message",$msg_params);
   \webdb\utils\show_message($message);
+}
+
+#####################################################################################################
+
+function webdb_setcookie($setting_key,$value)
+{
+  global $settings;
+  $expiry=time()+$settings["max_cookie_age"]; # integer (seconds)
+  $cookie_name=$settings[$setting_key];
+  #setcookie($settings[$setting_key],$value,$expiry,"/",$_SERVER["HTTP_HOST"],false,true);
+  header("Set-Cookie: ".$cookie_name."=".$value."; expires=".date("l, d-M-Y H:i:s T",$expiry)."; Max-Age=".$settings["max_cookie_age"]."; path=/; domain=".$_SERVER["HTTP_HOST"]."; HttpOnly; SameSite=Strict");
+}
+
+#####################################################################################################
+
+function webdb_unsetcookie($setting_key)
+{
+  global $settings;
+  $cookie_name=$settings[$setting_key];
+  setcookie($cookie_name,null,-1,"/");
 }
 
 #####################################################################################################
@@ -394,33 +412,33 @@ function change_password($password_reset_user=false)
     $pw_new_conf=$_POST["change_password_new_confirm"];
     if ($pw_new<>$pw_new_conf)
     {
-      setcookie($settings["login_cookie"],null,-1,"/");
+      \webdb\users\webdb_unsetcookie("login_cookie");
       \webdb\utils\show_message("error: new passwords do not match");
     }
     if (in_array($pw_new,$settings["prohibited_passwords"])==true)
     {
-      setcookie($settings["login_cookie"],null,-1,"/");
+      \webdb\users\webdb_unsetcookie("login_cookie");
       \webdb\utils\show_message("error: cannot use any of the following for your new password: ".implode(" ",$settings["prohibited_passwords"]));
     }
     if (strlen($pw_new)<$settings["min_password_length"])
     {
-      setcookie($settings["login_cookie"],null,-1,"/");
+      \webdb\users\webdb_unsetcookie("login_cookie");
       \webdb\utils\show_message("error: new password must be at least ".$settings["min_password_length"]." characters");
     }
     if (strlen($pw_new)>$settings["max_password_length"])
     {
-      setcookie($settings["login_cookie"],null,-1,"/");
+      \webdb\users\webdb_unsetcookie("login_cookie");
       \webdb\utils\show_message("error: a password of more than ".$settings["max_password_length"]." characters, while commendable, is considered a bit much. please try something shorter");
     }
     if ($pw_new==$pw_old)
     {
-      setcookie($settings["login_cookie"],null,-1,"/");
+      \webdb\users\webdb_unsetcookie("login_cookie");
       \webdb\utils\show_message("error: new password cannot be the same as your old password");
     }
     $user_record=\webdb\users\get_user_record($_POST["login_username"]);
     if (password_verify($pw_old,$user_record["pw_hash"])==false)
     {
-      setcookie($settings["login_cookie"],null,-1,"/");
+      \webdb\users\webdb_unsetcookie("login_cookie");
       \webdb\utils\show_message("error: old password is incorrect");
     }
     $options=array();
