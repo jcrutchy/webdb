@@ -18,6 +18,11 @@ FRAMEWORK SECURITY
 - user agent changes will occur when a web browser is updated, so every time a user updates their web browser they will be prompted to login next
 - user agent changes will also occur if a different browser is used (eg: chrome vs firefox)
 
+- when a new user is inserted, the password field contains an invalid hash (*) which can never be replicated using the normal login system
+- the first time that a user views the login prompt, they will need to do a password reset
+
+- there is no way for an unauthenticated user to register a new user (new users must be registered by admin)
+
 - when user first logs in, trigger password change (implemented via default value of 1 for pw_change field in users.list)
 - when password reset has been triggered, disable login by password/cookie (allow 'reset password' button to resend new email)
 
