@@ -395,26 +395,29 @@ function send_reset_password_message()
 
 function webdb_setcookie($setting_key,$value,$max_age=false)
 {
+  # Set-Cookie: webdb_username=admin; expires=Fri, 30-Oct-2020 04:19:38 GMT; Max-Age=31536000; path=/; domain=192.168.43.50; HttpOnly
+  # Set-Cookie: webdb_login=B8sfv0erO5v%2F3uVjzU4IgIdlVams8X1UcxyCoXd0; expires=Fri, 30-Oct-2020 04:19:39 GMT; Max-Age=31536000; path=/; domain=192.168.43.50; HttpOnly
   global $settings;
   if ($max_age===false)
   {
     $max_age=$settings["max_cookie_age"];
   }
   $expiry=time()+$max_age;
-  /*$params=array();
+  $params=array();
   $params["cookie_name"]=$settings[$setting_key];
   $params["value"]=$value;
-  $params["expires"]=date("l, d-M-Y H:i:s T",$expiry);
+  $params["expires"]=date("D, d M Y H:i:s \G\M\T",$expiry);
   $params["max_age"]=$max_age;
   $params["domain"]=$_SERVER["HTTP_HOST"];
-  header(trim(\webdb\utils\template_fill("cookie_header",$params)));*/
-  setcookie($settings[$setting_key],$value,$expiry,"/",$_SERVER["HTTP_HOST"],false,true);
+  header(trim(\webdb\utils\template_fill("cookie_header",$params)));
+  #setcookie($settings[$setting_key],$value,$expiry,"/",$_SERVER["HTTP_HOST"],false,true);
 }
 
 #####################################################################################################
 
 function webdb_unsetcookie($setting_key)
 {
+  # Set-Cookie: webdb_login=deleted; expires=Thu, 01-Jan-1970 00:00:01 GMT; Max-Age=0; path=/
   #webdb_setcookie($setting_key,"deleted",-1);
   global $settings;
   setcookie($settings[$setting_key],null,-1,"/");
