@@ -288,6 +288,10 @@ function remote_address_changed($user_record) # allow right/lowest octet to chan
   {
     return true;
   }
+  if ($_SERVER["REMOTE_ADDR"]==$user_record["remote_address"])
+  {
+    return false;
+  }
   $octets_d=explode(".",$user_record["remote_address"]);
   $octets_r=explode(".",$_SERVER["REMOTE_ADDR"]);
   if (count($octets_d)<>4)
