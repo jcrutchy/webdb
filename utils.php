@@ -552,11 +552,22 @@ function get_child_array_key(&$array,$parent_key)
 
 function output_page($content,$title)
 {
+  global $settings;
   $page_params=array();
   $page_params["page_title"]=$title;
   $page_params["global_styles_modified"]=\webdb\utils\resource_modified_timestamp("global.css");
   $page_params["global_script_modified"]=\webdb\utils\resource_modified_timestamp("global.js");
   $page_params["body_text"]=$content;
+  if (isset($settings["user_record"])==true)
+  {
+    $user_record=$settings["user_record"];
+    \webdb\users\obfuscate_hashes($user_record);
+    $page_params["authenticated_status"]=\webdb\utils\template_fill("global".DIRECTORY_SEPARATOR."authenticated_status",$user_record);
+  }
+  else
+  {
+    $page_params["authenticated_status"]=\webdb\utils\template_fill("global".DIRECTORY_SEPARATOR."unauthenticated_status");
+  }
   $output=\webdb\utils\template_fill("global".DIRECTORY_SEPARATOR."page",$page_params);
   die($output);
 }

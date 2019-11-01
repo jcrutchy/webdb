@@ -14,3 +14,5 @@ $settings["server_email_reply_to"]="User <user@example.com>";
 $settings["server_email_bounce_to"]="user@example.com";
 
 $settings["admin_remote_address_whitelist"][]="192.168.0.50"; # add as required
+
+$settings["security_test_fudge_file"]="/home/user/".$settings["security_test_fudge_file"];

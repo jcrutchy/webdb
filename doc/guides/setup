@@ -126,6 +126,16 @@ make sure it is the same as above. if not, append the following to /etc/mysql/ma
 [mysqld]
 sql_mode="STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION"
 
+download http://browscap.org/stream?q=Lite_PHP_BrowsCapINI and save somewhere on server, such as ~/dev/public/lite_php_browscap.ini
+
+# nano /etc/php/7.0/apache2/php.ini
+
+[mail function]
+sendmail_path = sendmail -t -i
+
+[browscap]
+browscap=/home/<user>/dev/public/lite_php_browscap.ini
+
 reboot server
 
 
@@ -138,7 +148,6 @@ get external ip address (whatismyip.com) and replace 0.0.0.0 is following comman
 $ dig -x 0.0.0.0 @8.8.8.8
 result should indicate the hostname from the PTR record (if the address has a PTR record)
 if there is only an authority section and no answer section, the address has no PTR record (need to speak with ISP who owns the address)
-
 
 $ ssk-keygen
 follow prompts with default filename and no passphrase

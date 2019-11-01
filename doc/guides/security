@@ -14,6 +14,9 @@ FRAMEWORK SECURITY
 
 TODO: CHANGE FROM PASSWORD_BCRYPT TO PASSWORD_ARGON2ID (REQUIRES PHP 7.3.0) => REQUIRES CHANGE TO OPTIONS (https://www.php.net/manual/en/function.password-hash.php) - refer to https://github.com/crutchy-/webdb/issues/24
 
+- for production, comment out the testing show_message in the \webdb\users\send_reset_password_message function that outputs the emailed message (including link) to the browser window
+- for production, comment out the call to \webdb\test\load_security_testing_fudges() in index.php
+
 - if any of the higher 3 octets of the user's remote address change, invalidate cookie login (require password)
 - changes to the right/lowest octet are permitted for login by cookie to allow for dhcp subnets
 - if user's user agent changes, invalidate cookie login (require password)
@@ -43,8 +46,6 @@ TODO: CHANGE FROM PASSWORD_BCRYPT TO PASSWORD_ARGON2ID (REQUIRES PHP 7.3.0) => R
 - locked out accounts can only be unlocked by password reset (or by manual setting of failed_login_count to 0 in user record by admin)
 - failed login attemps can occur either by incorrect password, invalidated cookie (except when remote address or user agent changes), admin login from non-whitelisted address or attempting to login with a password that exceeds the maximum length
 - changes to remote address or user agent will invalidate a login cookie but not increment the failed login attempt counter
-
-- for production, remove the testing show_message in the \webdb\users\send_reset_password_message function that outputs the emailed message (including link) to the browser window
 
 - when viewing users list, all user record data (including hashes) will be passed to the \webdb\utils\computed_field_iso_datetime_format function via computed field config in users.list
 

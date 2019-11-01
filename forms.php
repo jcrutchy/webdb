@@ -33,6 +33,21 @@ function form_dispatch($url_page)
   global $settings;
   $form_config=\webdb\forms\get_form_config($url_page);
   $form_name=$form_config["form_name"];
+  if ($form_name=="users")
+  {
+    $admin_auth=false;
+    if (isset($settings["user_record"])==true)
+    {
+      if ($settings["user_record"]["username"]=="admin")
+      {
+        $admin_auth=true;
+      }
+    }
+    if ($admin_auth==false)
+    {
+      \webdb\utils\show_message("error: users form not permitted from non-admin account");
+    }
+  }
   if ((isset($_GET["ajax"])==true) and (isset($_GET["field_name"])==true))
   {
     $event_type=$_GET["ajax"];

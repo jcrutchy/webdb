@@ -12,6 +12,34 @@ function security_tests()
 
 #####################################################################################################
 
+function load_security_testing_fudges()
+{
+  global $settings;
+  if (\webdb\cli\is_cli_mode()==true)
+  {
+    return;
+  }
+  if (file_exists($settings["security_test_fudge_file"])==true)
+  {
+    $data=trim(file_get_contents($settings["security_test_fudge_file"]));
+    $lines=explode(PHP_EOL,$data);
+    for ($i=0;$i<count($lines);$i++)
+    {
+      $parts=explode("=",trim($lines[$i]));
+      $key=array_shift($parts);
+      $value=implode("=",$parts);
+      switch ($key)
+      {
+        case "changed_remote_addr":
+          $_SERVER["REMOTE_ADDR"]=$value;
+          break;
+      }
+    }
+  }
+}
+
+#####################################################################################################
+
 function check_webdb_settings()
 {
   global $settings;
@@ -74,7 +102,8 @@ function check_app_settings()
     "prohibited_passwords",
     "min_password_length",
     "max_login_attempts",
-    "admin_remote_address_whitelist");
+    "admin_remote_address_whitelist",
+    "security_test_fudge_file");
   for ($i=0;$i<count($required_settings);$i++)
   {
     \webdb\utils\check_required_setting_exists($required_settings[$i]);

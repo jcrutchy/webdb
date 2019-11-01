@@ -21,6 +21,9 @@ $settings["webdb_default_form"]="default";
 
 $settings["favicon_source"]=$settings["app_web_resources"]."favicon.ico";
 
+# the following setting is used only for loading security testing 'fudges'
+$settings["security_test_fudge_file"]="webdb_security_test.conf";
+
 $settings["links_template"]="";
 $settings["footer_template"]="";
 
@@ -46,6 +49,10 @@ $settings["gd_ttf"]="/usr/share/fonts/truetype/msttcorefonts/arial.ttf";
 $settings["webdb_web_root"]="/".$settings["webdb_directory_name"]."/";
 $settings["webdb_web_resources"]=$settings["webdb_web_root"]."resources/";
 $settings["webdb_web_index"]=$settings["webdb_web_root"]."index.php";
+
+$settings["server_email_from"]="";
+$settings["server_email_reply_to"]="";
+$settings["server_email_bounce_to"]="";
 
 # the following settings are also in list.css
 $settings["list_border_color"]="888";

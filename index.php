@@ -38,17 +38,19 @@ $settings=array();
 $settings_ref=&$settings;
 
 $settings["user_agent"]="";
+$settings["browser_info"]=array();
+$settings["browser_info"]["browser"]="";
 if (isset($_SERVER["HTTP_USER_AGENT"])==true)
 {
   $settings["user_agent"]=$_SERVER["HTTP_USER_AGENT"];
-}
-
-$incompatible_agents=array("trident","msie");
-for ($i=0;$i<count($incompatible_agents);$i++)
-{
-  if (strpos(strtolower($settings["user_agent"]),$incompatible_agents[$i])!==false)
+  $settings["browser_info"]=get_browser($_SERVER["HTTP_USER_AGENT"],true);
+  switch (strtolower($settings["browser_info"]["browser"]))
   {
-    \webdb\utils\system_message("Internet Explorer is not supported. Please try a recent version of Google Chrome or Mozilla Firefox.");
+    case "chrome":
+    case "firefox":
+      break;
+    default:
+      \webdb\utils\system_message("Please try a recent version of Google Chrome or Mozilla Firefox.");
   }
 }
 
@@ -86,6 +88,9 @@ else
 }
 
 \webdb\test\check_webdb_settings();
+
+# comment the following command out for prod
+\webdb\test\load_security_testing_fudges();
 
 $settings["templates"]=\webdb\utils\load_files($settings["webdb_templates_path"],"","htm",true);
 $settings["webdb_templates"]=$settings["templates"];
