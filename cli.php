@@ -58,8 +58,9 @@ function cli_dispatch()
   global $argv;
   switch ($argv[1])
   {
-    case "security_tests":
-      \webdb\test\security_tests();
+    case "run_tests":
+      require_once("test".DIRECTORY_SEPARATOR."test.php");
+      \webdb\test\run_tests();
       die;
     case "init_webdb_schema":
       \webdb\sql\file_execute_prepare("webdb_schema",array(),true);

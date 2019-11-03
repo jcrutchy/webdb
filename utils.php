@@ -56,6 +56,34 @@ function show_message($message)
 
 #####################################################################################################
 
+function load_test_settings()
+{
+  global $settings;
+  if (\webdb\cli\is_cli_mode()==true)
+  {
+    return;
+  }
+  if (file_exists($settings["test_settings_file"])==true)
+  {
+    $data=trim(file_get_contents($settings["test_settings_file"]));
+    $lines=explode(PHP_EOL,$data);
+    for ($i=0;$i<count($lines);$i++)
+    {
+      $parts=explode("=",trim($lines[$i]));
+      $key=array_shift($parts);
+      $value=implode("=",$parts);
+      switch ($key)
+      {
+        case "change_remote_addr":
+          $_SERVER["REMOTE_ADDR"]=$value;
+          break;
+      }
+    }
+  }
+}
+
+#####################################################################################################
+
 function ob_postprocess($buffer)
 {
   global $settings;
@@ -431,41 +459,6 @@ function redirect($url,$clean_buffer=true)
   }
   header("Location: ".$url);
   die;
-}
-
-#####################################################################################################
-
-function check_required_file_exists($filename,$is_path=false)
-{
-  if (file_exists($filename)==false)
-  {
-    if ($is_path==true)
-    {
-      \webdb\utils\system_message("error: required path not found: ".$filename);
-    }
-    else
-    {
-      \webdb\utils\system_message("error: required file not found: ".$filename);
-    }
-  }
-  if ($is_path==true)
-  {
-    if (is_dir($filename)==false)
-    {
-      \webdb\utils\system_message("error: required path is not a directory: ".$filename);
-    }
-  }
-}
-
-#####################################################################################################
-
-function check_required_setting_exists($key)
-{
-  global $settings;
-  if (isset($settings[$key])==false)
-  {
-    \webdb\utils\system_message("error: required setting not found: ".$key);
-  }
 }
 
 #####################################################################################################

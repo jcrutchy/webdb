@@ -129,6 +129,7 @@ sql_mode="STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY
 download http://browscap.org/stream?q=Lite_PHP_BrowsCapINI and save somewhere on server, such as ~/dev/public/lite_php_browscap.ini
 
 # nano /etc/php/7.0/apache2/php.ini
+- change filename to suit php version, or whatever loaded configuration file is indicated by phpinfo()
 
 [mail function]
 sendmail_path = sendmail -t -i

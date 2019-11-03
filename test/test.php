@@ -4,38 +4,17 @@ namespace webdb\test;
 
 #####################################################################################################
 
-function security_tests()
+function run_tests()
 {
+  require_once("test".DIRECTORY_SEPARATOR."test_utils.php");
+  system("clear");
+  \webdb\test\utils\test_info_message("CHECKING SETTINGS");
+  \webdb\test\check_webdb_settings();
+  \webdb\test\check_app_settings();
+  \webdb\test\check_sql_settings();
+  \webdb\test\utils\test_success_message("SETTINGS CHECK OK");
   require_once("test".DIRECTORY_SEPARATOR."security.php");
   \webdb\test\security\start();
-}
-
-#####################################################################################################
-
-function load_security_testing_fudges()
-{
-  global $settings;
-  if (\webdb\cli\is_cli_mode()==true)
-  {
-    return;
-  }
-  if (file_exists($settings["security_test_fudge_file"])==true)
-  {
-    $data=trim(file_get_contents($settings["security_test_fudge_file"]));
-    $lines=explode(PHP_EOL,$data);
-    for ($i=0;$i<count($lines);$i++)
-    {
-      $parts=explode("=",trim($lines[$i]));
-      $key=array_shift($parts);
-      $value=implode("=",$parts);
-      switch ($key)
-      {
-        case "changed_remote_addr":
-          $_SERVER["REMOTE_ADDR"]=$value;
-          break;
-      }
-    }
-  }
 }
 
 #####################################################################################################
@@ -50,12 +29,12 @@ function check_webdb_settings()
     "webdb_forms_path");
   for ($i=0;$i<count($required_settings);$i++)
   {
-    \webdb\utils\check_required_setting_exists($required_settings[$i]);
+    \webdb\test\utils\check_required_setting_exists($required_settings[$i]);
   }
-  \webdb\utils\check_required_file_exists($settings["webdb_templates_path"],true);
-  \webdb\utils\check_required_file_exists($settings["webdb_sql_path"],true);
-  \webdb\utils\check_required_file_exists($settings["webdb_resources_path"],true);
-  \webdb\utils\check_required_file_exists($settings["webdb_forms_path"],true);
+  \webdb\test\utils\check_required_file_exists($settings["webdb_templates_path"],true);
+  \webdb\test\utils\check_required_file_exists($settings["webdb_sql_path"],true);
+  \webdb\test\utils\check_required_file_exists($settings["webdb_resources_path"],true);
+  \webdb\test\utils\check_required_file_exists($settings["webdb_forms_path"],true);
 }
 
 #####################################################################################################
@@ -103,10 +82,10 @@ function check_app_settings()
     "min_password_length",
     "max_login_attempts",
     "admin_remote_address_whitelist",
-    "security_test_fudge_file");
+    "test_settings_file");
   for ($i=0;$i<count($required_settings);$i++)
   {
-    \webdb\utils\check_required_setting_exists($required_settings[$i]);
+    \webdb\test\utils\check_required_setting_exists($required_settings[$i]);
   }
   $required_files=array(
     "db_admin_file",
@@ -115,7 +94,7 @@ function check_app_settings()
   for ($i=0;$i<count($required_files);$i++)
   {
     $file=$required_files[$i];
-    \webdb\utils\check_required_file_exists($settings[$file]);
+    \webdb\test\utils\check_required_file_exists($settings[$file]);
   }
   $required_paths=array(
     "app_templates_path",
@@ -126,7 +105,7 @@ function check_app_settings()
   for ($i=0;$i<count($required_paths);$i++)
   {
     $path=$required_paths[$i];
-    \webdb\utils\check_required_file_exists($settings[$path],true);
+    \webdb\test\utils\check_required_file_exists($settings[$path],true);
   }
 }
 
@@ -141,7 +120,7 @@ function check_sql_settings()
     "db_user_password");
   for ($i=0;$i<count($required_settings);$i++)
   {
-    \webdb\utils\check_required_setting_exists($required_settings[$i]);
+    \webdb\test\utils\check_required_setting_exists($required_settings[$i]);
   }
 }
 

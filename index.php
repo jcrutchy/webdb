@@ -19,7 +19,6 @@ require_once("users.php");
 require_once("forms.php");
 require_once("sql.php");
 require_once("stubs.php");
-require_once("test".DIRECTORY_SEPARATOR."test.php");
 require_once("cli.php");
 
 set_error_handler('\webdb\utils\error_handler',E_ALL);
@@ -87,10 +86,8 @@ else
   \webdb\utils\system_message("error: webdb common settings file not found");
 }
 
-\webdb\test\check_webdb_settings();
-
-# comment the following command out for prod
-\webdb\test\load_security_testing_fudges();
+# may comment the following command out for prod
+\webdb\utils\load_test_settings();
 
 $settings["templates"]=\webdb\utils\load_files($settings["webdb_templates_path"],"","htm",true);
 $settings["webdb_templates"]=$settings["templates"];
@@ -118,8 +115,6 @@ if (file_exists($settings_filename)==false)
 }
 require_once($settings_filename);
 
-\webdb\test\check_app_settings();
-
 if (in_array($settings["app_directory_name"],$settings["apps_list"])==false)
 {
   \webdb\utils\system_message("error: app not registered");
@@ -127,8 +122,6 @@ if (in_array($settings["app_directory_name"],$settings["apps_list"])==false)
 
 \webdb\utils\load_db_credentials("admin");
 \webdb\utils\load_db_credentials("user");
-
-\webdb\test\check_sql_settings();
 
 $settings["app_templates"]=\webdb\utils\load_files($settings["app_templates_path"],"","htm",true);
 $settings["templates"]=array_merge($settings["webdb_templates"],$settings["app_templates"]);
