@@ -33,8 +33,8 @@ function ajax(url,method,load,error,timeout,body="",timeout_sec=30)
   if (method=="post") // method is "get" or "post"
   {
     xhttp.setRequestHeader("Content-type","application/x-www-form-urlencoded");
-    var csrf_token_hash=document.getElementById("csrf_token_hash").innerText;
-    body=body+"&csrf_token_hash="+encodeURIComponent(csrf_token_hash);
+    var csrf_token=document.getElementById("csrf_token").innerText;
+    body=body+"&csrf_token="+encodeURIComponent(csrf_token);
   }
   xhttp.send(body);
 }

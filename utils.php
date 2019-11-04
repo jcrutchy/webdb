@@ -95,11 +95,11 @@ function generate_csrf_token()
     return;
   }
   $crypto_strong=true;
-  $token=base64_encode(openssl_random_pseudo_bytes(30,$crypto_strong));
+  $settings["csrf_token"]=base64_encode(openssl_random_pseudo_bytes(30,$crypto_strong));
   $options=array();
   $options["cost"]=$settings["password_bcrypt_cost"];
-  $settings["csrf_token_hash"]=password_hash($token,PASSWORD_BCRYPT,$options);
-  setcookie("csrf_token",$token,0,"/",$_SERVER["HTTP_HOST"],false,true);
+  $hash=password_hash($settings["csrf_token"],PASSWORD_BCRYPT,$options);
+  setcookie("csrf_token_hash",$hash,0,"/",$_SERVER["HTTP_HOST"],false,true);
 }
 
 #####################################################################################################
@@ -107,7 +107,15 @@ function generate_csrf_token()
 function ob_postprocess($buffer)
 {
   global $settings;
-  $buffer=str_replace("%%csrf_token_hash%%",$settings["csrf_token_hash"],$buffer);
+  if (isset($settings["csrf_token"])==false)
+  {
+    $settings["csrf_token"]="";
+    if (isset($_POST["csrf_token"])==true)
+    {
+      $settings["csrf_token"]=$_POST["csrf_token"];
+    }
+  }
+  $buffer=str_replace("%%csrf_token%%",$settings["csrf_token"],$buffer);
   if (strpos($buffer,"%%")!==false)
   {
     $buffer="error: unassigned % template found: ".htmlspecialchars($buffer);
@@ -567,6 +575,7 @@ function get_child_array_key(&$array,$parent_key)
 function output_page($content,$title)
 {
   global $settings;
+  \webdb\users\check_csrf();
   $page_params=array();
   $page_params["page_title"]=$title;
   $page_params["global_styles_modified"]=\webdb\utils\resource_modified_timestamp("global.css");
