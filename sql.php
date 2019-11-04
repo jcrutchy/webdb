@@ -4,6 +4,29 @@ namespace webdb\sql;
 
 #####################################################################################################
 
+function check_post_params($sql="")
+{
+  if (\webdb\cli\is_cli_mode()==true)
+  {
+    return;
+  }
+  if (count($_POST)>0)
+  {
+    return;
+  }
+  if ($sql<>"")
+  {
+    $sql=strtolower($sql);
+    if ((strpos($sql,"insert")===false) and (strpos($sql,"update")===false) and (strpos($sql,"delete")===false))
+    {
+      return;
+    }
+  }
+  \webdb\utils\show_message("modification of database in non-post request not permitted");
+}
+
+#####################################################################################################
+
 function query_error($sql,$source="",$filename="")
 {
   $msg_params=array();
@@ -60,6 +83,7 @@ function sql_last_insert_autoinc_id($is_admin=false)
 
 function sql_insert($items,$table,$schema,$is_admin=false)
 {
+  \webdb\sql\check_post_params();
   $fieldnames=array_keys($items);
   $placeholders=array_map("\webdb\sql\callback_prepare",$fieldnames);
   $fieldnames=array_map("\webdb\sql\callback_quote",$fieldnames);
@@ -71,6 +95,7 @@ function sql_insert($items,$table,$schema,$is_admin=false)
 
 function sql_delete($items,$table,$schema,$is_admin=false)
 {
+  \webdb\sql\check_post_params();
   $sql="DELETE FROM `".$schema."`.`".$table."` WHERE (".\webdb\sql\build_prepared_where($items).")";
   return \webdb\sql\execute_prepare($sql,$items,"",$is_admin);
 }
@@ -79,6 +104,7 @@ function sql_delete($items,$table,$schema,$is_admin=false)
 
 function sql_update($value_items,$where_items,$table,$schema,$is_admin=false)
 {
+  \webdb\sql\check_post_params();
   $value_fieldnames=array_keys($value_items);
   $value_placeholder_names=array();
   for ($i=0;$i<count($value_fieldnames);$i++)
@@ -234,6 +260,7 @@ function file_execute_prepare($filename,$params,$is_admin=false)
 
 function execute_prepare($sql,$params=array(),$filename="",$is_admin=false)
 {
+  \webdb\sql\check_post_params($sql);
   $pdo=\webdb\sql\get_pdo_object($is_admin);
   $statement=$pdo->prepare($sql);
   if ($statement===false)
