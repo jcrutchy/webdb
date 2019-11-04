@@ -15,11 +15,10 @@ FRAMEWORK SECURITY
 TODO: CHANGE FROM PASSWORD_BCRYPT TO PASSWORD_ARGON2ID (REQUIRES PHP 7.3.0) => REQUIRES CHANGE TO OPTIONS (https://www.php.net/manual/en/function.password-hash.php) - refer to https://github.com/crutchy-/webdb/issues/24
 
 - for production, comment out the testing show_message in the \webdb\users\send_reset_password_message function that outputs the emailed message (including link) to the browser window
-- for production, comment out the call to \webdb\test\load_security_testing_fudges() in index.php
 
-- if any of the higher 3 octets of the user's remote address change, invalidate cookie login (require password)
-- changes to the right/lowest octet are permitted for login by cookie to allow for dhcp subnets
-- if user's user agent changes, invalidate cookie login (require password)
+- [TESTED] if any of the higher 3 octets of the user's remote address change, invalidate cookie login (require password)
+- [TESTED] changes to the right/lowest octet are permitted for login by cookie to allow for dhcp subnets
+- [TESTED] if user's user agent changes, invalidate cookie login (require password)
 - user agent changes will occur when a web browser is updated, so every time a user updates their web browser they will be prompted to login next
 - user agent changes will also occur if a different browser is used (eg: chrome vs firefox)
 
@@ -28,7 +27,7 @@ TODO: CHANGE FROM PASSWORD_BCRYPT TO PASSWORD_ARGON2ID (REQUIRES PHP 7.3.0) => R
 
 - there is no way for an unauthenticated user to register a new user (new users must be registered by admin)
 
-- when user first logs in, trigger password change (implemented via default value of 1 for pw_change field in users.list)
+- [TESTED] when user first logs in, trigger password change (implemented via default value of 1 for pw_change field in users.list)
 - when password reset has been triggered, disable login by password/cookie (allow 'reset password' button to resend new email)
 
 - when changing password, don't allow old and new passwords to be the same
@@ -66,6 +65,10 @@ TODO: CHANGE FROM PASSWORD_BCRYPT TO PASSWORD_ARGON2ID (REQUIRES PHP 7.3.0) => R
 - when a login failure occurs (using password or cookie), the login cookie field in the database for that user is set to *
 
 - authentication events are logged
+
+- changes to server data are (should) be made by post requests, not via get/url requests
+
+- all post requests are required to contain a valid csrf token hash field, which must be verified against a valid csrf token cookie (including logins)
 
 
 

@@ -74,6 +74,9 @@ function load_test_settings()
       $value=implode("=",$parts);
       switch ($key)
       {
+        case "change_user_agent":
+          $settings["user_agent"]=$value;
+          break;
         case "change_remote_addr":
           $_SERVER["REMOTE_ADDR"]=$value;
           break;
@@ -84,9 +87,27 @@ function load_test_settings()
 
 #####################################################################################################
 
+function generate_csrf_token()
+{
+  global $settings;
+  if (\webdb\cli\is_cli_mode()==true)
+  {
+    return;
+  }
+  $crypto_strong=true;
+  $token=base64_encode(openssl_random_pseudo_bytes(30,$crypto_strong));
+  $options=array();
+  $options["cost"]=$settings["password_bcrypt_cost"];
+  $settings["csrf_token_hash"]=password_hash($token,PASSWORD_BCRYPT,$options);
+  setcookie("csrf_token",$token,0,"/",$_SERVER["HTTP_HOST"],false,true);
+}
+
+#####################################################################################################
+
 function ob_postprocess($buffer)
 {
   global $settings;
+  $buffer=str_replace("%%csrf_token_hash%%",$settings["csrf_token_hash"],$buffer);
   if (strpos($buffer,"%%")!==false)
   {
     $buffer="error: unassigned % template found: ".htmlspecialchars($buffer);

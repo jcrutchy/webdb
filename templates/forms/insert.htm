@@ -2,6 +2,8 @@
 
 <form id="%%url_page%%" action="$$app_web_index$$?page=%%url_page%%&cmd=edit&id=" method="post">
 
+<input type="hidden" name="csrf_token_hash" value="%%csrf_token_hash%%">
+
 <div class="edit_form_controls">
   <input type="submit" name="form_cmd[insert_confirm]" value="%%confirm_caption%%">
 </div>

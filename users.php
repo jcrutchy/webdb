@@ -7,6 +7,7 @@ namespace webdb\users;
 function auth_dispatch()
 {
   global $settings;
+  \webdb\users\check_csrf();
   if (isset($_GET["logout"])==true)
   {
     \webdb\users\logout();
@@ -25,6 +26,32 @@ function auth_dispatch()
   }
   \webdb\users\login();
   $settings["logged_in_username"]=$settings["user_record"]["username"];
+}
+
+#####################################################################################################
+
+function check_csrf()
+{
+  $csrf_ok=false;
+  if (count($_POST)==0)
+  {
+    $csrf_ok=true;
+  }
+  if (\webdb\cli\is_cli_mode()==true)
+  {
+    $csrf_ok=true;
+  }
+  if ((isset($_POST["csrf_token_hash"])==true) and (isset($_COOKIE["csrf_token"])==true))
+  {
+    if (password_verify($_COOKIE["csrf_token"],$_POST["csrf_token_hash"])==true)
+    {
+      $csrf_ok=true;
+    }
+  }
+  if ($csrf_ok==false)
+  {
+    \webdb\utils\system_message("csrf error");
+  }
 }
 
 #####################################################################################################

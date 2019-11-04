@@ -77,7 +77,7 @@ function write_test_config($test_settings)
   }
   $content=implode(PHP_EOL,$content);
   \webdb\test\utils\write_file($settings["test_settings_file"],$content);
-  \webdb\test\utils\test_info_message("TEST CONFIG FILE WRITTEN");
+  #\webdb\test\utils\test_info_message("TEST CONFIG FILE WRITTEN");
 }
 
 #####################################################################################################
@@ -94,7 +94,7 @@ function write_file($filename,$content)
 {
   if (file_exists($filename)==true)
   {
-    \webdb\test\utils\test_info_message("OVERWRITING EXISTING FILE: ".$filename);
+    #\webdb\test\utils\test_info_message("OVERWRITING EXISTING FILE: ".$filename);
   }
   $result=file_put_contents($filename,$content);
   if ($result==false)
@@ -258,7 +258,7 @@ function submit_request($request)
   {
     \webdb\test\utils\test_error_message("ERROR CONNECTING TO LOCALHOST ON PORT 80");
   }
-  #\webdb\test\utils\test_dump_message($request);
+  \webdb\test\utils\test_dump_message($request);
   fwrite($fp,$request);
   $response="";
   while (!feof($fp))
@@ -267,8 +267,32 @@ function submit_request($request)
   }
   fclose($fp);
   \webdb\test\utils\test_info_message("REQUEST COMPLETED");
-  #\webdb\test\utils\test_dump_message($response);
+  \webdb\test\utils\test_dump_message($response);
   return $response;
+}
+
+#####################################################################################################
+
+function compare_template_exluding_percents($template,$response)
+{
+  $template_content=\webdb\utils\template_fill($template);
+  $parts=explode("%%",$template_content);
+  $excluded=array();
+  for ($i=0;$i<count($parts);$i++)
+  {
+    if (($i%2)==0)
+    {
+      $excluded[]=$parts[$i];
+    }
+  }
+  for ($i=0;$i<count($excluded);$i++)
+  {
+    if (strpos($response,$excluded[$i])===false)
+    {
+      return false;
+    }
+  }
+  return true;
 }
 
 #####################################################################################################

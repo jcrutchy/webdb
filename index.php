@@ -34,7 +34,6 @@ if (\webdb\cli\is_cli_mode()==false)
 }
 
 $settings=array();
-$settings_ref=&$settings;
 
 $settings["user_agent"]="";
 $settings["browser_info"]=array();
@@ -119,6 +118,8 @@ if (in_array($settings["app_directory_name"],$settings["apps_list"])==false)
 {
   \webdb\utils\system_message("error: app not registered");
 }
+
+\webdb\utils\generate_csrf_token();
 
 \webdb\utils\load_db_credentials("admin");
 \webdb\utils\load_db_credentials("user");

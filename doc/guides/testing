@@ -1,0 +1,9 @@
+$ php app/index.php run_tests
+
+testing framework is initiated by call to \webdb\test\run_tests function from \webdb\cli\cli_dispatch function
+
+basic testing framework is found in webdb/test/test.php and is supported by functions in webdb/test/test_utils.php
+
+security-related tests are found in webdb/test/security.php (called in \webdb\test\run_tests function)
+
+to override something on the apache side of a test get/post request to an application, add a case to the \webdb\utils\load_test_settings function

@@ -15,6 +15,8 @@
 
 <form action="$$app_web_index$$?page=%%url_page%%%%redirect%%" method="post">
 
+<input type="hidden" name="csrf_token_hash" value="%%csrf_token_hash%%">
+
 %%hidden_id_fields%%
 
 <div class="edit_form_controls">

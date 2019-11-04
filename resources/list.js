@@ -152,7 +152,7 @@ function list_insert_row_click(form,url_page)
     {
       var field_value=form.elements[field_name].value;
     }
-    data.push(field_name+"="+field_value);
+    data.push(field_name+"="+encodeURIComponent(field_value));
   }
   var body=data.join("&");
   var url=form.elements["insert_page:"+url_page].value+"&ajax";
@@ -304,7 +304,7 @@ function list_edit_row_update(form,url_page)
     {
       var field_value=form.elements[field_name].value;
     }
-    data.push(field_name+"="+field_value);
+    data.push(field_name+"="+encodeURIComponent(field_value));
   }
   var body=data.join("&");
   var parent=document.getElementById("top_level_url_page");
