@@ -771,7 +771,7 @@ function output_readonly_field($field_params,$control_type,$form_config,$field_n
       }
       return \webdb\forms\form_template_fill("list_field",$field_params);
     case "date":
-      if (($display_record[$field_name]==\webdb\sql\zero_sql_timestamp()) or ($display_record[$field_name]==null))
+      if ($display_record[$field_name]==null)
       {
         $field_params["value"]=\webdb\utils\template_fill("empty_cell");
       }
@@ -965,7 +965,7 @@ function output_editable_field(&$field_params,$record,$field_name,$control_type,
       break;
     case "date":
       $calendar_fields[]=$field_name;
-      if (($field_params["field_value"]==\webdb\sql\zero_sql_timestamp()) or ($field_params["field_value"]=="") or ($field_params["field_value"]==null))
+      if ($field_params["field_value"]==null)
       {
         $field_params["field_value"]="";
         $field_params["iso_field_value"]="";
@@ -1450,7 +1450,7 @@ function advanced_search($form_name)
         }
         $search_control_type="date";
         $calendar_fields[]=$field_name;
-        if (($field_value==\webdb\sql\zero_sql_timestamp()) or ($field_value==""))
+        if ($field_value=="")
         {
           $field_params["field_value"]="";
           $field_params["iso_field_value"]="";

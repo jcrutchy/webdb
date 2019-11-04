@@ -29,6 +29,24 @@ function auth_dispatch()
 
 #####################################################################################################
 
+function generate_csrf_token()
+{
+  global $settings;
+  if (\webdb\cli\is_cli_mode()==true)
+  {
+    return;
+  }
+  $crypto_strong=true;
+  $settings["csrf_token"]=base64_encode(openssl_random_pseudo_bytes(30,$crypto_strong));
+  $options=array();
+  $options["cost"]=$settings["password_bcrypt_cost"];
+  $hash=password_hash($settings["csrf_token"],PASSWORD_BCRYPT,$options);
+  setcookie("csrf_token_hash",$hash,0,"/",$_SERVER["HTTP_HOST"],false,true);
+  \webdb\users\auth_log(false,"GENERATE_CSRF_TOKEN","generated csrf token for ".$_SERVER["REMOTE_ADDR"]);
+}
+
+#####################################################################################################
+
 function check_csrf()
 {
   $csrf_ok=false;
@@ -44,12 +62,14 @@ function check_csrf()
   {
     if (password_verify($_POST["csrf_token"],$_COOKIE["csrf_token_hash"])==true)
     {
+      \webdb\users\auth_log(false,"VALID_CSRF_TOKEN","valid csrf token from ".$_SERVER["REMOTE_ADDR"]);
       $csrf_ok=true;
     }
   }
-  \webdb\utils\generate_csrf_token();
+  \webdb\users\generate_csrf_token();
   if ($csrf_ok==false)
   {
+    \webdb\users\auth_log(false,"INVALID_CSRF_TOKEN","invalid csrf token from ".$_SERVER["REMOTE_ADDR"]);
     \webdb\utils\system_message("csrf error");
   }
 }
@@ -103,12 +123,15 @@ function get_user_groups($user_id)
 
 function cancel_password_reset($user_record)
 {
+  global $settings;
   $where_items=array();
   $where_items["user_id"]=$user_record["user_id"];
   $value_items=array();
   $value_items["pw_reset_key"]="*";
   $value_items["pw_reset_time"]=0;
+  $settings["sql_check_post_params_override"]=true;
   \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
+  $settings["sql_check_post_params_override"]=false;
 }
 
 #####################################################################################################
@@ -258,7 +281,9 @@ function login()
           $value_items["user_agent"]=$settings["user_agent"];
           $value_items["remote_address"]=$_SERVER["REMOTE_ADDR"];
           $value_items["failed_login_count"]=0;
+          $settings["sql_check_post_params_override"]=true;
           \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
+          $settings["sql_check_post_params_override"]=false;
           $settings["user_record"]=$user_record;
           \webdb\users\auth_log($user_record,"COOKIE_LOGIN","");
           if ($user_record["pw_change"]==1)
@@ -564,12 +589,14 @@ function change_password($password_reset_user=false)
     $value_items["failed_login_count"]=0;
     $where_items=array();
     $where_items["user_id"]=$password_reset_user["user_id"];
+    $settings["sql_check_post_params_override"]=true;
     \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
+    $settings["sql_check_post_params_override"]=false;
     $change_password_params["old_password_default"]=$temp_password;
     $change_password_params["old_password_display"]="none";
     $change_password_params["login_username"]=$password_reset_user["username"];
     $settings["user_record"]=$password_reset_user;
-    \webdb\users\auth_log($user_record,"RESET_PASSWORD_CHANGE","");
+    \webdb\users\auth_log($password_reset_user,"RESET_PASSWORD_CHANGE","");
   }
   $content=\webdb\utils\template_fill("change_password",$change_password_params);
   \webdb\utils\output_page($content,"Change Password");

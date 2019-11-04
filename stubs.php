@@ -119,7 +119,7 @@ function list_edit($id,$form_name)
     foreach ($_POST as $key => $value)
     {
       $parts=explode(":",$key);
-      $field_name=$parts[3];
+      $field_name=$parts[3]; # TODO: BUG HERE ON SUBFORM ROW UPDATE (Undefined offset: 3 in "/home/jared/dev/public/webdb/stubs.php" on line 122)
       $post_fields[$field_name]=$value;
     }
     if (isset($_GET["parent"])==true)

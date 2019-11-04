@@ -250,7 +250,7 @@ function wpost($uri,$params)
 
 function submit_request($request)
 {
-  \webdb\test\utils\test_info_message("ATTEMPTING TO CONNECT TO SERVER AND SUBMIT REQUEST...");
+  #\webdb\test\utils\test_info_message("ATTEMPTING TO CONNECT TO SERVER AND SUBMIT REQUEST...");
   $errno=0;
   $errstr="";
   $fp=stream_socket_client("tcp://localhost:80",$errno,$errstr,10);
@@ -258,7 +258,7 @@ function submit_request($request)
   {
     \webdb\test\utils\test_error_message("ERROR CONNECTING TO LOCALHOST ON PORT 80");
   }
-  \webdb\test\utils\test_dump_message($request);
+  #\webdb\test\utils\test_dump_message($request);
   fwrite($fp,$request);
   $response="";
   while (!feof($fp))
@@ -266,8 +266,8 @@ function submit_request($request)
     $response.=fgets($fp,1024);
   }
   fclose($fp);
-  \webdb\test\utils\test_info_message("REQUEST COMPLETED");
-  \webdb\test\utils\test_dump_message($response);
+  #\webdb\test\utils\test_info_message("REQUEST COMPLETED");
+  #\webdb\test\utils\test_dump_message($response);
   return $response;
 }
 

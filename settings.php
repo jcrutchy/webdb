@@ -40,7 +40,7 @@ $settings["min_password_length"]=8;
 $settings["max_password_length"]=400;
 $settings["max_login_attempts"]=7;
 
-$settings["admin_remote_address_whitelist"]=array("127.0.0.1");
+$settings["admin_remote_address_whitelist"]=array("127.0.0.1","::1");
 
 $settings["db_host"]="localhost";
 

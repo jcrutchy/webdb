@@ -4,9 +4,14 @@ namespace webdb\sql;
 
 #####################################################################################################
 
-function check_post_params($sql="")
+function check_post_params($sql)
 {
+  global $settings;
   if (\webdb\cli\is_cli_mode()==true)
+  {
+    return;
+  }
+  if ($settings["sql_check_post_params_override"]==true)
   {
     return;
   }
@@ -16,13 +21,13 @@ function check_post_params($sql="")
   }
   if ($sql<>"")
   {
-    $sql=strtolower($sql);
-    if ((strpos($sql,"insert")===false) and (strpos($sql,"update")===false) and (strpos($sql,"delete")===false))
+    $sql_lc=strtolower($sql);
+    if ((strpos($sql_lc,"insert")===false) and (strpos($sql_lc,"update")===false) and (strpos($sql_lc,"delete")===false))
     {
       return;
     }
   }
-  \webdb\utils\show_message("modification of database in non-post request not permitted");
+  \webdb\utils\show_message("modification of database in non-post request not permitted: ".$sql);
 }
 
 #####################################################################################################
@@ -83,11 +88,11 @@ function sql_last_insert_autoinc_id($is_admin=false)
 
 function sql_insert($items,$table,$schema,$is_admin=false)
 {
-  \webdb\sql\check_post_params();
   $fieldnames=array_keys($items);
   $placeholders=array_map("\webdb\sql\callback_prepare",$fieldnames);
   $fieldnames=array_map("\webdb\sql\callback_quote",$fieldnames);
   $sql="INSERT INTO `".$schema."`.`".$table."` (".implode(",",$fieldnames).") VALUES (".implode(",",$placeholders).")";
+  \webdb\sql\check_post_params($sql);
   return \webdb\sql\execute_prepare($sql,$items,"",$is_admin);
 }
 
@@ -95,8 +100,8 @@ function sql_insert($items,$table,$schema,$is_admin=false)
 
 function sql_delete($items,$table,$schema,$is_admin=false)
 {
-  \webdb\sql\check_post_params();
   $sql="DELETE FROM `".$schema."`.`".$table."` WHERE (".\webdb\sql\build_prepared_where($items).")";
+  \webdb\sql\check_post_params($sql);
   return \webdb\sql\execute_prepare($sql,$items,"",$is_admin);
 }
 
@@ -104,7 +109,6 @@ function sql_delete($items,$table,$schema,$is_admin=false)
 
 function sql_update($value_items,$where_items,$table,$schema,$is_admin=false)
 {
-  \webdb\sql\check_post_params();
   $value_fieldnames=array_keys($value_items);
   $value_placeholder_names=array();
   for ($i=0;$i<count($value_fieldnames);$i++)
@@ -126,6 +130,7 @@ function sql_update($value_items,$where_items,$table,$schema,$is_admin=false)
   }
   $items=array_merge($update_value_items,$where_items);
   $sql="UPDATE `$schema`.`".$table."` SET ".$values_string." WHERE (".\webdb\sql\build_prepared_where($where_items).")";
+  \webdb\sql\check_post_params($sql);
   return \webdb\sql\execute_prepare($sql,$items,"",$is_admin);
 }
 
@@ -168,13 +173,6 @@ function foreign_key_used($database,$table,$record,$foreign_key_defs=false)
     return $foreign_keys;
   }
   return false;
-}
-
-#####################################################################################################
-
-function zero_sql_timestamp()
-{
-  return "0000-00-00 00:00:00";
 }
 
 #####################################################################################################
