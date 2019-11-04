@@ -68,7 +68,9 @@ TODO: CHANGE FROM PASSWORD_BCRYPT TO PASSWORD_ARGON2ID (REQUIRES PHP 7.3.0) => R
 
 - changes to server data are (should) be made by post requests, not via get/url requests
 
-- all post requests are required to contain a valid csrf token hash field, which must be verified against a valid csrf token cookie (including logins)
+- all post requests are required to contain a valid csrf token field, which must be verified against a valid csrf token hash cookie (including logins)
+- new csrf tokens are generated only on output of a new page
+- ajax requests are validated using their parent page csrf token (accessed by the global ajax function via replication of the token in a hidden div with an id)
 
 
 
