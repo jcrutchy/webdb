@@ -415,23 +415,20 @@ function get_subform_content($subform_config,$subform_link_field,$id,$list_only=
 
 #####################################################################################################
 
-function get_calendar($field_names)
+function get_calendar()
 {
   global $settings;
-  if (count($field_names)>0)
+  $field_names=$settings["calendar_fields"];
+  for ($i=0;$i<count($field_names);$i++)
   {
-    for ($i=0;$i<count($field_names);$i++)
-    {
-      $field_names[$i]="'".\webdb\forms\js_date_field($field_names[$i])."'";
-    }
-    $calendar_params=array();
-    $calendar_params["calendar_inputs"]=implode(",",$field_names);
-    $calendar_params["app_date_format"]=$settings["app_date_format"];
-    $calendar_params["calendar_styles_modified"]=\webdb\utils\resource_modified_timestamp("calendar.css");
-    $calendar_params["calendar_script_modified"]=\webdb\utils\resource_modified_timestamp("calendar.js");
-    return \webdb\forms\form_template_fill("calendar",$calendar_params);
+    $field_names[$i]="'".\webdb\forms\js_date_field($field_names[$i])."'";
   }
-  return "";
+  $calendar_params=array();
+  $calendar_params["calendar_inputs"]=implode(",",$field_names);
+  $calendar_params["app_date_format"]=$settings["app_date_format"];
+  $calendar_params["calendar_styles_modified"]=\webdb\utils\resource_modified_timestamp("calendar.css");
+  $calendar_params["calendar_script_modified"]=\webdb\utils\resource_modified_timestamp("calendar.js");
+  return \webdb\forms\form_template_fill("calendar",$calendar_params);
 }
 
 #####################################################################################################
@@ -585,7 +582,7 @@ function config_id_url_value($form_config,$record,$config_key)
 
 #####################################################################################################
 
-function list_row($form_config,$record,$column_format,$row_spans,$lookup_records,$record_index,&$calendar_fields,$checklist_link_record=false)
+function list_row($form_config,$record,$column_format,$row_spans,$lookup_records,$record_index,$checklist_link_record=false)
 {
   global $settings;
   $rotate_group_borders=$column_format["rotate_group_borders"];
@@ -693,7 +690,7 @@ function list_row($form_config,$record,$column_format,$row_spans,$lookup_records
         {
           $control_type_suffix="_check";
         }
-        $field_params["value"]=output_editable_field($field_params,$display_record,$field_name,$control_type,$form_config,$calendar_fields,$lookup_records);
+        $field_params["value"]=output_editable_field($field_params,$display_record,$field_name,$control_type,$form_config,$lookup_records);
         $fields.=\webdb\forms\form_template_fill("list_field".$control_type_suffix,$field_params);
       }
       else
@@ -820,7 +817,7 @@ function check_column($form_config,$template,$params=array())
 
 #####################################################################################################
 
-function list_row_controls($form_config,&$submit_fields,&$calendar_fields,$operation,$column_format,$record,$field_name_prefix="")
+function list_row_controls($form_config,&$submit_fields,$operation,$column_format,$record,$field_name_prefix="")
 {
   global $settings;
   $rotate_group_borders=$column_format["rotate_group_borders"];
@@ -852,11 +849,7 @@ function list_row_controls($form_config,&$submit_fields,&$calendar_fields,$opera
     {
       $control_type_suffix="_check";
     }
-    if (($control_type<>"lookup") and ($control_type<>"span"))
-    {
-      $submit_fields[]=$field_params["field_name"];
-    }
-    $field_params["value"]=output_editable_field($field_params,$record,$field_name,$control_type,$form_config,$calendar_fields,$lookup_records);
+    $field_params["value"]=output_editable_field($field_params,$record,$field_name,$control_type,$form_config,$lookup_records,$submit_fields);
     if ($form_config["visible"][$field_name]==true)
     {
       $fields.=\webdb\forms\form_template_fill("list_field".$control_type_suffix,$field_params);
@@ -873,7 +866,7 @@ function list_row_controls($form_config,&$submit_fields,&$calendar_fields,$opera
 
 #####################################################################################################
 
-function output_editable_field(&$field_params,$record,$field_name,$control_type,$form_config,&$calendar_fields,$lookup_records)
+function output_editable_field(&$field_params,$record,$field_name,$control_type,$form_config,$lookup_records,&$submit_fields)
 {
   global $settings;
   $field_params["field_value"]="";
@@ -921,10 +914,12 @@ function output_editable_field(&$field_params,$record,$field_name,$control_type,
           $field_params["control_style"].=\webdb\forms\form_template_fill("disabled_text_control_style");
         }
       }
+      $submit_fields[]=$field_params["field_name"];
       break;
     case "memo":
       $field_params["field_value"]=htmlspecialchars(str_replace(\webdb\index\LINEBREAK_DB_DELIM,\webdb\index\LINEBREAK_PLACEHOLDER,$field_params["field_value"]));
       $field_params["field_value"]=str_replace(\webdb\index\LINEBREAK_PLACEHOLDER,PHP_EOL,$field_params["field_value"]);
+      $submit_fields[]=$field_params["field_name"];
       break;
     case "combobox":
     case "listbox":
@@ -962,9 +957,10 @@ function output_editable_field(&$field_params,$record,$field_name,$control_type,
         }
       }
       $field_params["options"]=$options;
+      $submit_fields[]=$field_params["field_name"];
       break;
     case "date":
-      $calendar_fields[]=$field_name;
+      $settings["calendar_fields"][]=$field_name;
       if ($field_params["field_value"]==null)
       {
         $field_params["field_value"]="";
@@ -975,6 +971,7 @@ function output_editable_field(&$field_params,$record,$field_name,$control_type,
         $field_params["field_value"]=date($settings["app_date_format"],strtotime($field_params["field_value"]));
         $field_params["iso_field_value"]=date("Y-m-d",strtotime($field_params["field_value"]));
       }
+      $submit_fields[]="iso_".$field_params["field_name"];
       break;
     case "checkbox":
       $field_params["checked"]="";
@@ -982,6 +979,7 @@ function output_editable_field(&$field_params,$record,$field_name,$control_type,
       {
         $field_params["checked"]=\webdb\utils\template_fill("checkbox_checked");
       }
+      $submit_fields[]=$field_params["field_name"];
       break;
     default:
       \webdb\utils\show_message("error: invalid control type '".$control_type."' for field '".$field_name."' on form '".$form_name."'");
@@ -1132,7 +1130,6 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
     $sql=\webdb\utils\sql_fill($form_config["records_sql"]);
     $records=\webdb\sql\fetch_query($sql);
   }
-  $calendar_fields=array();
   $form_params=array();
   $form_params["url_page"]=$form_config["url_page"];
   $form_params["individual_edit_url_page"]=$form_config["individual_edit_url_page"];
@@ -1305,20 +1302,19 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
       }
     }
     \webdb\forms\process_computed_fields($form_config,$record);
-    $rows.=\webdb\forms\list_row($form_config,$record,$column_format,$row_spans,$lookup_records,$i,$calendar_fields,$checklist_link_record);
+    $rows.=\webdb\forms\list_row($form_config,$record,$column_format,$row_spans,$lookup_records,$i,$checklist_link_record);
   }
   $form_params["insert_row_controls"]="";
   if (($form_config["insert_row"]==true) and ($form_config["records_sql"]==""))
   {
     $insert_fields=array();
-    $rows.=\webdb\forms\list_row_controls($form_config,$insert_fields,$calendar_fields,"insert",$column_format,$form_config["default_values"]);
+    $rows.=\webdb\forms\list_row_controls($form_config,$insert_fields,"insert",$column_format,$form_config["default_values"]);
     for ($i=0;$i<count($insert_fields);$i++)
     {
       $insert_fields[$i]="'".$insert_fields[$i]."'";
     }
     $form_params["insert_row_controls"]=implode(",",$insert_fields);
   }
-  $form_params["calendar"]=\webdb\forms\get_calendar($calendar_fields);
   $form_params["rows"]=$rows;
   $form_params["advanced_search_control"]="";
   $form_params["sort_field_control"]="";
@@ -1387,7 +1383,6 @@ function advanced_search($form_name)
 {
   global $settings;
   $form_config=$settings["forms"][$form_name];
-  $calendar_fields=array();
   $rows="";
   $sql_params=array();
   foreach ($form_config["control_types"] as $field_name => $control_type)
@@ -1449,7 +1444,7 @@ function advanced_search($form_name)
           }
         }
         $search_control_type="date";
-        $calendar_fields[]=$field_name;
+        $settings["calendar_fields"][]=$field_name;
         if ($field_value=="")
         {
           $field_params["field_value"]="";
@@ -1483,7 +1478,6 @@ function advanced_search($form_name)
     $rows.=\webdb\forms\form_template_fill("field_row",$row_params);
   }
   $form_params=array();
-  $form_params["calendar"]=\webdb\forms\get_calendar($calendar_fields);
   $form_params["title"]=$form_config["title"];
   $form_params["rows"]=$rows;
   $form_params["url_page"]=$form_config["url_page"];
@@ -1690,8 +1684,8 @@ function get_interface_button($form_config,$record,$field_name,$field_value)
 function output_editor($form_name,$record,$command,$verb,$id)
 {
   global $settings;
+  $submit_fields=array();
   $form_config=$settings["forms"][$form_name];
-  $calendar_fields=array();
   $lookup_records=lookup_records($form_config);
   $rows="";
   foreach ($form_config["control_types"] as $field_name => $control_type)
@@ -1718,12 +1712,11 @@ function output_editor($form_name,$record,$command,$verb,$id)
     {
       $field_params["control_style"]=$form_config["control_styles"][$field_name];
     }
-    $row_params["field_value"]=output_editable_field($field_params,$record,$field_name,$control_type,$form_config,$calendar_fields,$lookup_records);
+    $row_params["field_value"]=output_editable_field($field_params,$record,$field_name,$control_type,$form_config,$lookup_records,$submit_fields);
     $row_params["interface_button"]=\webdb\forms\get_interface_button($form_config,$record,$field_name,$field_value);
     $rows.=\webdb\forms\form_template_fill("field_row",$row_params);
   }
   $form_params=array();
-  $form_params["calendar"]=\webdb\forms\get_calendar($calendar_fields);
   $form_params["rows"]=$rows;
   $form_params["url_page"]=$form_config["url_page"];
   $form_params["individual_edit_id"]=$id;

@@ -54,6 +54,8 @@ if (isset($_SERVER["HTTP_USER_AGENT"])==true)
 
 $settings["sql_check_post_params_override"]=false;
 
+$settings["calendar_fields"]=array();
+
 $settings["permissions"]=array();
 
 $settings["parent_path"]=dirname(dirname(__FILE__)).DIRECTORY_SEPARATOR;

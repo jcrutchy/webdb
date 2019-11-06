@@ -119,8 +119,17 @@ function list_edit($id,$form_name)
     foreach ($_POST as $key => $value)
     {
       $parts=explode(":",$key);
-      $field_name=$parts[3]; # TODO: BUG HERE ON SUBFORM ROW UPDATE (Undefined offset: 3 in "/home/jared/dev/public/webdb/stubs.php" on line 122)
+      if (count($parts)<4)
+      {
+        continue;
+      }
+      $field_name=$parts[3];
       $post_fields[$field_name]=$value;
+      if ($parts[0]=="iso_edit_control")
+      {
+        $field_name="iso_".$field_name;
+        $post_fields[$field_name]=$value;
+      }
     }
     if (isset($_GET["parent"])==true)
     {
@@ -128,6 +137,10 @@ function list_edit($id,$form_name)
       $parent_form_config=\webdb\forms\get_form_config($parent_url_page);
       $parent_form_name=$parent_form_config["form_name"];
       $subform_url_page=$_GET["subform"];
+      if (\webdb\utils\check_user_form_permission($subform_url_page,"u")==false)
+      {
+        \webdb\utils\show_message("error: form record update permission denied");
+      }
       $subform_form_config=\webdb\forms\get_form_config($subform_url_page);
       $subform_form_name=$subform_form_config["form_name"];
       $value_items=\webdb\forms\process_form_data_fields($subform_form_name,$post_fields);
@@ -161,20 +174,22 @@ function list_edit($id,$form_name)
   {
     $row_spans=array();
     $lookup_records=\webdb\forms\lookup_records($form_config);
-    $calendar_fields=array();
-    $data["html"]=\webdb\forms\list_row($form_config,$record,$column_format,$row_spans,$lookup_records,0,$calendar_fields);
+    $data["html"]=\webdb\forms\list_row($form_config,$record,$column_format,$row_spans,$lookup_records,0);
     $data["primary_key"]=$id;
     $data["calendar_fields"]=json_encode(array());
     $data["edit_fields"]=json_encode(array());
     $data=json_encode($data);
     die($data);
   }
-  $calendar_fields=array();
   $edit_fields=array();
   $field_name_prefix="edit_control:".$form_config["url_page"].":".$id.":";
-  $data["html"]=\webdb\forms\list_row_controls($form_config,$edit_fields,$calendar_fields,"edit",$column_format,$record,$field_name_prefix);
+  $data["html"]=\webdb\forms\list_row_controls($form_config,$edit_fields,"edit",$column_format,$record,$field_name_prefix);
   $data["primary_key"]=$id;
-  $data["calendar_fields"]=json_encode($calendar_fields);
+  for ($i=0;$i<count($settings["calendar_fields"]);$i++)
+  {
+    $settings["calendar_fields"][$i]=\webdb\forms\js_date_field($field_name_prefix.$settings["calendar_fields"][$i]);
+  }
+  $data["calendar_fields"]=json_encode($settings["calendar_fields"]);
   $data["edit_fields"]=json_encode($edit_fields);
   $data=json_encode($data);
   die($data);

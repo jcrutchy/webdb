@@ -5,18 +5,21 @@ var calendar_selected_input;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function calendar_body_click(element)
+function calendar_body_click(event)
 {
   var calendar=document.getElementById("calendar_div");
   if (calendar)
   {
-    if ((element.target==calendar) || (is_descendant(calendar,element.target)==true))
+    if ((event.target==calendar) || (calendar.contains(event.target)==true))
     {
       return;
     }
-    if (calendar_inputs.includes(element.target.id)==true)
+    if (event.target.id)
     {
-      return;
+      if (calendar_inputs.includes(event.target.id)==true)
+      {
+        return;
+      }
     }
     calendar.style.display="none";
   }
@@ -24,7 +27,7 @@ function calendar_body_click(element)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function show_calendar(element)
+function show_calendar(event,element)
 {
   var calendar=document.getElementById("calendar_div");
   if (!calendar)
@@ -53,9 +56,9 @@ function show_calendar(element)
   }
   make_calendar(date_in_input,existing_date.getYear(),existing_date.getMonth(),existing_date.getDate());
   calendar.style.display="block";
-  calendar_selected_input.parentElement.appendChild(calendar);
-  calendar.offsetLeft=calendar_selected_input.offsetLeft;
-  calendar.offsetTop=calendar_selected_input.offsetTop;
+  var pos=webdb_get_position(calendar_selected_input);
+  calendar.style.left=pos.x+"px";
+  calendar.style.top=(pos.y+calendar_selected_input.offsetHeight)+"px";
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////

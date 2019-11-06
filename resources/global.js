@@ -41,22 +41,6 @@ function ajax(url,method,load,error,timeout,body="",timeout_sec=30)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function is_descendant(parent,child)
-{
-  var node=child.parentNode;
-  while (node!=null)
-  {
-    if (node==parent)
-    {
-      return true;
-    }
-    node=node.parentNode;
-  }
-  return false;
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-
 function remove_url_param(key,url)
 {
   var result=url.split("?")[0];
@@ -83,6 +67,16 @@ function remove_url_param(key,url)
     result=result+params_str;
   }
   return result;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function webdb_get_position(e)
+{
+  var r=e.getBoundingClientRect();
+  x_pos=r.left+window.scrollX;
+  y_pos=r.top+window.scrollY;
+  return {x: x_pos,y: y_pos};
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
