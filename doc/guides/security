@@ -21,6 +21,7 @@ TODO: CHANGE FROM PASSWORD_BCRYPT TO PASSWORD_ARGON2ID (REQUIRES PHP 7.3.0) => R
 - [TESTED] if user's user agent changes, invalidate cookie login (require password)
 - user agent changes will occur when a web browser is updated, so every time a user updates their web browser they will be prompted to login next
 - user agent changes will also occur if a different browser is used (eg: chrome vs firefox)
+- user agent header is required
 
 - when a new user is inserted, the password field contains an invalid hash (*) which can never be replicated using the normal login system
 - the first time that a user views the login prompt, they will need to do a password reset
@@ -36,7 +37,7 @@ TODO: CHANGE FROM PASSWORD_BCRYPT TO PASSWORD_ARGON2ID (REQUIRES PHP 7.3.0) => R
 - when changing password, new password cannot be longer than 400 characters (only first 72 characters will be hashed anyway with the remainder truncated, but a longer password phrase may be easier for the user to remember)
 - a maximum password length also limits denial of service attacks (https://www.acunetix.com/vulnerabilities/web/long-password-denial-of-service/)
 
-- long passwords (>72 chars) aren't pre-hashed with sha512
+- long passwords (>72 chars) aren't pre-hashed with sha256/512 (not required and may be less secure per discussion on the web)
 
 - if pw_change flag is set in a user record, prompt user to change their password on login (no ability to skip or navigate directly to different page)
 - pw_change flag can either be manually set by admin in user edit form, or if required a crontab script could be implemented later to force password change every 2 months or so if required
@@ -66,12 +67,12 @@ TODO: CHANGE FROM PASSWORD_BCRYPT TO PASSWORD_ARGON2ID (REQUIRES PHP 7.3.0) => R
 
 - authentication events are logged
 
-- changes to server data are (should) be made by post requests, not via get/url requests
-
 - all post requests are required to contain a valid csrf token field, which must be verified against a valid csrf token hash cookie (including logins)
 - new csrf tokens are generated only on output of a new page
 - ajax requests are validated using their parent page csrf token (accessed by the global ajax function via replication of the token in a hidden div with an id)
 
+- changes to server data are (should) be made by post requests, not via get/url requests
+- database changes aren't possible from non-post (and therefore non-csrf-protected) requests, unless a hardcoded flag is set in $settings
 
 
 APPLICATION SECURITY

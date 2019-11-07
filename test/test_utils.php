@@ -168,7 +168,20 @@ function extract_http_headers($response)
   {
     return false;
   }
-  return substr($response,0,$i);
+  return trim(substr($response,0,$i));
+}
+
+#####################################################################################################
+
+function strip_http_headers($response)
+{
+  $delim="\r\n\r\n";
+  $i=strpos($response,$delim);
+  if ($i===False)
+  {
+    return False;
+  }
+  return trim(substr($response,$i+strlen($delim)));
 }
 
 #####################################################################################################
@@ -212,8 +225,9 @@ function construct_cookie_header($cookie_jar)
 function wget($uri)
 {
   global $settings;
-  $headers="POST $uri HTTP/1.0\r\n";
+  $headers="GET $uri HTTP/1.0\r\n";
   $headers.="Host: localhost\r\n";
+  $headers.="User-Agent: ".$settings["test_user_agent"]."\r\n";
   if (isset($settings["test_login_cookie_header"])==true)
   {
     $headers.=$settings["test_login_cookie_header"]."\r\n";
@@ -235,6 +249,7 @@ function wpost($uri,$params)
   $content=implode("&",$encoded_params);
   $headers="POST $uri HTTP/1.0\r\n";
   $headers.="Host: localhost\r\n";
+  $headers.="User-Agent: ".$settings["test_user_agent"]."\r\n";
   $headers.="Content-Type: application/x-www-form-urlencoded\r\n";
   if (isset($settings["test_login_cookie_header"])==true)
   {
@@ -258,7 +273,7 @@ function submit_request($request)
   {
     \webdb\test\utils\test_error_message("ERROR CONNECTING TO LOCALHOST ON PORT 80");
   }
-  #\webdb\test\utils\test_dump_message($request);
+  \webdb\test\utils\test_dump_message($request);
   fwrite($fp,$request);
   $response="";
   while (!feof($fp))
@@ -269,6 +284,25 @@ function submit_request($request)
   #\webdb\test\utils\test_info_message("REQUEST COMPLETED");
   #\webdb\test\utils\test_dump_message($response);
   return $response;
+}
+
+#####################################################################################################
+
+function extract_text($text,$delim1,$delim2)
+{
+  $i=strpos(strtolower($text),strtolower($delim1));
+  if ($i===false)
+  {
+    \webdb\test\utils\test_error_message("extract_text error: delim1 not found");
+  }
+  $text=substr($text,$i+strlen($delim1));
+  $i=strpos($text,$delim2);
+  if ($i===false)
+  {
+    \webdb\test\utils\test_error_message("extract_text error: delim2 not found");
+  }
+  $text=substr($text,0,$i);
+  return trim($text);
 }
 
 #####################################################################################################

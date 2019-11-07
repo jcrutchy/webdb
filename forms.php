@@ -690,7 +690,8 @@ function list_row($form_config,$record,$column_format,$row_spans,$lookup_records
         {
           $control_type_suffix="_check";
         }
-        $field_params["value"]=output_editable_field($field_params,$display_record,$field_name,$control_type,$form_config,$lookup_records);
+        $submit_fields=array();
+        $field_params["value"]=output_editable_field($field_params,$display_record,$field_name,$control_type,$form_config,$lookup_records,$submit_fields);
         $fields.=\webdb\forms\form_template_fill("list_field".$control_type_suffix,$field_params);
       }
       else
@@ -1337,6 +1338,11 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
     }
     if ($form_config["checklist"]==true)
     {
+      $form_config["checklist_update_control_filtered"]="";
+      if ($form_config["default_filter"]<>"")
+      {
+        $form_config["checklist_update_control_filtered"]="Filtered ";
+      }
       $form_params["checklist_update_control"]=\webdb\forms\form_template_fill("checklist_update",$form_config);
     }
   }

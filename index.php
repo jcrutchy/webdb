@@ -35,27 +35,8 @@ if (\webdb\cli\is_cli_mode()==false)
 
 $settings=array();
 
-$settings["user_agent"]="";
-$settings["browser_info"]=array();
-$settings["browser_info"]["browser"]="";
-if (isset($_SERVER["HTTP_USER_AGENT"])==true)
-{
-  $settings["user_agent"]=$_SERVER["HTTP_USER_AGENT"];
-  $settings["browser_info"]=get_browser($_SERVER["HTTP_USER_AGENT"],true);
-  switch (strtolower($settings["browser_info"]["browser"]))
-  {
-    case "chrome":
-    case "firefox":
-      break;
-    default:
-      \webdb\utils\system_message("Please try a recent version of Google Chrome or Mozilla Firefox.");
-  }
-}
-
 $settings["sql_check_post_params_override"]=false;
-
 $settings["calendar_fields"]=array();
-
 $settings["permissions"]=array();
 
 $settings["parent_path"]=dirname(dirname(__FILE__)).DIRECTORY_SEPARATOR;
@@ -149,6 +130,27 @@ $settings["forms"]=array();
 if (\webdb\cli\is_cli_mode()==true)
 {
   \webdb\cli\cli_dispatch();
+}
+
+$settings["user_agent"]="";
+$settings["browser_info"]=array();
+$settings["browser_info"]["browser"]="";
+if (isset($_SERVER["HTTP_USER_AGENT"])==true)
+{
+  $settings["user_agent"]=$_SERVER["HTTP_USER_AGENT"];
+  $settings["browser_info"]=get_browser($_SERVER["HTTP_USER_AGENT"],true);
+  switch (strtolower($settings["browser_info"]["browser"]))
+  {
+    case "chrome":
+    case "firefox":
+      break;
+    default:
+      \webdb\utils\system_message(\webdb\utils\template_fill("user_agent_error"));
+  }
+}
+else
+{
+  \webdb\utils\system_message(\webdb\utils\template_fill("user_agent_error"));
 }
 
 \webdb\users\auth_dispatch();

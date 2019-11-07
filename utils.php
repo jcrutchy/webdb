@@ -157,6 +157,17 @@ function ob_postprocess($buffer)
 
 #####################################################################################################
 
+function is_testing_mode()
+{
+  if (function_exists("\\webdb\\test\\run_tests")==true)
+  {
+    return true;
+  }
+  return false;
+}
+
+#####################################################################################################
+
 function computed_field_iso_datetime_format($field_name,$field_data)
 {
   $value=$field_data[$field_name];

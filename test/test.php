@@ -6,13 +6,15 @@ namespace webdb\test;
 
 function run_tests()
 {
+  global $settings;
   require_once("test".DIRECTORY_SEPARATOR."test_utils.php");
   system("clear");
-  \webdb\test\utils\test_info_message("CHECKING SETTINGS");
+  $settings["test_user_agent"]="webdb testing framework";
+  /*\webdb\test\utils\test_info_message("CHECKING SETTINGS");
   \webdb\test\check_webdb_settings();
   \webdb\test\check_app_settings();
   \webdb\test\check_sql_settings();
-  \webdb\test\utils\test_success_message("SETTINGS CHECK OK");
+  \webdb\test\utils\test_success_message("SETTINGS CHECK OK");*/
   require_once("test".DIRECTORY_SEPARATOR."security.php");
   \webdb\test\security\start();
 }
