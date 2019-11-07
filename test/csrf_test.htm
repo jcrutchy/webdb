@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>CSRF TEST</title>
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+</head>
+<body>
+
+<!-- host this page on a webserver with a different ip address and make sure it returns a csrf token error -->
+<!-- also check with a csrf_token field, which should fail since the token doesn't verify against a cookie token hash -->
+
+<form action="http://192.168.43.50/mdo_risks/index.php?page=users&cmd=edit&id=" method="post">
+
+<!-- <input type="hidden" name="csrf_token" value="j+G0v0m9Cl4j1xdds3KNN5J30QOKUHJFixlLqWCR"> -->
+<input type="submit" name="form_cmd[insert_confirm]" value="Insert User">
+<input type="checkbox" name="enabled" checked="checked">
+<input type="text" name="username" value="mrhaxorz">
+<input type="text" name="email" value="stuff">
+</form>
+
+</body>
+</html>
