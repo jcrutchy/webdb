@@ -15,12 +15,9 @@ function check_post_params($sql)
   {
     return;
   }
-  if (isset($_SERVER["REQUEST_METHOD"])==true)
+  if (count($_POST)>0)
   {
-    if (strtoupper($_SERVER["REQUEST_METHOD"])==="GET")
-    {
-      return;
-    }
+    return;
   }
   if ($sql<>"")
   {

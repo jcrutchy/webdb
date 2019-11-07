@@ -58,6 +58,11 @@ function check_csrf()
   {
     $csrf_ok=true;
   }
+  $referer="";
+  if (isset($_SERVER["HTTP_REFERER"])==true)
+  {
+    $referer=$_SERVER["HTTP_REFERER"];
+  }
   if ((isset($_POST["csrf_token"])==true) and (isset($_COOKIE["csrf_token_hash"])==true))
   {
     if (password_verify($_POST["csrf_token"],$_COOKIE["csrf_token_hash"])==true)
@@ -65,11 +70,15 @@ function check_csrf()
       \webdb\users\auth_log(false,"VALID_CSRF_TOKEN","valid csrf token from ".$_SERVER["REMOTE_ADDR"]);
       $csrf_ok=true;
     }
+    else
+    {
+      \webdb\users\auth_log(false,"INVALID_CSRF_TOKEN_1","invalid csrf token from ".$_SERVER["REMOTE_ADDR"]." [referer=".$referer."]");
+    }
   }
   \webdb\users\generate_csrf_token();
   if ($csrf_ok==false)
   {
-    \webdb\users\auth_log(false,"INVALID_CSRF_TOKEN","invalid csrf token from ".$_SERVER["REMOTE_ADDR"]);
+    \webdb\users\auth_log(false,"INVALID_CSRF_TOKEN_2","invalid csrf token from ".$_SERVER["REMOTE_ADDR"]." [referer=".$referer."]");
     \webdb\utils\system_message("csrf error");
   }
 }

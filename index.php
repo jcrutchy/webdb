@@ -155,6 +155,8 @@ else
 
 \webdb\users\auth_dispatch();
 
+\webdb\users\check_csrf();
+
 if (isset($_GET["page"])==true)
 {
   \webdb\forms\form_dispatch($_GET["page"]);

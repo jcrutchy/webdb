@@ -59,7 +59,6 @@ function debug_var_dump($data)
 function output_page($content,$title)
 {
   global $settings;
-  \webdb\users\check_csrf();
   $page_params=array();
   $page_params["page_title"]=$title;
   $page_params["global_styles_modified"]=\webdb\utils\resource_modified_timestamp("global.css");

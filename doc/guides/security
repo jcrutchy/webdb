@@ -72,7 +72,7 @@ TODO: CHANGE FROM PASSWORD_BCRYPT TO PASSWORD_ARGON2ID (REQUIRES PHP 7.3.0) => R
 - ajax requests are validated using their parent page csrf token (accessed by the global ajax function via replication of the token in a hidden div with an id)
 
 - changes to server data are (should) be made by post requests, not via get/url requests
-- database changes aren't possible from non-post (and therefore non-csrf-protected) requests, unless a hardcoded flag is set in $settings
+- [] database changes aren't possible from non-post (and therefore non-csrf-protected) requests, unless a hardcoded flag is set in $settings
 
 
 APPLICATION SECURITY
