@@ -79,6 +79,15 @@ function check_csrf()
   if ($csrf_ok==false)
   {
     \webdb\users\auth_log(false,"INVALID_CSRF_TOKEN_2","invalid csrf token from ".$_SERVER["REMOTE_ADDR"]." [referer=".$referer."]");
+    if (isset($settings["user_record"])==true)
+    {
+      $user_record=$settings["user_record"];
+      if ($user_record["pw_reset_key"]<>"")
+      {
+        \webdb\users\cancel_password_reset($user_record);
+      }
+      \webdb\users\login_failure($user_record,false);
+    }
     \webdb\utils\system_message("csrf error");
   }
 }
@@ -371,6 +380,42 @@ function insert_user_stub($form_name,$value_items,$form_config)
 function update_user_stub($form_name,$id,$where_items,$value_items,$form_config)
 {
   $value_items["username"]=trim(strtolower($value_items["username"]));
+  return false;
+}
+
+#####################################################################################################
+
+function remote_address_listed($remote_address,$type) # $type = black|white
+{
+  global $settings;
+  $fn=$settings["ip_".$type."list_file"];
+  if (file_exists($fn)==false)
+  {
+    return false;
+  }
+  $data=trim(file_get_contents($fn));
+  $lines=explode(PHP_EOL,$data);
+  for ($i=0;$i<count($lines);$i++)
+  {
+    $line=trim($lines[$i]);
+    if ($line=="")
+    {
+      continue;
+    }
+    if ($remote_address==$line)
+    {
+      return true;
+    }
+    $format="grepcidr %s < (echo %s)";
+    $line=escapeshellarg($line);
+    $address=escapeshellarg($remote_address);
+    $cmd=sprintf($format,$line,$address);
+    $result=trim(shell_exec($cmd));
+    if ($result<>$address)
+    {
+      return true;
+    }
+  }
   return false;
 }
 

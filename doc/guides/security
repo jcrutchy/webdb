@@ -16,36 +16,37 @@ TODO: CHANGE FROM PASSWORD_BCRYPT TO PASSWORD_ARGON2ID (REQUIRES PHP 7.3.0) => R
 
 - for production, comment out the testing show_message in the \webdb\users\send_reset_password_message function that outputs the emailed message (including link) to the browser window
 
-- [TESTED] if any of the higher 3 octets of the user's remote address change, invalidate cookie login (require password)
-- [TESTED] changes to the right/lowest octet are permitted for login by cookie to allow for dhcp subnets
-- [TESTED] if user's user agent changes, invalidate cookie login (require password)
+- [] if any of the higher 3 octets of the user's remote address change, invalidate cookie login (require password)
+- [] changes to the right/lowest octet are permitted for login by cookie to allow for dhcp subnets
+- [] if user's user agent changes, invalidate cookie login (require password)
 - user agent changes will occur when a web browser is updated, so every time a user updates their web browser they will be prompted to login next
 - user agent changes will also occur if a different browser is used (eg: chrome vs firefox)
-- user agent header is required
+- [] user agent header is required
 
-- when a new user is inserted, the password field contains an invalid hash (*) which can never be replicated using the normal login system
-- the first time that a user views the login prompt, they will need to do a password reset
+- [] when a new user is inserted, the password field contains an invalid hash (*) which can never be replicated using the normal login system
+- [] the first time that a user views the login prompt, they will need to do a password reset (password field should contain invalid hash)
 
-- there is no way for an unauthenticated user to register a new user (new users must be registered by admin)
+- [] there is no way for an unauthenticated user to register a new user (new users must be registered by admin)
 
-- [TESTED] when user first logs in, trigger password change (implemented via default value of 1 for pw_change field in users.list)
-- when password reset has been triggered, disable login by password/cookie (allow 'reset password' button to resend new email)
+- [] when user first logs in, trigger password change (implemented via default value of 1 for pw_change field in users.list)
+- [] when password reset has been triggered, disable login by password/cookie (allow 'reset password' button to resend new email)
 
-- when changing password, don't allow old and new passwords to be the same
-- when changing password, don't allow new password to be any of a list of prohibited passwords (eg: 'password')
-- when changing password, new password must be at least 8 characters
-- when changing password, new password cannot be longer than 400 characters (only first 72 characters will be hashed anyway with the remainder truncated, but a longer password phrase may be easier for the user to remember)
+- [] when changing password, don't allow old and new passwords to be the same
+- [] when changing password, don't allow new password to be any of a list of prohibited passwords (eg: 'password')
+- [] when changing password, new password must be at least 8 characters
+- [] when changing password, new password cannot be longer than 400 characters (only first 72 characters will be hashed anyway with the remainder truncated, but a longer password phrase may be easier for the user to remember)
 - a maximum password length also limits denial of service attacks (https://www.acunetix.com/vulnerabilities/web/long-password-denial-of-service/)
 
 - long passwords (>72 chars) aren't pre-hashed with sha256/512 (not required and may be less secure per discussion on the web)
 
-- if pw_change flag is set in a user record, prompt user to change their password on login (no ability to skip or navigate directly to different page)
+- [] if pw_change flag is set in a user record, prompt user to change their password on login (no ability to skip or navigate directly to different page)
 - pw_change flag can either be manually set by admin in user edit form, or if required a crontab script could be implemented later to force password change every 2 months or so if required
 
-- lock out password and cookie login after 7 failed attempts
-- locked out accounts can only be unlocked by password reset (or by manual setting of failed_login_count to 0 in user record by admin)
-- failed login attemps can occur either by incorrect password, invalidated cookie (except when remote address or user agent changes), admin login from non-whitelisted address or attempting to login with a password that exceeds the maximum length
-- changes to remote address or user agent will invalidate a login cookie but not increment the failed login attempt counter
+- [] lock out password and cookie login after 7 failed attempts
+- [] locked out accounts can only be unlocked by password reset (or by manual setting of failed_login_count to 0 in user record by admin)
+- [] failed login attemps can occur either by incorrect password, invalidated cookie (except when remote address or user agent changes), admin login from non-whitelisted address or attempting to login with a password that exceeds the maximum length
+- [] changes to remote address or user agent will invalidate a login cookie but not increment the failed login attempt counter
+- [] blacklisted ip ranges cannot login
 
 - when viewing users list, all user record data (including hashes) will be passed to the \webdb\utils\computed_field_iso_datetime_format function via computed field config in users.list
 
@@ -56,20 +57,20 @@ TODO: CHANGE FROM PASSWORD_BCRYPT TO PASSWORD_ARGON2ID (REQUIRES PHP 7.3.0) => R
 - on failure to find either of these settings, a simple authentication failure message is sent to the browser (whatever buffer was prepared to be sent to the user is overwritten)
 - if a var_dump() followed by die is required outside an already authenticated program route, the \webdb\utils\debug_var_dump function is available, which sets the $settings["unauthenticated_content"] flag
 
-- username is case insensitive and spaces are not permitted at the beginning or end of a username
+- [] username is case insensitive and spaces are not permitted at the beginning or end of a username
 - there is a separate field for email (username and email need not be the same)
 
-- admin logins must be made from whitelisted IP addresses, which are added to the $settings["admin_remote_address_whitelist"] array, which is initialised with 127.0.0.1
+- [] admin logins must be made from whitelisted IP addresses, which are added to the $settings["admin_remote_address_whitelist"] array, which is initialised with 127.0.0.1
 - admin passwords, cookies and password reset keys are hashed using a dedicated (higher) bcrypt hashing cost setting (13 vs 11)
 
 - login cookies have HttpOnly and SameSite=Strict attributes, and the domain attribute set to $_SERVER["HTTP_HOST"]
-- when a login failure occurs (using password or cookie), the login cookie field in the database for that user is set to *
+- [] when a login failure occurs (using password or cookie), the login cookie field in the database for that user is set to *
 
 - authentication events are logged
 
-- all post requests are required to contain a valid csrf token field, which must be verified against a valid csrf token hash cookie (including logins)
-- new csrf tokens are generated only on output of a new page
-- ajax requests are validated using their parent page csrf token (accessed by the global ajax function via replication of the token in a hidden div with an id)
+- [] all post requests are required to contain a valid csrf token field, which must be verified against a valid csrf token hash cookie (including logins)
+- [] new csrf tokens are generated only on output of a new page
+- [] ajax requests are validated using their parent page csrf token (accessed by the global ajax function via replication of the token in a hidden div with an id)
 
 - changes to server data are (should) be made by post requests, not via get/url requests
 - [] database changes aren't possible from non-post (and therefore non-csrf-protected) requests, unless a hardcoded flag is set in $settings

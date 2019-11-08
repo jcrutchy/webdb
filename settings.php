@@ -21,9 +21,6 @@ $settings["webdb_default_form"]="default";
 
 $settings["favicon_source"]=$settings["app_web_resources"]."favicon.ico";
 
-# the following setting is used only for loading test settings in cli mode
-$settings["test_settings_file"]="webdb_test.conf";
-
 $settings["links_template"]="";
 $settings["footer_template"]="";
 
@@ -31,7 +28,7 @@ $settings["login_cookie"]="webdb_login";
 $settings["username_cookie"]="webdb_username";
 $settings["max_cookie_age"]=60*60*24*365;
 $settings["password_reset_timeout"]=60*60*24;
-$settings["password_bcrypt_cost"]=11; # 10 is a good baseline, 13 is very difficult to crack (but slower to hash)
+$settings["password_bcrypt_cost"]=11; # 10 is a good baseline, 13 is very difficult to crack (but slower to hash) - eventually replace with Argon2id (requires PHP 7.3)
 $settings["admin_password_bcrypt_cost"]=13;
 $settings["row_lock_expiration"]=60*5;
 
@@ -50,9 +47,21 @@ $settings["webdb_web_root"]="/".$settings["webdb_directory_name"]."/";
 $settings["webdb_web_resources"]=$settings["webdb_web_root"]."resources/";
 $settings["webdb_web_index"]=$settings["webdb_web_root"]."index.php";
 
+# the following initialised settings later come from webdb_common_settings.php
 $settings["server_email_from"]="";
 $settings["server_email_reply_to"]="";
 $settings["server_email_bounce_to"]="";
+
+$settings["db_admin_file"]="";
+$settings["db_user_file"]="";
+
+$settings["ip_blacklist_file"]="";
+$settings["ip_whitelist_file"]="";
+
+$settings["sql_log_path"]="";
+$settings["auth_log_path"]="";
+
+$settings["test_settings_file"]="webdb_test.conf";
 
 # the following settings are also in list.css
 $settings["list_border_color"]="888";

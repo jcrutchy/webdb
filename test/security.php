@@ -14,7 +14,7 @@ function start()
   $response=\webdb\test\utils\wget($settings["app_web_root"]);
   \webdb\test\utils\test_dump_message($response);
 
-  \webdb\test\security\test_user_agent();
+  #\webdb\test\security\test_user_agent();
 
   #\webdb\test\security\test_login_csrf_token();
 

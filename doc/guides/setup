@@ -45,7 +45,7 @@ use https://www.question-defense.com/tools/phpmyadmin-blowfish-secret-generator 
 package install
 ===============
 
-$ sudo apt-get install php apache2 mariadb-server git geany phpmyadmin exim4 php-gd msttcorefonts jsonlint
+$ sudo apt-get install php apache2 mariadb-server git geany phpmyadmin exim4 php-gd msttcorefonts jsonlint grepcidr
 
 
 apache2 and mariadb configuration

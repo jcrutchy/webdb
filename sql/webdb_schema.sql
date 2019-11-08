@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS `webdb`.`users` (
   `login_cookie` VARCHAR(255) DEFAULT "*",
   `enabled` TINYINT NOT NULL DEFAULT 0,
   `username` VARCHAR(255) NOT NULL,
+  `fullname` VARCHAR(255) NOT NULL,
   `email` VARCHAR(255) NOT NULL,
   `pw_hash` VARCHAR(255) DEFAULT "*",
   `pw_change` TINYINT NOT NULL DEFAULT 1,
@@ -106,7 +107,7 @@ DROP TABLE IF EXISTS `webdb`.`groups`;
 CREATE TABLE IF NOT EXISTS `webdb`.`groups` (
   `group_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `created_timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `enabled` TINYINT NOT NULL DEFAULT 1,
+  `enabled` TINYINT NOT NULL DEFAULT 0,
   `group_name` VARCHAR(255) NOT NULL,
   PRIMARY KEY (`group_id`),
   UNIQUE INDEX `group_name` (`group_name` ASC))

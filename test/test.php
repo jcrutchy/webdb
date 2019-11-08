@@ -68,7 +68,7 @@ function check_app_settings()
     "app_resources_path",
     "app_forms_path",
     "sql_log_path",
-    "apps_list",
+    "auth_log_path",
     "gd_ttf",
     "webdb_default_form",
     "list_border_color",
@@ -84,7 +84,9 @@ function check_app_settings()
     "min_password_length",
     "max_login_attempts",
     "admin_remote_address_whitelist",
-    "test_settings_file");
+    "test_settings_file",
+    "ip_blacklist_file",
+    "ip_whitelist_file");
   for ($i=0;$i<count($required_settings);$i++)
   {
     \webdb\test\utils\check_required_setting_exists($required_settings[$i]);
@@ -103,7 +105,8 @@ function check_app_settings()
     "app_sql_path",
     "app_resources_path",
     "app_forms_path",
-    "sql_log_path");
+    "sql_log_path",
+    "auth_log_path");
   for ($i=0;$i<count($required_paths);$i++)
   {
     $path=$required_paths[$i];

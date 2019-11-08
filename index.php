@@ -84,6 +84,14 @@ if (\webdb\cli\is_cli_mode()==false)
   header("Cache-Control: no-cache");
   header("Expires: -1");
   header("Pragma: no-cache");
+  if (\webdb\users\remote_address_listed($_SERVER["REMOTE_ADDR"],"black")==true)
+  {
+    \webdb\utils\system_message("ip blacklisted");
+  }
+  if (\webdb\users\remote_address_listed($_SERVER["REMOTE_ADDR"],"white")==false)
+  {
+    \webdb\utils\system_message("ip not whitelisted");
+  }
   if (\webdb\utils\is_app_mode()==false)
   {
     $settings["unauthenticated_content"]=true;
@@ -98,11 +106,6 @@ if (file_exists($settings_filename)==false)
   \webdb\utils\system_message("error: settings file not found: ".$settings_filename);
 }
 require_once($settings_filename);
-
-if (in_array($settings["app_directory_name"],$settings["apps_list"])==false)
-{
-  \webdb\utils\system_message("error: app not registered");
-}
 
 \webdb\utils\load_db_credentials("admin");
 \webdb\utils\load_db_credentials("user");
