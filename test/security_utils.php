@@ -6,19 +6,19 @@ namespace webdb\test\security\utils;
 
 function security_test_error_callback()
 {
-  \webdb\test\security\finish_test_user(true);
+  \webdb\test\security\utils\finish_test_user(true);
 }
 
 #####################################################################################################
 
 function start_test_user($test_overrides=true)
 {
-  if (\webdb\test\security\get_test_user()!==false)
+  if (\webdb\test\security\utils\get_test_user()!==false)
   {
-    \webdb\test\security\finish_test_user();
+    \webdb\test\security\utils\finish_test_user();
   }
-  \webdb\test\security\create_test_user($test_overrides);
-  if (\webdb\test\security\get_test_user()===false)
+  \webdb\test\security\utils\create_test_user($test_overrides);
+  if (\webdb\test\security\utils\get_test_user()===false)
   {
     \webdb\test\utils\test_error_message("ERROR STARTING TEST USER: USER NOT FOUND AFTER INSERT");
   }
@@ -29,7 +29,7 @@ function start_test_user($test_overrides=true)
 
 function finish_test_user($is_error=false)
 {
-  if (\webdb\test\security\get_test_user()===false)
+  if (\webdb\test\security\utils\get_test_user()===false)
   {
     $msg="ERROR FINISHING TEST USER: USER NOT FOUND";
     if ($is_error==true)
@@ -41,8 +41,8 @@ function finish_test_user($is_error=false)
       \webdb\test\utils\test_error_message($msg);
     }
   }
-  \webdb\test\security\delete_test_user();
-  if (\webdb\test\security\get_test_user()!==false)
+  \webdb\test\security\utils\delete_test_user();
+  if (\webdb\test\security\utils\get_test_user()!==false)
   {
     $msg="ERROR FINISHING TEST USER: ERROR DELETING";
     if ($is_error==true)
@@ -78,6 +78,7 @@ function create_test_user($test_overrides)
 {
   $items=array();
   $items["username"]="test_user";
+  $items["fullname"]="test_user";
   $items["enabled"]=1;
   $items["email"]="";
   if ($test_overrides==true)
@@ -101,6 +102,19 @@ function delete_test_user()
 
 function check_authentication_status($response)
 {
+  global $settings;
+  if (isset($settings["test_cookie_jar"])==false)
+  {
+    return false;
+  }
+  if (isset($settings["test_cookie_jar"]["webdb_login"])==false)
+  {
+    return false;
+  }
+  if (isset($settings["test_cookie_jar"]["csrf_token_hash"])==false)
+  {
+    return false;
+  }
   $params=array();
   $params["username"]="test_user";
   $authenticated_status=\webdb\utils\template_fill("global".DIRECTORY_SEPARATOR."authenticated_status",$params);
@@ -118,51 +132,26 @@ function check_authentication_status($response)
 
 #####################################################################################################
 
+function extract_csrf_token($response)
+{
+  $delim1="<div id=\"csrf_token\" style=\"display: none;\">";
+  $delim2="</div>";
+  return \webdb\test\utils\extract_text($response,$delim1,$delim2);
+}
+
+#####################################################################################################
+
 function test_user_login($uri=false)
 {
   global $settings;
-  \webdb\test\security\start_test_user();
+  \webdb\test\security\utils\start_test_user();
+  $response=\webdb\test\utils\wget($settings["app_web_root"]);
+  $csrf_token=\webdb\test\security\utils\extract_csrf_token($response);
   $params=array();
   $params["login_username"]="test_user";
   $params["login_password"]="password";
-  $response=\webdb\test\utils\wpost($settings["app_web_root"],$params);
-  $headers=\webdb\test\utils\extract_http_headers($response);
-  $cookie_jar=\webdb\test\utils\search_http_headers($headers,"set-cookie");
-  if (count($cookie_jar)<1)
-  {
-    \webdb\test\utils\test_error_message("SERVER RETURNED NO COOKIES");
-  }
-  $result=\webdb\test\utils\search_http_headers($headers,"location");
-  if (count($result)<>1)
-  {
-    \webdb\test\utils\test_error_message("ERROR: NO REDIRECT HEADER FOUND ON PASSWORD LOGIN");
-  }
-  $redirect=$result[0];
-  $cookie_jar[]="webdb_username=test_user";
-  $settings["test_login_cookie_header"]=\webdb\test\utils\construct_cookie_header($cookie_jar);
-  $response=\webdb\test\utils\wget($redirect); # TODO
-  if (\webdb\test\security\check_authentication_status($response)==true)
-  {
-    \webdb\test\utils\test_success_message("PASSWORD LOGIN REDIRECT COOKIE AUTHENTICATION SUCCESS");
-  }
-  else
-  {
-    \webdb\test\utils\test_error_message("PASSWORD LOGIN REDIRECT COOKIE AUTHENTICATION FAILED");
-  }
-  if ($uri===false)
-  {
-    $uri=$settings["app_web_root"];
-  }
-  $response=\webdb\test\utils\wget($uri);
-  if (\webdb\test\security\check_authentication_status($response)==true)
-  {
-    \webdb\test\utils\test_success_message("COOKIE AUTHENTICATION SUCCESS FOR URI: ".$uri);
-  }
-  else
-  {
-    \webdb\test\utils\test_error_message("COOKIE AUTHENTICATION FAILED FOR URI: ".$uri);
-  }
-  return $response;
+  $params["csrf_token"]=$csrf_token;
+  return \webdb\test\utils\wpost($settings["app_web_root"],$params);
 }
 
 #####################################################################################################

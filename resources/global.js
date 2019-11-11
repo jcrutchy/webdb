@@ -30,7 +30,7 @@ function ajax(url,method,load,error,timeout,body="",timeout_sec=30)
   xhttp.ontimeout=timeout;
   xhttp.timeout=timeout_sec*1000; // ms
   xhttp.open(method,url,true);
-  if (method=="post") // method is "get" or "post"
+  if ((method=="post") && (body!="")) // method is "get" or "post"
   {
     xhttp.setRequestHeader("Content-type","application/x-www-form-urlencoded");
     var csrf_token=document.getElementById("csrf_token").innerText;

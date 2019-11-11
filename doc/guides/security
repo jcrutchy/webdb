@@ -75,6 +75,9 @@ TODO: CHANGE FROM PASSWORD_BCRYPT TO PASSWORD_ARGON2ID (REQUIRES PHP 7.3.0) => R
 - changes to server data are (should) be made by post requests, not via get/url requests
 - [] database changes aren't possible from non-post (and therefore non-csrf-protected) requests, unless a hardcoded flag is set in $settings
 
+- [] if user or group is disabled (by an admin using the users/groups editor forms), the affected user/group will no longer be able to access the system
+- [] if a group is disabled, all users linked to that group will no longer be able to access forms/templates restricted to the disabled group
+
 
 APPLICATION SECURITY
 ====================

@@ -39,6 +39,7 @@ function show_message($message)
   }
   global $settings;
   $params=array();
+  $params["global_styles_modified"]=\webdb\utils\resource_modified_timestamp("global.css");
   $params["page_title"]=$settings["app_name"];
   $params["message"]=$message;
   \webdb\utils\system_message(\webdb\utils\template_fill("global".DIRECTORY_SEPARATOR."message",$params));
@@ -59,6 +60,7 @@ function debug_var_dump($data)
 function output_page($content,$title)
 {
   global $settings;
+  \webdb\users\generate_csrf_token();
   $page_params=array();
   $page_params["page_title"]=$title;
   $page_params["global_styles_modified"]=\webdb\utils\resource_modified_timestamp("global.css");
@@ -100,7 +102,7 @@ function load_test_settings()
       switch ($key)
       {
         case "change_user_agent":
-          $settings["user_agent"]=$value;
+          $_SERVER["HTTP_USER_AGENT"]=$value;
           break;
         case "change_remote_addr":
           $_SERVER["REMOTE_ADDR"]=$value;

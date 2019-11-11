@@ -22,14 +22,14 @@ function list_page_load()
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function list_body_click(element)
+function list_body_click(event)
 {
   var edit_row=document.getElementById("data_row_tr:"+edit_row_url_page+":"+edit_row_id);
   if (!edit_row)
   {
     return;
   }
-  if ((element.target==edit_row) || (is_descendant(edit_row,element.target)==true))
+  if ((event.target==edit_row) || (edit_row.contains(event.target)==true))
   {
     return;
   }

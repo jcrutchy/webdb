@@ -75,7 +75,6 @@ function check_csrf()
       \webdb\users\auth_log(false,"INVALID_CSRF_TOKEN_1","invalid csrf token from ".$_SERVER["REMOTE_ADDR"]." [referer=".$referer."]");
     }
   }
-  \webdb\users\generate_csrf_token();
   if ($csrf_ok==false)
   {
     \webdb\users\auth_log(false,"INVALID_CSRF_TOKEN_2","invalid csrf token from ".$_SERVER["REMOTE_ADDR"]." [referer=".$referer."]");
@@ -235,10 +234,15 @@ function login()
 {
   global $settings;
   $login_form_params=array();
+  $login_form_params["first_time_user_tip"]="";
   $login_form_params["default_username"]="";
   if (isset($_COOKIE[$settings["username_cookie"]])==true)
   {
     $login_form_params["default_username"]=$_COOKIE[$settings["username_cookie"]];
+  }
+  else
+  {
+    $login_form_params["first_time_user_tip"]=\webdb\utils\template_fill("first_time_user_tip");
   }
   $login_form_params["default_remember_me"]=\webdb\utils\template_fill("checkbox_checked");
   $login_form_params["login_script_modified"]=\webdb\utils\resource_modified_timestamp("login.js");
@@ -272,6 +276,10 @@ function login()
       $settings["user_record"]=$user_record;
       \webdb\users\auth_log($user_record,"PASSWORD_LOGIN","");
       \webdb\utils\redirect($settings["app_web_index"]);
+    }
+    else
+    {
+      \webdb\utils\show_message(\webdb\utils\template_fill("lockout_first_time_message"));
     }
   }
   elseif ((isset($_COOKIE[$settings["login_cookie"]])==true) and (isset($_COOKIE[$settings["username_cookie"]])==true))
@@ -369,7 +377,7 @@ function logout()
 
 #####################################################################################################
 
-function insert_user_stub($form_name,$value_items,$form_config)
+function insert_user_stub($form_config,$value_items)
 {
   $value_items["username"]=trim(strtolower($value_items["username"]));
   return false;
@@ -377,7 +385,7 @@ function insert_user_stub($form_name,$value_items,$form_config)
 
 #####################################################################################################
 
-function update_user_stub($form_name,$id,$where_items,$value_items,$form_config)
+function update_user_stub($form_config,$id,$where_items,$value_items)
 {
   $value_items["username"]=trim(strtolower($value_items["username"]));
   return false;

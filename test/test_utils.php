@@ -4,18 +4,25 @@ namespace webdb\test\utils;
 
 #####################################################################################################
 
-define("webdb\\test\\utils\\ERROR_COLOR",31);
-define("webdb\\test\\utils\\SUCCESS_COLOR",32);
+define("webdb\\test\\utils\\ERROR_COLOR","1;31");
+define("webdb\\test\\utils\\SUCCESS_COLOR","1;32");
 define("webdb\\test\\utils\\INFO_COLOR",94);
 define("webdb\\test\\utils\\DUMP_COLOR",35);
-define("webdb\\test\\utils\\TEST_CASE_COLOR",95);
+define("webdb\\test\\utils\\TEST_CASE_COLOR",36);
 
 #####################################################################################################
 
 function test_error_message($message)
 {
-  global $settings;
   \webdb\cli\term_echo($message,\webdb\test\utils\ERROR_COLOR);
+  \webdb\test\utils\handle_error();
+}
+
+#####################################################################################################
+
+function handle_error()
+{
+  global $settings;
   if (isset($settings["test_error_handler"])==true)
   {
     if (function_exists($settings["test_error_handler"])==true)
@@ -53,6 +60,22 @@ function test_success_message($message)
 function test_dump_message($message)
 {
   \webdb\cli\term_echo($message,\webdb\test\utils\DUMP_COLOR);
+}
+
+#####################################################################################################
+
+function test_result_message($test_case,$result)
+{
+  echo "\033[".\webdb\test\utils\TEST_CASE_COLOR."m".$test_case.": \033[0m\033[";
+  if ($result==true)
+  {
+    echo \webdb\test\utils\SUCCESS_COLOR."mSUCCESS\033[0m".PHP_EOL;
+  }
+  else
+  {
+    echo \webdb\test\utils\ERROR_COLOR."mFAILED\033[0m".PHP_EOL;
+    \webdb\test\utils\handle_error();
+  }
 }
 
 #####################################################################################################
@@ -209,15 +232,24 @@ function search_http_headers($headers,$search_key)
 
 #####################################################################################################
 
-function construct_cookie_header($cookie_jar)
+function construct_cookie_header()
 {
-  $cookies=array();
-  for ($i=0;$i<count($cookie_jar);$i++)
+  global $settings;
+  if (isset($settings["test_cookie_jar"])==false)
   {
-    $parts=explode(";",$cookie_jar[$i]);
-    $cookies[]=array_shift($parts);
+    return "";
   }
-  return "Cookie: ".implode("; ",$cookies);
+  if (count($settings["test_cookie_jar"])==0)
+  {
+    return "";
+  }
+  $cookies=array();
+  foreach ($settings["test_cookie_jar"] as $key => $value)
+  {
+    $parts=explode(";",$value);
+    $cookies[]=$key."=".array_shift($parts);
+  }
+  return "Cookie: ".implode("; ",$cookies)."\r\n";
 }
 
 #####################################################################################################
@@ -228,12 +260,14 @@ function wget($uri)
   $headers="GET $uri HTTP/1.0\r\n";
   $headers.="Host: localhost\r\n";
   $headers.="User-Agent: ".$settings["test_user_agent"]."\r\n";
-  if (isset($settings["test_login_cookie_header"])==true)
-  {
-    $headers.=$settings["test_login_cookie_header"]."\r\n";
-  }
+  $headers.=\webdb\test\utils\construct_cookie_header();
   $headers.="Connection: Close\r\n\r\n";
-  return \webdb\test\utils\submit_request($headers);
+  $response=\webdb\test\utils\submit_request($headers);
+  $headers=\webdb\test\utils\extract_http_headers($response);
+  #\webdb\test\utils\test_dump_message($headers.PHP_EOL.PHP_EOL);
+  \webdb\test\utils\append_cookie_jar($headers);
+  $response=\webdb\test\utils\process_redirect($response,$headers);
+  return $response;
 }
 
 #####################################################################################################
@@ -249,16 +283,54 @@ function wpost($uri,$params)
   $content=implode("&",$encoded_params);
   $headers="POST $uri HTTP/1.0\r\n";
   $headers.="Host: localhost\r\n";
-  $headers.="User-Agent: ".$settings["test_user_agent"]."\r\n";
-  $headers.="Content-Type: application/x-www-form-urlencoded\r\n";
-  if (isset($settings["test_login_cookie_header"])==true)
+  if ($settings["test_user_agent"]<>"")
   {
-    $headers.=$settings["test_login_cookie_header"]."\r\n";
+    $headers.="User-Agent: ".$settings["test_user_agent"]."\r\n";
   }
+  $headers.="Content-Type: application/x-www-form-urlencoded\r\n";
+  $headers.=\webdb\test\utils\construct_cookie_header();
   $headers.="Content-Length: ".strlen($content)."\r\n";
   $headers.="Connection: Close\r\n\r\n";
   $request=$headers.$content;
-  return \webdb\test\utils\submit_request($request);
+  $response=\webdb\test\utils\submit_request($request);
+  $headers=\webdb\test\utils\extract_http_headers($response);
+  #\webdb\test\utils\test_dump_message($headers.PHP_EOL.PHP_EOL);
+  \webdb\test\utils\append_cookie_jar($headers);
+  $response=\webdb\test\utils\process_redirect($response,$headers);
+  return $response;
+}
+
+#####################################################################################################
+
+function append_cookie_jar($headers)
+{
+  global $settings;
+  $cookie_headers=\webdb\test\utils\search_http_headers($headers,"set-cookie");
+  if (isset($settings["test_cookie_jar"])==false)
+  {
+    $settings["test_cookie_jar"]=array();
+  }
+  for ($i=0;$i<count($cookie_headers);$i++)
+  {
+    $header=$cookie_headers[$i];
+    $parts=explode("=",$header);
+    $key=array_shift($parts);
+    $value=implode("=",$parts);
+    $settings["test_cookie_jar"][$key]=$value;
+  }
+}
+
+#####################################################################################################
+
+function process_redirect($response,$headers)
+{
+  $result=\webdb\test\utils\search_http_headers($headers,"location");
+  if (count($result)>0)
+  {
+    $redirect=$result[0];
+    $response=\webdb\test\utils\wget($redirect);
+  }
+  return $response;
 }
 
 #####################################################################################################
@@ -273,7 +345,7 @@ function submit_request($request)
   {
     \webdb\test\utils\test_error_message("ERROR CONNECTING TO LOCALHOST ON PORT 80");
   }
-  \webdb\test\utils\test_dump_message($request);
+  #\webdb\test\utils\test_dump_message($request);
   fwrite($fp,$request);
   $response="";
   while (!feof($fp))

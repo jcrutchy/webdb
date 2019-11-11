@@ -70,7 +70,6 @@ else
   \webdb\utils\system_message("error: webdb common settings file not found");
 }
 
-# may comment the following command out for prod
 \webdb\utils\load_test_settings();
 
 $settings["templates"]=\webdb\utils\load_files($settings["webdb_templates_path"],"","htm",true);
@@ -138,6 +137,7 @@ if (\webdb\cli\is_cli_mode()==true)
 $settings["user_agent"]="";
 $settings["browser_info"]=array();
 $settings["browser_info"]["browser"]="";
+$ua_error=\webdb\utils\template_fill("user_agent_error");
 if (isset($_SERVER["HTTP_USER_AGENT"])==true)
 {
   $settings["user_agent"]=$_SERVER["HTTP_USER_AGENT"];
@@ -148,17 +148,25 @@ if (isset($_SERVER["HTTP_USER_AGENT"])==true)
     case "firefox":
       break;
     default:
-      \webdb\utils\system_message(\webdb\utils\template_fill("user_agent_error"));
+      \webdb\utils\system_message($ua_error." [neither chrome nor firefox]");
+  }
+  if (strtolower($settings["browser_info"]["device_type"])<>"desktop")
+  {
+    \webdb\utils\system_message($ua_error." [not desktop]");
+  }
+  if (($settings["browser_info"]["ismobiledevice"]<>"") or ($settings["browser_info"]["istablet"]<>""))
+  {
+    \webdb\utils\system_message($ua_error." [is mobile or tablet]");
   }
 }
 else
 {
-  \webdb\utils\system_message(\webdb\utils\template_fill("user_agent_error"));
+  \webdb\utils\system_message($ua_error." [no user agent]");
 }
 
-\webdb\users\auth_dispatch();
-
 \webdb\users\check_csrf();
+
+\webdb\users\auth_dispatch();
 
 if (isset($_GET["page"])==true)
 {

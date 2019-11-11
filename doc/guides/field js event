@@ -1,4 +1,4 @@
-function my_field_onchange_ajax_stub($form_name,$form_config,$field_name,$event_type,$event_data)
+function my_field_onchange_ajax_stub($form_config,$field_name,$event_type,$event_data)
 {
 }
 

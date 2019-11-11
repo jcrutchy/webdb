@@ -46,16 +46,15 @@ function get_unique_stub_record($id_field_name,$id,$sql_stub_name,$return_field_
 
 #####################################################################################################
 
-function list_insert($form_name)
+function list_insert($form_config)
 {
   global $settings;
-  if (\webdb\utils\check_user_form_permission($form_name,"i")==false)
+  if (\webdb\utils\check_user_form_permission($form_config["form_name"],"i")==false)
   {
     \webdb\utils\show_message("error: form record update permission denied");
   }
-  $form_config=$settings["forms"][$form_name];
   $data=array();
-  $params=\webdb\forms\process_form_data_fields($form_name);
+  $params=\webdb\forms\process_form_data_fields($form_config);
   if (count($params)==0)
   {
     \webdb\stubs\stub_error("error: no field data to insert");
@@ -83,8 +82,7 @@ function list_insert($form_name)
       $params[$param_name]=$param_value;
       \webdb\forms\check_required_values($form_config,$params);
       \webdb\sql\sql_insert($params,$form_config["table"],$form_config["database"]);
-      $subform_config=$settings["forms"][$form_name];
-      $data["html"]=\webdb\forms\get_subform_content($subform_config,$param_name,$param_value,true);
+      $data["html"]=\webdb\forms\get_subform_content($form_config,$param_name,$param_value,true);
       break;
     }
   }
@@ -100,18 +98,17 @@ function list_insert($form_name)
 
 #####################################################################################################
 
-function list_edit($id,$form_name)
+function list_edit($id,$form_config)
 {
   global $settings;
-  if (\webdb\utils\check_user_form_permission($form_name,"u")==false)
+  if (\webdb\utils\check_user_form_permission($form_config["form_name"],"u")==false)
   {
     \webdb\utils\show_message("error: form record update permission denied");
   }
-  $form_config=$settings["forms"][$form_name];
   $data=array();
   $data["url_page"]=$form_config["url_page"];
   $column_format=\webdb\forms\get_column_format_data($form_config);
-  $record=\webdb\forms\get_record_by_id($form_name,$id,"primary_key");
+  $record=\webdb\forms\get_record_by_id($form_config,$id,"primary_key");
   \webdb\forms\process_computed_fields($form_config,$record);
   if (count($_POST)>0)
   {
@@ -142,11 +139,10 @@ function list_edit($id,$form_name)
         \webdb\utils\show_message("error: form record update permission denied");
       }
       $subform_form_config=\webdb\forms\get_form_config($subform_url_page);
-      $subform_form_name=$subform_form_config["form_name"];
-      $value_items=\webdb\forms\process_form_data_fields($subform_form_name,$post_fields);
+      $value_items=\webdb\forms\process_form_data_fields($subform_form_config,$post_fields);
       \webdb\forms\check_required_values($subform_form_config,$value_items);
       $where_items=\webdb\forms\config_id_conditions($subform_form_config,$id,"primary_key");
-      $handled=\webdb\forms\handle_update_record_event($subform_form_name,$id,$where_items,$value_items,$subform_form_config);
+      $handled=\webdb\forms\handle_update_record_event($subform_form_config,$id,$where_items,$value_items);
       if ($handled==false)
       {
         \webdb\sql\sql_update($value_items,$where_items,$subform_form_config["table"],$subform_form_config["database"]);
@@ -154,14 +150,14 @@ function list_edit($id,$form_name)
     }
     else
     {
-      if (\webdb\utils\check_user_form_permission($form_name,"u")==false)
+      if (\webdb\utils\check_user_form_permission($form_config["form_name"],"u")==false)
       {
         \webdb\utils\show_message("error: form record update permission denied");
       }
-      $value_items=\webdb\forms\process_form_data_fields($form_name,$post_fields);
+      $value_items=\webdb\forms\process_form_data_fields($form_config,$post_fields);
       \webdb\forms\check_required_values($form_config,$value_items);
       $where_items=\webdb\forms\config_id_conditions($form_config,$id,"primary_key");
-      $handled=\webdb\forms\handle_update_record_event($form_name,$id,$where_items,$value_items,$form_config);
+      $handled=\webdb\forms\handle_update_record_event($form_config,$id,$where_items,$value_items);
       if ($handled==false)
       {
         \webdb\sql\sql_update($value_items,$where_items,$form_config["table"],$form_config["database"]);

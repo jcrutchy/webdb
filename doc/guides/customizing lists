@@ -11,7 +11,7 @@
 
 
 
-function my_insert_record_php_stub($form_name,$value_items,$form_config)
+function my_insert_record_php_stub($form_config,$value_items)
 {
   return false; # handled
 }
@@ -36,7 +36,7 @@ function my_list_php_stub($event_params)
   return $event_params;
 }
 
-function my_update_record_php_stub($form_name,$id,$where_items,$value_items,$form_config)
+function my_update_record_php_stub($form_config,$id,$where_items,$value_items)
 {
   return true; # handled
 }

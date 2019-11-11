@@ -114,7 +114,7 @@ CREATE TABLE IF NOT EXISTS `webdb`.`groups` (
 ENGINE = InnoDB
 AUTO_INCREMENT = 1;
 
-INSERT INTO `webdb`.`groups` (`group_name`) VALUES ("admin");
+INSERT INTO `webdb`.`groups` (`group_name`,`enabled`) VALUES ("admin",1);
 
 DROP TABLE IF EXISTS `webdb`.`user_group_links` ;
 CREATE TABLE IF NOT EXISTS `webdb`.`user_group_links` (
