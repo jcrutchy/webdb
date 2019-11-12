@@ -10,16 +10,10 @@ function start()
   require_once("test".DIRECTORY_SEPARATOR."security_utils.php");
   \webdb\test\utils\test_info_message("STARTING WEBDB SECURITY TESTS...");
   $settings["test_error_handler"]="\\webdb\\test\\security\\utils\\security_test_error_callback";
-
   \webdb\test\security\test_user_agent();
   \webdb\test\security\test_login_csrf_token();
-
-  #$response=\webdb\test\utils\wget($settings["app_web_root"]);
-  #\webdb\test\utils\test_dump_message($response);
-  /*\webdb\test\security\remote_address_change();
-  \webdb\test\security\user_agent_change();
-  \webdb\test\security\test_first_time_user();*/
-
+  \webdb\test\security\test_remote_address();
+  \webdb\test\security\test_admin_login();
   \webdb\test\utils\test_info_message("FINISHED SECURITY TESTS");
 }
 
@@ -68,7 +62,7 @@ function test_user_agent()
     {
       $condition="error";
     }
-    $test_case_msg="TEST CASE: user agent '".$agent."' is expected to return ".$condition;
+    $test_case_msg="user agent '".$agent."' is expected to return ".$condition;
     $settings["test_user_agent"]=$agent;
     $response=\webdb\test\utils\wget($settings["app_web_root"]);
     $content=\webdb\test\utils\strip_http_headers($response);
@@ -84,19 +78,26 @@ function test_user_agent()
     {
       $test_success=true;
     }
+    else
+    {
+      var_dump($response);
+    }
     \webdb\test\utils\test_result_message($test_case_msg.$error_suffix,$test_success);
   }
   # test user agent change
-  $test_case_msg="TEST CASE: if the user's user agent changes, invalidate cookie login (require password)";
-  $settings["test_user_agent"]="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36";
+  $test_case_msg="if user agent changes, invalidate cookie login (require password)";
   $response=\webdb\test\security\utils\test_user_login();
-  $new_user_agent="Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.111 Safari/537.36";
-  \webdb\test\utils\test_server_setting("change_user_agent",$new_user_agent,"changing request user agent");
-  $response=\webdb\test\utils\wget($settings["app_web_root"]);
-  $test_success=false;
+  $test_success=true;
   if (\webdb\test\security\utils\check_authentication_status($response)==false)
   {
-    $test_success=true;
+    $test_success=false;
+  }
+  $new_user_agent="Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.111 Safari/537.36";
+  \webdb\test\utils\test_server_setting("change_user_agent",$new_user_agent,"changing user agent on request back end");
+  $response=\webdb\test\utils\wget($settings["app_web_root"]);
+  if (\webdb\test\security\utils\check_authentication_status($response)==true)
+  {
+    $test_success=false;
   }
   if (\webdb\test\utils\compare_template_exluding_percents("login_form",$response)==false)
   {
@@ -112,154 +113,226 @@ function test_user_agent()
 function test_login_csrf_token()
 {
   global $settings;
-  $test_case_msg="TEST CASE: unable to login with username and password via post request without csrf token";
+  $test_case_msg="unable to login with username and password via post request without csrf token";
   \webdb\test\security\utils\start_test_user(false);
   $params=array();
   $params["login_username"]="test_user";
   $params["login_password"]="password";
   $response=\webdb\test\utils\wpost($settings["app_web_root"],$params);
   $content=\webdb\test\utils\strip_http_headers($response);
-  $test_success=false;
-  if ($content=="csrf error")
+  $test_success=true;
+  if ($content<>"csrf error")
   {
-    $test_success=true;
+    $test_success=false;
   }
   \webdb\test\utils\test_result_message($test_case_msg,$test_success);
-  $test_case_msg="TEST CASE: able to successfully login with username and password via post request with valid csrf token and hash";
-  $settings["test_user_agent"]="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36";
+  $test_case_msg="able to successfully login with username and password via post request with valid csrf token and hash";
   $response=\webdb\test\security\utils\test_user_login();
-  $test_success=false;
-  if (\webdb\test\security\utils\check_authentication_status($response)==true)
+  $test_success=true;
+  if (\webdb\test\security\utils\check_authentication_status($response)==false)
   {
-    $test_success=true;
+    $test_success=false;
   }
   \webdb\test\utils\test_result_message($test_case_msg,$test_success);
-
+  $test_case_msg="after successful cookie login, post request without a csrf token to insert a new user fails with csrf error";
   $params=array();
   $params["form_cmd[insert_confirm]"]="Insert User";
   $params["enabled"]="checked";
   $params["username"]="test_user2";
   $params["email"]="test_user2@localhost.local";
+  $response=\webdb\test\utils\wget($settings["app_web_root"]);
+  $test_success=true;
+  if (\webdb\test\security\utils\check_authentication_status($response)==false)
+  {
+    $test_success=false;
+  }
   $response=\webdb\test\utils\wpost($settings["app_web_root"]."?page=users&cmd=edit",$params);
-  var_dump($response);
-
+  $content=\webdb\test\utils\strip_http_headers($response);
+  if ($content<>"csrf error")
+  {
+    $test_success=false;
+  }
+  \webdb\test\utils\test_result_message($test_case_msg,$test_success);
+  $test_case_msg="after successful cookie login, ajax post request without a csrf token to edit an existing user fails with csrf error";
+  $params=array();
+  $params["edit_control:user_groups_subform:1,1:group_id"]=1;
+  $response=\webdb\test\utils\wpost($settings["app_web_root"]."?page=user_groups_subform&cmd=edit&id=1&ajax",$params);
+  $content=\webdb\test\utils\strip_http_headers($response);
+  if ($content<>"csrf error")
+  {
+    $test_success=false;
+  }
+  \webdb\test\utils\test_result_message($test_case_msg,$test_success);
   \webdb\test\security\utils\finish_test_user();
 }
 
 #####################################################################################################
 
-/*function remote_address_change()
+function test_remote_address() # assumes ::1 and 192.168.0.0/16 are in system ip whitelist
 {
   global $settings;
-  \webdb\test\utils\test_case_message("TEST CASE: if the user's remote address changes, invalidate cookie login (require password)");
-  \webdb\test\security\test_user_login();
-  \webdb\test\utils\test_server_setting("change_remote_addr","::2","changing request remote address to ::2");
+  $test_case_msg="if the user's remote address changes, invalidate cookie login (require password login)";
+  $response=\webdb\test\security\utils\test_user_login();
+  $test_settings=array();
+  $test_settings["change_remote_addr"]="::2";
+  $test_settings["custom_ip_whitelist"]=dirname(__FILE__).DIRECTORY_SEPARATOR."test_ip_whitelist_2";
+  \webdb\test\utils\test_server_settings($test_settings,"initialising different ipv6 remote address with test ip whitelist on request back end");
   $response=\webdb\test\utils\wget($settings["app_web_root"]);
-  if (\webdb\test\security\check_authentication_status($response)==false)
+  $test_success=true;
+  if (\webdb\test\security\utils\check_authentication_status($response)==true)
   {
-    \webdb\test\utils\test_success_message("REMOTE ADDRESS CHANGE TEST SUCCESS");
+    $test_success=false;
   }
-  else
+  if (\webdb\test\utils\compare_template_exluding_percents("login_form",$response)==false)
   {
-    \webdb\test\utils\test_error_message("REMOTE ADDRESS CHANGE TEST FAILED");
+    $test_success=false;
   }
-  \webdb\test\utils\test_case_message("TEST CASE: if the last octet of the user's IPv4 remote address changes, don't invalidate cookie login");
-  \webdb\test\utils\test_server_setting("change_remote_addr","192.168.0.21","changing request remote address to 192.168.0.21");
-  \webdb\test\security\test_user_login();
-  \webdb\test\utils\test_server_setting("change_remote_addr","192.168.0.22","changing request remote address to 192.168.0.22");
-  $response=\webdb\test\utils\wget($settings["app_web_root"]);
-  if (\webdb\test\security\check_authentication_status($response)==true)
-  {
-    \webdb\test\utils\test_success_message("REMOTE ADDRESS SUBNET OCTET CHANGE TEST SUCCESS");
-  }
-  else
-  {
-    \webdb\test\utils\test_error_message("REMOTE ADDRESS SUBNET OCTET CHANGE TEST FAILED");
-  }
-  \webdb\test\utils\test_case_message("TEST CASE: if any of the higher octets of the user's IPv4 remote address changes, invalidate cookie login");
-  \webdb\test\utils\test_server_setting("change_remote_addr","192.168.1.22","changing request remote address to 192.168.1.22");
-  $response=\webdb\test\utils\wget($settings["app_web_root"]);
-  if (\webdb\test\security\check_authentication_status($response)==false)
-  {
-    \webdb\test\utils\test_success_message("REMOTE ADDRESS SUBNET OCTET CHANGE TEST SUCCESS");
-  }
-  else
-  {
-    \webdb\test\utils\test_error_message("REMOTE ADDRESS SUBNET OCTET CHANGE TEST FAILED");
-  }
-  \webdb\test\security\test_user_login();
-  $response=\webdb\test\utils\wget($settings["app_web_root"]);
-  if (\webdb\test\security\check_authentication_status($response)==true)
-  {
-    \webdb\test\utils\test_success_message("COOKIE LOGIN TEST SUCCESS (AFTER NO CHANGE TO OVERRIDEN REMOTE ADDRESS)");
-  }
-  else
-  {
-    \webdb\test\utils\test_error_message("COOKIE LOGIN TEST FAILED (AFTER NO CHANGE TO OVERRIDEN REMOTE ADDRESS)");
-  }
-  \webdb\test\utils\test_server_setting("change_remote_addr","192.169.1.22","changing request remote address to 192.169.1.22");
-  $response=\webdb\test\utils\wget($settings["app_web_root"]);
-  if (\webdb\test\security\check_authentication_status($response)==false)
-  {
-    \webdb\test\utils\test_success_message("REMOTE ADDRESS SUBNET OCTET CHANGE TEST SUCCESS");
-  }
-  else
-  {
-    \webdb\test\utils\test_error_message("REMOTE ADDRESS SUBNET OCTET CHANGE TEST FAILED");
-  }
-  \webdb\test\security\test_user_login();
-  \webdb\test\utils\test_server_setting("change_remote_addr","193.169.1.22","changing request remote address to 193.169.1.22");
-  $response=\webdb\test\utils\wget($settings["app_web_root"]);
-  if (\webdb\test\security\check_authentication_status($response)==false)
-  {
-    \webdb\test\utils\test_success_message("REMOTE ADDRESS SUBNET OCTET CHANGE TEST SUCCESS");
-  }
-  else
-  {
-    \webdb\test\utils\test_error_message("REMOTE ADDRESS SUBNET OCTET CHANGE TEST FAILED");
-  }
+  \webdb\test\utils\test_result_message($test_case_msg,$test_success);
   \webdb\test\utils\delete_test_config();
-  \webdb\test\security\finish_test_user();
-}*/
+  $test_case_msg="if the last octet of the user's IPv4 remote address changes, don't invalidate cookie login";
+  \webdb\test\utils\test_server_setting("change_remote_addr","192.168.0.21","initialising ipv4 remote address on request back end");
+  $response=\webdb\test\security\utils\test_user_login();
+  $response=\webdb\test\utils\wget($settings["app_web_root"]);
+  $test_success=true;
+  if (\webdb\test\security\utils\check_authentication_status($response)==false)
+  {
+    $test_success=false;
+  }
+  \webdb\test\utils\test_server_setting("change_remote_addr","192.168.0.22","changing low octet of ipv4 remote address on request back end");
+  $response=\webdb\test\utils\wget($settings["app_web_root"]);
+  if (\webdb\test\security\utils\check_authentication_status($response)==false)
+  {
+    $test_success=false;
+  }
+  \webdb\test\utils\test_result_message($test_case_msg,$test_success);
+  $test_case_msg="if the third octet of the user's IPv4 remote address changes, force password login";
+  \webdb\test\utils\test_server_setting("change_remote_addr","192.168.1.22","changing third octet of ipv4 remote address on request back end");
+  $response=\webdb\test\utils\wget($settings["app_web_root"]);
+  $test_success=true;
+  if (\webdb\test\security\utils\check_authentication_status($response)==true)
+  {
+    $test_success=false;
+  }
+  if (\webdb\test\utils\compare_template_exluding_percents("login_form",$response)==false)
+  {
+    $test_success=false;
+  }
+  \webdb\test\utils\test_result_message($test_case_msg,$test_success);
+  $test_case_msg="if the second octet of the user's IPv4 remote address changes, force password login";
+  $response=\webdb\test\security\utils\test_user_login();
+  $test_success=true;
+  if (\webdb\test\security\utils\check_authentication_status($response)==false)
+  {
+    $test_success=false;
+  }
+  $test_settings=array();
+  $test_settings["change_remote_addr"]="192.169.1.22";
+  $test_settings["custom_ip_whitelist"]=dirname(__FILE__).DIRECTORY_SEPARATOR."test_ip_whitelist_2";
+  \webdb\test\utils\test_server_settings($test_settings,"changing second octet of ipv4 remote address with test ip whitelist on request back end");
+  $response=\webdb\test\utils\wget($settings["app_web_root"]);
+  if (\webdb\test\security\utils\check_authentication_status($response)==true)
+  {
+    $test_success=false;
+  }
+  if (\webdb\test\utils\compare_template_exluding_percents("login_form",$response)==false)
+  {
+    $test_success=false;
+  }
+  \webdb\test\utils\test_result_message($test_case_msg,$test_success);
+  $test_case_msg="if the first octet of the user's IPv4 remote address changes, force password login";
+  $response=\webdb\test\security\utils\test_user_login();
+  $test_success=true;
+  if (\webdb\test\security\utils\check_authentication_status($response)==false)
+  {
+    $test_success=false;
+  }
+  $test_settings=array();
+  $test_settings["change_remote_addr"]="193.169.1.22";
+  $test_settings["custom_ip_whitelist"]=dirname(__FILE__).DIRECTORY_SEPARATOR."test_ip_whitelist_2";
+  \webdb\test\utils\test_server_settings($test_settings,"changing first octet of ipv4 remote address with test ip whitelist on request back end");
+  $response=\webdb\test\utils\wget($settings["app_web_root"]);
+  if (\webdb\test\security\utils\check_authentication_status($response)==true)
+  {
+    $test_success=false;
+  }
+  if (\webdb\test\utils\compare_template_exluding_percents("login_form",$response)==false)
+  {
+    $test_success=false;
+  }
+  \webdb\test\utils\test_result_message($test_case_msg,$test_success);
+  $test_case_msg="fail password and cookie login if remote address isn't whitelisted";
+  $test_settings=array();
+  $test_settings["change_remote_addr"]="193.169.1.22";
+  $test_settings["custom_ip_whitelist"]=dirname(__FILE__).DIRECTORY_SEPARATOR."test_ip_whitelist_1";
+  \webdb\test\utils\test_server_settings($test_settings,"initialising non-whitelisted ipv4 remote address and test ip whitelist on request back end");
+  $response=\webdb\test\security\utils\test_user_login();
+  $test_success=true;
+  if (\webdb\test\security\utils\check_authentication_status($response)==true)
+  {
+    $test_success=false;
+  }
+  \webdb\test\utils\test_result_message($test_case_msg,$test_success);
+  $test_case_msg="login successfully if remote address is added to whitelist";
+  $test_settings=array();
+  $test_settings["change_remote_addr"]="193.169.1.22";
+  $test_settings["custom_ip_whitelist"]=dirname(__FILE__).DIRECTORY_SEPARATOR."test_ip_whitelist_2";
+  \webdb\test\utils\test_server_settings($test_settings,"initialising whitelisted ipv4 remote address and test ip whitelist on request back end");
+  $response=\webdb\test\security\utils\test_user_login();
+  $test_success=true;
+  if (\webdb\test\security\utils\check_authentication_status($response)==false)
+  {
+    $test_success=false;
+  }
+  \webdb\test\utils\test_result_message($test_case_msg,$test_success);
+  $test_case_msg="fail password and cookie login if remote address is blacklisted";
+  $test_settings=array();
+  $test_settings["change_remote_addr"]="193.169.1.22";
+  $test_settings["custom_ip_blacklist"]=dirname(__FILE__).DIRECTORY_SEPARATOR."test_ip_blacklist_1";
+  \webdb\test\utils\test_server_settings($test_settings,"initialising blacklisted ipv4 remote address and test ip blacklist on request back end");
+  $response=\webdb\test\security\utils\test_user_login();
+  $test_success=true;
+  if (\webdb\test\security\utils\check_authentication_status($response)==true)
+  {
+    $test_success=false;
+  }
+  \webdb\test\utils\test_result_message($test_case_msg,$test_success);
+  \webdb\test\utils\delete_test_config();
+  \webdb\test\security\utils\finish_test_user();
+}
 
 #####################################################################################################
 
-/*function test_first_time_user()
+function test_admin_login()
 {
   global $settings;
-  \webdb\test\utils\test_case_message("TEST CASE: test first time user process");
-  \webdb\test\security\create_test_user(false);
-
-  # login prompt
-  # reset password (requires apache side test setting)
-  # read password reset link from test settings
-  # navigate to link and ensure new password prompt appears
-  # post new password
-  # ensure redirect and login cookie work
-
-  $test_user=get_test_user();
-  var_dump($test_user);
-
-  $response=\webdb\test\security\test_user_login();
-  if ((\webdb\test\security\check_authentication_status($response)==true) and (\webdb\test\utils\compare_template_exluding_percents("change_password",$response)==true))
+  $test_address="192.168.0.21";
+  $test_settings=array();
+  $test_settings["change_remote_addr"]=$test_address;
+  $test_settings["add_admin_whitelist_addr"]=$test_address;
+  \webdb\test\utils\test_server_settings($test_settings,"initialising remote address and admin whitelist on request back end");
+  $test_case_msg="test that admin login is successful from whitelisted remote address";
+  $response=\webdb\test\security\utils\admin_login();
+  $test_success=true;
+  if (\webdb\test\security\utils\check_authentication_status($response,"admin")==false)
   {
-    \webdb\test\utils\test_success_message("FIRST TIME USER PASSWORD PROMPT TEST SUCCESS");
+    $test_success=false;
   }
-  else
+  \webdb\test\utils\test_result_message($test_case_msg,$test_success);
+  $test_case_msg="test that admin login fails when remote address changes to non-whitelisted address (and password login required)";
+  \webdb\test\utils\test_server_setting("change_remote_addr",$test_address,"reinitialising remote address without adding to admin whitelist on request back end");
+  $response=\webdb\test\utils\wget($settings["app_web_root"]);
+  $test_success=true;
+  if (\webdb\test\utils\compare_template_exluding_percents("admin_address_whitelist_error",$response)==false)
   {
-    \webdb\test\utils\test_error_message("FIRST TIME USER PASSWORD PROMPT TEST FAILED");
+    $test_success=false;
   }
-  \webdb\test\utils\test_case_message("TEST CASE: when a new user is inserted, the password field contains an invalid hash (*)");
-  $test_user=get_test_user();
-  if ($test_user["pw_hash"]=="*")
+  $response=\webdb\test\utils\wget($settings["app_web_root"]);
+  if (\webdb\test\utils\compare_template_exluding_percents("login_form",$response)==false)
   {
-    \webdb\test\utils\test_success_message("FIRST TIME USER PASSWORD HASH TEST SUCCESS");
+    $test_success=false;
   }
-  else
-  {
-    \webdb\test\utils\test_error_message("FIRST TIME USER PASSWORD HASH TEST FAILED");
-  }
-  \webdb\test\security\finish_test_user();
-}*/
+  \webdb\test\utils\test_result_message($test_case_msg,$test_success);
+  \webdb\test\utils\delete_test_config();
+}
 
 #####################################################################################################

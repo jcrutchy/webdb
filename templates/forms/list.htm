@@ -12,9 +12,11 @@ insert_row_parents['%%url_page%%']=document.currentScript.parentElement;
 %%custom_form_above%%
 
 <input type="hidden" id="inline_edit_page:%%url_page%%" name="inline_edit_page:%%url_page%%" value="$$app_web_index$$?page=%%url_page%%&cmd=edit&id=">
-<input type="hidden" id="edit_page:%%url_page%%" name="edit_page:%%url_page%%" value="$$app_web_index$$?page=%%url_page%%&cmd=edit&id=">
+<input type="hidden" id="edit_page:%%url_page%%" name="edit_page:%%url_page%%" value="$$app_web_index$$?page=%%individual_edit_url_page%%&cmd=edit&id=">
 <input type="hidden" id="insert_page:%%url_page%%" name="insert_page:%%url_page%%" value="$$app_web_index$$?page=%%url_page%%%%redirect%%&cmd=insert%%insert_default_params%%">
 <input type="hidden" id="advanced_search_page:%%url_page%%" name="advanced_search_page:%%url_page%%" value="$$app_web_index$$?page=%%url_page%%&cmd=advanced_search">
+
+<input type="hidden" id="ajax_edit_page:%%url_page%%" name="ajax_edit_page:%%url_page%%" value="$$app_web_index$$?page=%%url_page%%&cmd=edit&id=">
 
 <input type="hidden" id="parent_id:%%url_page%%" name="parent_id:%%url_page%%" value="%%parent_id%%">
 

@@ -107,6 +107,15 @@ function load_test_settings()
         case "change_remote_addr":
           $_SERVER["REMOTE_ADDR"]=$value;
           break;
+        case "add_admin_whitelist_addr":
+          $settings["admin_remote_address_whitelist"][]=$value;
+          break;
+        case "custom_ip_whitelist":
+          $settings["ip_whitelist_file"]=$value;
+          break;
+        case "custom_ip_blacklist":
+          $settings["ip_blacklist_file"]=$value;
+          break;
       }
     }
   }

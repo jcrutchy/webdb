@@ -66,14 +66,15 @@ function test_dump_message($message)
 
 function test_result_message($test_case,$result)
 {
-  echo "\033[".\webdb\test\utils\TEST_CASE_COLOR."m".$test_case.": \033[0m\033[";
+  $prefix="["."\033[";
+  $suffix="\033[0m"."] "."\033[".\webdb\test\utils\TEST_CASE_COLOR."m".$test_case."\033[0m".PHP_EOL;
   if ($result==true)
   {
-    echo \webdb\test\utils\SUCCESS_COLOR."mSUCCESS\033[0m".PHP_EOL;
+    echo $prefix.\webdb\test\utils\SUCCESS_COLOR."m"."SUCCESS".$suffix;
   }
   else
   {
-    echo \webdb\test\utils\ERROR_COLOR."mFAILED\033[0m".PHP_EOL;
+    echo $prefix.\webdb\test\utils\ERROR_COLOR."m"."FAILED".$suffix;
     \webdb\test\utils\handle_error();
   }
 }
@@ -85,6 +86,14 @@ function test_server_setting($key,$value,$message)
   $test_settings=array();
   $test_settings[$key]=$value;
   \webdb\test\utils\write_test_config($test_settings);
+  \webdb\test\utils\test_info_message($message);
+}
+
+#####################################################################################################
+
+function test_server_settings($settings,$message)
+{
+  \webdb\test\utils\write_test_config($settings);
   \webdb\test\utils\test_info_message($message);
 }
 
@@ -232,6 +241,14 @@ function search_http_headers($headers,$search_key)
 
 #####################################################################################################
 
+function clear_cookie_jar()
+{
+  global $settings;
+  $settings["test_cookie_jar"]=array();
+}
+
+#####################################################################################################
+
 function construct_cookie_header()
 {
   global $settings;
@@ -247,7 +264,15 @@ function construct_cookie_header()
   foreach ($settings["test_cookie_jar"] as $key => $value)
   {
     $parts=explode(";",$value);
-    $cookies[]=$key."=".array_shift($parts);
+    $value=array_shift($parts);
+    if ($value=="deleted")
+    {
+      unset($settings["test_cookie_jar"][$key]);
+    }
+    else
+    {
+      $cookies[]=$key."=".$value;
+    }
   }
   return "Cookie: ".implode("; ",$cookies)."\r\n";
 }
@@ -365,13 +390,13 @@ function extract_text($text,$delim1,$delim2)
   $i=strpos(strtolower($text),strtolower($delim1));
   if ($i===false)
   {
-    \webdb\test\utils\test_error_message("extract_text error: delim1 not found");
+    return "";
   }
   $text=substr($text,$i+strlen($delim1));
   $i=strpos($text,$delim2);
   if ($i===false)
   {
-    \webdb\test\utils\test_error_message("extract_text error: delim2 not found");
+    return "";
   }
   $text=substr($text,0,$i);
   return trim($text);

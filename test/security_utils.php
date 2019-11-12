@@ -22,7 +22,7 @@ function start_test_user($test_overrides=true)
   {
     \webdb\test\utils\test_error_message("ERROR STARTING TEST USER: USER NOT FOUND AFTER INSERT");
   }
-  \webdb\test\utils\test_info_message("TEST USER STARTED");
+  #\webdb\test\utils\test_info_message("TEST USER STARTED");
 }
 
 #####################################################################################################
@@ -54,7 +54,7 @@ function finish_test_user($is_error=false)
       \webdb\test\utils\test_error_message($msg);
     }
   }
-  \webdb\test\utils\test_info_message("TEST USER FINISHED");
+  #\webdb\test\utils\test_info_message("TEST USER FINISHED");
 }
 
 #####################################################################################################
@@ -100,7 +100,7 @@ function delete_test_user()
 
 #####################################################################################################
 
-function check_authentication_status($response)
+function check_authentication_status($response,$username="test_user")
 {
   global $settings;
   if (isset($settings["test_cookie_jar"])==false)
@@ -116,7 +116,7 @@ function check_authentication_status($response)
     return false;
   }
   $params=array();
-  $params["username"]="test_user";
+  $params["username"]=$username;
   $authenticated_status=\webdb\utils\template_fill("global".DIRECTORY_SEPARATOR."authenticated_status",$params);
   $unauthenticated_status=\webdb\utils\template_fill("global".DIRECTORY_SEPARATOR."unauthenticated_status");
   if (strpos($response,$authenticated_status)!==false)
@@ -127,7 +127,7 @@ function check_authentication_status($response)
   {
     return false;
   }
-  \webdb\test\utils\test_error_message("AUTHENTICATION STATUS NOT FOUND IN PAGE CONTENT");
+  \webdb\test\utils\test_info_message("AUTHENTICATION STATUS NOT FOUND IN PAGE CONTENT");
 }
 
 #####################################################################################################
@@ -144,11 +144,29 @@ function extract_csrf_token($response)
 function test_user_login($uri=false)
 {
   global $settings;
+  $settings["test_user_agent"]="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36";
   \webdb\test\security\utils\start_test_user();
   $response=\webdb\test\utils\wget($settings["app_web_root"]);
   $csrf_token=\webdb\test\security\utils\extract_csrf_token($response);
   $params=array();
   $params["login_username"]="test_user";
+  $params["login_password"]="password";
+  $params["csrf_token"]=$csrf_token;
+  return \webdb\test\utils\wpost($settings["app_web_root"],$params);
+}
+
+#####################################################################################################
+
+function admin_login($uri=false)
+{
+  global $settings;
+  \webdb\test\utils\test_info_message(trim(shell_exec("php ".$settings["app_root_path"]."index.php init_webdb_schema")));
+  $settings["test_user_agent"]="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36";
+  \webdb\test\utils\clear_cookie_jar();
+  $response=\webdb\test\utils\wget($settings["app_web_root"]);
+  $csrf_token=\webdb\test\security\utils\extract_csrf_token($response);
+  $params=array();
+  $params["login_username"]="admin";
   $params["login_password"]="password";
   $params["csrf_token"]=$csrf_token;
   return \webdb\test\utils\wpost($settings["app_web_root"],$params);

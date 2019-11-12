@@ -78,26 +78,6 @@ $settings["webdb_templates"]=$settings["templates"];
 $settings["sql"]=\webdb\utils\load_files($settings["webdb_sql_path"],"","sql",true);
 $settings["webdb_sql"]=$settings["sql"];
 
-if (\webdb\cli\is_cli_mode()==false)
-{
-  header("Cache-Control: no-cache");
-  header("Expires: -1");
-  header("Pragma: no-cache");
-  if (\webdb\users\remote_address_listed($_SERVER["REMOTE_ADDR"],"black")==true)
-  {
-    \webdb\utils\system_message("ip blacklisted");
-  }
-  if (\webdb\users\remote_address_listed($_SERVER["REMOTE_ADDR"],"white")==false)
-  {
-    \webdb\utils\system_message("ip not whitelisted");
-  }
-  if (\webdb\utils\is_app_mode()==false)
-  {
-    $settings["unauthenticated_content"]=true;
-    \webdb\utils\static_page("home","WebDB");
-  }
-}
-
 # load application settings
 $settings_filename=$settings["app_root_path"]."settings.php";
 if (file_exists($settings_filename)==false)
@@ -105,6 +85,26 @@ if (file_exists($settings_filename)==false)
   \webdb\utils\system_message("error: settings file not found: ".$settings_filename);
 }
 require_once($settings_filename);
+
+if (\webdb\cli\is_cli_mode()==false)
+{
+  header("Cache-Control: no-cache");
+  header("Expires: -1");
+  header("Pragma: no-cache");
+  if (\webdb\users\remote_address_listed($_SERVER["REMOTE_ADDR"],"black")==true)
+  {
+    \webdb\utils\system_message("ip blacklisted: ".htmlspecialchars($_SERVER["REMOTE_ADDR"]));
+  }
+  if (\webdb\users\remote_address_listed($_SERVER["REMOTE_ADDR"],"white")==false)
+  {
+    \webdb\utils\system_message("ip not whitelisted: ".htmlspecialchars($_SERVER["REMOTE_ADDR"]));
+  }
+  if (\webdb\utils\is_app_mode()==false)
+  {
+    $settings["unauthenticated_content"]=true;
+    \webdb\utils\static_page("home","WebDB");
+  }
+}
 
 \webdb\utils\load_db_credentials("admin");
 \webdb\utils\load_db_credentials("user");

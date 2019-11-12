@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS `webdb`.`users` (
   `enabled` TINYINT NOT NULL DEFAULT 0,
   `username` VARCHAR(255) NOT NULL,
   `fullname` VARCHAR(255) NOT NULL,
-  `email` VARCHAR(255) NOT NULL,
+  `email` VARCHAR(255) DEFAULT NULL,
   `pw_hash` VARCHAR(255) DEFAULT "*",
   `pw_change` TINYINT NOT NULL DEFAULT 1,
   `pw_reset_key` VARCHAR(255) DEFAULT "*",

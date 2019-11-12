@@ -49,6 +49,8 @@ function generate_csrf_token()
 
 function check_csrf()
 {
+  global $settings;
+  # note: user not authenticated at this point
   $csrf_ok=false;
   if (count($_POST)==0)
   {
@@ -78,15 +80,6 @@ function check_csrf()
   if ($csrf_ok==false)
   {
     \webdb\users\auth_log(false,"INVALID_CSRF_TOKEN_2","invalid csrf token from ".$_SERVER["REMOTE_ADDR"]." [referer=".$referer."]");
-    if (isset($settings["user_record"])==true)
-    {
-      $user_record=$settings["user_record"];
-      if ($user_record["pw_reset_key"]<>"")
-      {
-        \webdb\users\cancel_password_reset($user_record);
-      }
-      \webdb\users\login_failure($user_record,false);
-    }
     \webdb\utils\system_message("csrf error");
   }
 }
@@ -121,7 +114,7 @@ function get_user_record($username)
   if (count($records)<>1)
   {
     \webdb\users\webdb_unsetcookie("login_cookie");
-    \webdb\utils\show_message("error: username not found");
+    \webdb\utils\show_message("error: username not found: ".htmlspecialchars($username));
   }
   return $records[0];
 }
@@ -156,6 +149,10 @@ function cancel_password_reset($user_record)
 function login_failure($user_record,$message)
 {
   global $settings;
+  if ($user_record["pw_reset_key"]<>"")
+  {
+    \webdb\users\cancel_password_reset($user_record);
+  }
   if (empty($user_record["failed_login_count"])==true)
   {
     $user_record["failed_login_count"]=0;
@@ -166,7 +163,9 @@ function login_failure($user_record,$message)
   $value_items["failed_login_count"]=$user_record["failed_login_count"]+1;
   $value_items["failed_login_time"]=microtime(true);
   $value_items["login_cookie"]="*"; # disable login with cookie
+  $settings["sql_check_post_params_override"]=true;
   \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
+  $settings["sql_check_post_params_override"]=false;
   \webdb\users\webdb_unsetcookie("login_cookie");
   \webdb\users\auth_log($user_record,"FAILED",$message);
   if ($message!==false)
@@ -223,7 +222,10 @@ function check_admin($user_record)
   {
     if (in_array($_SERVER["REMOTE_ADDR"],$settings["admin_remote_address_whitelist"])==false)
     {
-      \webdb\users\login_failure($user_record,"error: admin login not permitted from this address [".$_SERVER["REMOTE_ADDR"]."]");
+      $params=array();
+      $params["remote_address"]=$_SERVER["REMOTE_ADDR"];
+      $msg=\webdb\utils\template_fill("admin_address_whitelist_error",$params);
+      \webdb\users\login_failure($user_record,$msg);
     }
   }
 }
@@ -414,12 +416,11 @@ function remote_address_listed($remote_address,$type) # $type = black|white
     {
       return true;
     }
-    $format="grepcidr %s < (echo %s)";
     $line=escapeshellarg($line);
     $address=escapeshellarg($remote_address);
-    $cmd=sprintf($format,$line,$address);
+    $cmd=$settings["webdb_root_path"]."sh".DIRECTORY_SEPARATOR."test_ip.sh ".$line." ".$address;
     $result=trim(shell_exec($cmd));
-    if ($result<>$address)
+    if ($result==$remote_address)
     {
       return true;
     }
@@ -622,6 +623,7 @@ function change_password($password_reset_user=false)
   $change_password_params=array();
   $change_password_params["login_script_modified"]=\webdb\utils\resource_modified_timestamp("login.js");
   $change_password_params["login_styles_modified"]=\webdb\utils\resource_modified_timestamp("login.css");
+  $change_password_params["home_link_display"]="none";
   if ($password_reset_user===false)
   {
     $change_password_params["old_password_default"]="";
@@ -629,6 +631,10 @@ function change_password($password_reset_user=false)
     if (isset($settings["user_record"])==false)
     {
       \webdb\users\login();
+    }
+    if ($settings["user_record"]["pw_change"]==0)
+    {
+      $change_password_params["home_link_display"]="block";
     }
     $change_password_params["login_username"]=$settings["user_record"]["username"];
   }

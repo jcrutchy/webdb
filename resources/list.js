@@ -308,7 +308,7 @@ function list_edit_row_update(form,url_page)
   }
   var body=data.join("&");
   var parent=document.getElementById("top_level_url_page");
-  var url=form.elements["edit_page:"+url_page].value+edit_row_id+"&ajax";
+  var url=form.elements["ajax_edit_page:"+url_page].value+edit_row_id+"&ajax";
   if (parent!==null)
   {
     var url=url+"&subform="+url_page+"&parent="+parent.innerHTML;

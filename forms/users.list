@@ -83,8 +83,7 @@
         "failed_login_time": 0
     },
     "required_values": [
-        "username",
-        "email"
+        "username"
     ],
     "js_events": [],
     "computed_values": {

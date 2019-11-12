@@ -1,12 +1,52 @@
 
+ORGANISATIONAL POLICY
+=====================
+
+- system administrator needs to establish who is accountable for security breaches
+- a procedure should be developed to deal with a security breach if detected
+- a process should be established to monitor the system to detect security breaches
+- qualification requirements should be determined for system administrators and developers to maintain system integrity
+- determine and ensure compliance with relevant regulatory and standards requirements
+- develop application/organisation-specific tests to ensure authorisation tier segregation based on users and groups in the database (to ensure groups and users have been correctly registered)
+- when a new group or user is required, update the aforementioned tier segregation tests (or develop and test an automated registration system)
+- establish and test TLS on server
+
+
 SERVER SECURITY
 ===============
 
 - framework and application files to be write protected (only owner user to be able to edit)
 - limit the schemas that webdb_user mysql user can access (block access to webdb.users/groups/user_groups tables)
+- Let's Encrypt TLS
+- iptables (whitelist/pessimistic) - UFW is a Debian iptables frontend (use to develop/test rules on dev)
+- hosts.allow/deny
+- logging
+- unresponsive default apache2 vhost
+
+- store activity logs securely
+
+disabling ICMP redirect
+SYN attack protection
+disable IP source routing
+
+- changing ServerTokens in Apache
+
+- determine running services:
+  $ sudo ss -atpu
+
+- disable dangerous PHP functions (where possible)
+
+- store application code outside public and have single index.php with include only
+
+- keep prod minimalist and headless
+- don't install things like desktop environment, ftp, xrdp, irc, phpmyadmin, samba, etc on prod
+- limited user remote access by ssh only with no password login (use ssh-keygen)
+- disallow root ssh
+- disallow su (sudo-only from limited user)
+
+- use fail2ban
 
 - https://www.cirt.net/Nikto2 (web server scanner)
-
 
 
 FRAMEWORK SECURITY
@@ -16,12 +56,12 @@ TODO: CHANGE FROM PASSWORD_BCRYPT TO PASSWORD_ARGON2ID (REQUIRES PHP 7.3.0) => R
 
 - for production, comment out the testing show_message in the \webdb\users\send_reset_password_message function that outputs the emailed message (including link) to the browser window
 
-- [] if any of the higher 3 octets of the user's remote address change, invalidate cookie login (require password)
-- [] changes to the right/lowest octet are permitted for login by cookie to allow for dhcp subnets
-- [] if user's user agent changes, invalidate cookie login (require password)
+- [tested] if any of the higher 3 octets of the user's remote address change, invalidate cookie login (require password)
+- [tested] changes to the right/lowest octet are permitted for login by cookie to allow for dhcp subnets
+- [tested] if user's user agent changes, invalidate cookie login (require password)
 - user agent changes will occur when a web browser is updated, so every time a user updates their web browser they will be prompted to login next
 - user agent changes will also occur if a different browser is used (eg: chrome vs firefox)
-- [] user agent header is required
+- [tested] user agent header is required
 
 - [] when a new user is inserted, the password field contains an invalid hash (*) which can never be replicated using the normal login system
 - [] the first time that a user views the login prompt, they will need to do a password reset (password field should contain invalid hash)
@@ -57,6 +97,8 @@ TODO: CHANGE FROM PASSWORD_BCRYPT TO PASSWORD_ARGON2ID (REQUIRES PHP 7.3.0) => R
 - on failure to find either of these settings, a simple authentication failure message is sent to the browser (whatever buffer was prepared to be sent to the user is overwritten)
 - if a var_dump() followed by die is required outside an already authenticated program route, the \webdb\utils\debug_var_dump function is available, which sets the $settings["unauthenticated_content"] flag
 
+- [] csrf error invalidates a password reset link
+
 - [] username is case insensitive and spaces are not permitted at the beginning or end of a username
 - there is a separate field for email (username and email need not be the same)
 
@@ -78,16 +120,105 @@ TODO: CHANGE FROM PASSWORD_BCRYPT TO PASSWORD_ARGON2ID (REQUIRES PHP 7.3.0) => R
 - [] if user or group is disabled (by an admin using the users/groups editor forms), the affected user/group will no longer be able to access the system
 - [] if a group is disabled, all users linked to that group will no longer be able to access forms/templates restricted to the disabled group
 
+- csrf check is performed prior to user authentication
+- invalidation of login cookie on csrf error was considered (based on username cookie) but in the event of deliberate attack, this invalidation could indirectly
+  become a form of forgery itself as a deliberate annoyance (the attacker could forge username cookies and repeatedly invalidate a bunch of legitimate logins)
+
+- framework security flow of control:
+  * an application is always started by navigating to the application index.php file in the web browser
+  * the application index.php file can include other application-specific files containing custom interfaces, ajax stubs and computed field functions, but should finally include the framework index.php file
+  * the framework index.php (bootstrap) file performs the following in sequence:
+    ~ includes other essential framework php files
+    ~ loads framework, common and application settings (in that order)
+    ~ loads application and framework form files
+    ~ initialises database connections
+    ~ cli dispatch branch
+    ~ user agent validation (for non-cli)
+    ~ csrf checking
+    ~ user authentication dispatch branch
+    ~ form dispatch branch
+  * cli dispatch handles testing, database schema initialisation and other system administration and development utility functions (can only be triggered from cli)
+  * user authentication dispatch handles password/cookie login, logout, password reset, password change and user lockout
+  * form dispatch handles ajax requests and generation of lists and editor forms, including permissions management
+
+potential causes for login failure:
+- [] incorrect username and/or password for login form
+- [] login cookie deleted at browser end
+- [] username cookie deleted at browser end
+- [] csrf error
+- [tested] remote address change
+- [tested] user agent changed
+- [] password reset
+- [] remote address blacklisted
+- [] remote address not whitelisted
+- [] user record disabled by admin
+- [] user record deleted by admin
+- [] admin login not in admin remote address whitelist
+
+
+potential causes for password reset link invalidation:
+- [] link expires (user waits too long to click link)
+- [] failed username/password login attempt
+- [] failed login cookie attempt
+- [] password changed
+- [] reset key is overwritten by admin in user record
+
+
+tips (https://www.rackaid.com/blog/server-security-tips/):
+- Test file upload fields to assure code cannot be uploaded
+- Secure web application admin areas with IP based restrictions
+- Sanitize user input
+- Put sensitive files outside of document root or restrict access
+- Avoiding using shell commands within scripts
+- Don’t trust HTTP referer fields as they are easily forged
+- Use POST instead of GET to submit data so sensitive information is not in the URL
+- Validate data server-side not client-side
+- Do not rely on relative file and path names. Always set base directories
+- Limit file upload, creation activities to specific directories
+- Create safe error messages by not disclosing sensitive information in errors
+
 
 APPLICATION SECURITY
 ====================
 
+- application-specific ajax stubs, custom interfaces and computed field functions should be developed and tested in ways as to not introduce any new
+  vulnerabilities or counter/negate existing framework security mechanisms
 
+
+SECURITY TESTING
+================
+
+$ php <myapp>/index.php run_tests
+
+- tests are initialised from webdb/test/test.php (supported by webdb/test/test_utils.php)
+- additional security tests are under webdb/test/security.php (supported by webdb/test/security_utils.php and webdb/test/test_utils.php)
+
+- multi-stage tests should be performed based on initialisation with a pass result, and any stage that fails should negate the result
+  that way any stage that fails will cause the whole test to fail
+  eg:
+    $test_success=true;
+    if (\webdb\test\test_stage()==false)
+    {
+      $test_success=false;
+    }
+    if (\webdb\test\another_test_stage_expecting_false()==true)
+    {
+      $test_success=false;
+    }
+    if (\webdb\test\yet_another_test_stage()==false)
+    {
+      $test_success=false;
+    }
+
+- security tests are performed using crafted get and post requests sent to the web server by a stream socket client
+- the communication functions are:
+  * \webdb\test\utils\submit_request
+  * \webdb\test\utils\wget
+  * \webdb\test\utils\wpost
 
 
 SECURITY REFERENCES
 ===================
-
 
 https://cheatsheetseries.owasp.org/
 https://www.owasp.org/index.php/Top_10-2017_Top_10
