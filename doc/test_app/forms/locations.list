@@ -1,0 +1,58 @@
+{
+    "form_version": "20190829.1",
+    "form_type": "list",
+    "enabled": true,
+    "title": "Locations",
+    "url_page": "locations",
+    "control_types": {
+        "location_id": "span",
+        "created_timestamp": "span",
+        "location_name": "text",
+        "description": "text",
+        "parent_location_id": "combobox"
+    },
+    "captions": {
+        "location_id": "Location ID",
+        "created_timestamp": "Created Timestamp",
+        "location_name": "Location Name",
+        "description": "Description",
+        "parent_location_id": "Location"
+    },
+    "visible": {
+        "location_id": true,
+        "created_timestamp": true,
+        "location_name": true,
+        "description": true,
+        "parent_location_id": true
+    },
+    "default_values": {
+        "location_id": "(auto)",
+        "created_timestamp": "(auto)",
+        "location_name": "",
+        "description": "",
+        "parent_location_id": ""
+    },
+    "lookups": {
+        "parent_location_id": {
+            "database": "test_app",
+            "table": "locations",
+            "key_field": "location_id",
+            "display_field": "location_name"
+        }
+    },
+    "primary_key": "location_id",
+    "command_caption_noun": "Location",
+    "multi_row_delete": true,
+    "individual_delete": true,
+    "individual_edit": "row",
+    "individual_edit_url_page": "locations",
+    "individual_edit_id": "location_id",
+    "insert_new": true,
+    "insert_row": true,
+    "advanced_search": true,
+    "sort_field_select": true,
+    "allow_field_sort": true,
+    "database": "test_app",
+    "table": "locations",
+    "sort_sql": "location_name asc"
+}

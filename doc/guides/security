@@ -120,6 +120,16 @@ TODO: CHANGE FROM PASSWORD_BCRYPT TO PASSWORD_ARGON2ID (REQUIRES PHP 7.3.0) => R
 - [] if user or group is disabled (by an admin using the users/groups editor forms), the affected user/group will no longer be able to access the system
 - [] if a group is disabled, all users linked to that group will no longer be able to access forms/templates restricted to the disabled group
 
+- sources of user input requiring sanitising:
+  * sanitising of individual data fields not required on input since prepared statements are used to insert/update records in database
+  * sort param is from the url and is passed into sql query via sql_fill rather than a prepared statement, so it must exist as a field in the form config
+  * other uses of sql_fill have been reviewed and are are only passed data from form config files
+  * the use of sql_fill is a potential vulnerability though and should be used with care to avoid inadvertently passing unsanitised user data into raw sql statements
+
+- sources of user output requiring escaping:
+  * control types: lookup, span, file, text, memo, combobox, listbox, radiogroup, date, checkbox
+  * list cells, edit page controls, insert page controls, list insert/update row controls, advanced search controls
+
 - csrf check is performed prior to user authentication
 - invalidation of login cookie on csrf error was considered (based on username cookie) but in the event of deliberate attack, this invalidation could indirectly
   become a form of forgery itself as a deliberate annoyance (the attacker could forge username cookies and repeatedly invalidate a bunch of legitimate logins)

@@ -39,7 +39,7 @@ $settings["sql_check_post_params_override"]=false;
 $settings["calendar_fields"]=array();
 $settings["permissions"]=array();
 
-$settings["parent_path"]=dirname(dirname(__FILE__)).DIRECTORY_SEPARATOR;
+$settings["parent_path"]=dirname(__DIR__).DIRECTORY_SEPARATOR;
 $settings["webdb_root_path"]=__DIR__.DIRECTORY_SEPARATOR;
 
 $includes=get_included_files();

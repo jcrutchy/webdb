@@ -19,8 +19,6 @@ $settings["webdb_forms_path"]=$settings["webdb_root_path"]."forms".DIRECTORY_SEP
 
 $settings["webdb_default_form"]="default";
 
-$settings["favicon_source"]=$settings["app_web_resources"]."favicon.ico";
-
 $settings["links_template"]="";
 $settings["footer_template"]="";
 
@@ -46,6 +44,8 @@ $settings["gd_ttf"]="/usr/share/fonts/truetype/msttcorefonts/arial.ttf";
 $settings["webdb_web_root"]="/".$settings["webdb_directory_name"]."/";
 $settings["webdb_web_resources"]=$settings["webdb_web_root"]."resources/";
 $settings["webdb_web_index"]=$settings["webdb_web_root"]."index.php";
+
+$settings["favicon_source"]=$settings["webdb_web_resources"]."favicon.png";
 
 # the following initialised settings later come from webdb_common_settings.php
 $settings["server_email_from"]="";

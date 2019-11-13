@@ -15,6 +15,7 @@ function start()
   \webdb\test\security\test_remote_address();
   \webdb\test\security\test_admin_login();
   \webdb\test\utils\test_info_message("FINISHED SECURITY TESTS");
+  # use /webdb/doc/test_app/index.php as a testing platform (start by doing index.php init_app_schema)
 }
 
 #####################################################################################################
@@ -175,7 +176,7 @@ function test_remote_address() # assumes ::1 and 192.168.0.0/16 are in system ip
   $response=\webdb\test\security\utils\test_user_login();
   $test_settings=array();
   $test_settings["change_remote_addr"]="::2";
-  $test_settings["custom_ip_whitelist"]=dirname(__FILE__).DIRECTORY_SEPARATOR."test_ip_whitelist_2";
+  $test_settings["custom_ip_whitelist"]=__DIR__.DIRECTORY_SEPARATOR."test_ip_whitelist_2";
   \webdb\test\utils\test_server_settings($test_settings,"initialising different ipv6 remote address with test ip whitelist on request back end");
   $response=\webdb\test\utils\wget($settings["app_web_root"]);
   $test_success=true;
@@ -227,7 +228,7 @@ function test_remote_address() # assumes ::1 and 192.168.0.0/16 are in system ip
   }
   $test_settings=array();
   $test_settings["change_remote_addr"]="192.169.1.22";
-  $test_settings["custom_ip_whitelist"]=dirname(__FILE__).DIRECTORY_SEPARATOR."test_ip_whitelist_2";
+  $test_settings["custom_ip_whitelist"]=__DIR__.DIRECTORY_SEPARATOR."test_ip_whitelist_2";
   \webdb\test\utils\test_server_settings($test_settings,"changing second octet of ipv4 remote address with test ip whitelist on request back end");
   $response=\webdb\test\utils\wget($settings["app_web_root"]);
   if (\webdb\test\security\utils\check_authentication_status($response)==true)
@@ -248,7 +249,7 @@ function test_remote_address() # assumes ::1 and 192.168.0.0/16 are in system ip
   }
   $test_settings=array();
   $test_settings["change_remote_addr"]="193.169.1.22";
-  $test_settings["custom_ip_whitelist"]=dirname(__FILE__).DIRECTORY_SEPARATOR."test_ip_whitelist_2";
+  $test_settings["custom_ip_whitelist"]=__DIR__.DIRECTORY_SEPARATOR."test_ip_whitelist_2";
   \webdb\test\utils\test_server_settings($test_settings,"changing first octet of ipv4 remote address with test ip whitelist on request back end");
   $response=\webdb\test\utils\wget($settings["app_web_root"]);
   if (\webdb\test\security\utils\check_authentication_status($response)==true)
@@ -263,7 +264,7 @@ function test_remote_address() # assumes ::1 and 192.168.0.0/16 are in system ip
   $test_case_msg="fail password and cookie login if remote address isn't whitelisted";
   $test_settings=array();
   $test_settings["change_remote_addr"]="193.169.1.22";
-  $test_settings["custom_ip_whitelist"]=dirname(__FILE__).DIRECTORY_SEPARATOR."test_ip_whitelist_1";
+  $test_settings["custom_ip_whitelist"]=__DIR__.DIRECTORY_SEPARATOR."test_ip_whitelist_1";
   \webdb\test\utils\test_server_settings($test_settings,"initialising non-whitelisted ipv4 remote address and test ip whitelist on request back end");
   $response=\webdb\test\security\utils\test_user_login();
   $test_success=true;
@@ -275,7 +276,7 @@ function test_remote_address() # assumes ::1 and 192.168.0.0/16 are in system ip
   $test_case_msg="login successfully if remote address is added to whitelist";
   $test_settings=array();
   $test_settings["change_remote_addr"]="193.169.1.22";
-  $test_settings["custom_ip_whitelist"]=dirname(__FILE__).DIRECTORY_SEPARATOR."test_ip_whitelist_2";
+  $test_settings["custom_ip_whitelist"]=__DIR__.DIRECTORY_SEPARATOR."test_ip_whitelist_2";
   \webdb\test\utils\test_server_settings($test_settings,"initialising whitelisted ipv4 remote address and test ip whitelist on request back end");
   $response=\webdb\test\security\utils\test_user_login();
   $test_success=true;
@@ -287,7 +288,7 @@ function test_remote_address() # assumes ::1 and 192.168.0.0/16 are in system ip
   $test_case_msg="fail password and cookie login if remote address is blacklisted";
   $test_settings=array();
   $test_settings["change_remote_addr"]="193.169.1.22";
-  $test_settings["custom_ip_blacklist"]=dirname(__FILE__).DIRECTORY_SEPARATOR."test_ip_blacklist_1";
+  $test_settings["custom_ip_blacklist"]=__DIR__.DIRECTORY_SEPARATOR."test_ip_blacklist_1";
   \webdb\test\utils\test_server_settings($test_settings,"initialising blacklisted ipv4 remote address and test ip blacklist on request back end");
   $response=\webdb\test\security\utils\test_user_login();
   $test_success=true;

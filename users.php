@@ -579,7 +579,7 @@ function change_password($password_reset_user=false)
     if (in_array($pw_new,$settings["prohibited_passwords"])==true)
     {
       \webdb\users\webdb_unsetcookie("login_cookie");
-      \webdb\utils\show_message("error: cannot use any of the following for your new password: ".implode(" ",$settings["prohibited_passwords"]));
+      \webdb\utils\show_message("error: cannot use any of the following for your new password: ".htmlspecialchars(implode(" ",$settings["prohibited_passwords"])));
     }
     if (strlen($pw_new)<$settings["min_password_length"])
     {

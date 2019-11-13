@@ -37,13 +37,13 @@ function query_error($sql,$source="",$filename="")
   $msg_params=array();
   $msg_params["filename"]=$filename;
   $msg_params["source_error"]="";
-  $msg_params["sql"]=$sql;
+  $msg_params["sql"]=htmlspecialchars($sql);
   if ($source!=="")
   {
     $err=$source->errorInfo();
     if ($err[0]<>null)
     {
-      $msg_params["source_error"]=$err[2];
+      $msg_params["source_error"]=htmlspecialchars($err[2]);
     }
   }
   if (\webdb\cli\is_cli_mode()==true)
@@ -225,29 +225,6 @@ function get_sql_file($filename)
 
 #####################################################################################################
 
-function file_fetch_query($filename,$is_admin=false)
-{
-  $sql=\webdb\sql\get_sql_file($filename);
-  return \webdb\sql\fetch_query($sql,$filename,$is_admin);
-}
-
-#####################################################################################################
-
-function fetch_query($sql,$filename="",$is_admin=false)
-{
-  $pdo=\webdb\sql\get_pdo_object($is_admin);
-  $statement=$pdo->query($sql);
-  if ($statement===false)
-  {
-    \webdb\sql\sql_log("ERROR",$sql);
-    \webdb\sql\query_error($sql,$pdo,$filename);
-  }
-  \webdb\sql\sql_log("SUCCESS",$sql);
-  return $statement->fetchAll(\PDO::FETCH_ASSOC);
-}
-
-#####################################################################################################
-
 function file_execute_prepare($filename,$params,$is_admin=false)
 {
   $sql=\webdb\sql\get_sql_file($filename);
@@ -352,7 +329,7 @@ function fetch_all_records($table,$sort_field="",$sort_dir="",$schema,$is_admin=
       $sql.=" ASC";
     }
   }
-  return \webdb\sql\fetch_query($sql,"",$is_admin);
+  return \webdb\sql\fetch_prepare($sql,array(),"",$is_admin);
 }
 
 #####################################################################################################

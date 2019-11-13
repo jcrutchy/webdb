@@ -7,7 +7,8 @@
 <body>
 
 <!-- host this page on a webserver with a different ip address and make sure it returns a csrf token error -->
-<!-- also check with a csrf_token field, which should fail since the token doesn't verify against a cookie token hash -->
+<!-- also check with a csrf_token field (uncomment line below), which should fail since the token doesn't verify against a cookie token hash -->
+<!-- change <<my_app>> in the form action to suit -->
 
 <form action="http://192.168.43.50/<<my_app>>/index.php?page=users&cmd=edit&id=" method="post">
 

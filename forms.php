@@ -200,7 +200,7 @@ function checklist_update($form_config)
   if ($form_config["default_filter_sql"]<>"")
   {
     $sql=\webdb\utils\sql_fill("form_list_fetch_all",$form_config);
-    $list_records=\webdb\sql\fetch_query($sql);
+    $list_records=\webdb\sql\fetch_prepare($sql,array());
   }
   $sql_params=array();
   $sql_params["link_database"]=$link_database;
@@ -375,7 +375,7 @@ function get_subform_content($subform_config,$subform_link_field,$id,$list_only=
     $subform_config["advanced_search"]=false;
     \webdb\forms\process_filter_sql($subform_config);
     $sql=\webdb\utils\sql_fill("form_list_fetch_all",$subform_config);
-    $records=\webdb\sql\fetch_query($sql);
+    $records=\webdb\sql\fetch_prepare($sql,array());
   }
   else
   {
@@ -742,6 +742,7 @@ function output_readonly_field($field_params,$control_type,$form_config,$field_n
   switch ($control_type)
   {
     case "lookup":
+      $field_params["value"]="";
       $key_field_name=$form_config["lookups"][$field_name]["key_field"];
       $sibling_field_name=$form_config["lookups"][$field_name]["sibling_field"];
       $display_field_name=$form_config["lookups"][$field_name]["display_field"];
@@ -768,6 +769,7 @@ function output_readonly_field($field_params,$control_type,$form_config,$field_n
     case "combobox":
     case "listbox":
     case "radiogroup":
+      $field_params["value"]=htmlspecialchars($display_record[$field_name]);
       for ($j=0;$j<count($lookup_records[$field_name]);$j++)
       {
         $key_field_name=$form_config["lookups"][$field_name]["key_field"];
@@ -776,7 +778,7 @@ function output_readonly_field($field_params,$control_type,$form_config,$field_n
         $display_value=$lookup_records[$field_name][$j][$display_field_name];
         if ($display_record[$field_name]==$key_value)
         {
-          $field_params["value"]=$display_value;
+          $field_params["value"]=htmlspecialchars($display_value);
           break;
         }
       }
@@ -886,7 +888,7 @@ function output_editable_field(&$field_params,$record,$field_name,$control_type,
   $field_params["field_value"]="";
   if (isset($record[$field_name])==true)
   {
-    $field_params["field_value"]=$record[$field_name];
+    $field_params["field_value"]=htmlspecialchars($record[$field_name]);
   }
   $field_params["url_page"]=$form_config["url_page"];
   $field_params["control_style"]="";
@@ -903,6 +905,7 @@ function output_editable_field(&$field_params,$record,$field_name,$control_type,
       break;
     case "lookup":
       $field_params["field_key"]="";
+      $field_params["field_value"]=$record[$field_name];
       $lookup_data=$form_config["lookups"][$field_name];
       $key_field_name=$lookup_data["key_field"];
       $sibling_field_name=$lookup_data["sibling_field"];
@@ -913,7 +916,7 @@ function output_editable_field(&$field_params,$record,$field_name,$control_type,
         $display_value=$lookup_records[$field_name][$j][$display_field_name];
         if ($record[$sibling_field_name]==$key_value)
         {
-          $field_params["field_key"]=$key_value;
+          $field_params["field_key"]=htmlspecialchars($key_value);
           $field_params["field_value"]=$display_value;
           break;
         }
@@ -934,7 +937,7 @@ function output_editable_field(&$field_params,$record,$field_name,$control_type,
       $submit_fields[]=$field_params["field_name"];
       break;
     case "memo":
-      $field_params["field_value"]=htmlspecialchars(str_replace(\webdb\index\LINEBREAK_DB_DELIM,\webdb\index\LINEBREAK_PLACEHOLDER,$field_params["field_value"]));
+      $field_params["field_value"]=htmlspecialchars(str_replace(\webdb\index\LINEBREAK_DB_DELIM,\webdb\index\LINEBREAK_PLACEHOLDER,$record[$field_name]));
       $field_params["field_value"]=str_replace(\webdb\index\LINEBREAK_PLACEHOLDER,PHP_EOL,$field_params["field_value"]);
       $submit_fields[]=$field_params["field_name"];
       break;
@@ -960,11 +963,11 @@ function output_editable_field(&$field_params,$record,$field_name,$control_type,
         $loop_record=$records[$i];
         $option_params=array();
         $option_params["name"]=$field_name;
-        $option_params["value"]=$loop_record[$lookup_config["key_field"]];
-        $option_params["caption"]=$loop_record[$lookup_config["display_field"]];
+        $option_params["value"]=htmlspecialchars($loop_record[$lookup_config["key_field"]]);
+        $option_params["caption"]=htmlspecialchars($loop_record[$lookup_config["display_field"]]);
         $option_params["disabled"]=\webdb\forms\field_disabled($form_config,$field_name);
         $option_params["js_events"]=\webdb\forms\field_js_events($form_config,$field_name,$record);
-        if ($loop_record[$lookup_config["key_field"]]==$field_params["field_value"])
+        if ($loop_record[$lookup_config["key_field"]]==$record[$field_name])
         {
           $options.=\webdb\utils\template_fill($option_template."_option_selected",$option_params);
         }
@@ -978,21 +981,21 @@ function output_editable_field(&$field_params,$record,$field_name,$control_type,
       break;
     case "date":
       $settings["calendar_fields"][]=$field_name;
-      if ($field_params["field_value"]==null)
+      if ($record[$field_name]==null)
       {
         $field_params["field_value"]="";
         $field_params["iso_field_value"]="";
       }
       else
       {
-        $field_params["field_value"]=date($settings["app_date_format"],strtotime($field_params["field_value"]));
+        $field_params["field_value"]=date($settings["app_date_format"],strtotime($record[$field_name]));
         $field_params["iso_field_value"]=date("Y-m-d",strtotime($field_params["field_value"]));
       }
       $submit_fields[]="iso_".$field_params["field_name"];
       break;
     case "checkbox":
       $field_params["checked"]="";
-      if ($field_params["field_value"]==1)
+      if ($record[$field_name]==1)
       {
         $field_params["checked"]=\webdb\utils\template_fill("checkbox_checked");
       }
@@ -1145,7 +1148,7 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
   if ($form_config["records_sql"]<>"")
   {
     $sql=\webdb\utils\sql_fill($form_config["records_sql"]);
-    $records=\webdb\sql\fetch_query($sql);
+    $records=\webdb\sql\fetch_prepare($sql,array());
   }
   $form_params=array();
   $form_params["url_page"]=$form_config["url_page"];
@@ -1254,7 +1257,7 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
     }
     \webdb\forms\process_filter_sql($form_config);
     $sql=\webdb\utils\sql_fill("form_list_fetch_all",$form_config);
-    $records=\webdb\sql\fetch_query($sql);
+    $records=\webdb\sql\fetch_prepare($sql,array());
   }
   $previous_group_by_fields=false;
   $row_spans=array();
@@ -1678,7 +1681,7 @@ function lookup_field_data($form_config,$field_name,$sibling_field=false)
     $lookup_config["order_by"]=$lookup_config["display_field"]." ASC";
   }
   $sql=\webdb\utils\sql_fill("form_lookup",$lookup_config);
-  return \webdb\sql\fetch_query($sql);
+  return \webdb\sql\fetch_prepare($sql,array());
 }
 
 #####################################################################################################
