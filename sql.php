@@ -21,42 +21,45 @@ function check_post_params($sql)
   }
   if ($sql<>"")
   {
-    $sql_lc=strtolower($sql);
-    if ((strpos($sql_lc,"insert")===false) and (strpos($sql_lc,"update")===false) and (strpos($sql_lc,"delete")===false))
+    $query_type=\webdb\sql\get_statement_type($sql);
+    switch ($query_type)
     {
-      return;
+      case "INSERT":
+      case "UPDATE":
+      case "DELETE":
+        \webdb\utils\show_message("only POST requests are permitted to modify the database: ".$sql);
     }
   }
-  \webdb\utils\show_message("modification of database in non-post request not permitted: ".$sql);
 }
 
 #####################################################################################################
 
 function query_error($sql,$source="",$filename="")
 {
-  $msg_params=array();
-  $msg_params["filename"]=$filename;
-  $msg_params["source_error"]="";
-  $msg_params["sql"]=htmlspecialchars($sql);
+  $source_error="";
   if ($source!=="")
   {
     $err=$source->errorInfo();
     if ($err[0]<>null)
     {
-      $msg_params["source_error"]=htmlspecialchars($err[2]);
+      $source_error=htmlspecialchars($err[2]);
     }
   }
   if (\webdb\cli\is_cli_mode()==true)
   {
-    $msg_params["source_error"]=str_replace(PHP_EOL," ",$msg_params["source_error"]);
-    $msg_params["sql"]=str_replace(PHP_EOL," ",$msg_params["sql"]);
+    $source_error=str_replace(PHP_EOL," ",$source_error);
+    $sql=str_replace(PHP_EOL," ",$sql);
     \webdb\cli\term_echo("SQL ERROR",31);
-    \webdb\cli\term_echo("filename: ".$msg_params["filename"],31);
-    \webdb\cli\term_echo("error: ".$msg_params["source_error"],31);
-    \webdb\cli\term_echo("sql: ".$msg_params["sql"],31);
+    \webdb\cli\term_echo("filename: ".$filename,31);
+    \webdb\cli\term_echo("error: ".$source_error,31);
+    \webdb\cli\term_echo("sql: ".$sql,31);
   }
   else
   {
+    $msg_params=array();
+    $msg_params["filename"]=$filename;
+    $msg_params["source_error"]=$source_error;
+    $msg_params["sql"]=htmlspecialchars($sql);
     \webdb\utils\show_message(\webdb\utils\template_fill("global".DIRECTORY_SEPARATOR."sql_error",$msg_params));
   }
 }
@@ -78,6 +81,14 @@ function get_pdo_object($is_admin)
 
 #####################################################################################################
 
+function get_statement_type($sql)
+{
+  $sql_parts=explode(" ",trim($sql));
+  return strtoupper(array_shift($sql_parts));
+}
+
+#####################################################################################################
+
 function sql_last_insert_autoinc_id($is_admin=false)
 {
   $pdo=\webdb\sql\get_pdo_object($is_admin);
@@ -86,28 +97,28 @@ function sql_last_insert_autoinc_id($is_admin=false)
 
 #####################################################################################################
 
-function sql_insert($items,$table,$schema,$is_admin=false)
+function sql_insert($items,$table,$database,$is_admin=false)
 {
   $fieldnames=array_keys($items);
   $placeholders=array_map("\webdb\sql\callback_prepare",$fieldnames);
   $fieldnames=array_map("\webdb\sql\callback_quote",$fieldnames);
-  $sql="INSERT INTO `".$schema."`.`".$table."` (".implode(",",$fieldnames).") VALUES (".implode(",",$placeholders).")";
+  $sql="INSERT INTO `".$database."`.`".$table."` (".implode(",",$fieldnames).") VALUES (".implode(",",$placeholders).")";
   \webdb\sql\check_post_params($sql);
-  return \webdb\sql\execute_prepare($sql,$items,"",$is_admin);
+  return \webdb\sql\execute_prepare($sql,$items,"",$is_admin,$table,$database);
 }
 
 #####################################################################################################
 
-function sql_delete($items,$table,$schema,$is_admin=false)
+function sql_delete($items,$table,$database,$is_admin=false)
 {
-  $sql="DELETE FROM `".$schema."`.`".$table."` WHERE (".\webdb\sql\build_prepared_where($items).")";
+  $sql="DELETE FROM `".$database."`.`".$table."` WHERE (".\webdb\sql\build_prepared_where($items).")";
   \webdb\sql\check_post_params($sql);
-  return \webdb\sql\execute_prepare($sql,$items,"",$is_admin);
+  return \webdb\sql\execute_prepare($sql,$items,"",$is_admin,$table,$database);
 }
 
 #####################################################################################################
 
-function sql_update($value_items,$where_items,$table,$schema,$is_admin=false)
+function sql_update($value_items,$where_items,$table,$database,$is_admin=false)
 {
   $value_fieldnames=array_keys($value_items);
   $value_placeholder_names=array();
@@ -129,9 +140,9 @@ function sql_update($value_items,$where_items,$table,$schema,$is_admin=false)
     $update_value_items[$field_name."_value"]=$field_value;
   }
   $items=array_merge($update_value_items,$where_items);
-  $sql="UPDATE `$schema`.`".$table."` SET ".$values_string." WHERE (".\webdb\sql\build_prepared_where($where_items).")";
+  $sql="UPDATE `$database`.`".$table."` SET ".$values_string." WHERE (".\webdb\sql\build_prepared_where($where_items).")";
   \webdb\sql\check_post_params($sql);
-  return \webdb\sql\execute_prepare($sql,$items,"",$is_admin);
+  return \webdb\sql\execute_prepare($sql,$items,"",$is_admin,$table,$database);
 }
 
 #####################################################################################################
@@ -141,7 +152,7 @@ function get_foreign_key_defs($database,$table)
   $sql_params=array();
   $sql_params["database"]=$database;
   $sql_params["table"]=$table;
-  return \webdb\sql\file_fetch_prepare("foreign_keys",$sql_params);
+  return \webdb\sql\file_fetch_prepare("foreign_keys",$sql_params,$table,$database);
 }
 
 #####################################################################################################
@@ -159,7 +170,7 @@ function foreign_key_used($database,$table,$record,$foreign_key_defs=false)
     $sql=\webdb\utils\sql_fill("foreign_key_check",$fk);
     $sql_params=array();
     $sql_params["referenced_column_value"]=$record[$fk["REFERENCED_COLUMN_NAME"]];
-    $def_foreign_keys=\webdb\sql\fetch_prepare($sql,$sql_params);
+    $def_foreign_keys=\webdb\sql\fetch_prepare($sql,$sql_params,$table,$database);
     if (count($def_foreign_keys)>0)
     {
       $foreign_key=array();
@@ -225,22 +236,22 @@ function get_sql_file($filename)
 
 #####################################################################################################
 
-function file_execute_prepare($filename,$params,$is_admin=false)
+function file_execute_prepare($filename,$params,$is_admin=false,$table="",$database="")
 {
   $sql=\webdb\sql\get_sql_file($filename);
-  return \webdb\sql\execute_prepare($sql,$params,$filename,$is_admin);
+  return \webdb\sql\execute_prepare($sql,$params,$filename,$is_admin,$table,$database);
 }
 
 #####################################################################################################
 
-function execute_prepare($sql,$params=array(),$filename="",$is_admin=false)
+function execute_prepare($sql,$params=array(),$filename="",$is_admin=false,$table="",$database="")
 {
   \webdb\sql\check_post_params($sql);
   $pdo=\webdb\sql\get_pdo_object($is_admin);
   $statement=$pdo->prepare($sql);
   if ($statement===false)
   {
-    \webdb\sql\sql_log("PREPARE ERROR",$sql,$params);
+    \webdb\sql\sql_log("PREPARE ERROR",$sql,$params,$table,$database);
     return \webdb\sql\query_error($sql,"",$filename);
   }
   foreach ($params as $key => $value)
@@ -261,30 +272,30 @@ function execute_prepare($sql,$params=array(),$filename="",$is_admin=false)
   }
   if ($statement->execute()===false)
   {
-    \webdb\sql\sql_log("EXECUTE ERROR",$sql,$params);
+    \webdb\sql\sql_log("EXECUTE ERROR",$sql,$params,$table,$database);
     return \webdb\sql\query_error($sql,$statement,$filename);
   }
-  \webdb\sql\sql_log("SUCCESS",$sql,$params);
+  \webdb\sql\sql_log("SUCCESS",$sql,$params,$table,$database);
   return true;
 }
 
 #####################################################################################################
 
-function file_fetch_prepare($filename,$params=array(),$is_admin=false)
+function file_fetch_prepare($filename,$params=array(),$is_admin=false,$table="",$database="")
 {
   $sql=\webdb\sql\get_sql_file($filename);
-  return \webdb\sql\fetch_prepare($sql,$params,$filename,$is_admin);
+  return \webdb\sql\fetch_prepare($sql,$params,$filename,$is_admin,$table,$database);
 }
 
 #####################################################################################################
 
-function fetch_prepare($sql,$params=array(),$filename="",$is_admin=false)
+function fetch_prepare($sql,$params=array(),$filename="",$is_admin=false,$table="",$database="")
 {
   $pdo=\webdb\sql\get_pdo_object($is_admin);
   $statement=$pdo->prepare($sql);
   if ($statement===false)
   {
-    \webdb\sql\sql_log("PREPARE ERROR",$sql,$params);
+    \webdb\sql\sql_log("PREPARE ERROR",$sql,$params,$table,$database);
     return \webdb\sql\query_error($sql,"",$filename);
   }
   foreach ($params as $key => $value)
@@ -299,24 +310,24 @@ function fetch_prepare($sql,$params=array(),$filename="",$is_admin=false)
     }
     if ($err==false)
     {
-      \webdb\sql\sql_log("BIND ERROR",$sql,$params);
+      \webdb\sql\sql_log("BIND ERROR",$sql,$params,$table,$database);
       return \webdb\sql\query_error($sql,$statement,$filename);
     }
   }
   if ($statement->execute()===false)
   {
-    \webdb\sql\sql_log("EXECUTE ERROR",$sql,$params);
+    \webdb\sql\sql_log("EXECUTE ERROR",$sql,$params,$table,$database);
     return \webdb\sql\query_error($sql,$statement,$filename);
   }
-  \webdb\sql\sql_log("SUCCESS",$sql,$params);
+  \webdb\sql\sql_log("SUCCESS",$sql,$params,$table,$database);
   return $statement->fetchAll(\PDO::FETCH_ASSOC);
 }
 
 #####################################################################################################
 
-function fetch_all_records($table,$sort_field="",$sort_dir="",$schema,$is_admin=false)
+function fetch_all_records($table,$database,$sort_field="",$sort_dir="",$is_admin=false)
 {
-  $sql="SELECT * FROM ".$schema.".".$table;
+  $sql="SELECT * FROM ".$database.".".$table;
   if ($sort_field<>"")
   {
     $sql.=" ORDER BY ".$sort_field;
@@ -329,28 +340,112 @@ function fetch_all_records($table,$sort_field="",$sort_dir="",$schema,$is_admin=
       $sql.=" ASC";
     }
   }
-  return \webdb\sql\fetch_prepare($sql,array(),"",$is_admin);
+  return \webdb\sql\fetch_prepare($sql,array(),"",$is_admin,$table,$database);
 }
 
 #####################################################################################################
 
-function sql_log($result,$sql,$params=array())
+function sql_log($status,$sql,$params=array(),$table="",$database="")
 {
   global $settings;
   if (\webdb\cli\is_cli_mode()==true)
   {
     return;
   }
-  $username="(no username)";
-  if (isset($settings["user_record"]["username"])==true)
+  if ($database=="webdb")
   {
-    $username=$settings["user_record"]["username"];
+    switch ($table)
+    {
+      case "sql_log":
+      case "sql_changes":
+      case "auth_log":
+        return;
+    }
   }
-  $log_filename=$settings["sql_log_path"]."sql_".date("Ymd").".log";
   \webdb\users\obfuscate_hashes($params);
-  $sql=str_replace(PHP_EOL," ",$sql);
-  $content=date("Y-m-d H:i:s")."\t".$username."\t".$result."\t".$sql."\t".serialize($params).PHP_EOL;
-  file_put_contents($log_filename,$content,FILE_APPEND);
+  $user_id=null;
+  if (isset($settings["user_record"])==true)
+  {
+    $user_id=$settings["user_record"]["user_id"];
+  }
+  $items=array();
+  $items["user_id"]=$user_id;
+  $items["sql_statement"]=$sql;
+  $items["sql_params"]=json_encode($params);
+  $items["sql_status"]=$status;
+  $settings["sql_check_post_params_override"]=true;
+  \webdb\sql\sql_insert($items,"sql_log","webdb",true);
+  $settings["sql_check_post_params_override"]=false;
+  return \webdb\sql\sql_last_insert_autoinc_id(true);
 }
+
+#####################################################################################################
+
+/*function sql_change($status,$sql,$params=array(),$table="",$database="")
+{
+  global $settings;
+  if (\webdb\cli\is_cli_mode()==true)
+  {
+    return;
+  }
+  if ($database=="webdb")
+  {
+    switch ($table)
+    {
+      case "sql_log":
+      case "sql_changes":
+      case "auth_log":
+        return;
+    }
+  }
+  \webdb\users\obfuscate_hashes($params);
+  $user_id=null;
+  if ($user_record===false)
+  {
+    if (isset($settings["user_record"])==true)
+    {
+      $user_id=$settings["user_record"]["user_id"];
+    }
+  }
+  else
+  {
+    $user_id=$user_record["user_id"];
+  }
+  $items=array();
+  $items["user_id"]=$user_id;
+  $items["sql_statement"]=$sql;
+  $items["sql_params"]=json_encode($params);
+  $items["sql_status"]=$status;
+  $settings["sql_check_post_params_override"]=true;
+  \webdb\sql\sql_insert($items,"sql_log","webdb",true);
+  $settings["sql_check_post_params_override"]=false;
+  $sql_parts=explode(" ",$sql);
+  $query_type=strtoupper(array_shift($sql_parts));
+  switch ($query_type)
+  {
+    "INSERT":
+    "UPDATE":
+    "DELETE":
+      break;
+    default:
+      return;
+  }
+  $sql_log_id=\webdb\sql\get_statement_type($sql);
+  $items=array();
+  $items["user_id"]=$user_id;
+  $items["sql_log_id"]=$sql_log_id;
+  $items["change_database"]=$database;
+  $items["change_table"]=$table;
+  $items["change_type"]=$query_type;
+
+  `key_field` VARCHAR(255) NOT NULL,
+  `key_id` INT UNSIGNED NOT NULL,
+  `old_record_json` LONGTEXT NOT NULL,
+  `new_record_json` LONGTEXT NOT NULL,
+
+  $settings["sql_check_post_params_override"]=true;
+  \webdb\sql\sql_insert($items,"sql_changes","webdb",true);
+  $settings["sql_check_post_params_override"]=false;
+}*/
 
 #####################################################################################################

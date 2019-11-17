@@ -354,9 +354,11 @@ function check_user_form_permission($form_name,$permission)
   {
     return true;
   }
-  $user_record=$settings["user_record"];
-  $user_id=$user_record["user_id"];
-  $user_groups=\webdb\users\get_user_groups($user_id);
+  if (isset($settings["logged_in_user_groups"])==false)
+  {
+    return false;
+  }
+  $user_groups=$settings["logged_in_user_groups"];
   for ($i=0;$i<count($user_groups);$i++)
   {
     $user_group=$user_groups[$i]["group_name"];
@@ -394,9 +396,11 @@ function check_user_template_permission($template_name)
   {
     return $template_name;
   }
-  $user_record=$settings["user_record"];
-  $user_id=$user_record["user_id"];
-  $user_groups=\webdb\users\get_user_groups($user_id);
+  if (isset($settings["logged_in_user_groups"])==false)
+  {
+    return false;
+  }
+  $user_groups=$settings["logged_in_user_groups"];
   for ($i=0;$i<count($user_groups);$i++)
   {
     $user_group=$user_groups[$i]["group_name"];

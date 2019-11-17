@@ -1014,6 +1014,7 @@ function get_column_format_data($form_config)
   global $settings;
   $data=array();
   $data["max_field_name_width"]=0;
+  $data["visible_cols"]=array();
   foreach ($form_config["control_types"] as $field_name => $control_type)
   {
     if (isset($form_config["visible"][$field_name])==false)
@@ -1030,6 +1031,7 @@ function get_column_format_data($form_config)
     {
       $data["max_field_name_width"]=$width;
     }
+    $data["visible_cols"][]=$field_name;
   }
   $data["rotate_span_width"]=$data["max_field_name_width"]+10;
   $data["rotate_height"]=round($data["rotate_span_width"]*0.707)+30;
@@ -1168,6 +1170,7 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
   $form_params["caption_groups"]=$column_format["caption_groups"];
   $field_headers="";
   $z_index=901;
+  $last_visible_col=end($column_format["visible_cols"]);
   foreach ($form_config["control_types"] as $field_name => $control_type)
   {
     if ($form_config["visible"][$field_name]==false)
@@ -1178,16 +1181,13 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
     $header_params["z_index"]=$z_index;
     $z_index--;
     $header_params["field_name"]=$form_config["captions"][$field_name];
-    $header_params["border_left"]=0;
-    $header_params["border_right"]=0;
+    $header_params["rotate_border_color"]=$settings["list_border_color"];
+    $header_params["left_border_color"]=$settings["list_border_color"];
+    $header_params["right_border_color"]=$settings["list_border_color"];
+    $header_params["left_border_width"]=$settings["list_border_width"];
     $header_params["rotate_height"]=$column_format["rotate_height"];
     $header_params["rotate_span_width"]=$column_format["rotate_span_width"];
-    $header_params["rotate_border_color"]=$settings["list_border_color"];
     $header_params["rotate_border_width"]=$settings["list_border_width"];
-    $header_params["left_border_color"]=$settings["list_border_color"];
-    $header_params["left_border_width"]=$settings["list_border_width"];
-    $header_params["right_border_color"]=$settings["list_border_color"];
-    $header_params["right_border_width"]="0";
     if (isset($rotate_group_borders[$field_name])==true)
     {
       $header_params["rotate_border_color"]=$settings["list_group_border_color"];
@@ -1203,8 +1203,20 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
       $header_params["right_border_color"]=$settings["list_group_border_color"];
       $header_params["right_border_width"]=$settings["list_group_border_width"];
     }
-    if (strpos(strtolower($settings["user_agent"]),"firefox")!==false)
+    $header_params["border_left"]=0;
+    $header_params["border_right"]=0;
+    if (strtolower($settings["browser_info"]["browser"])=="firefox")
     {
+      $header_params["rotate_bottom_border"]=$settings["list_border_width"]+1;
+      $header_params["right_border_width"]=$settings["list_border_width"];
+      if ($field_name==$last_visible_col)
+      {
+        $header_params["right_border_width"]="0";
+      }
+      if (isset($right_group_borders[$field_name])==true)
+      {
+        $header_params["right_border_width"]=$settings["list_group_border_width"];
+      }
       $header_params["border_left"]=-1;
       if (isset($left_group_borders[$field_name])==true)
       {
@@ -1215,8 +1227,14 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
         $header_params["border_right"]=-1;
       }
     }
-    else # chrome/edge/safari
+    else # chrome
     {
+      $header_params["rotate_bottom_border"]=$settings["list_border_width"];
+      $header_params["right_border_width"]="0";
+      if (isset($right_group_borders[$field_name])==true)
+      {
+        $header_params["right_border_width"]=$settings["list_group_border_width"];
+      }
       $header_params["border_left"]=0;
       if (isset($left_group_borders[$field_name])==true)
       {

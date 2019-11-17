@@ -67,8 +67,6 @@ function check_app_settings()
     "app_sql_path",
     "app_resources_path",
     "app_forms_path",
-    "sql_log_path",
-    "auth_log_path",
     "gd_ttf",
     "webdb_default_form",
     "list_border_color",
@@ -104,9 +102,7 @@ function check_app_settings()
     "app_templates_path",
     "app_sql_path",
     "app_resources_path",
-    "app_forms_path",
-    "sql_log_path",
-    "auth_log_path");
+    "app_forms_path");
   for ($i=0;$i<count($required_paths);$i++)
   {
     $path=$required_paths[$i];

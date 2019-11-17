@@ -50,8 +50,7 @@ CREATE TABLE IF NOT EXISTS `webdb`.`row_locks` (
   INDEX `lock_table` (`lock_table` ASC),
   INDEX `lock_key_field` (`lock_key_field` ASC),
   INDEX `lock_key_value` (`lock_key_value` ASC),
-  INDEX `fk_row_locks_users_idx` (`user_id` ASC),
-  CONSTRAINT `fk_row_locks_users`
+  CONSTRAINT `fk_row_locks_users1`
     FOREIGN KEY (`user_id`)
     REFERENCES `webdb`.`users` (`user_id`)
     ON DELETE NO ACTION
@@ -61,14 +60,32 @@ AUTO_INCREMENT = 1;
 
 DROP TABLE IF EXISTS `webdb`.`sql_log` ;
 CREATE TABLE IF NOT EXISTS `webdb`.`sql_log` (
-  `log_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `sql_log_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `created_timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `user_id` INT UNSIGNED NOT NULL,
+  `user_id` INT UNSIGNED DEFAULT NULL,
   `sql_statement` LONGTEXT NOT NULL,
-  PRIMARY KEY (`log_id`),
+  `sql_params` LONGTEXT NOT NULL,
+  `sql_status` VARCHAR(255) DEFAULT NULL,
+  PRIMARY KEY (`sql_log_id`),
   INDEX `created_timestamp` (`created_timestamp` ASC),
-  INDEX `fk_sql_log_users_idx` (`user_id` ASC),
-  CONSTRAINT `fk_sql_log_users`
+  CONSTRAINT `fk_sql_log_users1`
+    FOREIGN KEY (`user_id`)
+    REFERENCES `webdb`.`users` (`user_id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB
+AUTO_INCREMENT = 1;
+
+DROP TABLE IF EXISTS `webdb`.`auth_log` ;
+CREATE TABLE IF NOT EXISTS `webdb`.`auth_log` (
+  `auth_log_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `created_timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `user_id` INT UNSIGNED DEFAULT NULL,
+  `auth_status` VARCHAR(255) DEFAULT NULL,
+  `auth_message` LONGTEXT DEFAULT NULL,
+  PRIMARY KEY (`auth_log_id`),
+  INDEX `created_timestamp` (`created_timestamp` ASC),
+  CONSTRAINT `fk_auth_log_users1`
     FOREIGN KEY (`user_id`)
     REFERENCES `webdb`.`users` (`user_id`)
     ON DELETE NO ACTION
@@ -78,26 +95,27 @@ AUTO_INCREMENT = 1;
 
 DROP TABLE IF EXISTS `webdb`.`sql_changes` ;
 CREATE TABLE IF NOT EXISTS `webdb`.`sql_changes` (
-  `change_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `sql_change_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `created_timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `user_id` INT UNSIGNED NOT NULL,
-  `log_id` INT UNSIGNED NOT NULL,
+  `sql_log_id` INT UNSIGNED NOT NULL,
   `change_schema` VARCHAR(255) NOT NULL,
   `change_table` VARCHAR(255) NOT NULL,
-  `change_key_field` VARCHAR(255) NOT NULL,
+  `change_type` VARCHAR(255) NOT NULL,
+  `key_field` VARCHAR(255) NOT NULL,
+  `key_id` INT UNSIGNED NOT NULL,
   `old_record_json` LONGTEXT NOT NULL,
   `new_record_json` LONGTEXT NOT NULL,
-  PRIMARY KEY (`change_id`),
+  PRIMARY KEY (`sql_change_id`),
   INDEX `created_timestamp` (`created_timestamp` ASC),
-  INDEX `fk_sql_changes_users_idx` (`user_id` ASC),
-  CONSTRAINT `fk_sql_changes_users`
+  CONSTRAINT `fk_sql_changes_users1`
     FOREIGN KEY (`user_id`)
     REFERENCES `webdb`.`users` (`user_id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
-  CONSTRAINT `fk_sql_changes_sql_log`
-    FOREIGN KEY (`log_id`)
-    REFERENCES `webdb`.`sql_log` (`log_id`)
+  CONSTRAINT `fk_sql_changes_sql_log1`
+    FOREIGN KEY (`sql_log_id`)
+    REFERENCES `webdb`.`sql_log` (`sql_log_id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB

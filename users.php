@@ -25,6 +25,8 @@ function auth_dispatch()
   }
   \webdb\users\login();
   $settings["logged_in_username"]=$settings["user_record"]["username"];
+  $user_id=$settings["user_record"]["user_id"];
+  $settings["logged_in_user_groups"]=\webdb\users\get_user_groups($user_id);
 }
 
 #####################################################################################################
@@ -149,7 +151,7 @@ function cancel_password_reset($user_record)
 function login_failure($user_record,$message)
 {
   global $settings;
-  if ($user_record["pw_reset_key"]<>"")
+  if ($user_record["pw_reset_key"]<>"*")
   {
     \webdb\users\cancel_password_reset($user_record);
   }
@@ -179,22 +181,25 @@ function login_failure($user_record,$message)
 function auth_log($user_record,$status,$message)
 {
   global $settings;
+  $user_id=null;
   if ($user_record===false)
   {
     if (isset($settings["user_record"])==true)
     {
-      $user_record=$settings["user_record"];
-    }
-    else
-    {
-      $user_record=array();
-      $user_record["username"]="<NOUSER>";
+      $user_id=$settings["user_record"]["user_id"];
     }
   }
-  $log_filename=$settings["auth_log_path"]."auth_".date("Ymd").".log";
-  \webdb\users\obfuscate_hashes($user_record);
-  $content=date("Y-m-d H:i:s")."\t".$user_record["username"]."\t".$status."\t".$message."\t".serialize($user_record).PHP_EOL;
-  file_put_contents($log_filename,$content,FILE_APPEND);
+  else
+  {
+    $user_id=$user_record["user_id"];
+  }
+  $items=array();
+  $items["user_id"]=$user_id;
+  $items["auth_status"]=$status;
+  $items["auth_message"]=$message;
+  $settings["sql_check_post_params_override"]=true;
+  \webdb\sql\sql_insert($items,"auth_log","webdb",true);
+  $settings["sql_check_post_params_override"]=false;
 }
 
 #####################################################################################################
@@ -236,7 +241,7 @@ function login()
 {
   global $settings;
   $login_form_params=array();
-  $login_form_params["first_time_user_tip"]="";
+  $login_form_params["welcome_tip"]="";
   $login_form_params["default_username"]="";
   if (isset($_COOKIE[$settings["username_cookie"]])==true)
   {
@@ -244,7 +249,7 @@ function login()
   }
   else
   {
-    $login_form_params["first_time_user_tip"]=\webdb\utils\template_fill("first_time_user_tip");
+    $login_form_params["welcome_tip"]=\webdb\utils\template_fill("welcome_tip");
   }
   $login_form_params["default_remember_me"]=\webdb\utils\template_fill("checkbox_checked");
   $login_form_params["login_script_modified"]=\webdb\utils\resource_modified_timestamp("login.js");
@@ -255,7 +260,7 @@ function login()
     \webdb\users\webdb_setcookie("username_cookie",$login_username);
     $login_form_params["default_username"]=$login_username;
     $user_record=\webdb\users\get_user_record($login_username);
-    if ($user_record["pw_reset_key"]<>"")
+    if ($user_record["pw_reset_key"]<>"*")
     {
       \webdb\users\cancel_password_reset($user_record);
     }
@@ -287,7 +292,7 @@ function login()
   elseif ((isset($_COOKIE[$settings["login_cookie"]])==true) and (isset($_COOKIE[$settings["username_cookie"]])==true))
   {
     $user_record=\webdb\users\get_user_record($_COOKIE[$settings["username_cookie"]]);
-    if ($user_record["pw_reset_key"]<>"")
+    if ($user_record["pw_reset_key"]<>"*")
     {
       \webdb\users\cancel_password_reset($user_record);
     }
