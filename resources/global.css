@@ -215,13 +215,18 @@ textarea
   {
     padding: 0;
     margin: 10px;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
   }
 
 .custom_alert_controls_div
   {
     position: absolute;
-    right: 10px;
-    bottom: 10px;
+    right: 0;
+    bottom: 0;
   }
 
 .custom_alert_controls_div input
@@ -229,4 +234,36 @@ textarea
     float: right;
     width: 100px;
     margin-left: 10px;
+  }
+
+#custom_alert_message
+  {
+    position: absolute;
+    top: 0;
+    bottom: 30px;
+    left: 0;
+    right: 0;
+    overflow: auto;
+    padding: 5px;
+    border: 1px solid #999;
+  }
+
+#custom_alert_message_box
+  {
+    position: absolute;
+    top: 0;
+    bottom: 20px;
+    left: 0;
+    right: 0;
+    overflow: auto;
+    padding: 5px;
+    border: 1px solid #999;
+  }
+
+#custom_alert_home_box
+  {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
   }

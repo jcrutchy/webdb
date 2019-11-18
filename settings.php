@@ -58,6 +58,8 @@ $settings["db_user_file"]="";
 $settings["ip_blacklist_file"]="";
 $settings["ip_whitelist_file"]="";
 
+$settings["sql_log_path"]="";
+
 $settings["test_settings_file"]="webdb_test.conf";
 
 # the following settings are also in list.css

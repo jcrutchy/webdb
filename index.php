@@ -36,6 +36,7 @@ if (\webdb\cli\is_cli_mode()==false)
 $settings=array();
 
 $settings["sql_check_post_params_override"]=false;
+$settings["sql_database_change"]=false;
 $settings["calendar_fields"]=array();
 $settings["permissions"]=array();
 

@@ -13,6 +13,7 @@ function check_post_params($sql)
   }
   if ($settings["sql_check_post_params_override"]==true)
   {
+    $settings["sql_check_post_params_override"]=false;
     return;
   }
   if (count($_POST)>0)
@@ -99,27 +100,53 @@ function sql_last_insert_autoinc_id($is_admin=false)
 
 function sql_insert($items,$table,$database,$is_admin=false)
 {
+  global $settings;
   $fieldnames=array_keys($items);
   $placeholders=array_map("\webdb\sql\callback_prepare",$fieldnames);
   $fieldnames=array_map("\webdb\sql\callback_quote",$fieldnames);
   $sql="INSERT INTO `".$database."`.`".$table."` (".implode(",",$fieldnames).") VALUES (".implode(",",$placeholders).")";
-  \webdb\sql\check_post_params($sql);
-  return \webdb\sql\execute_prepare($sql,$items,"",$is_admin,$table,$database);
+  $settings["sql_database_change"]=true;
+  $result=\webdb\sql\execute_prepare($sql,$items,"",$is_admin,$table,$database);
+  if ($result===true)
+  {
+    \webdb\sql\sql_change(array(),$sql,array(),$items,$table,$database,$is_admin);
+  }
+  return $result;
 }
 
 #####################################################################################################
 
 function sql_delete($items,$table,$database,$is_admin=false)
 {
+  global $settings;
   $sql="DELETE FROM `".$database."`.`".$table."` WHERE (".\webdb\sql\build_prepared_where($items).")";
-  \webdb\sql\check_post_params($sql);
-  return \webdb\sql\execute_prepare($sql,$items,"",$is_admin,$table,$database);
+  $old_records=\webdb\sql\get_exist_records($database,$table,$items,$is_admin);
+  $settings["sql_database_change"]=true;
+  $result=\webdb\sql\execute_prepare($sql,$items,"",$is_admin,$table,$database);
+  if ($result===true)
+  {
+    \webdb\sql\sql_change($old_records,$sql,$items,array(),$table,$database,$is_admin);
+  }
+  return $result;
+}
+
+#####################################################################################################
+
+function get_exist_records($database,$table,$where_items,$is_admin)
+{
+  $sql_params=array();
+  $sql_params["database"]=$database;
+  $sql_params["table"]=$table;
+  $sql_params["where_items"]=\webdb\sql\build_prepared_where($where_items);
+  $sql=\webdb\utils\sql_fill("sql_change_old_records",$sql_params);
+  return \webdb\sql\fetch_prepare($sql,$where_items,"",$is_admin,$table,$database);
 }
 
 #####################################################################################################
 
 function sql_update($value_items,$where_items,$table,$database,$is_admin=false)
 {
+  global $settings;
   $value_fieldnames=array_keys($value_items);
   $value_placeholder_names=array();
   for ($i=0;$i<count($value_fieldnames);$i++)
@@ -140,9 +167,16 @@ function sql_update($value_items,$where_items,$table,$database,$is_admin=false)
     $update_value_items[$field_name."_value"]=$field_value;
   }
   $items=array_merge($update_value_items,$where_items);
-  $sql="UPDATE `$database`.`".$table."` SET ".$values_string." WHERE (".\webdb\sql\build_prepared_where($where_items).")";
-  \webdb\sql\check_post_params($sql);
-  return \webdb\sql\execute_prepare($sql,$items,"",$is_admin,$table,$database);
+  $where_clause=\webdb\sql\build_prepared_where($where_items);
+  $sql="UPDATE `$database`.`".$table."` SET ".$values_string." WHERE (".$where_clause.")";
+  $old_records=\webdb\sql\get_exist_records($database,$table,$where_items,$is_admin);
+  $settings["sql_database_change"]=true;
+  $result=\webdb\sql\execute_prepare($sql,$items,"",$is_admin,$table,$database);
+  if ($result===true)
+  {
+    \webdb\sql\sql_change($old_records,$sql,$where_items,$value_items,$table,$database,$is_admin);
+  }
+  return $result;
 }
 
 #####################################################################################################
@@ -246,6 +280,28 @@ function file_execute_prepare($filename,$params,$is_admin=false,$table="",$datab
 
 function execute_prepare($sql,$params=array(),$filename="",$is_admin=false,$table="",$database="")
 {
+  global $settings;
+  $query_type=\webdb\sql\get_statement_type($sql);
+  switch ($query_type)
+  {
+    case "INSERT":
+    case "UPDATE":
+    case "DELETE":
+      if ($settings["sql_database_change"]==false)
+      {
+        \webdb\utils\show_message("error executing sql query that changes the database (change flag not set): ".htmlspecialchars($sql));
+      }
+  }
+  $settings["sql_database_change"]=false;
+  $user_id=null;
+  if (isset($settings["user_record"])==true)
+  {
+    $user_id=$settings["user_record"]["user_id"];
+  }
+  if ($user_id==null)
+  {
+    \webdb\sql\null_user_check($sql,$params,$table,$database);
+  }
   \webdb\sql\check_post_params($sql);
   $pdo=\webdb\sql\get_pdo_object($is_admin);
   $statement=$pdo->prepare($sql);
@@ -291,6 +347,15 @@ function file_fetch_prepare($filename,$params=array(),$is_admin=false,$table="",
 
 function fetch_prepare($sql,$params=array(),$filename="",$is_admin=false,$table="",$database="")
 {
+  global $settings;
+  $query_type=\webdb\sql\get_statement_type($sql);
+  switch ($query_type)
+  {
+    case "INSERT":
+    case "UPDATE":
+    case "DELETE":
+      \webdb\utils\show_message("changing the database not permitted using webdb\\sql\\fetch_prepare function: ".htmlspecialchars($sql));
+  }
   $pdo=\webdb\sql\get_pdo_object($is_admin);
   $statement=$pdo->prepare($sql);
   if ($statement===false)
@@ -356,7 +421,68 @@ function sql_log($status,$sql,$params=array(),$table="",$database="")
   {
     switch ($table)
     {
-      case "sql_log":
+      case "sql_changes":
+      case "auth_log":
+        return;
+    }
+  }
+  \webdb\users\obfuscate_hashes($params);
+  $username="[unauthenticated]";
+  if (isset($settings["user_record"]["username"])==true)
+  {
+    $username=$settings["user_record"]["username"];
+  }
+  $log_filename=$settings["sql_log_path"]."sql_".date("Ymd").".log";
+  $sql=str_replace(PHP_EOL," ",$sql);
+  $content=date("Y-m-d H:i:s")."\t".$username."\t".$status."\t".$sql."\t".json_encode($params).PHP_EOL;
+  file_put_contents($log_filename,$content,FILE_APPEND);
+}
+
+#####################################################################################################
+
+function null_user_check($sql,$where_items,$table,$database)
+{
+  if (\webdb\cli\is_cli_mode()==true)
+  {
+    return true;
+  }
+  if ($database=="webdb")
+  {
+    switch ($table)
+    {
+      case "auth_log":
+        return true;
+    }
+    if (isset($where_items["user_id"])==true)
+    {
+      switch ($table)
+      {
+        case "users":
+          return true;
+      }
+    }
+  }
+  $error_params=array();
+  $error_params["database"]=$database;
+  $error_params["table"]=$table;
+  $error_params["where_items"]=json_encode($where_items,JSON_PRETTY_PRINT);
+  $error_params["sql"]=htmlspecialchars($sql);
+  \webdb\utils\show_message(\webdb\utils\template_fill("unauthenticated_change_error",$error_params));
+}
+
+#####################################################################################################
+
+function sql_change($old_records,$sql,$where_items,$value_items,$table,$database,$is_admin)
+{
+  global $settings;
+  if (\webdb\cli\is_cli_mode()==true)
+  {
+    return;
+  }
+  if ($database=="webdb")
+  {
+    switch ($table)
+    {
       case "sql_changes":
       case "auth_log":
         return;
@@ -368,84 +494,24 @@ function sql_log($status,$sql,$params=array(),$table="",$database="")
   {
     $user_id=$settings["user_record"]["user_id"];
   }
-  $items=array();
-  $items["user_id"]=$user_id;
-  $items["sql_statement"]=$sql;
-  $items["sql_params"]=json_encode($params);
-  $items["sql_status"]=$status;
-  $settings["sql_check_post_params_override"]=true;
-  \webdb\sql\sql_insert($items,"sql_log","webdb",true);
-  $settings["sql_check_post_params_override"]=false;
-  return \webdb\sql\sql_last_insert_autoinc_id(true);
-}
-
-#####################################################################################################
-
-/*function sql_change($status,$sql,$params=array(),$table="",$database="")
-{
-  global $settings;
-  if (\webdb\cli\is_cli_mode()==true)
+  if ($user_id==null)
   {
-    return;
-  }
-  if ($database=="webdb")
-  {
-    switch ($table)
+    if (\webdb\sql\null_user_check($sql,$where_items,$table,$database)==true)
     {
-      case "sql_log":
-      case "sql_changes":
-      case "auth_log":
-        return;
-    }
-  }
-  \webdb\users\obfuscate_hashes($params);
-  $user_id=null;
-  if ($user_record===false)
-  {
-    if (isset($settings["user_record"])==true)
-    {
-      $user_id=$settings["user_record"]["user_id"];
-    }
-  }
-  else
-  {
-    $user_id=$user_record["user_id"];
-  }
-  $items=array();
-  $items["user_id"]=$user_id;
-  $items["sql_statement"]=$sql;
-  $items["sql_params"]=json_encode($params);
-  $items["sql_status"]=$status;
-  $settings["sql_check_post_params_override"]=true;
-  \webdb\sql\sql_insert($items,"sql_log","webdb",true);
-  $settings["sql_check_post_params_override"]=false;
-  $sql_parts=explode(" ",$sql);
-  $query_type=strtoupper(array_shift($sql_parts));
-  switch ($query_type)
-  {
-    "INSERT":
-    "UPDATE":
-    "DELETE":
-      break;
-    default:
       return;
+    }
   }
-  $sql_log_id=\webdb\sql\get_statement_type($sql);
   $items=array();
   $items["user_id"]=$user_id;
-  $items["sql_log_id"]=$sql_log_id;
+  $items["sql_statement"]=$sql;
   $items["change_database"]=$database;
   $items["change_table"]=$table;
-  $items["change_type"]=$query_type;
-
-  `key_field` VARCHAR(255) NOT NULL,
-  `key_id` INT UNSIGNED NOT NULL,
-  `old_record_json` LONGTEXT NOT NULL,
-  `new_record_json` LONGTEXT NOT NULL,
-
+  $items["change_type"]=\webdb\sql\get_statement_type($sql);
+  $items["where_items"]=json_encode($where_items);
+  $items["value_items"]=json_encode($value_items);
+  $items["old_records"]=json_encode($old_records);
   $settings["sql_check_post_params_override"]=true;
   \webdb\sql\sql_insert($items,"sql_changes","webdb",true);
-  $settings["sql_check_post_params_override"]=false;
-}*/
+}
 
 #####################################################################################################

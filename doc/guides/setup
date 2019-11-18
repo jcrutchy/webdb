@@ -163,7 +163,6 @@ $ cd ~/dev/public
 $ git clone git@github.com:crutchy-/webdb.git
 
 $ cp ~/dev/public/webdb/doc/webdb_common_settings.php ~/dev/public
-
 $ nano ~/dev/public/webdb_common_settings.php
 change values in file to suit
 

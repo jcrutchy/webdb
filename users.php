@@ -143,7 +143,6 @@ function cancel_password_reset($user_record)
   $value_items["pw_reset_time"]=0;
   $settings["sql_check_post_params_override"]=true;
   \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
-  $settings["sql_check_post_params_override"]=false;
 }
 
 #####################################################################################################
@@ -167,7 +166,6 @@ function login_failure($user_record,$message)
   $value_items["login_cookie"]="*"; # disable login with cookie
   $settings["sql_check_post_params_override"]=true;
   \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
-  $settings["sql_check_post_params_override"]=false;
   \webdb\users\webdb_unsetcookie("login_cookie");
   \webdb\users\auth_log($user_record,"FAILED",$message);
   if ($message!==false)
@@ -199,7 +197,6 @@ function auth_log($user_record,$status,$message)
   $items["auth_message"]=$message;
   $settings["sql_check_post_params_override"]=true;
   \webdb\sql\sql_insert($items,"auth_log","webdb",true);
-  $settings["sql_check_post_params_override"]=false;
 }
 
 #####################################################################################################
@@ -316,7 +313,6 @@ function login()
           $value_items["failed_login_count"]=0;
           $settings["sql_check_post_params_override"]=true;
           \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
-          $settings["sql_check_post_params_override"]=false;
           $settings["user_record"]=$user_record;
           \webdb\users\auth_log($user_record,"COOKIE_LOGIN","");
           if ($user_record["pw_change"]==1)
@@ -664,7 +660,6 @@ function change_password($password_reset_user=false)
     $where_items["user_id"]=$password_reset_user["user_id"];
     $settings["sql_check_post_params_override"]=true;
     \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
-    $settings["sql_check_post_params_override"]=false;
     $change_password_params["old_password_default"]=$temp_password;
     $change_password_params["old_password_display"]="none";
     $change_password_params["login_username"]=$password_reset_user["username"];

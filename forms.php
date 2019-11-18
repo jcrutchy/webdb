@@ -355,8 +355,9 @@ function process_filter_sql(&$form_config)
     $filter_name=$form_config["default_filter"];
     if (isset($form_config["filter_options"][$filter_name])==true)
     {
-      $form_config["default_filter_sql"]=$form_config["filter_options"][$filter_name];
-      $form_config["default_filter_sql"]=\webdb\utils\sql_fill("default_filter",$form_config);
+      $where_params=array();
+      $where_params["where_items"]=$form_config["filter_options"][$filter_name];
+      $form_config["default_filter_sql"]=\webdb\utils\sql_fill("where_clause",$where_params);
     }
   }
 }
