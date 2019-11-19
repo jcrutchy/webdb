@@ -905,8 +905,8 @@ function output_editable_field(&$field_params,$record,$field_name,$control_type,
       # TODO
       break;
     case "lookup":
-      $field_params["field_key"]="";
-      $field_params["field_value"]=$record[$field_name];
+      $field_params["field_key"]=$record[$field_name];
+      $field_params["field_value"]="";
       $lookup_data=$form_config["lookups"][$field_name];
       $key_field_name=$lookup_data["key_field"];
       $sibling_field_name=$lookup_data["sibling_field"];
@@ -1839,8 +1839,14 @@ function process_form_data_fields($form_config,$post_override=false)
     }
     switch ($control_type)
     {
-      case "text":
       case "lookup":
+        $value_items[$field_name]=$post_fields[$field_name];
+        if ($value_items[$field_name]=="")
+        {
+          $value_items[$field_name]=null;
+        }
+        break;
+      case "text":
       case "hidden":
         $value_items[$field_name]=$post_fields[$field_name];
         break;
