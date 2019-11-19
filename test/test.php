@@ -69,6 +69,7 @@ function check_app_settings()
     "app_forms_path",
     "gd_ttf",
     "webdb_default_form",
+    "list_diagonal_border_color",
     "list_border_color",
     "list_border_width",
     "list_group_border_color",

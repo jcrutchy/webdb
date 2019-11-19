@@ -1182,7 +1182,7 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
     $header_params["z_index"]=$z_index;
     $z_index--;
     $header_params["field_name"]=$form_config["captions"][$field_name];
-    $header_params["rotate_border_color"]=$settings["list_border_color"];
+    $header_params["rotate_border_color"]=$settings["list_diagonal_border_color"];
     $header_params["left_border_color"]=$settings["list_border_color"];
     $header_params["right_border_color"]=$settings["list_border_color"];
     $header_params["left_border_width"]=$settings["list_border_width"];

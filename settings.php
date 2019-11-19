@@ -63,6 +63,7 @@ $settings["sql_log_path"]="";
 $settings["test_settings_file"]="webdb_test.conf";
 
 # the following settings are also in list.css
+$settings["list_diagonal_border_color"]="888";
 $settings["list_border_color"]="888";
 $settings["list_border_width"]=1;
 $settings["list_group_border_color"]="000";

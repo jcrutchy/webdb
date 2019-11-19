@@ -18,6 +18,7 @@ function system_message($message)
   {
     ob_end_clean(); # discard buffer
   }
+  $message.="<pre>".htmlspecialchars(json_encode(debug_backtrace(),JSON_PRETTY_PRINT))."</pre>"; # TODO: DEBUG INFO ONLY - COMMENT/REMOVE LINE FOR PROD
   die($message);
 }
 

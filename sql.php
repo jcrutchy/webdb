@@ -147,11 +147,12 @@ function get_exist_records($database,$table,$where_items,$is_admin)
 function sql_update($value_items,$where_items,$table,$database,$is_admin=false)
 {
   global $settings;
+  $value_suffix="_value";
   $value_fieldnames=array_keys($value_items);
   $value_placeholder_names=array();
   for ($i=0;$i<count($value_fieldnames);$i++)
   {
-    $value_placeholder_names[]=$value_fieldnames[$i]."_value";
+    $value_placeholder_names[]=$value_fieldnames[$i].$value_suffix;
   }
   $value_placeholders=array_map("\webdb\sql\callback_prepare",$value_placeholder_names);
   $value_fieldnames=array_map("\webdb\sql\callback_quote",$value_fieldnames);
@@ -164,7 +165,7 @@ function sql_update($value_items,$where_items,$table,$database,$is_admin=false)
   $update_value_items=array();
   foreach ($value_items as $field_name => $field_value)
   {
-    $update_value_items[$field_name."_value"]=$field_value;
+    $update_value_items[$field_name.$value_suffix]=$field_value;
   }
   $items=array_merge($update_value_items,$where_items);
   $where_clause=\webdb\sql\build_prepared_where($where_items);
