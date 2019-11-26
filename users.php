@@ -179,24 +179,25 @@ function login_failure($user_record,$message)
 function auth_log($user_record,$status,$message)
 {
   global $settings;
-  $user_id=null;
+  $username="<NOUSER>";
   if ($user_record===false)
   {
+    $user_record=array();
     if (isset($settings["user_record"])==true)
     {
-      $user_id=$settings["user_record"]["user_id"];
+      $username=$settings["user_record"]["username"];
+      $user_record=$settings["user_record"];
     }
   }
   else
   {
-    $user_id=$user_record["user_id"];
+    $username=$user_record["username"];
   }
-  $items=array();
-  $items["user_id"]=$user_id;
-  $items["auth_status"]=$status;
-  $items["auth_message"]=$message;
-  $settings["sql_check_post_params_override"]=true;
-  \webdb\sql\sql_insert($items,"auth_log","webdb",true);
+  \webdb\users\obfuscate_hashes($user_record);
+  $content=date("Y-m-d H:i:s")."\t".$username."\t".$status."\t".json_encode($user_record);
+  $settings["logs"]["auth"][]=$content;
+  #$log_filename=$settings["auth_log_path"]."auth_".date("Ymd").".log";
+  #file_put_contents($log_filename,$content,FILE_APPEND);
 }
 
 #####################################################################################################

@@ -9,14 +9,24 @@ function run_tests()
   global $settings;
   require_once("test".DIRECTORY_SEPARATOR."test_utils.php");
   system("clear");
+  #$input=readline("Running tests will reinitialize the webdb database. Are you sure you want to continue? (type 'yes' to continue, press Enter or type anything else to cancel): ");
+  $input="yes"; # TODO / DEBUG
+  if ($input<>"yes")
+  {
+    \webdb\test\utils\test_info_message("testing terminated without changes to database");
+    die;
+  }
+  \webdb\test\utils\delete_test_config();
+  \webdb\test\utils\test_info_message(trim(shell_exec("php ".$settings["app_root_path"]."index.php init_webdb_schema")));
   $settings["test_user_agent"]="webdb testing framework";
-  /*\webdb\test\utils\test_info_message("CHECKING SETTINGS");
+  \webdb\test\utils\test_info_message("CHECKING SETTINGS");
   \webdb\test\check_webdb_settings();
   \webdb\test\check_app_settings();
   \webdb\test\check_sql_settings();
-  \webdb\test\utils\test_success_message("SETTINGS CHECK OK");*/
+  \webdb\test\utils\test_success_message("SETTINGS CHECK OK");
   require_once("test".DIRECTORY_SEPARATOR."security.php");
   \webdb\test\security\start();
+  \webdb\test\utils\test_info_message(trim(shell_exec("php ".$settings["app_root_path"]."index.php init_webdb_schema")));
 }
 
 #####################################################################################################
@@ -86,7 +96,8 @@ function check_app_settings()
     "test_settings_file",
     "ip_blacklist_file",
     "ip_whitelist_file",
-    "sql_log_path");
+    "sql_log_path",
+    "auth_log_path");
   for ($i=0;$i<count($required_settings);$i++)
   {
     \webdb\test\utils\check_required_setting_exists($required_settings[$i]);
@@ -105,7 +116,8 @@ function check_app_settings()
     "app_sql_path",
     "app_resources_path",
     "app_forms_path",
-    "sql_log_path");
+    "sql_log_path",
+    "auth_log_path");
   for ($i=0;$i<count($required_paths);$i++)
   {
     $path=$required_paths[$i];

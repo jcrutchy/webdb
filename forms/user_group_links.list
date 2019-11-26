@@ -53,7 +53,6 @@
     "custom_form_below_template": "",
     "multi_row_delete": true,
     "individual_delete": true,
-    "individual_delete_url_page": "",
     "individual_edit": "row",
     "individual_edit_url_page": "user_groups",
     "individual_edit_id": "user_id,group_id",

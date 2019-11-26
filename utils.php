@@ -7,19 +7,23 @@ namespace webdb\utils;
 function system_message($message)
 {
   global $settings;
-  $settings["unauthenticated_content"]=true;
   if (\webdb\cli\is_cli_mode()==true)
   {
     \webdb\cli\term_echo(str_replace(PHP_EOL," ",$message),33);
     die;
   }
+  $settings["unauthenticated_content"]=true;
   $buf=ob_get_contents();
   if (strlen($buf)<>0)
   {
     ob_end_clean(); # discard buffer
   }
-  $message.="<pre>".htmlspecialchars(json_encode(debug_backtrace(),JSON_PRETTY_PRINT))."</pre>"; # TODO: DEBUG INFO ONLY - COMMENT/REMOVE LINE FOR PROD
-  die($message);
+  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # TODO: DEBUG INFO ONLY (SECURITY RISK) - COMMENT/REMOVE FOR PROD
+  $message.="<pre>--DEBUG--".PHP_EOL.htmlspecialchars(json_encode(debug_backtrace(),JSON_PRETTY_PRINT))."</pre>";
+  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  $settings["system_message"]=$message;
+  die;
 }
 
 #####################################################################################################
@@ -136,21 +140,28 @@ function ob_postprocess($buffer)
     }
   }
   $buffer=str_replace("%%csrf_token%%",$settings["csrf_token"],$buffer);
-  if (strpos($buffer,"%%")!==false)
+  if (isset($settings["system_message"])==false)
   {
-    $buffer="error: unassigned % template found: ".htmlspecialchars($buffer);
+    if (strpos($buffer,"%%")!==false)
+    {
+      $buffer="error: unassigned % template found: ".htmlspecialchars($buffer);
+    }
+    if (strpos($buffer,"$$")!==false)
+    {
+      $buffer="error: unassigned $ template found: ".htmlspecialchars($buffer);
+    }
+    if (strpos($buffer,"@@")!==false)
+    {
+      $buffer="error: unassigned @ template found: ".htmlspecialchars($buffer);
+    }
+    if ((isset($settings["unauthenticated_content"])==false) and (isset($settings["user_record"])==false))
+    {
+      $buffer="error: authentication failure";
+    }
   }
-  if (strpos($buffer,"$$")!==false)
+  else
   {
-    $buffer="error: unassigned $ template found: ".htmlspecialchars($buffer);
-  }
-  if (strpos($buffer,"@@")!==false)
-  {
-    $buffer="error: unassigned @ template found: ".htmlspecialchars($buffer);
-  }
-  if ((isset($settings["unauthenticated_content"])==false) and (isset($settings["user_record"])==false))
-  {
-    $buffer="error: authentication failure";
+    $buffer=$settings["system_message"];
   }
   # TODO: CALL AUTOMATED W3C VALIDATION HERE
   #global $t;
@@ -163,6 +174,7 @@ function ob_postprocess($buffer)
       header("Content-Encoding: gzip");
     }
   }
+  \webdb\utils\save_logs();
   return $buffer;
 }
 
@@ -611,6 +623,27 @@ function static_page($template,$title)
 {
   $content=\webdb\utils\template_fill($template);
   \webdb\utils\output_page($content,$title);
+}
+
+#####################################################################################################
+
+function save_logs()
+{
+  global $settings;
+  foreach ($settings["logs"] as $key => $lines)
+  {
+    $fn=$settings[$key."_log_path"].$key."_".date("Ymd").".log";
+    #file_put_contents($log_filename,$content,FILE_APPEND);
+    $fp=fopen($fn,"a");
+    stream_set_blocking($fp,false);
+    if (flock($fp,LOCK_EX)==true)
+    {
+      $data=PHP_EOL.PHP_EOL.trim(implode(PHP_EOL,$lines));
+      fwrite($fp,$data);
+    }
+    flock($fp,LOCK_UN);
+    fclose($fp);
+  }
 }
 
 #####################################################################################################

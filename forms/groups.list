@@ -46,7 +46,6 @@
     "custom_form_below_template": "",
     "multi_row_delete": false,
     "individual_delete": true,
-    "individual_delete_url_page": "",
     "individual_edit": "row",
     "individual_edit_url_page": "groups",
     "individual_edit_id": "group_id",

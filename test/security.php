@@ -73,6 +73,8 @@ function test_user_agent()
     {
       $returned_error=true;
       $error_suffix=" ".trim(substr($content,strlen($user_agent_error)));
+      $parts=explode("<pre>",$error_suffix);
+      $error_suffix=array_shift($parts);
     }
     $test_success=false;
     if ($error_expected==$returned_error)

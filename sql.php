@@ -433,10 +433,11 @@ function sql_log($status,$sql,$params=array(),$table="",$database="")
   {
     $username=$settings["user_record"]["username"];
   }
-  $log_filename=$settings["sql_log_path"]."sql_".date("Ymd").".log";
   $sql=str_replace(PHP_EOL," ",$sql);
-  $content=date("Y-m-d H:i:s")."\t".$username."\t".$status."\t".$sql."\t".json_encode($params).PHP_EOL;
-  file_put_contents($log_filename,$content,FILE_APPEND);
+  $content=date("Y-m-d H:i:s")."\t".$username."\t".$status."\t".$sql."\t".json_encode($params);
+  $settings["logs"]["sql"][]=$content;
+  #$log_filename=$settings["sql_log_path"]."sql_".date("Ymd").".log";
+  #file_put_contents($log_filename,$content,FILE_APPEND);
 }
 
 #####################################################################################################

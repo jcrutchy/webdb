@@ -160,6 +160,7 @@ th.list_controls_head
     font-size: 16px;
     right: 30px;
     top: 10px;
+    z-index: 9999;
   }
 
 #global_page_header
@@ -362,7 +363,7 @@ th.list_controls_head
   {
     position: absolute;
     left: 10px;
-    width: 500px;
+    width: 550px;
     top: 10px;
     bottom: 246px;
     padding: 0;
@@ -379,7 +380,7 @@ th.list_controls_head
 .advanced_search_results_outer
   {
     position: absolute;
-    left: 520px;
+    left: 570px;
     right: 10px;
     bottom: 0;
     top: 10px;
@@ -399,7 +400,7 @@ th.list_controls_head
     position: absolute;
     left: 10px;
     bottom: 0;
-    width: 500px;
+    width: 550px;
     padding: 0;
     overflow: hidden;
     border-style: solid;

@@ -52,6 +52,8 @@ disable IP source routing
 FRAMEWORK SECURITY
 ==================
 
+TODO: FOR PRODUCTION REMOVE/COMMENT OUT THE BACKTRACE IN THE \webdb\utils\system_message FUNCTION
+
 TODO: CHANGE FROM PASSWORD_BCRYPT TO PASSWORD_ARGON2ID (REQUIRES PHP 7.3.0) => REQUIRES CHANGE TO OPTIONS (https://www.php.net/manual/en/function.password-hash.php) - refer to https://github.com/crutchy-/webdb/issues/24
 
 - for production, comment out the testing show_message in the \webdb\users\send_reset_password_message function that outputs the emailed message (including link) to the browser window

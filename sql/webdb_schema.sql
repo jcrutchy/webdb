@@ -58,23 +58,6 @@ CREATE TABLE IF NOT EXISTS `webdb`.`row_locks` (
 ENGINE = InnoDB
 AUTO_INCREMENT = 1;
 
-DROP TABLE IF EXISTS `webdb`.`auth_log` ;
-CREATE TABLE IF NOT EXISTS `webdb`.`auth_log` (
-  `auth_log_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `created_timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `user_id` INT UNSIGNED DEFAULT NULL,
-  `auth_status` VARCHAR(255) DEFAULT NULL,
-  `auth_message` LONGTEXT DEFAULT NULL,
-  PRIMARY KEY (`auth_log_id`),
-  INDEX `created_timestamp` (`created_timestamp` ASC),
-  CONSTRAINT `fk_auth_log_users1`
-    FOREIGN KEY (`user_id`)
-    REFERENCES `webdb`.`users` (`user_id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
-ENGINE = InnoDB
-AUTO_INCREMENT = 1;
-
 DROP TABLE IF EXISTS `webdb`.`sql_changes` ;
 CREATE TABLE IF NOT EXISTS `webdb`.`sql_changes` (
   `sql_change_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,

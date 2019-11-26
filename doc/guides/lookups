@@ -1,0 +1,9 @@
+    "lookups": {
+        "inventory_item_id": {
+            "database": "inventory_db",
+            "table": "inventory_items",
+            "key_field": "inventory_item_id",
+            "display_field": "item_no,item_name",
+            "lookup_sql_file": "",
+        }
+    },

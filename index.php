@@ -27,6 +27,7 @@ set_exception_handler('\webdb\utils\exception_handler');
 define("webdb\\index\\CONFIG_ID_DELIMITER",",");
 define("webdb\\index\\LINEBREAK_PLACEHOLDER","@@@@");
 define("webdb\\index\\LINEBREAK_DB_DELIM","\\n");
+define("webdb\\index\\LOOKUP_DISPLAY_FIELD_DELIM"," - ");
 
 if (\webdb\cli\is_cli_mode()==false)
 {
@@ -34,6 +35,10 @@ if (\webdb\cli\is_cli_mode()==false)
 }
 
 $settings=array();
+
+$settings["logs"]=array();
+$settings["logs"]["sql"]=array();
+$settings["logs"]["auth"]=array();
 
 $settings["sql_check_post_params_override"]=false;
 $settings["sql_database_change"]=false;

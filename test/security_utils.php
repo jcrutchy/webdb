@@ -111,7 +111,17 @@ function check_authentication_status($response,$username="test_user")
   {
     return false;
   }
+  $value=\webdb\test\utils\extract_cookie_value($settings["test_cookie_jar"]["webdb_login"]);
+  if ($value=="deleted")
+  {
+    return false;
+  }
   if (isset($settings["test_cookie_jar"]["csrf_token_hash"])==false)
+  {
+    return false;
+  }
+  $value=\webdb\test\utils\extract_cookie_value($settings["test_cookie_jar"]["csrf_token_hash"]);
+  if ($value=="deleted")
   {
     return false;
   }
@@ -160,7 +170,6 @@ function test_user_login($uri=false)
 function admin_login($uri=false)
 {
   global $settings;
-  \webdb\test\utils\test_info_message(trim(shell_exec("php ".$settings["app_root_path"]."index.php init_webdb_schema")));
   $settings["test_user_agent"]="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36";
   \webdb\test\utils\clear_cookie_jar();
   $response=\webdb\test\utils\wget($settings["app_web_root"]);

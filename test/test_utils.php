@@ -249,6 +249,14 @@ function clear_cookie_jar()
 
 #####################################################################################################
 
+function extract_cookie_value($cookie)
+{
+  $parts=explode(";",$cookie);
+  return array_shift($parts);
+}
+
+#####################################################################################################
+
 function construct_cookie_header()
 {
   global $settings;
@@ -263,8 +271,7 @@ function construct_cookie_header()
   $cookies=array();
   foreach ($settings["test_cookie_jar"] as $key => $value)
   {
-    $parts=explode(";",$value);
-    $value=array_shift($parts);
+    $value=\webdb\test\utils\extract_cookie_value($value);
     if ($value=="deleted")
     {
       unset($settings["test_cookie_jar"][$key]);
@@ -380,6 +387,8 @@ function submit_request($request)
   fclose($fp);
   #\webdb\test\utils\test_info_message("REQUEST COMPLETED");
   #\webdb\test\utils\test_dump_message($response);
+  $parts=explode("<pre>--DEBUG--",$response);
+  $response=array_shift($parts);
   return $response;
 }
 
