@@ -1773,6 +1773,13 @@ function output_editor($form_config,$record,$command,$verb,$id)
   $rows="";
   foreach ($form_config["control_types"] as $field_name => $control_type)
   {
+    if ($form_config["editor_visible"]==true)
+    {
+      if ($form_config["visible"][$field_name]==false)
+      {
+        continue;
+      }
+    }
     $field_value=$record[$field_name];
     $field_params=array();
     $field_params["url_page"]=$form_config["url_page"];

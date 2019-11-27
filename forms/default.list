@@ -35,6 +35,7 @@
     },
     "event_handlers": {
     },
+    "editor_visible": false,
     "html_includes": [],
     "js_includes": [],
     "css_includes": [],
