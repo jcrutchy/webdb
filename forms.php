@@ -634,6 +634,10 @@ function list_row($form_config,$record,$column_format,$row_spans,$lookup_records
     {
       continue;
     }
+    if ($control_type=="hidden")
+    {
+      continue;
+    }
     $field_params=array();
     $field_params["primary_key"]=$row_params["primary_key"];
     $display_record=$record;
@@ -772,6 +776,8 @@ function output_readonly_field($field_params,$control_type,$form_config,$field_n
   global $settings;
   switch ($control_type)
   {
+    case "hidden":
+      return "";
     case "lookup":
       $field_params["value"]="";
       $lookup_config=$form_config["lookups"][$field_name];
@@ -1036,6 +1042,9 @@ function output_editable_field(&$field_params,$record,$field_name,$control_type,
       }
       $submit_fields[]=$field_params["field_name"];
       break;
+    case "hidden":
+      $submit_fields[]=$field_params["field_name"];
+      break;
     default:
       \webdb\utils\show_message("error: invalid control type '".$control_type."' for field '".$field_name."' on form '".$form_config["form_name"]."'");
   }
@@ -1057,6 +1066,10 @@ function get_column_format_data($form_config)
       \webdb\utils\show_message("error: field visibility not found for '".$field_name."' on form '".$form_config["form_name"]."'");
     }
     if ($form_config["visible"][$field_name]==false)
+    {
+      continue;
+    }
+    if ($control_type=="hidden")
     {
       continue;
     }
@@ -1088,6 +1101,10 @@ function get_column_format_data($form_config)
     foreach ($form_config["control_types"] as $field_name => $control_type)
     {
       if ($form_config["visible"][$field_name]==false)
+      {
+        continue;
+      }
+      if ($control_type=="hidden")
       {
         continue;
       }
@@ -1209,6 +1226,10 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
   foreach ($form_config["control_types"] as $field_name => $control_type)
   {
     if ($form_config["visible"][$field_name]==false)
+    {
+      continue;
+    }
+    if ($control_type=="hidden")
     {
       continue;
     }
@@ -1469,6 +1490,10 @@ function advanced_search($form_config)
   foreach ($form_config["control_types"] as $field_name => $control_type)
   {
     if ($form_config["visible"][$field_name]==false)
+    {
+      continue;
+    }
+    if ($control_type=="hidden")
     {
       continue;
     }
@@ -1804,7 +1829,14 @@ function output_editor($form_config,$record,$command,$verb,$id)
     }
     $row_params["field_value"]=output_editable_field($field_params,$record,$field_name,$control_type,$form_config,$lookup_records,$submit_fields);
     $row_params["interface_button"]=\webdb\forms\get_interface_button($form_config,$record,$field_name,$field_value);
-    $rows.=\webdb\forms\form_template_fill("field_row",$row_params);
+    if ($control_type<>"hidden")
+    {
+      $rows.=\webdb\forms\form_template_fill("field_row",$row_params);
+    }
+    else
+    {
+      $rows.=\webdb\forms\form_template_fill("field_row_hidden",$row_params);
+    }
   }
   $form_params=array();
   $form_params["rows"]=$rows;
