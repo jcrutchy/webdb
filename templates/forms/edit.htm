@@ -3,6 +3,10 @@
 <input type="hidden" name="csrf_token" value="%%csrf_token%%">
 <input type="hidden" name="MAX_FILE_SIZE" value="41943040"> <!-- 40 Mb -->
 
+<div style="display: none;">
+%%hidden_fields%%
+</div>
+
 <div class="edit_form_controls">
   <input type="submit" name="form_cmd[edit_confirm][%%individual_edit_id%%]" value="%%confirm_caption%%">
   <span class="update_status" id="update_status:%%url_page%%">UPDATED RECORD SUCCESSFULLY</span>

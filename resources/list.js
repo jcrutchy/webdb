@@ -24,6 +24,11 @@ function list_page_load()
 
 function list_body_click(event)
 {
+  var calendar=document.getElementById("calendar_div");
+  if ((event.target==calendar) || (calendar.contains(event.target)==true))
+  {
+    return;
+  }
   var edit_row=document.getElementById("data_row_tr:"+edit_row_url_page+":"+edit_row_id);
   if (!edit_row)
   {
@@ -131,28 +136,29 @@ function list_edit_row_reset_timeout()
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
+function encoded_form_field(form,field_name)
+{
+  if (field_name.startsWith("date_field__")==true)
+  {
+    field_name="iso_"+field_name;
+  }
+  var field_value=form.elements.namedItem(field_name).value;
+  if (form.elements.namedItem(field_name).type=="checkbox")
+  {
+    field_value=form.elements.namedItem(field_name).checked;
+  }
+  return field_name+"="+encodeURIComponent(field_value);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
 function list_insert_row_click(form,url_page)
 {
   var data=new Array();
   var field_names=insert_row_controls[url_page];
   for (var i=0;i<field_names.length;i++)
   {
-    var field_name=field_names[i];
-    if (form.elements[field_name].id.startsWith("date_field__")==true)
-    {
-      var field_name_iso="iso_"+field_name;
-      var field_value=form.elements[field_name_iso].value;
-      data.push(field_name_iso+"="+field_value);
-    }
-    if (form.elements[field_name].type=="checkbox")
-    {
-      var field_value=form.elements[field_name].checked;
-    }
-    else
-    {
-      var field_value=form.elements[field_name].value;
-    }
-    data.push(field_name+"="+encodeURIComponent(field_value));
+    data.push(encoded_form_field(form,field_names[i]));
   }
   var body=data.join("&");
   var url=form.elements["insert_page:"+url_page].value+"&ajax";
@@ -295,16 +301,7 @@ function list_edit_row_update(form,url_page)
   var data=new Array();
   for (var i=0;i<edit_row_controls.length;i++)
   {
-    var field_name=edit_row_controls[i];
-    if (form.elements[field_name].type=="checkbox")
-    {
-      var field_value=form.elements[field_name].checked;
-    }
-    else
-    {
-      var field_value=form.elements[field_name].value;
-    }
-    data.push(field_name+"="+encodeURIComponent(field_value));
+    data.push(encoded_form_field(form,edit_row_controls[i]));
   }
   var body=data.join("&");
   var parent=document.getElementById("top_level_url_page");

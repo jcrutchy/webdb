@@ -879,8 +879,13 @@ function list_row_controls($form_config,&$submit_fields,$operation,$column_forma
   $row_params["check"]=\webdb\forms\check_column($form_config,"list_check_insert");
   $lookup_records=lookup_records($form_config);
   $fields="";
+  $hidden_fields="";
   foreach ($form_config["control_types"] as $field_name => $control_type)
   {
+    if ($form_config["visible"][$field_name]==false)
+    {
+      continue;
+    }
     $field_params=array();
     $field_params["handlers"]="";
     $field_params["border_color"]=$settings["list_border_color"];
@@ -903,17 +908,18 @@ function list_row_controls($form_config,&$submit_fields,$operation,$column_forma
       $control_type_suffix="_check";
     }
     $field_params["value"]=output_editable_field($field_params,$record,$field_name,$control_type,$form_config,$lookup_records,$submit_fields);
-    if ($form_config["visible"][$field_name]==true)
+    if ($control_type<>"hidden")
     {
       $fields.=\webdb\forms\form_template_fill("list_field".$control_type_suffix,$field_params);
     }
     else
     {
-      $fields.=\webdb\forms\form_template_fill("field_edit_hidden",$field_params);
+      $hidden_fields.=$field_params["value"];
     }
   }
   $row_params["controls_min_width"]=$column_format["controls_min_width"];
   $row_params["fields"]=$fields;
+  $row_params["hidden_fields"]=$hidden_fields;
   return \webdb\forms\form_template_fill("list_".$operation."_row",$row_params);
 }
 
@@ -1796,6 +1802,7 @@ function output_editor($form_config,$record,$command,$verb,$id)
   $submit_fields=array();
   $lookup_records=lookup_records($form_config);
   $rows="";
+  $hidden_fields="";
   foreach ($form_config["control_types"] as $field_name => $control_type)
   {
     if ($form_config["editor_visible"]==true)
@@ -1835,10 +1842,11 @@ function output_editor($form_config,$record,$command,$verb,$id)
     }
     else
     {
-      $rows.=\webdb\forms\form_template_fill("field_row_hidden",$row_params);
+      $hidden_fields.=$row_params["field_value"];
     }
   }
   $form_params=array();
+  $form_params["hidden_fields"]=$hidden_fields;
   $form_params["rows"]=$rows;
   $form_params["url_page"]=$form_config["url_page"];
   $form_params["individual_edit_id"]=$id;
@@ -1908,12 +1916,20 @@ function process_form_data_fields($form_config,$post_override=false)
       case "span":
         continue 2;
     }
+    $value_items[$field_name]=null;
     switch ($control_type)
     {
       case "checkbox":
         if (isset($post_fields[$field_name])==true)
         {
-          $value_items[$field_name]=1;
+          if ($post_fields[$field_name]=="false")
+          {
+            $value_items[$field_name]=0;
+          }
+          else
+          {
+            $value_items[$field_name]=1;
+          }
         }
         else
         {
@@ -1931,7 +1947,6 @@ function process_form_data_fields($form_config,$post_override=false)
         }
         break;
     }
-    $value_items[$field_name]=null;
     if (isset($post_fields[$field_name])==false)
     {
       continue;
