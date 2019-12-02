@@ -289,7 +289,7 @@ th.list_controls_head
     margin-top: 5px;
   }
 
-#editor_form
+#edit_form
   {
     float: left;
     width: 40%;
@@ -297,7 +297,7 @@ th.list_controls_head
     width: 39%;
   }
 
-#editor_subforms
+#edit_subforms
   {
     margin-left: 40%;
     margin-top: 31px;
