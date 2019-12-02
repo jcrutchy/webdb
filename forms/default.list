@@ -50,6 +50,7 @@
     "edit_cmd_id": "",
     "insert_new": true,
     "insert_row": true,
+    "insert_cmd_url_page": "",
     "advanced_search": true,
     "sort_field_select": true,
     "allow_field_sort": true,
