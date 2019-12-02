@@ -1994,6 +1994,11 @@ function insert_record($form_config)
   {
     $id=$handled;
   }
+  if (($form_config["individual_edit_url_page"]<>"") and (isset($_GET["cmd"])==true))
+  {
+    $url=trim(\webdb\forms\form_template_fill("insert_redirect_url",$form_config)).$id;
+    \webdb\utils\redirect($url);
+  }
   \webdb\forms\page_redirect(false,false,$id);
 }
 
