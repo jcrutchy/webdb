@@ -1,4 +1,4 @@
-<form id="%%url_page%%" action="$$app_web_index$$?page=%%individual_edit_url_page%%&cmd=edit&id=%%individual_edit_id%%" method="post" enctype="multipart/form-data">
+<form id="%%url_page%%" action="$$app_web_index$$?page=%%edit_cmd_url_page%%&cmd=edit&id=%%edit_cmd_id%%" method="post" enctype="multipart/form-data">
 
 <input type="hidden" name="csrf_token" value="%%csrf_token%%">
 <input type="hidden" name="MAX_FILE_SIZE" value="41943040"> <!-- 40 Mb -->
@@ -8,7 +8,7 @@
 </div>
 
 <div class="edit_form_controls">
-  <input type="submit" name="form_cmd[edit_confirm][%%individual_edit_id%%]" value="%%confirm_caption%%">
+  <input type="submit" name="form_cmd[edit_confirm][%%edit_cmd_id%%]" value="%%confirm_caption%%">
   <span class="update_status" id="update_status:%%url_page%%">UPDATED RECORD SUCCESSFULLY</span>
 </div>
 

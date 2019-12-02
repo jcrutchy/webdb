@@ -115,9 +115,9 @@ function form_dispatch($url_page)
               {
                 \webdb\stubs\list_edit($_GET["id"],$form_config);
               }
-              if ($form_config["url_page"]<>$form_config["individual_edit_url_page"])
+              if ($form_config["url_page"]<>$form_config["edit_cmd_url_page"])
               {
-                $form_config=\webdb\forms\get_form_config($form_config["individual_edit_url_page"]);
+                $form_config=\webdb\forms\get_form_config($form_config["edit_cmd_url_page"]);
               }
               $data=\webdb\forms\edit_form($form_config,$_GET["id"]);
               $data["content"].=\webdb\forms\output_html_includes($form_config);
@@ -374,7 +374,7 @@ function get_subform_content($subform_config,$subform_link_field,$id,$list_only=
   if ($subform_config["checklist"]==true)
   {
     $subform_config["multi_row_delete"]=false;
-    $subform_config["individual_delete"]=false;
+    $subform_config["delete_cmd"]=false;
     $subform_config["insert_new"]=false;
     $subform_config["insert_row"]=false;
     $subform_config["advanced_search"]=false;
@@ -572,11 +572,11 @@ function header_row($form_config)
   $params=array();
   $params["check_head"]=\webdb\forms\check_column($form_config,"list_check_head");
   $controls_count=0;
-  if ($form_config["individual_edit"]==true)
+  if ($form_config["edit_cmd"]==true)
   {
     $controls_count++;
   }
-  if (($form_config["individual_delete"]==true) and ($form_config["records_sql"]==""))
+  if (($form_config["delete_cmd"]==true) and ($form_config["records_sql"]==""))
   {
     $controls_count++;
   }
@@ -614,10 +614,10 @@ function list_row($form_config,$record,$column_format,$row_spans,$lookup_records
   $row_params=array();
   $row_params["url_page"]=$form_config["url_page"];
   $row_params["primary_key"]=\webdb\forms\config_id_url_value($form_config,$record,"primary_key");
-  $row_params["individual_edit_id"]=$row_params["primary_key"];
-  if ($form_config["individual_edit"]<>"inline")
+  $row_params["edit_cmd_id"]=$row_params["primary_key"];
+  if ($form_config["edit_cmd"]<>"inline")
   {
-    $row_params["individual_edit_id"]=\webdb\forms\config_id_url_value($form_config,$record,"individual_edit_id");
+    $row_params["edit_cmd_id"]=\webdb\forms\config_id_url_value($form_config,$record,"edit_cmd_id");
   }
   $checklist_row_linked=false;
   if ($form_config["checklist"]==true)
@@ -688,9 +688,9 @@ function list_row($form_config,$record,$column_format,$row_spans,$lookup_records
         $field_params["table_cell_style"].=\webdb\forms\form_template_fill("delete_selected_foreign_key_used_style");
       }
     }
-    if (($form_config["individual_edit"]=="row") or ($form_config["individual_edit"]=="inline"))
+    if (($form_config["edit_cmd"]=="row") or ($form_config["edit_cmd"]=="inline"))
     {
-      $field_params["individual_edit_id"]=$row_params["individual_edit_id"];
+      $field_params["edit_cmd_id"]=$row_params["edit_cmd_id"];
       if ($form_config["checklist"]==false)
       {
         $field_params["handlers"]=\webdb\forms\form_template_fill("list_field_handlers",$field_params);
@@ -735,13 +735,13 @@ function list_row($form_config,$record,$column_format,$row_spans,$lookup_records
     }
     $row_params["check"]=\webdb\forms\check_column($form_config,"list_check",$row_params);
     $row_params["controls"]="";
-    if (($form_config["individual_edit"]=="button") or ($form_config["individual_edit"]=="inline"))
+    if (($form_config["edit_cmd"]=="button") or ($form_config["edit_cmd"]=="inline"))
     {
       $control_params=$row_params;
-      $control_params["individual_edit_id"]=\webdb\forms\config_id_url_value($form_config,$record,"individual_edit_id");
+      $control_params["edit_cmd_id"]=\webdb\forms\config_id_url_value($form_config,$record,"edit_cmd_id");
       $row_params["controls"]=\webdb\forms\form_template_fill("list_row_edit",$control_params);
     }
-    if (($form_config["individual_delete"]==true) and ($form_config["records_sql"]==""))
+    if (($form_config["delete_cmd"]==true) and ($form_config["records_sql"]==""))
     {
       $row_params["controls"].=\webdb\forms\form_template_fill("list_row_del",$row_params);
     }
@@ -1212,7 +1212,7 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
   }
   $form_params=array();
   $form_params["url_page"]=$form_config["url_page"];
-  $form_params["individual_edit_url_page"]=$form_config["individual_edit_url_page"];
+  $form_params["edit_cmd_url_page"]=$form_config["edit_cmd_url_page"];
   $form_params["insert_default_params"]="";
   if ($insert_default_params!==false)
   {
@@ -1449,7 +1449,7 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
       $form_params["checklist_update_control"]=\webdb\forms\form_template_fill("checklist_update",$form_config);
     }
   }
-  $form_params["row_edit_mode"]=$form_config["individual_edit"];
+  $form_params["row_edit_mode"]=$form_config["edit_cmd"];
   $form_params["custom_form_above"]="";
   $form_params["custom_form_below"]="";
   if ($form_config["custom_form_above_template"]<>"")
@@ -1672,7 +1672,7 @@ function advanced_search($form_config)
   $form_config["insert_new"]=false;
   $form_config["insert_row"]=false;
   $form_config["advanced_search"]=false;
-  $form_config["individual_delete"]=false;
+  $form_config["delete_cmd"]=false;
   $form_config["multi_row_delete"]=false;
   $search_page_params["advanced_search_results"]=\webdb\forms\list_form_content($form_config,$records,false);
   $search_page_params["form_script_modified"]=\webdb\utils\resource_modified_timestamp("list.js");
@@ -1714,7 +1714,7 @@ function insert_form($form_config)
 function edit_form($form_config,$id)
 {
   global $settings;
-  $record=\webdb\forms\get_record_by_id($form_config,$id,"individual_edit_id");
+  $record=\webdb\forms\get_record_by_id($form_config,$id,"edit_cmd_id");
   \webdb\forms\process_computed_fields($form_config,$record);
   $subforms="";
   foreach ($form_config["edit_subforms"] as $subform_name => $subform_link_field)
@@ -1730,7 +1730,7 @@ function edit_form($form_config,$id)
   $edit_page_params["form_styles_modified"]=\webdb\utils\resource_modified_timestamp("list.css");
   $edit_page_params["command_caption_noun"]=$form_config["command_caption_noun"];
   $edit_page_params["url_page"]=$form_config["url_page"];
-  $edit_page_params["individual_edit_url_page"]=$form_config["individual_edit_url_page"];
+  $edit_page_params["edit_cmd_url_page"]=$form_config["edit_cmd_url_page"];
   $content=\webdb\forms\form_template_fill("edit_page",$edit_page_params);
   $result=array();
   $result["title"]=$data["title"];
@@ -1849,7 +1849,7 @@ function output_editor($form_config,$record,$command,$verb,$id)
   $form_params["hidden_fields"]=$hidden_fields;
   $form_params["rows"]=$rows;
   $form_params["url_page"]=$form_config["url_page"];
-  $form_params["individual_edit_id"]=$id;
+  $form_params["edit_cmd_id"]=$id;
   $form_params["command_caption_noun"]=$form_config["command_caption_noun"];
   $form_params["confirm_caption"]=$verb." ".$form_config["command_caption_noun"];
   $content=\webdb\forms\form_template_fill(strtolower($command),$form_params);
@@ -1994,7 +1994,7 @@ function insert_record($form_config)
   {
     $id=$handled;
   }
-  if (($form_config["individual_edit_url_page"]<>"") and (isset($_GET["cmd"])==true))
+  if (($form_config["edit_cmd_url_page"]<>"") and (isset($_GET["cmd"])==true))
   {
     $url=trim(\webdb\forms\form_template_fill("insert_redirect_url",$form_config)).$id;
     \webdb\utils\redirect($url);
@@ -2106,7 +2106,7 @@ function update_record($form_config,$id)
   }
   $value_items=\webdb\forms\process_form_data_fields($form_config);
   \webdb\forms\check_required_values($form_config,$value_items);
-  $where_items=\webdb\forms\config_id_conditions($form_config,$id,"individual_edit_id");
+  $where_items=\webdb\forms\config_id_conditions($form_config,$id,"edit_cmd_id");
   $handled=\webdb\forms\handle_update_record_event($form_config,$id,$where_items,$value_items);
   $params=false;
   if ($handled==false)
@@ -2190,8 +2190,8 @@ function delete_confirmation($form_config,$id)
   $records[]=$record;
   $list_form_config=$form_config;
   $list_form_config["multi_row_delete"]=false;
-  $list_form_config["individual_delete"]=false;
-  $list_form_config["individual_edit"]="none";
+  $list_form_config["delete_cmd"]=false;
+  $list_form_config["edit_cmd"]="none";
   $list_form_config["insert_new"]=false;
   $list_form_config["insert_row"]=false;
   $list_form_config["advanced_search"]=false;
@@ -2372,8 +2372,8 @@ function delete_selected_confirmation($form_config)
   $list_form_config["visible"]["fk_table_list"]=true;
   $list_form_config["table_cell_styles"]["fk_table_list"]=\webdb\forms\form_template_fill("delete_selected_foreign_key_ref_style");
   $list_form_config["multi_row_delete"]=false;
-  $list_form_config["individual_delete"]=false;
-  $list_form_config["individual_edit"]="none";
+  $list_form_config["delete_cmd"]=false;
+  $list_form_config["edit_cmd"]="none";
   $list_form_config["insert_new"]=false;
   $list_form_config["insert_row"]=false;
   $list_form_config["advanced_search"]=false;
