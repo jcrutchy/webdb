@@ -24,6 +24,7 @@
         "user_id": "",
         "group_id": ""
     },
+    "required_values": [],
     "js_events": [],
     "computed_values": [],
     "custom_interfaces": [],
@@ -44,6 +45,7 @@
         }
     },
     "event_handlers": [],
+    "editor_visible": false,
     "html_includes": [],
     "js_includes": [],
     "css_includes": [],
@@ -53,11 +55,13 @@
     "custom_form_below_template": "",
     "multi_row_delete": true,
     "delete_cmd": true,
-    "edit_cmd": "row",
-    "edit_cmd_url_page": "user_groups",
+    "edit_cmd": "inline",
+    "edit_cmd_url_page": "",
+    "edit_button_caption": "",
     "edit_cmd_id": "user_id,group_id",
     "insert_new": true,
     "insert_row": true,
+    "insert_cmd_url_page": "",
     "advanced_search": true,
     "sort_field_select": true,
     "allow_field_sort": true,
@@ -73,5 +77,6 @@
     "link_table": "",
     "link_fields": [],
     "default_filter": "",
-    "filter_options": []
+    "filter_options": [],
+    "form_name": "user_group_links"
 }

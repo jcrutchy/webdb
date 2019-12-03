@@ -30,6 +30,7 @@
         "enabled": true,
         "group_name": ""
     },
+    "required_values": [],
     "js_events": [],
     "computed_values": [],
     "custom_interfaces": [],
@@ -37,6 +38,7 @@
     "control_styles": [],
     "lookups": [],
     "event_handlers": [],
+    "editor_visible": false,
     "html_includes": [],
     "js_includes": [],
     "css_includes": [],
@@ -48,9 +50,11 @@
     "delete_cmd": true,
     "edit_cmd": "row",
     "edit_cmd_url_page": "groups",
+    "edit_button_caption": "",
     "edit_cmd_id": "group_id",
     "insert_new": true,
     "insert_row": true,
+    "insert_cmd_url_page": "",
     "advanced_search": false,
     "sort_field_select": true,
     "allow_field_sort": true,
@@ -66,5 +70,6 @@
     "link_table": "",
     "link_fields": [],
     "default_filter": "",
-    "filter_options": []
+    "filter_options": [],
+    "form_name": "groups"
 }

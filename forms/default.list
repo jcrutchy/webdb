@@ -47,6 +47,7 @@
     "delete_cmd": true,
     "edit_cmd": "row",
     "edit_cmd_url_page": "",
+    "edit_button_caption": "",
     "edit_cmd_id": "",
     "insert_new": true,
     "insert_row": true,

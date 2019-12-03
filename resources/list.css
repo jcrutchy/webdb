@@ -84,7 +84,7 @@ th.group_caption_head
 
 .list_row_controls input
   {
-    width: 70px;
+    min-width: 70px;
   }
 
 .edit_form_controls

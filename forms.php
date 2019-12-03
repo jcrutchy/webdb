@@ -737,9 +737,13 @@ function list_row($form_config,$record,$column_format,$row_spans,$lookup_records
     $row_params["controls"]="";
     if (($form_config["edit_cmd"]=="button") or ($form_config["edit_cmd"]=="inline"))
     {
-      $control_params=$row_params;
-      $control_params["edit_cmd_id"]=\webdb\forms\config_id_url_value($form_config,$record,"edit_cmd_id");
-      $row_params["controls"]=\webdb\forms\form_template_fill("list_row_edit",$control_params);
+      if ($form_config["edit_button_caption"]<>"")
+      {
+        $control_params=$row_params;
+        $control_params["button_caption"]=$form_config["edit_button_caption"];
+        $control_params["edit_cmd_id"]=\webdb\forms\config_id_url_value($form_config,$record,"edit_cmd_id");
+        $row_params["controls"]=\webdb\forms\form_template_fill("list_row_edit",$control_params);
+      }
     }
     if (($form_config["delete_cmd"]==true) and ($form_config["records_sql"]==""))
     {
