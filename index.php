@@ -170,8 +170,6 @@ else
   \webdb\utils\system_message($ua_error." [no user agent]");
 }
 
-\webdb\users\check_csrf();
-
 \webdb\users\auth_dispatch();
 
 if (isset($_GET["page"])==true)

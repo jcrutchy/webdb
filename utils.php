@@ -62,6 +62,27 @@ function debug_var_dump($data)
 
 #####################################################################################################
 
+function webdb_setcookie($setting_key,$value,$max_age=false)
+{
+  global $settings;
+  if ($max_age===false)
+  {
+    $max_age=$settings["max_cookie_age"];
+  }
+  $expiry=time()+$max_age;
+  setcookie($settings[$setting_key],$value,$expiry,"/",$_SERVER["HTTP_HOST"],false,true);
+}
+
+#####################################################################################################
+
+function webdb_unsetcookie($setting_key)
+{
+  global $settings;
+  setcookie($settings[$setting_key],null,-1,"/");
+}
+
+#####################################################################################################
+
 function output_page($content,$title)
 {
   global $settings;

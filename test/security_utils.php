@@ -6,7 +6,7 @@ namespace webdb\test\security\utils;
 
 function security_test_error_callback()
 {
-  \webdb\test\security\utils\finish_test_user(true);
+  \webdb\test\utils\test_cleanup();
 }
 
 #####################################################################################################
@@ -15,46 +15,13 @@ function start_test_user($test_overrides=true)
 {
   if (\webdb\test\security\utils\get_test_user()!==false)
   {
-    \webdb\test\security\utils\finish_test_user();
+    \webdb\test\utils\initialize_webdb_schema();
   }
   \webdb\test\security\utils\create_test_user($test_overrides);
   if (\webdb\test\security\utils\get_test_user()===false)
   {
     \webdb\test\utils\test_error_message("ERROR STARTING TEST USER: USER NOT FOUND AFTER INSERT");
   }
-  #\webdb\test\utils\test_info_message("TEST USER STARTED");
-}
-
-#####################################################################################################
-
-function finish_test_user($is_error=false)
-{
-  if (\webdb\test\security\utils\get_test_user()===false)
-  {
-    $msg="ERROR FINISHING TEST USER: USER NOT FOUND";
-    if ($is_error==true)
-    {
-      \webdb\test\utils\test_info_message($msg);
-    }
-    else
-    {
-      \webdb\test\utils\test_error_message($msg);
-    }
-  }
-  \webdb\test\security\utils\delete_test_user();
-  if (\webdb\test\security\utils\get_test_user()!==false)
-  {
-    $msg="ERROR FINISHING TEST USER: ERROR DELETING";
-    if ($is_error==true)
-    {
-      \webdb\test\utils\test_info_message($msg);
-    }
-    else
-    {
-      \webdb\test\utils\test_error_message($msg);
-    }
-  }
-  #\webdb\test\utils\test_info_message("TEST USER FINISHED");
 }
 
 #####################################################################################################
@@ -87,15 +54,6 @@ function create_test_user($test_overrides)
     $items["pw_change"]=0;
   }
   \webdb\sql\sql_insert($items,"users","webdb");
-}
-
-#####################################################################################################
-
-function delete_test_user()
-{
-  $sql_params=array();
-  $sql_params["username"]="test_user";
-  \webdb\sql\sql_delete($sql_params,"users","webdb");
 }
 
 #####################################################################################################

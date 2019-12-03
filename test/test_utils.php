@@ -81,6 +81,23 @@ function test_result_message($test_case,$result)
 
 #####################################################################################################
 
+function initialize_webdb_schema()
+{
+  global $settings;
+  $result=shell_exec("php ".$settings["app_root_path"]."index.php init_webdb_schema");
+  \webdb\test\utils\test_info_message(trim($result));
+}
+
+#####################################################################################################
+
+function test_cleanup()
+{
+  \webdb\test\utils\delete_test_config();
+  \webdb\test\utils\initialize_webdb_schema();
+}
+
+#####################################################################################################
+
 function test_server_setting($key,$value,$message)
 {
   $test_settings=array();

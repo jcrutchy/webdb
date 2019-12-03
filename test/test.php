@@ -17,7 +17,7 @@ function run_tests()
     die;
   }
   \webdb\test\utils\delete_test_config();
-  \webdb\test\utils\test_info_message(trim(shell_exec("php ".$settings["app_root_path"]."index.php init_webdb_schema")));
+  \webdb\test\utils\initialize_webdb_schema();
   $settings["test_user_agent"]="webdb testing framework";
   \webdb\test\utils\test_info_message("CHECKING SETTINGS");
   \webdb\test\check_webdb_settings();
@@ -26,7 +26,7 @@ function run_tests()
   \webdb\test\utils\test_success_message("SETTINGS CHECK OK");
   require_once("test".DIRECTORY_SEPARATOR."security.php");
   \webdb\test\security\start();
-  \webdb\test\utils\test_info_message(trim(shell_exec("php ".$settings["app_root_path"]."index.php init_webdb_schema")));
+  \webdb\test\utils\test_cleanup();
 }
 
 #####################################################################################################

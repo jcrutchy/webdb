@@ -14,6 +14,8 @@ CREATE TABLE IF NOT EXISTS `webdb`.`users` (
   `username` VARCHAR(255) NOT NULL,
   `fullname` VARCHAR(255) NOT NULL,
   `email` VARCHAR(255) DEFAULT NULL,
+  `csrf_token` VARCHAR(255) DEFAULT NULL,
+  `csrf_token_time` BIGINT DEFAULT 0,
   `pw_hash` VARCHAR(255) DEFAULT "*",
   `pw_change` TINYINT NOT NULL DEFAULT 1,
   `pw_reset_key` VARCHAR(255) DEFAULT "*",

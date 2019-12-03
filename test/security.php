@@ -107,8 +107,7 @@ function test_user_agent()
     $test_success=false;
   }
   \webdb\test\utils\test_result_message($test_case_msg,$test_success);
-  \webdb\test\utils\delete_test_config();
-  \webdb\test\security\utils\finish_test_user();
+  \webdb\test\utils\test_cleanup();
 }
 
 #####################################################################################################
@@ -166,7 +165,7 @@ function test_login_csrf_token()
     $test_success=false;
   }
   \webdb\test\utils\test_result_message($test_case_msg,$test_success);
-  \webdb\test\security\utils\finish_test_user();
+  \webdb\test\utils\test_cleanup();
 }
 
 #####################################################################################################
@@ -299,8 +298,7 @@ function test_remote_address() # assumes ::1 and 192.168.0.0/16 are in system ip
     $test_success=false;
   }
   \webdb\test\utils\test_result_message($test_case_msg,$test_success);
-  \webdb\test\utils\delete_test_config();
-  \webdb\test\security\utils\finish_test_user();
+  \webdb\test\utils\test_cleanup();
 }
 
 #####################################################################################################
