@@ -15,6 +15,25 @@ ORGANISATIONAL POLICY
 SERVER SECURITY
 ===============
 
+- consider all aspects of the server infrastructure, including:
+  * operating system selection and configuration
+  * webserver software (eg apache2) configuration
+  * firewall
+  * filesystem permissions
+  * sql server configuration
+  * php configuration
+  * other installed/running applications/packages
+  * remote access
+  * physical infrastructure security
+  * personnel with either direct or remote access
+  * network architecture, configuration and topography
+  * security between hosts (in case of clustering)
+  * software update management
+  * monitoring of logs
+  * backups
+  * disaster recovery
+  * awareness of evolving security best practices
+
 - framework and application files to be write protected (only owner user to be able to edit)
 - limit the schemas that webdb_user mysql user can access (block access to webdb.users/groups/user_groups tables)
 - Let's Encrypt TLS
@@ -229,9 +248,116 @@ $ php <myapp>/index.php run_tests
   * \webdb\test\utils\wpost
 
 
+THREATS & COUNTERMEASURES
+=========================
+
+Refer to OWASP Top Ten:
+- injection flaws
+  * countermeasures: filtering input, use of parameterized queries (stored procedures/prepared statements),
+    limit database privileges, custom errors
+- broken authentication or access control
+  * countermeasures: use authentication strength commensurate to the risk of the transaction,
+    protect authentication credentials with encryption (TLS), use challenge/responses in password resets,
+    userID resets, use trusted authentication (single sign-on) not impersonation, do not cache
+    login pages, enforce idle time-out
+    re-issue session ids after each post, protect session id from caching and logging,
+    set secure flag, uses syncronized session management across servers, limit
+    sessions per user, invalidate them at user/idle logouts
+- sensitive data exposure
+- insecure storage
+    * countermeasures: encrypt authentication credentials and sensitive information in storage,
+      use standard encryption strength algorithms and minimum key lengths, use
+      secure keys storage and secure management
+- xml eternal entities (xxe)
+- security misconfiguration
+- cross-site scripting (xss)
+  * countermeasures: filtering should be in place at the different layers of the architecture
+    client, web server and web application
+- insecure deserialization
+- using components with known vulnerabilities
+- insufficient logging & monitoring
+- failure to restrict url access
+  * countermeasures: ensure that role-based access control is enforced on the server side to
+    enforce which user has access to which web page, no hidden parameters to enforce which
+    web pages are accessible, only allow file types that you intend to serve, block any attempts
+    to access log files, xml files, etc
+- insecure remote file include
+  * countermeasures: do not rely on user inputs, use hash-tables, white-list filter/escape commands,
+    validate file type-format, run anti-virus on uploaded files, segregate uploads
+- insecure direct object reference (accessing a file/db record, key via url parameter)
+  * countermeasures: enforce server side authorization controls, only expose direct object references
+    to authorized users, do not expose references to primary keys and filenames, enforce strict
+    business logic/rules depending on server side parameters
+- csrf attack
+  * countermeasures: validate each request with one time use token, leverage struts-tokens, esapi,
+    re-authenticate when performing high risk transactions, enforce post only for
+    forms with sensitive data
+- information leakage via improper error handling
+  * countermeasures: provide generic custom error messages during error validations,
+    do not display stack traces with exception messages
+- insecure (unencrypted) communication
+  * countermeasures: use encrypted channel (SSL/VPN) for authenticated connections and while transmitting
+    credentials, sensitive information and other private information
+
+threats:
+- phishing
+    * exploit weak authorization/authentication, session management and input
+      validation (xss, xfs) vulnerabilities
+- privacy violations
+    * exploit poor input validation, business rule and weak authorization,
+      injection flaws
+- identify theft
+    * exploit poor or non-existent cryptographic controls, malicious file execution,
+      authentication, business rule and auth checks vulnerabilities
+- system compromise
+    * exploit injection flaws, remote file inclusion-upload vulnerabilities
+- data alteration
+- data destruction
+    * exploit injection flaws, remote file inclusion-upload vulnerabilities
+- financial loss
+    * exploit unauthorized transactions and csrf attacks, broken authentication
+      and session management, insecure object reference, weak
+      authorization-forceful browsing vulnerabilities
+- reputation loss
+    * public evidence of a vulnerability
+
+threat sources:
+- potential users (or misusers)
+- where application is hosted
+- what data is exposed
+
+
+assign risk (probability and severity) to each threat
+
+
+Symptoms are the insecure observed behavior of the application against potential vulnerabilities and exploits.
+Root causes are:
+- security design flaws
+- security bugs (coding errors)
+- insecure configuration
+
+Quantifiable risk factors are:
+- how much damage can be done
+- how easy is to reproduce the exploits
+- how many users are exposed
+- how easy is to discover the vulnerabilities
+
+
+* threat modelling (enumerated threats and minimising risk)
+* categorising threats and identifying countermeasures
+* tools for threat analysis:
+  - threat trees
+  - use/misuse cases
+  - data flow diagrams
+
+
+
+
 SECURITY REFERENCES
 ===================
 
 https://cheatsheetseries.owasp.org/
 https://www.owasp.org/index.php/Top_10-2017_Top_10
 https://www.owasp.org/index.php/OWASP_Proactive_Controls
+
+OWASP Automated Threat Handbook

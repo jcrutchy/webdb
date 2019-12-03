@@ -109,6 +109,65 @@ function extract_csrf_token($response)
 
 #####################################################################################################
 
+function parse_routes($uri,$routes)
+{
+  global $settings;
+  $uri=$settings["app_web_index"].$uri;
+  \webdb\test\utils\test_info_message("parsing routes: ".$uri);
+  $response=\webdb\test\utils\wget($uri);
+  $parts=explode($settings["app_web_index"],$response);
+  array_shift($parts);
+  $subroutes=array();
+  for ($i=0;$i<count($parts);$i++)
+  {
+    $subparts=explode("\"",$parts[$i]);
+    $subroutes[]=array_shift($subparts);
+  }
+  for ($i=0;$i<count($subroutes);$i++)
+  {
+    $sub_uri=trim($subroutes[$i]);
+    if ($sub_uri=="")
+    {
+      continue;
+    }
+    if (in_array($sub_uri,$routes)==true)
+    {
+      continue;
+    }
+    if ($sub_uri=="?logout") # TEST AFTER TO AVOID HAVING TO LOGIN AGAIN
+    {
+      continue;
+    }
+    $routes[]=$sub_uri;
+    $routes=\webdb\test\security\utils\parse_routes($sub_uri,$routes);
+  }
+  return $routes;
+}
+
+#####################################################################################################
+
+function parse_get_params()
+{
+  global $settings;
+  $cmd="grep --include=\*.php -whr '".$settings["webdb_root_path"]."' -e '_GET'";
+  $output=shell_exec($cmd);
+  $parts=explode("\$_GET[\"",$output);
+  array_shift($parts);
+  $params=array();
+  for ($i=0;$i<count($parts);$i++)
+  {
+    $subparts=explode("\"",$parts[$i]);
+    $param=array_shift($subparts);
+    if (in_array($param,$params)==false)
+    {
+      $params[]=$param;
+    }
+  }
+  return $params;
+}
+
+#####################################################################################################
+
 function test_user_login($uri=false)
 {
   global $settings;

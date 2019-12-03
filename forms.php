@@ -1217,7 +1217,11 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
   $form_params=array();
   $form_params["url_page"]=$form_config["url_page"];
   $form_params["edit_cmd_url_page"]=$form_config["edit_cmd_url_page"];
-  $form_params["insert_cmd_url_page"]=$form_config["insert_cmd_url_page"];
+  $form_params["insert_cmd_url_page"]=$form_config["url_page"];
+  if ($form_config["insert_cmd_url_page"]<>"")
+  {
+    $form_params["insert_cmd_url_page"]=$form_config["insert_cmd_url_page"];
+  }
   $form_params["insert_default_params"]="";
   if ($insert_default_params!==false)
   {

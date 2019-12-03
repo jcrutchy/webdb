@@ -117,19 +117,26 @@ function check_csrf()
   }
   if ((isset($_POST["csrf_token"])==true) and (isset($_COOKIE["csrf_token_hash"])==true))
   {
-    if (password_verify($_POST["csrf_token"],$_COOKIE["csrf_token_hash"])==true)
+    if ($_POST["csrf_token"]<>"*")
     {
-      \webdb\users\auth_log(false,"VALID_CSRF_TOKEN","valid csrf token from ".$_SERVER["REMOTE_ADDR"]);
-      $csrf_ok=true;
+      if (password_verify($_POST["csrf_token"],$_COOKIE["csrf_token_hash"])==true)
+      {
+        \webdb\users\auth_log(false,"VALID_CSRF_TOKEN","valid csrf token from ".$_SERVER["REMOTE_ADDR"]);
+        $csrf_ok=true;
+      }
+      else
+      {
+        \webdb\users\auth_log(false,"INVALID_CSRF_TOKEN_1","invalid csrf token from ".$_SERVER["REMOTE_ADDR"]." [referer=".$referer."]");
+      }
     }
     else
     {
-      \webdb\users\auth_log(false,"INVALID_CSRF_TOKEN_1","invalid csrf token from ".$_SERVER["REMOTE_ADDR"]." [referer=".$referer."]");
+      \webdb\users\auth_log(false,"INVALID_CSRF_TOKEN_2","invalid csrf token from ".$_SERVER["REMOTE_ADDR"]." [referer=".$referer."]");
     }
   }
   if ($csrf_ok==false)
   {
-    \webdb\users\auth_log(false,"INVALID_CSRF_TOKEN_2","invalid csrf token from ".$_SERVER["REMOTE_ADDR"]." [referer=".$referer."]");
+    \webdb\users\auth_log(false,"INVALID_CSRF_TOKEN_3","invalid csrf token from ".$_SERVER["REMOTE_ADDR"]." [referer=".$referer."]");
     \webdb\utils\system_message("csrf error");
   }
 }
@@ -212,14 +219,12 @@ function login_failure($user_record,$message)
   $value_items["failed_login_count"]=$user_record["failed_login_count"]+1;
   $value_items["failed_login_time"]=microtime(true);
   $value_items["login_cookie"]="*"; # disable login with cookie
+  $value_items["csrf_token"]="*";
   $settings["sql_check_post_params_override"]=true;
   \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
   \webdb\utils\webdb_unsetcookie("login_cookie");
   \webdb\users\auth_log($user_record,"FAILED",$message);
-  if ($message!==false)
-  {
-    \webdb\utils\show_message($message);
-  }
+  \webdb\utils\show_message($message);
 }
 
 #####################################################################################################
@@ -349,8 +354,13 @@ function login()
         \webdb\users\login_lockout($user_record);
       }
       \webdb\users\check_admin($user_record);
-      if ($user_record["login_cookie"]<>"*")
+      if (($user_record["login_cookie"]<>"*") and ($user_record["login_setcookie_time"]>0))
       {
+        $delta=microtime(true)-$user_record["login_setcookie_time"];
+        if ($delta>$settings["max_cookie_age"])
+        {
+          \webdb\users\login_failure($user_record,"login cookie exceeds max age");
+        }
         if (password_verify($_COOKIE[$settings["login_cookie"]],$user_record["login_cookie"])==true)
         {
           $where_items=array();
@@ -372,7 +382,7 @@ function login()
         }
         else
         {
-          login_failure($user_record,"invalid login cookie");
+          \webdb\users\login_failure($user_record,"invalid login cookie");
         }
       }
     }
@@ -411,6 +421,7 @@ function initialise_login_cookie($user_record)
   }
   $cookie=password_hash($key,PASSWORD_BCRYPT,$options);
   $value_items["login_cookie"]=$cookie;
+  $value_items["login_setcookie_time"]=microtime(true);
   \webdb\utils\webdb_setcookie("login_cookie",$key);
   \webdb\users\auth_log($user_record,"LOGIN_COOKIE_INIT","");
   \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);

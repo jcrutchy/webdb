@@ -10,10 +10,20 @@ function start()
   require_once("test".DIRECTORY_SEPARATOR."security_utils.php");
   \webdb\test\utils\test_info_message("STARTING WEBDB SECURITY TESTS...");
   $settings["test_error_handler"]="\\webdb\\test\\security\\utils\\security_test_error_callback";
+
+  #\webdb\test\security\utils\test_user_login();
+  #$routes=array();
+  #$routes=\webdb\test\security\utils\parse_routes("",$routes);
+  #var_dump($routes);
+  #var_dump(\webdb\test\security\utils\parse_get_params());
+  #\webdb\test\utils\test_cleanup();
+  #die;
+
   \webdb\test\security\test_user_agent();
   \webdb\test\security\test_login_csrf_token();
   \webdb\test\security\test_remote_address();
   \webdb\test\security\test_admin_login();
+  \webdb\test\utils\test_cleanup();
   \webdb\test\utils\test_info_message("FINISHED SECURITY TESTS");
   # use /webdb/doc/test_app/index.php as a testing platform (start by doing index.php init_app_schema)
 }
