@@ -26,8 +26,8 @@ function generate_csrf_token()
     {
       if (isset($settings["user_record"])==true)
       {
-        $delta=microtime(true)-$settings["user_record"]["csrf_token_time"];
-        if ($delta<(24*60*60))
+        $delta=time()-$settings["user_record"]["csrf_token_time"];
+        if ($delta<=$settings["max_csrf_token_age"])
         {
           $token=$settings["user_record"]["csrf_token"];
         }
@@ -63,7 +63,7 @@ function update_csrf_token($user_record,$new_token)
   $value_items["csrf_token"]=$new_token;
   if ($new_token<>"")
   {
-    $value_items["csrf_token_time"]=microtime(true);
+    $value_items["csrf_token_time"]=time();
   }
   else
   {
@@ -94,6 +94,15 @@ function check_csrf_token()
   }
   if ((isset($_POST["csrf_token"])==true) and (isset($_COOKIE[$settings["csrf_cookie"]])==true))
   {
+    if (isset($settings["user_record"])==true)
+    {
+      $delta=time()-$settings["user_record"]["csrf_token_time"];
+      if ($delta>$settings["max_csrf_token_age"])
+      {
+        \webdb\users\auth_log(false,"INVALID_CSRF_TOKEN_1","csrf token from ".$_SERVER["REMOTE_ADDR"]." exceeds max age [referer=".$referer."]");
+        \webdb\utils\error_message(\webdb\utils\template_fill("csrf_error"));
+      }
+    }
     if ($_POST["csrf_token"]<>"*")
     {
       if (password_verify($_POST["csrf_token"],$_COOKIE[$settings["csrf_cookie"]])==true)
@@ -103,18 +112,18 @@ function check_csrf_token()
       }
       else
       {
-        \webdb\users\auth_log(false,"INVALID_CSRF_TOKEN_1","invalid csrf token from ".$_SERVER["REMOTE_ADDR"]." [referer=".$referer."]");
+        \webdb\users\auth_log(false,"INVALID_CSRF_TOKEN_2","invalid csrf token from ".$_SERVER["REMOTE_ADDR"]." [referer=".$referer."]");
       }
     }
     else
     {
-      \webdb\users\auth_log(false,"INVALID_CSRF_TOKEN_2","invalid csrf token from ".$_SERVER["REMOTE_ADDR"]." [referer=".$referer."]");
+      \webdb\users\auth_log(false,"INVALID_CSRF_TOKEN_3","invalid csrf token from ".$_SERVER["REMOTE_ADDR"]." [referer=".$referer."]");
     }
   }
   if ($csrf_ok==false)
   {
-    \webdb\users\auth_log(false,"INVALID_CSRF_TOKEN_3","invalid csrf token from ".$_SERVER["REMOTE_ADDR"]." [referer=".$referer."]");
-    \webdb\utils\system_message("csrf error");
+    \webdb\users\auth_log(false,"INVALID_CSRF_TOKEN_4","invalid csrf token from ".$_SERVER["REMOTE_ADDR"]." [referer=".$referer."]");
+    \webdb\utils\error_message(\webdb\utils\template_fill("csrf_error"));
   }
 }
 

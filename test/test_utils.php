@@ -92,6 +92,7 @@ function initialize_webdb_schema()
 
 function test_cleanup()
 {
+  \webdb\test\utils\clear_cookie_jar();
   \webdb\test\utils\delete_test_config();
   \webdb\test\utils\initialize_webdb_schema();
 }

@@ -13,7 +13,7 @@ function get_form_config($url_page,$return=false)
     {
       if (\webdb\utils\check_user_form_permission($form_name,"r")==false)
       {
-        \webdb\utils\show_message("error: form read permission denied");
+        \webdb\utils\error_message("error: form read permission denied");
       }
       return $form_config;
     }
@@ -22,7 +22,7 @@ function get_form_config($url_page,$return=false)
   {
     return false;
   }
-  \webdb\utils\show_message("error: form config not found");
+  \webdb\utils\error_message("error: form config not found");
 }
 
 #####################################################################################################
@@ -44,7 +44,7 @@ function form_dispatch($url_page)
     }
     if ($admin_auth==false)
     {
-      \webdb\utils\show_message("error: users form not permitted from non-admin account");
+      \webdb\utils\error_message("error: users form not permitted from non-admin account");
     }
   }
   if ((isset($_GET["ajax"])==true) and (isset($_GET["field_name"])==true))
@@ -109,7 +109,7 @@ function form_dispatch($url_page)
             case "edit":
               if (isset($_GET["id"])==false)
               {
-                \webdb\utils\show_message("error: missing id parameter");
+                \webdb\utils\error_message("error: missing id parameter");
               }
               if (isset($_GET["ajax"])==true)
               {
@@ -236,7 +236,7 @@ function checklist_update($form_config)
       $where_items[$link_key]=$child_id;
       if (\webdb\utils\check_user_form_permission($form_name,"d")==false)
       {
-        \webdb\utils\show_message("error: form record(s) delete permission denied");
+        \webdb\utils\error_message("error: form record(s) delete permission denied");
       }
       \webdb\sql\sql_delete($where_items,$link_table,$link_database);
     }
@@ -273,7 +273,7 @@ function checklist_update($form_config)
         {
           if (\webdb\utils\check_user_form_permission($form_name,"u")==false)
           {
-            \webdb\utils\show_message("error: form record(s) update permission denied");
+            \webdb\utils\error_message("error: form record(s) update permission denied");
           }
           \webdb\forms\check_required_values($form_config,$value_items);
           \webdb\sql\sql_update($value_items,$where_items,$link_table,$link_database);
@@ -283,7 +283,7 @@ function checklist_update($form_config)
       {
         if (\webdb\utils\check_user_form_permission($form_name,"i")==false)
         {
-          \webdb\utils\show_message("error: form record(s) insert permission denied");
+          \webdb\utils\error_message("error: form record(s) insert permission denied");
         }
         $value_items+=$where_items;
         \webdb\forms\check_required_values($form_config,$value_items);
@@ -476,15 +476,15 @@ function load_form_defs()
     $data=json_decode($data,true);
     if (isset($data["form_version"])==false)
     {
-      \webdb\utils\show_message("error: invalid webdb form def (missing form_version): ".$fn);
+      \webdb\utils\error_message("error: invalid webdb form def (missing form_version): ".$fn);
     }
     if (isset($data["form_type"])==false)
     {
-      \webdb\utils\show_message("error: invalid webdb form def (missing form_type): ".$fn);
+      \webdb\utils\error_message("error: invalid webdb form def (missing form_type): ".$fn);
     }
     if (isset($data["enabled"])==false)
     {
-      \webdb\utils\show_message("error: invalid webdb form def (missing enabled): ".$fn);
+      \webdb\utils\error_message("error: invalid webdb form def (missing enabled): ".$fn);
     }
     if ($data["enabled"]==false)
     {
@@ -504,14 +504,14 @@ function load_form_defs()
     $full=$settings["webdb_forms_path"].$fn;
     if (isset($settings["form_defaults"][$data["form_type"]])==false)
     {
-      \webdb\utils\show_message("error: invalid form def (invalid form_type): ".$fn);
+      \webdb\utils\error_message("error: invalid form def (invalid form_type): ".$fn);
     }
     $data["filename"]=$full;
     $default=$settings["form_defaults"][$data["form_type"]];
     $form_name=basename($fn,".".$data["form_type"]);
     if (isset($settings["forms"][$form_name])==true)
     {
-      \webdb\utils\show_message("error: form '".$form_name."' already exsits: ".$fn);
+      \webdb\utils\error_message("error: form '".$form_name."' already exsits: ".$fn);
     }
     $settings["forms"][$form_name]=array_merge($default,$data);
   }
@@ -528,19 +528,19 @@ function load_form_defs()
     $data=json_decode($data,true);
     if (isset($data["form_version"])==false)
     {
-      \webdb\utils\show_message("error: invalid app form def (missing form_version): ".$fn);
+      \webdb\utils\error_message("error: invalid app form def (missing form_version): ".$fn);
     }
     if ($data["form_version"]<>$settings["form_defaults"][$data["form_type"]]["form_version"])
     {
-      \webdb\utils\show_message("error: invalid form def (incompatible version number): ".$fn);
+      \webdb\utils\error_message("error: invalid form def (incompatible version number): ".$fn);
     }
     if (isset($data["form_type"])==false)
     {
-      \webdb\utils\show_message("error: invalid app form def (missing form_type): ".$fn);
+      \webdb\utils\error_message("error: invalid app form def (missing form_type): ".$fn);
     }
     if (isset($data["enabled"])==false)
     {
-      \webdb\utils\show_message("error: invalid app form def (missing enabled): ".$fn);
+      \webdb\utils\error_message("error: invalid app form def (missing enabled): ".$fn);
     }
     if ($data["enabled"]==false)
     {
@@ -548,14 +548,14 @@ function load_form_defs()
     }
     if (isset($settings["form_defaults"][$data["form_type"]])==false)
     {
-      \webdb\utils\show_message("error: invalid form def (invalid form_type): ".$fn);
+      \webdb\utils\error_message("error: invalid form def (invalid form_type): ".$fn);
     }
     $data["filename"]=$full;
     $default=$settings["form_defaults"][$data["form_type"]];
     $form_name=basename($fn,".".$data["form_type"]);
     if (isset($settings["forms"][$form_name])==true)
     {
-      \webdb\utils\show_message("error: form '".$form_name."' already exsits: ".$fn);
+      \webdb\utils\error_message("error: form '".$form_name."' already exsits: ".$fn);
     }
     $settings["forms"][$form_name]=array_merge($default,$data);
   }
@@ -766,7 +766,7 @@ function lookup_field_display_value($lookup_config,$lookup_record)
     $display_field_name=$display_field_names[$i];
     if (isset($lookup_record[$display_field_name])==false)
     {
-      \webdb\utils\show_message("error: lookup display field not found: ".$display_field_name);
+      \webdb\utils\error_message("error: lookup display field not found: ".$display_field_name);
     }
     $display_values[]=$lookup_record[$display_field_name];
   }
@@ -1056,7 +1056,7 @@ function output_editable_field(&$field_params,$record,$field_name,$control_type,
       $submit_fields[]=$field_params["field_name"];
       break;
     default:
-      \webdb\utils\show_message("error: invalid control type '".$control_type."' for field '".$field_name."' on form '".$form_config["form_name"]."'");
+      \webdb\utils\error_message("error: invalid control type '".$control_type."' for field '".$field_name."' on form '".$form_config["form_name"]."'");
   }
   return \webdb\forms\form_template_fill("field_edit_".$control_type,$field_params);
 }
@@ -1073,7 +1073,7 @@ function get_column_format_data($form_config)
   {
     if (isset($form_config["visible"][$field_name])==false)
     {
-      \webdb\utils\show_message("error: field visibility not found for '".$field_name."' on form '".$form_config["form_name"]."'");
+      \webdb\utils\error_message("error: field visibility not found for '".$field_name."' on form '".$form_config["form_name"]."'");
     }
     if ($form_config["visible"][$field_name]==false)
     {
@@ -1582,7 +1582,7 @@ function advanced_search($form_config)
         }
         break;
       default:
-        \webdb\utils\show_message("error: invalid control type '".$control_type."' for field '".$field_name."' on form '".$form_config["form_name"]."'");
+        \webdb\utils\error_message("error: invalid control type '".$control_type."' for field '".$field_name."' on form '".$form_config["form_name"]."'");
     }
     $row_params=array();
     $row_params["field_name"]=$form_config["captions"][$field_name];
@@ -1754,7 +1754,7 @@ function lookup_field_data($form_config,$field_name,$sibling_field=false)
   global $settings;
   if (isset($form_config["lookups"][$field_name])==false)
   {
-    \webdb\utils\show_message("error: invalid lookup config for field '".$field_name."' in form '".$form_config["form_name"]."' (lookup config missing)");
+    \webdb\utils\error_message("error: invalid lookup config for field '".$field_name."' in form '".$form_config["form_name"]."' (lookup config missing)");
   }
   $lookup_config=$form_config["lookups"][$field_name];
   $config_keys=array("database","table","key_field","display_field","lookup_sql_file","order_by");
@@ -1989,7 +1989,7 @@ function insert_record($form_config)
   global $settings;
   if (\webdb\utils\check_user_form_permission($form_config["form_name"],"i")==false)
   {
-    \webdb\utils\show_message("error: form record insert permission denied");
+    \webdb\utils\error_message("error: form record insert permission denied");
   }
   $value_items=\webdb\forms\process_form_data_fields($form_config);
   \webdb\forms\check_required_values($form_config,$value_items);
@@ -2111,7 +2111,7 @@ function update_record($form_config,$id)
   global $settings;
   if (\webdb\utils\check_user_form_permission($form_config["form_name"],"u")==false)
   {
-    \webdb\utils\show_message("error: form record update permission denied");
+    \webdb\utils\error_message("error: form record update permission denied");
   }
   $value_items=\webdb\forms\process_form_data_fields($form_config);
   \webdb\forms\check_required_values($form_config,$value_items);
@@ -2136,7 +2136,7 @@ function check_required_values($form_config,$value_items)
     $field_name=$form_config["required_values"][$i];
     if (empty($value_items[$field_name])==true)
     {
-      \webdb\utils\show_message("error: value required for field `".$field_name."`");
+      \webdb\utils\error_message("error: value required for field `".$field_name."`");
     }
   }
 }
@@ -2179,11 +2179,11 @@ function get_record_by_id($form_config,$id,$config_key)
   $records=\webdb\sql\fetch_prepare($sql,$items);
   if (count($records)==0)
   {
-    \webdb\utils\show_message("error: no records found for id '".$id."' in query: ".$sql);
+    \webdb\utils\error_message("error: no records found for id '".$id."' in query: ".$sql);
   }
   if (count($records)>1)
   {
-    \webdb\utils\show_message("error: id '".$id."' is not unique in query: ".$sql);
+    \webdb\utils\error_message("error: id '".$id."' is not unique in query: ".$sql);
   }
   return $records[0];
 }
@@ -2313,21 +2313,11 @@ function delete_record($form_config,$id)
   global $settings;
   if (\webdb\utils\check_user_form_permission($form_config["form_name"],"d")==false)
   {
-    \webdb\utils\show_message("error: form record delete permission denied");
+    \webdb\utils\error_message("error: form record delete permission denied");
   }
   $where_items=\webdb\forms\config_id_conditions($form_config,$id,"primary_key");
   \webdb\sql\sql_delete($where_items,$form_config["table"],$form_config["database"]);
   \webdb\forms\page_redirect();
-}
-
-#####################################################################################################
-
-function form_message($message,$form_config)
-{
-  $message_params=array();
-  $message_params["message"]=$message;
-  $message_params["url_page"]=$form_config["url_page"];
-  \webdb\utils\show_message(\webdb\forms\form_template_fill("page_message",$message_params));
 }
 
 #####################################################################################################
@@ -2337,7 +2327,7 @@ function delete_selected_confirmation($form_config)
   global $settings;
   if (isset($_POST["list_select"])==false)
   {
-    \webdb\forms\form_message("No records selected.",$form_config);
+    \webdb\utils\error_message("No records selected.");
   }
   $foreign_key_defs=\webdb\sql\get_foreign_key_defs($form_config["database"],$form_config["table"]);
   $form_params=array();
@@ -2416,7 +2406,7 @@ function delete_selected_records($form_config)
   global $settings;
   if (\webdb\utils\check_user_form_permission($form_config["form_name"],"d")==false)
   {
-    \webdb\utils\show_message("error: form record(s) delete permission denied");
+    \webdb\utils\error_message("error: form record(s) delete permission denied");
   }
   foreach ($_POST["id"] as $id => $value)
   {

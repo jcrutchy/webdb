@@ -28,7 +28,7 @@ function check_post_params($sql)
       case "INSERT":
       case "UPDATE":
       case "DELETE":
-        \webdb\utils\show_message("only POST requests are permitted to modify the database: ".$sql);
+        \webdb\utils\error_message("error: only POST requests are permitted to modify the database: ".$sql);
     }
   }
 }
@@ -61,7 +61,7 @@ function query_error($sql,$source="",$filename="")
     $msg_params["filename"]=$filename;
     $msg_params["source_error"]=$source_error;
     $msg_params["sql"]=htmlspecialchars($sql);
-    \webdb\utils\show_message(\webdb\utils\template_fill("global".DIRECTORY_SEPARATOR."sql_error",$msg_params));
+    \webdb\utils\error_message(\webdb\utils\template_fill("sql_error",$msg_params));
   }
 }
 
@@ -264,7 +264,7 @@ function get_sql_file($filename)
   global $settings;
   if (isset($settings["sql"][$filename])==false)
   {
-    \webdb\utils\show_message("error: sql file not found: ".$filename);
+    \webdb\utils\error_message("error: sql file not found: ".$filename);
   }
   return $settings["sql"][$filename];
 }
@@ -290,7 +290,7 @@ function execute_prepare($sql,$params=array(),$filename="",$is_admin=false,$tabl
     case "DELETE":
       if ($settings["sql_database_change"]==false)
       {
-        \webdb\utils\show_message("error executing sql query that changes the database (change flag not set): ".htmlspecialchars($sql));
+        \webdb\utils\error_message("error executing sql query that changes the database (change flag not set): ".htmlspecialchars($sql));
       }
   }
   $settings["sql_database_change"]=false;
@@ -355,7 +355,7 @@ function fetch_prepare($sql,$params=array(),$filename="",$is_admin=false,$table=
     case "INSERT":
     case "UPDATE":
     case "DELETE":
-      \webdb\utils\show_message("changing the database not permitted using webdb\\sql\\fetch_prepare function: ".htmlspecialchars($sql));
+      \webdb\utils\error_message("error: changing the database not permitted using webdb\\sql\\fetch_prepare function: ".htmlspecialchars($sql));
   }
   $pdo=\webdb\sql\get_pdo_object($is_admin);
   $statement=$pdo->prepare($sql);
@@ -469,7 +469,7 @@ function null_user_check($sql,$where_items,$table,$database)
   $error_params["table"]=$table;
   $error_params["where_items"]=json_encode($where_items,JSON_PRETTY_PRINT);
   $error_params["sql"]=htmlspecialchars($sql);
-  \webdb\utils\show_message(\webdb\utils\template_fill("unauthenticated_change_error",$error_params));
+  \webdb\utils\error_message(\webdb\utils\template_fill("unauthenticated_change_error",$error_params));
 }
 
 #####################################################################################################

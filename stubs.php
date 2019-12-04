@@ -51,7 +51,7 @@ function list_insert($form_config)
   global $settings;
   if (\webdb\utils\check_user_form_permission($form_config["form_name"],"i")==false)
   {
-    \webdb\utils\show_message("error: form record update permission denied");
+    \webdb\utils\error_message("error: form record update permission denied");
   }
   $data=array();
   $params=\webdb\forms\process_form_data_fields($form_config);
@@ -103,7 +103,7 @@ function list_edit($id,$form_config)
   global $settings;
   if (\webdb\utils\check_user_form_permission($form_config["form_name"],"u")==false)
   {
-    \webdb\utils\show_message("error: form record update permission denied");
+    \webdb\utils\error_message("error: form record update permission denied");
   }
   $data=array();
   $data["url_page"]=$form_config["url_page"];
@@ -136,7 +136,7 @@ function list_edit($id,$form_config)
       $subform_url_page=$_GET["subform"];
       if (\webdb\utils\check_user_form_permission($subform_url_page,"u")==false)
       {
-        \webdb\utils\show_message("error: form record update permission denied");
+        \webdb\utils\error_message("error: form record update permission denied");
       }
       $subform_form_config=\webdb\forms\get_form_config($subform_url_page);
       $value_items=\webdb\forms\process_form_data_fields($subform_form_config,$post_fields);
@@ -152,7 +152,7 @@ function list_edit($id,$form_config)
     {
       if (\webdb\utils\check_user_form_permission($form_config["form_name"],"u")==false)
       {
-        \webdb\utils\show_message("error: form record update permission denied");
+        \webdb\utils\error_message("error: form record update permission denied");
       }
       $value_items=\webdb\forms\process_form_data_fields($form_config,$post_fields);
       \webdb\forms\check_required_values($form_config,$value_items);

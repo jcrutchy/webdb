@@ -28,7 +28,7 @@ function system_message($message)
 
 #####################################################################################################
 
-function show_message($message)
+function error_message($message)
 {
   if (isset($_GET["ajax"])==true)
   {
@@ -40,14 +40,15 @@ function show_message($message)
     $data=array();
     $data["error"]=$message;
     $data=json_encode($data);
-    die($data);
+    $settings["system_message"]=$message;
+    die;
   }
   global $settings;
   $params=array();
   $params["global_styles_modified"]=\webdb\utils\resource_modified_timestamp("global.css");
   $params["page_title"]=$settings["app_name"];
   $params["message"]=$message;
-  \webdb\utils\system_message(\webdb\utils\template_fill("global".DIRECTORY_SEPARATOR."message",$params));
+  \webdb\utils\system_message(\webdb\utils\template_fill("error_message",$params));
 }
 
 #####################################################################################################
@@ -103,14 +104,14 @@ function output_page($content,$title)
   {
     $user_record=$settings["user_record"];
     \webdb\users\obfuscate_hashes($user_record);
-    $page_params["authenticated_status"]=\webdb\utils\template_fill("global".DIRECTORY_SEPARATOR."authenticated_status",$user_record);
+    $page_params["authenticated_status"]=\webdb\utils\template_fill("authenticated_status",$user_record);
   }
   else
   {
-    $page_params["authenticated_status"]=\webdb\utils\template_fill("global".DIRECTORY_SEPARATOR."unauthenticated_status");
+    $page_params["authenticated_status"]=\webdb\utils\template_fill("unauthenticated_status");
   }
   $page_params["calendar"]=\webdb\forms\get_calendar();
-  $output=\webdb\utils\template_fill("global".DIRECTORY_SEPARATOR."page",$page_params);
+  $output=\webdb\utils\template_fill("page",$page_params);
   die($output);
 }
 
@@ -627,12 +628,12 @@ function get_child_array_key(&$array,$parent_key)
 {
   if (is_array($array[$parent_key])==false)
   {
-    \webdb\utils\show_message("error: array expected with parent key: ".$parent_key);
+    \webdb\utils\error_message("error: array expected with parent key: ".$parent_key);
   }
   $child_keys=array_keys($array[$parent_key]);
   if (count($child_keys)<>1)
   {
-    \webdb\utils\show_message("error: invalid child array key count: ".$parent_key);
+    \webdb\utils\error_message("error: invalid child array key count: ".$parent_key);
   }
   return $child_keys[0];
 }

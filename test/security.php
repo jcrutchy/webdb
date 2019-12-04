@@ -19,9 +19,9 @@ function start()
   #\webdb\test\utils\test_cleanup();
   #die;
 
-  #\webdb\test\security\test_user_agent();
-  #\webdb\test\security\test_login_csrf_token();
-  #\webdb\test\security\test_remote_address();
+  \webdb\test\security\test_user_agent();
+  \webdb\test\security\test_login_csrf_token();
+  \webdb\test\security\test_remote_address();
   \webdb\test\security\test_admin_login();
   \webdb\test\utils\test_cleanup();
   \webdb\test\utils\test_info_message("FINISHED SECURITY TESTS");
@@ -131,9 +131,8 @@ function test_login_csrf_token()
   $params["login_username"]="test_user";
   $params["login_password"]="password";
   $response=\webdb\test\utils\wpost($settings["app_web_root"],$params);
-  $content=\webdb\test\utils\strip_http_headers($response);
   $test_success=true;
-  if ($content<>"csrf error")
+  if (\webdb\test\utils\compare_template_exluding_percents("csrf_error",$response)==false)
   {
     $test_success=false;
   }
@@ -159,8 +158,7 @@ function test_login_csrf_token()
   $params["username"]="test_user2";
   $params["email"]="test_user2@localhost.local";
   $response=\webdb\test\utils\wpost($settings["app_web_root"]."?page=users&cmd=edit",$params);
-  $content=\webdb\test\utils\strip_http_headers($response);
-  if ($content<>"csrf error")
+  if (\webdb\test\utils\compare_template_exluding_percents("csrf_error",$response)==false)
   {
     $test_success=false;
   }
@@ -169,15 +167,23 @@ function test_login_csrf_token()
   $params=array();
   $params["edit_control:user_groups_subform:1,1:group_id"]=1;
   $response=\webdb\test\utils\wpost($settings["app_web_root"]."?page=user_groups_subform&cmd=edit&id=1&ajax",$params);
-  $content=\webdb\test\utils\strip_http_headers($response);
-  if ($content<>"csrf error")
+  var_dump($response);
+  die;
+  if (\webdb\test\utils\compare_template_exluding_percents("csrf_error",$response)==false)
   {
     $test_success=false;
   }
   \webdb\test\utils\test_result_message($test_case_msg,$test_success);
-
   $test_case_msg="throw error if user csrf token exceeds max age";
-
+  $field_values=\webdb\test\security\utils\output_user_field_values();
+  $field_values["csrf_token_time"]=time()+24*60*60+1;
+  \webdb\test\security\utils\update_test_user($field_values);
+  $response=\webdb\test\utils\wpost($settings["app_web_root"]."?page=user_groups_subform&cmd=edit&id=1&ajax",$params);
+  if (\webdb\test\utils\compare_template_exluding_percents("csrf_error",$response)==false)
+  {
+    $test_success=false;
+  }
+  \webdb\test\utils\test_result_message($test_case_msg,$test_success);
   \webdb\test\utils\test_cleanup();
 }
 
@@ -346,7 +352,7 @@ function test_admin_login()
     $test_success=false;
   }
   \webdb\test\utils\test_result_message($test_case_msg,$test_success);
-  \webdb\test\utils\delete_test_config();
+  \webdb\test\utils\test_cleanup();
 }
 
 #####################################################################################################

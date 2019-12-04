@@ -69,6 +69,7 @@ function check_app_settings()
     "username_cookie",
     "csrf_cookie",
     "max_cookie_age",
+    "max_csrf_token_age",
     "password_reset_timeout",
     "row_lock_expiration",
     "app_home_template",
