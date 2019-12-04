@@ -19,9 +19,9 @@ function start()
   #\webdb\test\utils\test_cleanup();
   #die;
 
-  \webdb\test\security\test_user_agent();
-  \webdb\test\security\test_login_csrf_token();
-  \webdb\test\security\test_remote_address();
+  #\webdb\test\security\test_user_agent();
+  #\webdb\test\security\test_login_csrf_token();
+  #\webdb\test\security\test_remote_address();
   \webdb\test\security\test_admin_login();
   \webdb\test\utils\test_cleanup();
   \webdb\test\utils\test_info_message("FINISHED SECURITY TESTS");
@@ -100,8 +100,6 @@ function test_user_agent()
   # test user agent change
   $test_case_msg="if user agent changes, invalidate cookie login (require password)";
   $response=\webdb\test\security\utils\test_user_login();
-  var_dump($response);
-  die;
   $test_success=true;
   if (\webdb\test\security\utils\check_authentication_status($response)==false)
   {

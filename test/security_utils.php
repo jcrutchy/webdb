@@ -50,7 +50,14 @@ function start_test_user($field_values=false)
   {
     \webdb\test\utils\initialize_webdb_schema();
   }
-  \webdb\test\security\utils\insert_test_user($field_values);
+  if (\webdb\test\security\utils\get_test_user($field_values)===false)
+  {
+    \webdb\test\security\utils\insert_test_user($field_values);
+  }
+  else
+  {
+    \webdb\test\security\utils\update_test_user($field_values);
+  }
   if (\webdb\test\security\utils\get_test_user($field_values)===false)
   {
     \webdb\test\utils\test_error_message("ERROR STARTING TEST USER: USER NOT FOUND AFTER INSERT");
@@ -62,7 +69,18 @@ function start_test_user($field_values=false)
 function insert_test_user($field_values)
 {
   unset($field_values["password"]);
-  \webdb\sql\sql_insert($field_values,"users","webdb");
+  \webdb\sql\sql_insert($field_values,"users","webdb",true);
+}
+
+#####################################################################################################
+
+function update_test_user($field_values)
+{
+  $where_items=array();
+  $where_items["username"]=$field_values["username"];
+  unset($field_values["username"]);
+  unset($field_values["password"]);
+  \webdb\sql\sql_update($field_values,$where_items,"users","webdb",true);
 }
 
 #####################################################################################################
@@ -205,10 +223,11 @@ function test_user_login($field_values=false)
   {
     $field_values=\webdb\test\security\utils\output_user_field_values();
   }
-  \webdb\test\security\utils\start_test_user($field_values);
+  if ($field_values["username"]<>"admin")
+  {
+    \webdb\test\security\utils\start_test_user($field_values);
+  }
   $response=\webdb\test\utils\wget($settings["app_web_root"]);
-  var_dump($response);
-  die;
   $csrf_token=\webdb\test\security\utils\extract_csrf_token($response);
   $params=array();
   $params["login_username"]=$field_values["username"];
