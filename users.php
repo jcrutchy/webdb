@@ -7,7 +7,7 @@ namespace webdb\users;
 function auth_dispatch()
 {
   global $settings;
-  \webdb\users\check_csrf();
+  \webdb\csrf\check_csrf_token();
   if (isset($_GET["logout"])==true)
   {
     \webdb\users\logout();
@@ -28,117 +28,6 @@ function auth_dispatch()
   $settings["logged_in_username"]=$settings["user_record"]["username"];
   $user_id=$settings["user_record"]["user_id"];
   $settings["logged_in_user_groups"]=\webdb\users\get_user_groups($user_id);
-}
-
-#####################################################################################################
-
-function generate_csrf_token()
-{
-  global $settings;
-  if (\webdb\cli\is_cli_mode()==true)
-  {
-    return;
-  }
-  $token="";
-  if (isset($_COOKIE["csrf_token_hash"])==true)
-  {
-    if (($_COOKIE["csrf_token_hash"]<>"") and (strtolower($_COOKIE["csrf_token_hash"])<>"deleted"))
-    {
-      if (isset($settings["user_record"])==true)
-      {
-        $delta=microtime(true)-$settings["user_record"]["csrf_token_time"];
-        if ($delta<(24*60*60))
-        {
-          $token=$settings["user_record"]["csrf_token"];
-        }
-        else
-        {
-          \webdb\users\update_csrf_token($settings["user_record"],"");
-        }
-      }
-    }
-  }
-  if ($token=="")
-  {
-    $crypto_strong=true;
-    $token=base64_encode(openssl_random_pseudo_bytes(30,$crypto_strong));
-  }
-  $settings["csrf_token"]=$token;
-  $options=array();
-  $options["cost"]=$settings["password_bcrypt_cost"];
-  $hash=password_hash($token,PASSWORD_BCRYPT,$options);
-  setcookie("csrf_token_hash",$hash,0,"/",$_SERVER["HTTP_HOST"],false,true);
-  if (isset($settings["user_record"])==true)
-  {
-    \webdb\users\update_csrf_token($settings["user_record"],$token);
-  }
-  \webdb\users\auth_log(false,"GENERATE_CSRF_TOKEN","generated csrf token for ".$_SERVER["REMOTE_ADDR"]);
-}
-
-#####################################################################################################
-
-function update_csrf_token($user_record,$new_token)
-{
-  global $settings;
-  $where_items=array();
-  $where_items["user_id"]=$user_record["user_id"];
-  $value_items=array();
-  $value_items["csrf_token"]=$new_token;
-  if ($new_token<>"")
-  {
-    $value_items["csrf_token_time"]=microtime(true);
-  }
-  else
-  {
-    $value_items["csrf_token_time"]=0;
-  }
-  $settings["sql_check_post_params_override"]=true;
-  \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
-}
-
-#####################################################################################################
-
-function check_csrf()
-{
-  global $settings;
-  $csrf_ok=false;
-  if (count($_POST)==0)
-  {
-    $csrf_ok=true;
-  }
-  if (\webdb\cli\is_cli_mode()==true)
-  {
-    $csrf_ok=true;
-  }
-  $referer="";
-  if (isset($_SERVER["HTTP_REFERER"])==true)
-  {
-    $referer=$_SERVER["HTTP_REFERER"];
-  }
-  if ((isset($_POST["csrf_token"])==true) and (isset($_COOKIE["csrf_token_hash"])==true))
-  {
-    if ($_POST["csrf_token"]<>"*")
-    {
-      if (password_verify($_POST["csrf_token"],$_COOKIE["csrf_token_hash"])==true)
-      {
-        \webdb\users\auth_log(false,"VALID_CSRF_TOKEN","valid csrf token from ".$_SERVER["REMOTE_ADDR"]);
-        $csrf_ok=true;
-      }
-      else
-      {
-        \webdb\users\auth_log(false,"INVALID_CSRF_TOKEN_1","invalid csrf token from ".$_SERVER["REMOTE_ADDR"]." [referer=".$referer."]");
-      }
-    }
-    else
-    {
-      \webdb\users\auth_log(false,"INVALID_CSRF_TOKEN_2","invalid csrf token from ".$_SERVER["REMOTE_ADDR"]." [referer=".$referer."]");
-    }
-  }
-  if ($csrf_ok==false)
-  {
-    \webdb\users\auth_log(false,"INVALID_CSRF_TOKEN_3","invalid csrf token from ".$_SERVER["REMOTE_ADDR"]." [referer=".$referer."]");
-    \webdb\utils\system_message("csrf error");
-  }
 }
 
 #####################################################################################################
@@ -219,7 +108,7 @@ function login_failure($user_record,$message)
   $value_items["failed_login_count"]=$user_record["failed_login_count"]+1;
   $value_items["failed_login_time"]=microtime(true);
   $value_items["login_cookie"]="*"; # disable login with cookie
-  $value_items["csrf_token"]="*";
+  $value_items["csrf_token"]=\webdb\csrf\invalid_csrf_token();
   $settings["sql_check_post_params_override"]=true;
   \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
   \webdb\utils\webdb_unsetcookie("login_cookie");
@@ -401,6 +290,39 @@ function login()
 
 #####################################################################################################
 
+function crypto_random_key()
+{
+  $crypto_strong=true;
+  return base64_encode(openssl_random_pseudo_bytes(30,$crypto_strong));
+}
+
+#####################################################################################################
+
+function webdb_password_hash($password=false,$username=false)
+{
+  global $settings;
+  if ($password===false)
+  {
+    $password=\webdb\users\crypto_random_key();
+  }
+  if ($username===false)
+  {
+    if (isset($settings["user_record"])==true)
+    {
+      $username=$settings["user_record"]["username"];
+    }
+  }
+  $options=array();
+  $options["cost"]=$settings["password_bcrypt_cost"];
+  if ($username=="admin")
+  {
+    $options["cost"]=$settings["admin_password_bcrypt_cost"];
+  }
+  return password_hash($password,PASSWORD_BCRYPT,$options);
+}
+
+#####################################################################################################
+
 function initialise_login_cookie($user_record)
 {
   global $settings;
@@ -411,16 +333,8 @@ function initialise_login_cookie($user_record)
   $value_items["user_agent"]=$settings["user_agent"];
   $value_items["remote_address"]=$_SERVER["REMOTE_ADDR"];
   $value_items["failed_login_count"]=0;
-  $crypto_strong=true;
-  $key=base64_encode(openssl_random_pseudo_bytes(30,$crypto_strong));
-  $options=array();
-  $options["cost"]=$settings["password_bcrypt_cost"];
-  if ($user_record["user_id"]==1) # admin
-  {
-    $options["cost"]=$settings["admin_password_bcrypt_cost"];
-  }
-  $cookie=password_hash($key,PASSWORD_BCRYPT,$options);
-  $value_items["login_cookie"]=$cookie;
+  $key=\webdb\users\crypto_random_key();
+  $value_items["login_cookie"]=\webdb\users\webdb_password_hash($key,$user_record["username"]);
   $value_items["login_setcookie_time"]=microtime(true);
   \webdb\utils\webdb_setcookie("login_cookie",$key);
   \webdb\users\auth_log($user_record,"LOGIN_COOKIE_INIT","");
@@ -569,15 +483,8 @@ function send_reset_password_message()
   }
   $user_record=\webdb\users\get_user_record($_POST["login_username"]);
   $value_items=array();
-  $crypto_strong=true;
-  $key=base64_encode(openssl_random_pseudo_bytes(30,$crypto_strong));
-  $options=array();
-  $options["cost"]=$settings["password_bcrypt_cost"];
-  if ($user_record["username"]=="admin")
-  {
-    $options["cost"]=$settings["admin_password_bcrypt_cost"];
-  }
-  $value_items["pw_reset_key"]=password_hash($key,PASSWORD_BCRYPT,$options);
+  $key=\webdb\users\crypto_random_key();
+  $value_items["pw_reset_key"]=\webdb\users\webdb_password_hash($key,$user_record["username"]);
   $value_items["pw_reset_time"]=microtime(true);
   $value_items["pw_hash"]="*"; # disable login with password
   $value_items["login_cookie"]="*"; # disable login with cookie
@@ -636,14 +543,8 @@ function change_password($password_reset_user=false)
     {
       \webdb\utils\show_message("error: old password is incorrect");
     }
-    $options=array();
-    $options["cost"]=$settings["password_bcrypt_cost"];
-    if ($user_record["username"]=="admin")
-    {
-      $options["cost"]=$settings["admin_password_bcrypt_cost"];
-    }
     $value_items=array();
-    $value_items["pw_hash"]=password_hash($pw_new,PASSWORD_BCRYPT,$options);
+    $value_items["pw_hash"]=\webdb\users\webdb_password_hash($pw_new,$user_record["username"]);
     $value_items["pw_change"]=0;
     $where_items=array();
     $where_items["user_id"]=$user_record["user_id"];
@@ -676,15 +577,8 @@ function change_password($password_reset_user=false)
   {
     # from password reset
     $value_items=array();
-    $crypto_strong=true;
-    $temp_password=base64_encode(openssl_random_pseudo_bytes(30,$crypto_strong));
-    $options=array();
-    $options["cost"]=$settings["password_bcrypt_cost"];
-    if ($password_reset_user["username"]=="admin")
-    {
-      $options["cost"]=$settings["admin_password_bcrypt_cost"];
-    }
-    $value_items["pw_hash"]=password_hash($temp_password,PASSWORD_BCRYPT,$options);
+    $temp_password=\webdb\users\crypto_random_key();
+    $value_items["pw_hash"]=\webdb\users\webdb_password_hash($temp_password,$password_reset_user["username"]);
     $value_items["pw_login_time"]=microtime(true);
     $value_items["user_agent"]=$settings["user_agent"];
     $value_items["remote_address"]=$_SERVER["REMOTE_ADDR"];

@@ -65,7 +65,7 @@ function test_user_agent()
   # acceptable agents
   $test_agents["Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.111 Safari/537.36"]=false;
   $test_agents["Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:15.0) Gecko/20100101 Firefox/15.0.1"]=false;
-  $test_agents["Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36"]=false;
+  $test_agents[\webdb\test\security\utils\TEST_USER_AGENT]=false;
   foreach ($test_agents as $agent => $error_expected)
   {
     $condition="no error";
@@ -100,6 +100,8 @@ function test_user_agent()
   # test user agent change
   $test_case_msg="if user agent changes, invalidate cookie login (require password)";
   $response=\webdb\test\security\utils\test_user_login();
+  var_dump($response);
+  die;
   $test_success=true;
   if (\webdb\test\security\utils\check_authentication_status($response)==false)
   {
@@ -126,7 +128,7 @@ function test_login_csrf_token()
 {
   global $settings;
   $test_case_msg="unable to login with username and password via post request without csrf token";
-  \webdb\test\security\utils\start_test_user(false);
+  \webdb\test\security\utils\start_test_user();
   $params=array();
   $params["login_username"]="test_user";
   $params["login_password"]="password";
@@ -147,17 +149,17 @@ function test_login_csrf_token()
   }
   \webdb\test\utils\test_result_message($test_case_msg,$test_success);
   $test_case_msg="after successful cookie login, post request without a csrf token to insert a new user fails with csrf error";
-  $params=array();
-  $params["form_cmd[insert_confirm]"]="Insert User";
-  $params["enabled"]="checked";
-  $params["username"]="test_user2";
-  $params["email"]="test_user2@localhost.local";
   $response=\webdb\test\utils\wget($settings["app_web_root"]);
   $test_success=true;
   if (\webdb\test\security\utils\check_authentication_status($response)==false)
   {
     $test_success=false;
   }
+  $params=array();
+  $params["form_cmd[insert_confirm]"]="Insert User";
+  $params["enabled"]="checked";
+  $params["username"]="test_user2";
+  $params["email"]="test_user2@localhost.local";
   $response=\webdb\test\utils\wpost($settings["app_web_root"]."?page=users&cmd=edit",$params);
   $content=\webdb\test\utils\strip_http_headers($response);
   if ($content<>"csrf error")
@@ -175,6 +177,9 @@ function test_login_csrf_token()
     $test_success=false;
   }
   \webdb\test\utils\test_result_message($test_case_msg,$test_success);
+
+  $test_case_msg="throw error if user csrf token exceeds max age";
+
   \webdb\test\utils\test_cleanup();
 }
 

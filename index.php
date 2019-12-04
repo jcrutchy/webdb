@@ -16,6 +16,7 @@ chdir(__DIR__);
 
 require_once("utils.php");
 require_once("users.php");
+require_once("csrf.php");
 require_once("forms.php");
 require_once("sql.php");
 require_once("stubs.php");

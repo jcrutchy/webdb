@@ -74,6 +74,7 @@ FRAMEWORK SECURITY
 TODO: FOR PRODUCTION REMOVE/COMMENT OUT THE BACKTRACE IN THE \webdb\utils\system_message FUNCTION
 
 TODO: CHANGE FROM PASSWORD_BCRYPT TO PASSWORD_ARGON2ID (REQUIRES PHP 7.3.0) => REQUIRES CHANGE TO OPTIONS (https://www.php.net/manual/en/function.password-hash.php) - refer to https://github.com/crutchy-/webdb/issues/24
+      [ONLY NEED TO CHANGE THE \webdb\users\webdb_password_hash FUNCTION]
 
 - for production, comment out the testing show_message in the \webdb\users\send_reset_password_message function that outputs the emailed message (including link) to the browser window
 
@@ -152,6 +153,7 @@ TODO: CHANGE FROM PASSWORD_BCRYPT TO PASSWORD_ARGON2ID (REQUIRES PHP 7.3.0) => R
   * list cells, edit page controls, insert page controls, list insert/update row controls, advanced search controls
 
 - csrf check is performed prior to user authentication
+- throw error if user csrf token exceeds max age
 - invalidation of login cookie on csrf error was considered (based on username cookie) but in the event of deliberate attack, this invalidation could indirectly
   become a form of forgery itself as a deliberate annoyance (the attacker could forge username cookies and repeatedly invalidate a bunch of legitimate logins)
 
@@ -177,6 +179,7 @@ potential causes for login failure:
 - [] login cookie deleted at browser end
 - [] username cookie deleted at browser end
 - [] csrf error
+- csrf token exceeds max age
 - [tested] remote address change
 - [tested] user agent changed
 - [] password reset

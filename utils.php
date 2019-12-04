@@ -69,7 +69,14 @@ function webdb_setcookie($setting_key,$value,$max_age=false)
   {
     $max_age=$settings["max_cookie_age"];
   }
-  $expiry=time()+$max_age;
+  if ($max_age>0)
+  {
+    $expiry=time()+$max_age;
+  }
+  else
+  {
+    $expiry=0;
+  }
   setcookie($settings[$setting_key],$value,$expiry,"/",$_SERVER["HTTP_HOST"],false,true);
 }
 
@@ -86,7 +93,7 @@ function webdb_unsetcookie($setting_key)
 function output_page($content,$title)
 {
   global $settings;
-  \webdb\users\generate_csrf_token();
+  \webdb\csrf\generate_csrf_token();
   $page_params=array();
   $page_params["page_title"]=$title;
   $page_params["global_styles_modified"]=\webdb\utils\resource_modified_timestamp("global.css");
@@ -152,15 +159,7 @@ function load_test_settings()
 function ob_postprocess($buffer)
 {
   global $settings;
-  if (isset($settings["csrf_token"])==false)
-  {
-    $settings["csrf_token"]="";
-    if (isset($_POST["csrf_token"])==true)
-    {
-      $settings["csrf_token"]=$_POST["csrf_token"];
-    }
-  }
-  $buffer=str_replace("%%csrf_token%%",$settings["csrf_token"],$buffer);
+  $buffer=\webdb\csrf\fill_csrf_token($buffer);
   if (isset($settings["system_message"])==false)
   {
     if (strpos($buffer,"%%")!==false)

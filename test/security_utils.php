@@ -4,6 +4,12 @@ namespace webdb\test\security\utils;
 
 #####################################################################################################
 
+define("webdb\\test\\security\\utils\\TEST_USERNAME","test_user");
+define("webdb\\test\\security\\utils\\TEST_PASSWORD","password");
+define("webdb\\test\\security\\utils\\TEST_USER_AGENT","Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36");
+
+#####################################################################################################
+
 function security_test_error_callback()
 {
   \webdb\test\utils\test_cleanup();
@@ -11,14 +17,41 @@ function security_test_error_callback()
 
 #####################################################################################################
 
-function start_test_user($test_overrides=true)
+function output_user_field_values($username=false,$enabled=1,$email="",$pw_change=0,$password=false)
 {
-  if (\webdb\test\security\utils\get_test_user()!==false)
+  $field_values=array();
+  if ($username===false)
+  {
+    $username=\webdb\test\security\utils\TEST_USERNAME;
+  }
+  $field_values["username"]=$username;
+  $field_values["fullname"]=$username;
+  $field_values["enabled"]=$enabled;
+  $field_values["email"]=$email;
+  if ($password===false)
+  {
+    $password=\webdb\test\security\utils\TEST_PASSWORD;
+  }
+  $field_values["password"]=$password;
+  $field_values["pw_hash"]=\webdb\users\webdb_password_hash($password,$username);
+  $field_values["pw_change"]=$pw_change;
+  return $field_values;
+}
+
+#####################################################################################################
+
+function start_test_user($field_values=false)
+{
+  if ($field_values===false)
+  {
+    $field_values=\webdb\test\security\utils\output_user_field_values(false,1,"",1,"*");
+  }
+  if (\webdb\test\security\utils\get_test_user($field_values)!==false)
   {
     \webdb\test\utils\initialize_webdb_schema();
   }
-  \webdb\test\security\utils\create_test_user($test_overrides);
-  if (\webdb\test\security\utils\get_test_user()===false)
+  \webdb\test\security\utils\insert_test_user($field_values);
+  if (\webdb\test\security\utils\get_test_user($field_values)===false)
   {
     \webdb\test\utils\test_error_message("ERROR STARTING TEST USER: USER NOT FOUND AFTER INSERT");
   }
@@ -26,10 +59,23 @@ function start_test_user($test_overrides=true)
 
 #####################################################################################################
 
-function get_test_user()
+function insert_test_user($field_values)
 {
+  unset($field_values["password"]);
+  \webdb\sql\sql_insert($field_values,"users","webdb");
+}
+
+#####################################################################################################
+
+function get_test_user($field_values=false)
+{
+  $username=\webdb\test\security\utils\TEST_USERNAME;
+  if ($field_values!==false)
+  {
+    $username=$field_values["username"];
+  }
   $sql_params=array();
-  $sql_params["username"]="test_user";
+  $sql_params["username"]=$username;
   $sql="SELECT * FROM webdb.users WHERE username=:username";
   $records=\webdb\sql\fetch_prepare($sql,$sql_params);
   if (count($records)==1)
@@ -37,23 +83,6 @@ function get_test_user()
     return $records[0];
   }
   return false;
-}
-
-#####################################################################################################
-
-function create_test_user($test_overrides)
-{
-  $items=array();
-  $items["username"]="test_user";
-  $items["fullname"]="test_user";
-  $items["enabled"]=1;
-  $items["email"]="";
-  if ($test_overrides==true)
-  {
-    $items["pw_hash"]="\$2y\$13\$Vn8rJB73AHq56cAqbBwkEuKrQt3lSdoA3sDmKULZEgQLE4.nmsKzW"; # 'password'
-    $items["pw_change"]=0;
-  }
-  \webdb\sql\sql_insert($items,"users","webdb");
 }
 
 #####################################################################################################
@@ -74,11 +103,11 @@ function check_authentication_status($response,$username="test_user")
   {
     return false;
   }
-  if (isset($settings["test_cookie_jar"]["csrf_token_hash"])==false)
+  if (isset($settings["test_cookie_jar"][$settings["csrf_cookie"]])==false)
   {
     return false;
   }
-  $value=\webdb\test\utils\extract_cookie_value($settings["test_cookie_jar"]["csrf_token_hash"]);
+  $value=\webdb\test\utils\extract_cookie_value($settings["test_cookie_jar"][$settings["csrf_cookie"]]);
   if ($value=="deleted")
   {
     return false;
@@ -168,34 +197,32 @@ function parse_get_params()
 
 #####################################################################################################
 
-function test_user_login($uri=false)
+function test_user_login($field_values=false)
 {
   global $settings;
-  $settings["test_user_agent"]="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36";
-  \webdb\test\security\utils\start_test_user();
+  $settings["test_user_agent"]=\webdb\test\security\utils\TEST_USER_AGENT;
+  if ($field_values===false)
+  {
+    $field_values=\webdb\test\security\utils\output_user_field_values();
+  }
+  \webdb\test\security\utils\start_test_user($field_values);
   $response=\webdb\test\utils\wget($settings["app_web_root"]);
+  var_dump($response);
+  die;
   $csrf_token=\webdb\test\security\utils\extract_csrf_token($response);
   $params=array();
-  $params["login_username"]="test_user";
-  $params["login_password"]="password";
+  $params["login_username"]=$field_values["username"];
+  $params["login_password"]=$field_values["password"];
   $params["csrf_token"]=$csrf_token;
   return \webdb\test\utils\wpost($settings["app_web_root"],$params);
 }
 
 #####################################################################################################
 
-function admin_login($uri=false)
+function admin_login()
 {
-  global $settings;
-  $settings["test_user_agent"]="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36";
-  \webdb\test\utils\clear_cookie_jar();
-  $response=\webdb\test\utils\wget($settings["app_web_root"]);
-  $csrf_token=\webdb\test\security\utils\extract_csrf_token($response);
-  $params=array();
-  $params["login_username"]="admin";
-  $params["login_password"]="password";
-  $params["csrf_token"]=$csrf_token;
-  return \webdb\test\utils\wpost($settings["app_web_root"],$params);
+  $field_values=\webdb\test\security\utils\output_user_field_values("admin",1,"",0,false);
+  return \webdb\test\security\utils\test_user_login($field_values);
 }
 
 #####################################################################################################

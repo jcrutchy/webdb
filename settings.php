@@ -24,6 +24,7 @@ $settings["footer_template"]="";
 
 $settings["login_cookie"]="webdb_login";
 $settings["username_cookie"]="webdb_username";
+$settings["csrf_cookie"]="webdb_csrf_hash";
 $settings["max_cookie_age"]=60*60*24*365;
 $settings["password_reset_timeout"]=60*60*24;
 $settings["password_bcrypt_cost"]=11; # 10 is a good baseline, 13 is very difficult to crack (but slower to hash) - eventually replace with Argon2id (requires PHP 7.3)
