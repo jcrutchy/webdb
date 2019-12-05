@@ -28,6 +28,7 @@ function start()
   \webdb\test\security\test_admin_login();
   \webdb\test\security\test_case_insensitive_login();
   \webdb\test\security\test_login_cookie_max_age();
+  \webdb\test\security\test_login_attempt_lockout();
 
   # use /webdb/doc/test_app/index.php as a testing platform (start by doing index.php init_app_schema)
 
@@ -113,7 +114,7 @@ function test_user_agent()
   {
     $test_success=false;
   }
-  if (\webdb\test\utils\compare_template_exluding_percents("login_form",$response)==false)
+  if (\webdb\test\utils\compare_template("login_form",$response)==false)
   {
     $test_success=false;
   }
@@ -135,7 +136,7 @@ function test_login_csrf_token()
   $params["login_username"]=$field_values["username"];
   $params["login_password"]=$field_values["password"];
   $response=\webdb\test\utils\wpost($settings["app_web_root"],$params);
-  if (\webdb\test\utils\compare_template_exluding_percents("csrf_error",$response)==false)
+  if (\webdb\test\utils\compare_template("csrf_error",$response)==false)
   {
     $test_success=false;
   }
@@ -167,7 +168,7 @@ function test_login_csrf_token()
   $params["fullname"]="test_user2";
   $params["email"]="test_user2@localhost.local";
   $response=\webdb\test\utils\wpost($settings["app_web_root"]."?page=users&cmd=edit",$params);
-  if (\webdb\test\utils\compare_template_exluding_percents("csrf_error",$response)==false)
+  if (\webdb\test\utils\compare_template("csrf_error",$response)==false)
   {
     $test_success=false;
   }
@@ -188,11 +189,11 @@ function test_login_csrf_token()
   $params["email"]="test_user2@localhost.local";
   $params["csrf_token"]=\webdb\test\security\utils\get_csrf_token();
   $response=\webdb\test\utils\wpost($settings["app_web_root"]."?page=users&cmd=edit",$params);
-  if (\webdb\test\utils\compare_form_template_exluding_percents("list",$response)==false)
+  if (\webdb\test\utils\compare_form_template("list",$response)==false)
   {
     $test_success=false;
   }
-  if (\webdb\test\utils\compare_template_exluding_percents("csrf_error",$response)==true)
+  if (\webdb\test\utils\compare_template("csrf_error",$response)==true)
   {
     $test_success=false;
   }
@@ -204,7 +205,7 @@ function test_login_csrf_token()
   $params["edit_control:user_groups_subform:1,1:group_id"]=1;
   $test_url=$settings["app_web_root"]."?page=user_groups_subform&cmd=edit&id=1,1&ajax&subform=user_groups_subform&parent=users";
   $response=\webdb\test\utils\wpost($test_url,$params);
-  if (\webdb\test\utils\compare_template_exluding_percents("csrf_error",$response)==false)
+  if (\webdb\test\utils\compare_template("csrf_error",$response)==false)
   {
     $test_success=false;
   }
@@ -214,7 +215,7 @@ function test_login_csrf_token()
   $test_success=true;
   $params["csrf_token"]=\webdb\test\security\utils\get_csrf_token();
   $response=\webdb\test\utils\wpost($test_url,$params);
-  if (\webdb\test\utils\compare_template_exluding_percents("csrf_error",$response)==true)
+  if (\webdb\test\utils\compare_template("csrf_error",$response)==true)
   {
     $test_success=false;
   }
@@ -234,7 +235,7 @@ function test_login_csrf_token()
   $field_values["csrf_token_time"]=time()-$settings["max_csrf_token_age"]-1;
   \webdb\test\security\utils\update_test_user($field_values);
   $response=\webdb\test\utils\wpost($test_url,$params);
-  if (\webdb\test\utils\compare_template_exluding_percents("csrf_error",$response)==false)
+  if (\webdb\test\utils\compare_template("csrf_error",$response)==false)
   {
     $test_success=false;
   }
@@ -244,27 +245,32 @@ function test_login_csrf_token()
 
 #####################################################################################################
 
-function test_remote_address() # assumes ::1 and 192.168.0.0/16 are in system ip whitelist
+function test_remote_address() # assumes ::1 and 192.168.0.0/16 are in system ip whitelist (should be)
 {
   global $settings;
   $test_case_msg="if the user's remote address changes, invalidate cookie login (require password login)";
+  $test_success=true;
   $response=\webdb\test\security\utils\test_user_login();
+  if (\webdb\test\security\utils\check_authentication_status($response)==false)
+  {
+    $test_success=false;
+  }
   $test_settings=array();
   $test_settings["change_remote_addr"]="::2";
   $test_settings["custom_ip_whitelist"]=__DIR__.DIRECTORY_SEPARATOR."test_ip_whitelist_2";
   \webdb\test\utils\test_server_settings($test_settings,"initialising different ipv6 remote address with test ip whitelist on request back end");
   $response=\webdb\test\utils\wget($settings["app_web_root"]);
-  $test_success=true;
   if (\webdb\test\security\utils\check_authentication_status($response)==true)
   {
     $test_success=false;
   }
-  if (\webdb\test\utils\compare_template_exluding_percents("login_form",$response)==false)
+  if (\webdb\test\utils\compare_template("login_form",$response)==false)
   {
     $test_success=false;
   }
   \webdb\test\utils\test_result_message($test_case_msg,$test_success);
   \webdb\test\utils\delete_test_config();
+  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~
   $test_case_msg="if the last octet of the user's IPv4 remote address changes, don't invalidate cookie login";
   \webdb\test\utils\test_server_setting("change_remote_addr","192.168.0.21","initialising ipv4 remote address on request back end");
   $response=\webdb\test\security\utils\test_user_login();
@@ -281,6 +287,7 @@ function test_remote_address() # assumes ::1 and 192.168.0.0/16 are in system ip
     $test_success=false;
   }
   \webdb\test\utils\test_result_message($test_case_msg,$test_success);
+  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~
   $test_case_msg="if the third octet of the user's IPv4 remote address changes, force password login";
   \webdb\test\utils\test_server_setting("change_remote_addr","192.168.1.22","changing third octet of ipv4 remote address on request back end");
   $response=\webdb\test\utils\wget($settings["app_web_root"]);
@@ -289,11 +296,12 @@ function test_remote_address() # assumes ::1 and 192.168.0.0/16 are in system ip
   {
     $test_success=false;
   }
-  if (\webdb\test\utils\compare_template_exluding_percents("login_form",$response)==false)
+  if (\webdb\test\utils\compare_template("login_form",$response)==false)
   {
     $test_success=false;
   }
   \webdb\test\utils\test_result_message($test_case_msg,$test_success);
+  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~
   $test_case_msg="if the second octet of the user's IPv4 remote address changes, force password login";
   $response=\webdb\test\security\utils\test_user_login();
   $test_success=true;
@@ -310,11 +318,12 @@ function test_remote_address() # assumes ::1 and 192.168.0.0/16 are in system ip
   {
     $test_success=false;
   }
-  if (\webdb\test\utils\compare_template_exluding_percents("login_form",$response)==false)
+  if (\webdb\test\utils\compare_template("login_form",$response)==false)
   {
     $test_success=false;
   }
   \webdb\test\utils\test_result_message($test_case_msg,$test_success);
+  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~
   $test_case_msg="if the first octet of the user's IPv4 remote address changes, force password login";
   $response=\webdb\test\security\utils\test_user_login();
   $test_success=true;
@@ -331,11 +340,12 @@ function test_remote_address() # assumes ::1 and 192.168.0.0/16 are in system ip
   {
     $test_success=false;
   }
-  if (\webdb\test\utils\compare_template_exluding_percents("login_form",$response)==false)
+  if (\webdb\test\utils\compare_template("login_form",$response)==false)
   {
     $test_success=false;
   }
   \webdb\test\utils\test_result_message($test_case_msg,$test_success);
+  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~
   $test_case_msg="fail password and cookie login if remote address isn't whitelisted";
   $test_settings=array();
   $test_settings["change_remote_addr"]="193.169.1.22";
@@ -348,6 +358,7 @@ function test_remote_address() # assumes ::1 and 192.168.0.0/16 are in system ip
     $test_success=false;
   }
   \webdb\test\utils\test_result_message($test_case_msg,$test_success);
+  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~
   $test_case_msg="login successfully if remote address is added to whitelist";
   $test_settings=array();
   $test_settings["change_remote_addr"]="193.169.1.22";
@@ -360,6 +371,7 @@ function test_remote_address() # assumes ::1 and 192.168.0.0/16 are in system ip
     $test_success=false;
   }
   \webdb\test\utils\test_result_message($test_case_msg,$test_success);
+  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~
   $test_case_msg="fail password and cookie login if remote address is blacklisted";
   $test_settings=array();
   $test_settings["change_remote_addr"]="193.169.1.22";
@@ -393,16 +405,17 @@ function test_admin_login()
     $test_success=false;
   }
   \webdb\test\utils\test_result_message($test_case_msg,$test_success);
+  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~
   $test_case_msg="test that admin login fails when remote address changes to non-whitelisted address (and password login required)";
   \webdb\test\utils\test_server_setting("change_remote_addr",$test_address,"reinitialising remote address without adding to admin whitelist on request back end");
   $response=\webdb\test\utils\wget($settings["app_web_root"]);
   $test_success=true;
-  if (\webdb\test\utils\compare_template_exluding_percents("admin_address_whitelist_error",$response)==false)
+  if (\webdb\test\utils\compare_template("admin_address_whitelist_error",$response)==false)
   {
     $test_success=false;
   }
   $response=\webdb\test\utils\wget($settings["app_web_root"]);
-  if (\webdb\test\utils\compare_template_exluding_percents("login_form",$response)==false)
+  if (\webdb\test\utils\compare_template("login_form",$response)==false)
   {
     $test_success=false;
   }
@@ -449,6 +462,111 @@ function test_login_cookie_max_age()
   \webdb\test\security\utils\update_test_user($field_values);
   $response=\webdb\test\utils\wget($settings["app_web_root"]);
   if (\webdb\test\security\utils\check_authentication_status($response)==true)
+  {
+    $test_success=false;
+  }
+  \webdb\test\utils\test_result_message($test_case_msg,$test_success);
+  \webdb\test\utils\test_cleanup();
+}
+
+#####################################################################################################
+
+function test_login_attempt_lockout()
+{
+  global $settings;
+  $test_case_msg="lockout user if too many wrong passwords tried";
+  $test_success=true;
+  $field_values=\webdb\test\security\utils\output_user_field_values("admin");
+  $params=array();
+  $params["login_username"]="admin";
+  $params["login_password"]="bad_password";
+  for ($i=1;$i<=$settings["max_login_attempts"];$i++)
+  {
+    $params["csrf_token"]=\webdb\test\security\utils\get_csrf_token();
+    $response=\webdb\test\utils\wpost($settings["app_web_root"],$params);
+    if (\webdb\test\security\utils\check_authentication_status($response)==true)
+    {
+      $test_success=false;
+    }
+  }
+  $params["csrf_token"]=\webdb\test\security\utils\get_csrf_token();
+  $response=\webdb\test\utils\wpost($settings["app_web_root"],$params);
+  if (\webdb\test\utils\compare_template("lockout_error",$response)==false)
+  {
+    $test_success=false;
+  }
+  \webdb\test\utils\test_result_message($test_case_msg,$test_success);
+  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  $test_case_msg="after lockout, check that password and cookie logins are invalidated";
+  $test_success=true;
+  $user_record=\webdb\test\security\utils\get_test_user($field_values);
+  if (($user_record["pw_hash"]<>"*") or ($user_record["login_cookie"]<>"*"))
+  {
+    $test_success=false;
+  }
+  $response=\webdb\test\security\utils\test_user_login(false,false);
+  if (\webdb\test\security\utils\check_authentication_status($response)==true)
+  {
+    $test_success=false;
+  }
+  \webdb\test\utils\test_result_message($test_case_msg,$test_success);
+  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  $test_case_msg="after lockout, ensure page dispatch fails";
+  $test_success=true;
+  $response=\webdb\test\security\utils\admin_login();
+  if (\webdb\test\security\utils\check_authentication_status($response)==true)
+  {
+    $test_success=false;
+  }
+  $test_url=$settings["app_web_root"]."?page=users";
+  $response=\webdb\test\utils\wget($test_url);
+  if (\webdb\test\security\utils\check_authentication_status($response)==true)
+  {
+    $test_success=false;
+  }
+  \webdb\test\utils\test_result_message($test_case_msg,$test_success);
+  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  $test_case_msg="after lockout, ensure ajax dispatch fails";
+  $test_success=true;
+  $response=\webdb\test\security\utils\admin_login();
+  if (\webdb\test\security\utils\check_authentication_status($response)==true)
+  {
+    $test_success=false;
+  }
+  $test_url=$settings["app_web_root"]."?page=user_groups_subform&cmd=edit&id=1,1&ajax&subform=user_groups_subform&parent=users";
+  $params=array();
+  $params["login_username"]="admin";
+  $params["login_password"]=$field_values["password"];
+  $params["edit_control:user_groups_subform:1,1:group_id"]=1;
+  $params["csrf_token"]=\webdb\test\security\utils\get_csrf_token();
+  $response=\webdb\test\utils\wpost($test_url,$params);
+  if (\webdb\test\security\utils\check_authentication_status($response)==true)
+  {
+    $test_success=false;
+  }
+  if (\webdb\test\utils\compare_template("lockout_first_time_message",$response)==false)
+  {
+    $test_success=false;
+  }
+  \webdb\test\utils\test_result_message($test_case_msg,$test_success);
+  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  $test_case_msg="after lockout, ensure * password fails";
+  $test_success=true;
+  $response=\webdb\test\security\utils\admin_login();
+  if (\webdb\test\security\utils\check_authentication_status($response)==true)
+  {
+    $test_success=false;
+  }
+  $params=array();
+  $params["login_username"]="admin";
+  $params["login_password"]="*";
+  $params["csrf_token"]=\webdb\test\security\utils\get_csrf_token();
+  $response=\webdb\test\utils\wpost($settings["app_web_root"],$params);
+  if (\webdb\test\security\utils\check_authentication_status($response)==true)
+  {
+    $test_success=false;
+  }
+  if (\webdb\test\utils\compare_template("lockout_first_time_message",$response)==false)
   {
     $test_success=false;
   }

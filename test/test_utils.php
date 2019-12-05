@@ -465,7 +465,7 @@ function extract_text($text,$delim1,$delim2)
 
 #####################################################################################################
 
-function compare_template_exluding_percents($template,$response)
+function compare_template($template,$response)
 {
   if ($response=="")
   {
@@ -502,9 +502,9 @@ function compare_template_exluding_percents($template,$response)
 
 #####################################################################################################
 
-function compare_form_template_exluding_percents($template,$response)
+function compare_form_template($template,$response)
 {
-  return \webdb\test\utils\compare_template_exluding_percents("forms".DIRECTORY_SEPARATOR.$template,$response);
+  return \webdb\test\utils\compare_template("forms".DIRECTORY_SEPARATOR.$template,$response);
 }
 
 #####################################################################################################

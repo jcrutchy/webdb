@@ -112,6 +112,10 @@ function login_failure($user_record,$message)
   \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
   \webdb\utils\webdb_unsetcookie("login_cookie");
   \webdb\users\auth_log($user_record,"FAILED",$message);
+  if ($value_items["failed_login_count"]>$settings["max_login_attempts"])
+  {
+    \webdb\users\login_lockout($user_record);
+  }
   \webdb\utils\error_message($message);
 }
 
@@ -200,10 +204,6 @@ function login()
     if ($user_record["pw_reset_key"]<>"*")
     {
       \webdb\users\cancel_password_reset($user_record);
-    }
-    if ($user_record["failed_login_count"]>$settings["max_login_attempts"])
-    {
-      \webdb\users\login_lockout($user_record);
     }
     if (strlen($_POST["login_password"])>$settings["max_password_length"])
     {
