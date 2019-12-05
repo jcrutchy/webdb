@@ -1,5 +1,7 @@
 <?php
 
+$settings["app_name"]="WebDB";
+
 $settings["app_web_root"]="/".$settings["app_directory_name"]."/";
 $settings["app_web_resources"]=$settings["app_web_root"]."resources/";
 $settings["app_web_index"]=$settings["app_web_root"]."index.php";

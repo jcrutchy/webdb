@@ -13,23 +13,40 @@ function system_message($message)
     die;
   }
   $settings["unauthenticated_content"]=true;
-  $buf=ob_get_contents();
-  if (strlen($buf)<>0)
+  $buffer=ob_get_contents();
+  if (strlen($buffer)<>0)
   {
     ob_end_clean(); # discard buffer
   }
-  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # TODO: DEBUG INFO ONLY (SECURITY RISK) - COMMENT/REMOVE FOR PROD
-  $message.="<pre>--DEBUG--".PHP_EOL.htmlspecialchars(json_encode(debug_backtrace(),JSON_PRETTY_PRINT))."</pre>";
-  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  $message.=\webdb\utils\webdb_debug_backtrace();
   $settings["system_message"]=$message;
   die;
 }
 
 #####################################################################################################
 
+function webdb_debug_backtrace()
+{
+  global $settings;
+  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # TODO: DEBUG INFO ONLY (SECURITY RISK) - UNCOMMENT FOLLOWING LINE FOR PRODUCTION
+  #return "";
+  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  $backtrace=json_encode(debug_backtrace(),JSON_PRETTY_PRINT);
+  if (\webdb\cli\is_cli_mode()==true)
+  {
+    return $backtrace;
+  }
+  $params=array();
+  $params["backtrace"]=htmlspecialchars($backtrace);
+  return \webdb\utils\template_fill("debug_backtrace",$params);
+}
+
+#####################################################################################################
+
 function error_message($message)
 {
+  global $settings;
   if (isset($_GET["ajax"])==true)
   {
     $buf=ob_get_contents();
@@ -38,26 +55,35 @@ function error_message($message)
       ob_end_clean(); # discard buffer
     }
     $data=array();
+    $message.=\webdb\utils\webdb_debug_backtrace();
     $data["error"]=$message;
     $data=json_encode($data);
     $settings["system_message"]=$message;
     die;
   }
-  global $settings;
+  if (\webdb\cli\is_cli_mode()==true)
+  {
+    \webdb\utils\system_message($message);
+  }
   $params=array();
   $params["global_styles_modified"]=\webdb\utils\resource_modified_timestamp("global.css");
   $params["page_title"]=$settings["app_name"];
   $params["message"]=$message;
-  \webdb\utils\system_message(\webdb\utils\template_fill("error_message",$params));
+  $content=\webdb\utils\template_fill("error_message",$params);
+  \webdb\utils\system_message($content);
 }
 
 #####################################################################################################
 
-function debug_var_dump($data)
+function debug_var_dump($data,$backtrace=true)
 {
   global $settings;
   $settings["unauthenticated_content"]=true;
   var_dump($data);
+  if ($backtrace==true)
+  {
+    echo \webdb\utils\webdb_debug_backtrace();
+  }
   die;
 }
 
@@ -94,7 +120,6 @@ function webdb_unsetcookie($setting_key)
 function output_page($content,$title)
 {
   global $settings;
-  \webdb\csrf\generate_csrf_token();
   $page_params=array();
   $page_params["page_title"]=$title;
   $page_params["global_styles_modified"]=\webdb\utils\resource_modified_timestamp("global.css");

@@ -7,3 +7,29 @@ basic testing framework is found in webdb/test/test.php and is supported by func
 security-related tests are found in webdb/test/security.php (called in \webdb\test\run_tests function)
 
 to override something on the apache side of a test get/post request to an application, add a case to the \webdb\utils\load_test_settings function
+
+be sure to run each test in isolation (comment out all other tests)
+
+when performing http requests within the cli testing environment, by default a backtrace will be trimmed
+if a backtrace is required in a http response, add the following immediately before the requesting function:
+  global $settings; # if not already existing
+  $settings["test_include_backtrace"]=true; # DEBUG
+
+
+GENERAL TEST STRUCTURE (including multi-comparator):
+
+  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  $test_case_msg="description of test";
+  $test_success=true;
+  $response=\webdb\test\security\utils\test_user_login(); # example only
+  if (\webdb\test\security\utils\check_authentication_status($response)==false) # example only
+  {
+    $test_success=false;
+  }
+  $response=\webdb\test\security\utils\admin_login(); # example only
+  if (\webdb\test\security\utils\check_authentication_status($response)==false) # example only
+  {
+    $test_success=false;
+  }
+  \webdb\test\utils\test_result_message($test_case_msg,$test_success);
+  \webdb\test\utils\test_cleanup();

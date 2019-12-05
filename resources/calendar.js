@@ -67,7 +67,7 @@ function make_calendar(date_in_input,year,month,day)
   var calendar=document.getElementById("calendar_div");
   if (!calendar)
   {
-    alert("calendar div not found");
+    custom_alert("calendar div not found");
     return;
   }
   if (isNaN(day) && date_in_input)
@@ -119,7 +119,7 @@ function make_calendar(date_in_input,year,month,day)
   }
   else
   {
-    prev_month_link.onclick=function(){ alert("Unable to select year before 1900. Sorry."); };
+    prev_month_link.onclick=function(){ custom_alert("Unable to select year before 1900. Sorry."); };
     prev_month_link.title="Unable to select year before 1900. Sorry.";
   }
   var next_month_link=document.getElementById("calendar_next_month_link");
@@ -130,7 +130,7 @@ function make_calendar(date_in_input,year,month,day)
   }
   else
   {
-    next_month_link.onclick=function(){ alert("Unable to select year after 2200. Sorry."); };
+    next_month_link.onclick=function(){ custom_alert("Unable to select year after 2200. Sorry."); };
     next_month_link.title="Unable to select year after 2200. Sorry.";
   }
   var calendar_month_select=document.getElementById("calendar_month_select");
@@ -247,7 +247,7 @@ function calendar_select_date(year,month,day)
   }
   else
   {
-    alert("calendar_selected_input not set");
+    custom_alert("calendar_selected_input not set");
   }
   hide_calendar();
 }
@@ -264,7 +264,7 @@ function calendar_clear_input(year,month,day)
   }
   else
   {
-    alert("calendar_selected_input not set");
+    custom_alert("calendar_selected_input not set");
   }
   hide_calendar();
 }
@@ -299,7 +299,7 @@ function calendar_select_today()
   }
   else
   {
-    alert("calendar_selected_input not set");
+    custom_alert("calendar_selected_input not set");
   }
   hide_calendar();
 }

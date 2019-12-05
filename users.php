@@ -7,7 +7,6 @@ namespace webdb\users;
 function auth_dispatch()
 {
   global $settings;
-  \webdb\csrf\check_csrf_token();
   if (isset($_GET["logout"])==true)
   {
     \webdb\users\logout();
@@ -138,8 +137,6 @@ function auth_log($user_record,$status,$message)
   \webdb\users\obfuscate_hashes($user_record);
   $content=date("Y-m-d H:i:s")."\t".$username."\t".$status."\t".json_encode($user_record);
   $settings["logs"]["auth"][]=$content;
-  #$log_filename=$settings["auth_log_path"]."auth_".date("Ymd").".log";
-  #file_put_contents($log_filename,$content,FILE_APPEND);
 }
 
 #####################################################################################################
@@ -219,6 +216,7 @@ function login()
       {
         \webdb\users\login_failure($user_record,"error: incorrect password");
       }
+      unset($_POST["login_password"]);
       \webdb\users\initialise_login_cookie($user_record);
       $settings["user_record"]=$user_record;
       \webdb\users\auth_log($user_record,"PASSWORD_LOGIN","");
@@ -277,9 +275,10 @@ function login()
     }
   }
   \webdb\utils\webdb_unsetcookie("login_cookie");
+  \webdb\csrf\generate_csrf_token();
   $content=\webdb\utils\template_fill("login_form",$login_form_params);
-  $buf=ob_get_contents();
-  if (strlen($buf)<>0)
+  $buffer=ob_get_contents();
+  if (strlen($buffer)<>0)
   {
     ob_end_clean(); # discard buffer
   }

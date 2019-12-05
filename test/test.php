@@ -16,16 +16,22 @@ function run_tests()
     \webdb\test\utils\test_info_message("testing terminated without changes to database");
     die;
   }
-  \webdb\test\utils\delete_test_config();
-  \webdb\test\utils\initialize_webdb_schema();
+  \webdb\test\utils\test_cleanup();
   $settings["test_user_agent"]="webdb testing framework";
   \webdb\test\utils\test_info_message("CHECKING SETTINGS");
   \webdb\test\check_webdb_settings();
   \webdb\test\check_app_settings();
   \webdb\test\check_sql_settings();
   \webdb\test\utils\test_success_message("SETTINGS CHECK OK");
-  require_once("test".DIRECTORY_SEPARATOR."security.php");
-  \webdb\test\security\start();
+  if (\webdb\utils\is_app_mode()==true)
+  {
+    require_once("test".DIRECTORY_SEPARATOR."security.php");
+    \webdb\test\security\start();
+  }
+  else
+  {
+    \webdb\test\utils\test_info_message("security testing not required for display of framework static home page");
+  }
   \webdb\test\utils\test_cleanup();
 }
 

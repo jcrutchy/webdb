@@ -511,53 +511,56 @@ function load_form_defs()
     $form_name=basename($fn,".".$data["form_type"]);
     if (isset($settings["forms"][$form_name])==true)
     {
-      \webdb\utils\error_message("error: form '".$form_name."' already exsits: ".$fn);
+      \webdb\utils\error_message("error: form '".$form_name."' already exists: ".$fn);
     }
     $settings["forms"][$form_name]=array_merge($default,$data);
   }
-  $app_file_list=scandir($settings["app_forms_path"]);
-  for ($i=0;$i<count($app_file_list);$i++)
+  if (\webdb\utils\is_app_mode()==true)
   {
-    $fn=$app_file_list[$i];
-    if (($fn==".") or ($fn==".."))
+    $app_file_list=scandir($settings["app_forms_path"]);
+    for ($i=0;$i<count($app_file_list);$i++)
     {
-      continue;
+      $fn=$app_file_list[$i];
+      if (($fn==".") or ($fn==".."))
+      {
+        continue;
+      }
+      $full=$settings["app_forms_path"].$fn;
+      $data=trim(file_get_contents($full));
+      $data=json_decode($data,true);
+      if (isset($data["form_version"])==false)
+      {
+        \webdb\utils\error_message("error: invalid app form def (missing form_version): ".$fn);
+      }
+      if ($data["form_version"]<>$settings["form_defaults"][$data["form_type"]]["form_version"])
+      {
+        \webdb\utils\error_message("error: invalid form def (incompatible version number): ".$fn);
+      }
+      if (isset($data["form_type"])==false)
+      {
+        \webdb\utils\error_message("error: invalid app form def (missing form_type): ".$fn);
+      }
+      if (isset($data["enabled"])==false)
+      {
+        \webdb\utils\error_message("error: invalid app form def (missing enabled): ".$fn);
+      }
+      if ($data["enabled"]==false)
+      {
+        continue;
+      }
+      if (isset($settings["form_defaults"][$data["form_type"]])==false)
+      {
+        \webdb\utils\error_message("error: invalid form def (invalid form_type): ".$fn);
+      }
+      $data["filename"]=$full;
+      $default=$settings["form_defaults"][$data["form_type"]];
+      $form_name=basename($fn,".".$data["form_type"]);
+      if (isset($settings["forms"][$form_name])==true)
+      {
+        \webdb\utils\error_message("error: form '".$form_name."' already exists: ".$fn);
+      }
+      $settings["forms"][$form_name]=array_merge($default,$data);
     }
-    $full=$settings["app_forms_path"].$fn;
-    $data=trim(file_get_contents($full));
-    $data=json_decode($data,true);
-    if (isset($data["form_version"])==false)
-    {
-      \webdb\utils\error_message("error: invalid app form def (missing form_version): ".$fn);
-    }
-    if ($data["form_version"]<>$settings["form_defaults"][$data["form_type"]]["form_version"])
-    {
-      \webdb\utils\error_message("error: invalid form def (incompatible version number): ".$fn);
-    }
-    if (isset($data["form_type"])==false)
-    {
-      \webdb\utils\error_message("error: invalid app form def (missing form_type): ".$fn);
-    }
-    if (isset($data["enabled"])==false)
-    {
-      \webdb\utils\error_message("error: invalid app form def (missing enabled): ".$fn);
-    }
-    if ($data["enabled"]==false)
-    {
-      continue;
-    }
-    if (isset($settings["form_defaults"][$data["form_type"]])==false)
-    {
-      \webdb\utils\error_message("error: invalid form def (invalid form_type): ".$fn);
-    }
-    $data["filename"]=$full;
-    $default=$settings["form_defaults"][$data["form_type"]];
-    $form_name=basename($fn,".".$data["form_type"]);
-    if (isset($settings["forms"][$form_name])==true)
-    {
-      \webdb\utils\error_message("error: form '".$form_name."' already exsits: ".$fn);
-    }
-    $settings["forms"][$form_name]=array_merge($default,$data);
   }
   foreach ($settings["forms"] as $form_name => $data)
   {
@@ -1919,6 +1922,10 @@ function process_form_data_fields($form_config,$post_override=false)
   }
   foreach ($form_config["control_types"] as $field_name => $control_type)
   {
+    if ($form_config["visible"][$field_name]==false)
+    {
+      continue;
+    }
     switch ($control_type)
     {
       case "lookup":

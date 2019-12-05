@@ -105,35 +105,23 @@ function get_test_user($field_values=false)
 
 #####################################################################################################
 
-function check_authentication_status($response,$username="test_user")
+function check_authentication_status($response)
 {
   global $settings;
-  if (isset($settings["test_cookie_jar"])==false)
+  $value=\webdb\test\utils\extract_cookie_value("login_cookie");
+  if ($value===false)
   {
     return false;
   }
-  if (isset($settings["test_cookie_jar"]["webdb_login"])==false)
-  {
-    return false;
-  }
-  $value=\webdb\test\utils\extract_cookie_value($settings["test_cookie_jar"]["webdb_login"]);
-  if ($value=="deleted")
-  {
-    return false;
-  }
-  if (isset($settings["test_cookie_jar"][$settings["csrf_cookie"]])==false)
-  {
-    return false;
-  }
-  $value=\webdb\test\utils\extract_cookie_value($settings["test_cookie_jar"][$settings["csrf_cookie"]]);
-  if ($value=="deleted")
+  $username=\webdb\test\utils\extract_cookie_value("username_cookie");
+  if ($username===false)
   {
     return false;
   }
   $params=array();
   $params["username"]=$username;
-  $authenticated_status=\webdb\utils\template_fill("global".DIRECTORY_SEPARATOR."authenticated_status",$params);
-  $unauthenticated_status=\webdb\utils\template_fill("global".DIRECTORY_SEPARATOR."unauthenticated_status");
+  $authenticated_status=\webdb\utils\template_fill("authenticated_status",$params);
+  $unauthenticated_status=\webdb\utils\template_fill("unauthenticated_status");
   if (strpos($response,$authenticated_status)!==false)
   {
     return true;
@@ -215,7 +203,16 @@ function parse_get_params()
 
 #####################################################################################################
 
-function test_user_login($field_values=false)
+function get_csrf_token()
+{
+  global $settings;
+  $response=\webdb\test\utils\wget($settings["app_web_root"]);
+  return \webdb\test\security\utils\extract_csrf_token($response);
+}
+
+#####################################################################################################
+
+function test_user_login($field_values=false,$reset_user=true)
 {
   global $settings;
   $settings["test_user_agent"]=\webdb\test\security\utils\TEST_USER_AGENT;
@@ -223,16 +220,14 @@ function test_user_login($field_values=false)
   {
     $field_values=\webdb\test\security\utils\output_user_field_values();
   }
-  if ($field_values["username"]<>"admin")
+  if (($field_values["username"]<>"admin") and ($reset_user==true))
   {
     \webdb\test\security\utils\start_test_user($field_values);
   }
-  $response=\webdb\test\utils\wget($settings["app_web_root"]);
-  $csrf_token=\webdb\test\security\utils\extract_csrf_token($response);
   $params=array();
   $params["login_username"]=$field_values["username"];
   $params["login_password"]=$field_values["password"];
-  $params["csrf_token"]=$csrf_token;
+  $params["csrf_token"]=\webdb\test\security\utils\get_csrf_token();
   return \webdb\test\utils\wpost($settings["app_web_root"],$params);
 }
 

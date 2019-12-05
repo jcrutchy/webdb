@@ -11,6 +11,8 @@ function start()
   \webdb\test\utils\test_info_message("STARTING WEBDB SECURITY TESTS...");
   $settings["test_error_handler"]="\\webdb\\test\\security\\utils\\security_test_error_callback";
 
+  #$settings["test_include_backtrace"]=true; # use for debugging problem test (prevents trimming of backtrace in responses)
+
   #\webdb\test\security\utils\test_user_login();
   #$routes=array();
   #$routes=\webdb\test\security\utils\parse_routes("",$routes);
@@ -20,12 +22,17 @@ function start()
   #die;
 
   \webdb\test\security\test_user_agent();
+  $settings["test_user_agent"]=\webdb\test\security\utils\TEST_USER_AGENT;
   \webdb\test\security\test_login_csrf_token();
   \webdb\test\security\test_remote_address();
   \webdb\test\security\test_admin_login();
+  \webdb\test\security\test_case_insensitive_login();
+  \webdb\test\security\test_login_cookie_max_age();
+
+  # use /webdb/doc/test_app/index.php as a testing platform (start by doing index.php init_app_schema)
+
   \webdb\test\utils\test_cleanup();
   \webdb\test\utils\test_info_message("FINISHED SECURITY TESTS");
-  # use /webdb/doc/test_app/index.php as a testing platform (start by doing index.php init_app_schema)
 }
 
 #####################################################################################################
@@ -83,21 +90,15 @@ function test_user_agent()
     {
       $returned_error=true;
       $error_suffix=" ".trim(substr($content,strlen($user_agent_error)));
-      $parts=explode("<pre>",$error_suffix);
-      $error_suffix=array_shift($parts);
     }
     $test_success=false;
     if ($error_expected==$returned_error)
     {
       $test_success=true;
     }
-    else
-    {
-      var_dump($response);
-    }
     \webdb\test\utils\test_result_message($test_case_msg.$error_suffix,$test_success);
   }
-  # test user agent change
+  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~
   $test_case_msg="if user agent changes, invalidate cookie login (require password)";
   $response=\webdb\test\security\utils\test_user_login();
   $test_success=true;
@@ -125,29 +126,56 @@ function test_user_agent()
 function test_login_csrf_token()
 {
   global $settings;
+  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~
   $test_case_msg="unable to login with username and password via post request without csrf token";
-  \webdb\test\security\utils\start_test_user();
-  $params=array();
-  $params["login_username"]="test_user";
-  $params["login_password"]="password";
-  $response=\webdb\test\utils\wpost($settings["app_web_root"],$params);
   $test_success=true;
+  $field_values=\webdb\test\security\utils\output_user_field_values();
+  \webdb\test\security\utils\start_test_user($field_values);
+  $params=array();
+  $params["login_username"]=$field_values["username"];
+  $params["login_password"]=$field_values["password"];
+  $response=\webdb\test\utils\wpost($settings["app_web_root"],$params);
   if (\webdb\test\utils\compare_template_exluding_percents("csrf_error",$response)==false)
   {
     $test_success=false;
   }
   \webdb\test\utils\test_result_message($test_case_msg,$test_success);
+  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~
   $test_case_msg="able to successfully login with username and password via post request with valid csrf token and hash";
-  $response=\webdb\test\security\utils\test_user_login();
   $test_success=true;
+  $response=\webdb\test\security\utils\test_user_login();
   if (\webdb\test\security\utils\check_authentication_status($response)==false)
   {
     $test_success=false;
   }
   \webdb\test\utils\test_result_message($test_case_msg,$test_success);
+  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~
   $test_case_msg="after successful cookie login, post request without a csrf token to insert a new user fails with csrf error";
-  $response=\webdb\test\utils\wget($settings["app_web_root"]);
   $test_success=true;
+  $response=\webdb\test\security\utils\admin_login();
+  if (\webdb\test\security\utils\check_authentication_status($response)==false)
+  {
+    $test_success=false;
+  }
+  \webdb\test\utils\test_result_message($test_case_msg." [stage 1]",$test_success);
+  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  $test_success=true;
+  $params=array();
+  $params["form_cmd[insert_confirm]"]="Insert User";
+  $params["enabled"]="checked";
+  $params["username"]="test_user2";
+  $params["fullname"]="test_user2";
+  $params["email"]="test_user2@localhost.local";
+  $response=\webdb\test\utils\wpost($settings["app_web_root"]."?page=users&cmd=edit",$params);
+  if (\webdb\test\utils\compare_template_exluding_percents("csrf_error",$response)==false)
+  {
+    $test_success=false;
+  }
+  \webdb\test\utils\test_result_message($test_case_msg." [stage 2]",$test_success);
+  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  $test_case_msg="after successful cookie login, post request with valid csrf token to insert a new user succeeds without csrf error";
+  $test_success=true;
+  $response=\webdb\test\security\utils\admin_login();
   if (\webdb\test\security\utils\check_authentication_status($response)==false)
   {
     $test_success=false;
@@ -156,29 +184,56 @@ function test_login_csrf_token()
   $params["form_cmd[insert_confirm]"]="Insert User";
   $params["enabled"]="checked";
   $params["username"]="test_user2";
+  $params["fullname"]="test_user2";
   $params["email"]="test_user2@localhost.local";
+  $params["csrf_token"]=\webdb\test\security\utils\get_csrf_token();
   $response=\webdb\test\utils\wpost($settings["app_web_root"]."?page=users&cmd=edit",$params);
-  if (\webdb\test\utils\compare_template_exluding_percents("csrf_error",$response)==false)
+  if (\webdb\test\utils\compare_form_template_exluding_percents("list",$response)==false)
+  {
+    $test_success=false;
+  }
+  if (\webdb\test\utils\compare_template_exluding_percents("csrf_error",$response)==true)
   {
     $test_success=false;
   }
   \webdb\test\utils\test_result_message($test_case_msg,$test_success);
+  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~
   $test_case_msg="after successful cookie login, ajax post request without a csrf token to edit an existing user fails with csrf error";
+  $test_success=true;
   $params=array();
   $params["edit_control:user_groups_subform:1,1:group_id"]=1;
-  $response=\webdb\test\utils\wpost($settings["app_web_root"]."?page=user_groups_subform&cmd=edit&id=1&ajax",$params);
-  var_dump($response);
-  die;
+  $test_url=$settings["app_web_root"]."?page=user_groups_subform&cmd=edit&id=1,1&ajax&subform=user_groups_subform&parent=users";
+  $response=\webdb\test\utils\wpost($test_url,$params);
   if (\webdb\test\utils\compare_template_exluding_percents("csrf_error",$response)==false)
   {
     $test_success=false;
   }
   \webdb\test\utils\test_result_message($test_case_msg,$test_success);
+  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  $test_case_msg="after successful cookie login, ajax post request with valid csrf token to edit an existing user succeeds without csrf error";
+  $test_success=true;
+  $params["csrf_token"]=\webdb\test\security\utils\get_csrf_token();
+  $response=\webdb\test\utils\wpost($test_url,$params);
+  if (\webdb\test\utils\compare_template_exluding_percents("csrf_error",$response)==true)
+  {
+    $test_success=false;
+  }
+  \webdb\test\utils\test_result_message($test_case_msg,$test_success);
+  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~
   $test_case_msg="throw error if user csrf token exceeds max age";
+  $test_success=true;
+  $response=\webdb\test\security\utils\test_user_login();
+  if (\webdb\test\security\utils\check_authentication_status($response)==false)
+  {
+    $test_success=false;
+  }
+  $params=array();
+  $params["edit_control:user_groups_subform:1,1:group_id"]=1;
+  $params["csrf_token"]=\webdb\test\security\utils\get_csrf_token();
   $field_values=\webdb\test\security\utils\output_user_field_values();
-  $field_values["csrf_token_time"]=time()+24*60*60+1;
+  $field_values["csrf_token_time"]=time()-$settings["max_csrf_token_age"]-1;
   \webdb\test\security\utils\update_test_user($field_values);
-  $response=\webdb\test\utils\wpost($settings["app_web_root"]."?page=user_groups_subform&cmd=edit&id=1&ajax",$params);
+  $response=\webdb\test\utils\wpost($test_url,$params);
   if (\webdb\test\utils\compare_template_exluding_percents("csrf_error",$response)==false)
   {
     $test_success=false;
@@ -348,6 +403,52 @@ function test_admin_login()
   }
   $response=\webdb\test\utils\wget($settings["app_web_root"]);
   if (\webdb\test\utils\compare_template_exluding_percents("login_form",$response)==false)
+  {
+    $test_success=false;
+  }
+  \webdb\test\utils\test_result_message($test_case_msg,$test_success);
+  \webdb\test\utils\test_cleanup();
+}
+
+#####################################################################################################
+
+function test_case_insensitive_login()
+{
+  global $settings;
+  $test_case_msg="test that login is successful with case insensitive username";
+  $test_success=true;
+  $response=\webdb\test\security\utils\test_user_login();
+  if (\webdb\test\security\utils\check_authentication_status($response)==false)
+  {
+    $test_success=false;
+  }
+  $field_values=\webdb\test\security\utils\output_user_field_values("Test_User",1,"",0,false);
+  $response=\webdb\test\security\utils\test_user_login($field_values,false);
+  if (\webdb\test\security\utils\check_authentication_status($response)==false)
+  {
+    $test_success=false;
+  }
+  \webdb\test\utils\test_result_message($test_case_msg,$test_success);
+  \webdb\test\utils\test_cleanup();
+}
+
+#####################################################################################################
+
+function test_login_cookie_max_age()
+{
+  global $settings;
+  $test_case_msg="throw error if user login cookie exceeds max age";
+  $test_success=true;
+  $response=\webdb\test\security\utils\test_user_login();
+  if (\webdb\test\security\utils\check_authentication_status($response)==false)
+  {
+    $test_success=false;
+  }
+  $field_values=\webdb\test\security\utils\output_user_field_values();
+  $field_values["login_setcookie_time"]=time()-$settings["max_cookie_age"]-1;
+  \webdb\test\security\utils\update_test_user($field_values);
+  $response=\webdb\test\utils\wget($settings["app_web_root"]);
+  if (\webdb\test\security\utils\check_authentication_status($response)==true)
   {
     $test_success=false;
   }

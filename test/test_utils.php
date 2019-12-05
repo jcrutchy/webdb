@@ -267,10 +267,27 @@ function clear_cookie_jar()
 
 #####################################################################################################
 
-function extract_cookie_value($cookie)
+function extract_cookie_value($setting_key)
 {
+  global $settings;
+  if (isset($settings["test_cookie_jar"])==false)
+  {
+    return false;
+  }
+  $key=$settings[$setting_key];
+  if (isset($settings["test_cookie_jar"][$key])==false)
+  {
+    return false;
+  }
+  $cookie=$settings["test_cookie_jar"][$key];
   $parts=explode(";",$cookie);
-  return array_shift($parts);
+  $value=array_shift($parts);
+  if ($value=="deleted")
+  {
+    unset($settings["test_cookie_jar"][$key]);
+    return false;
+  }
+  return $value;
 }
 
 #####################################################################################################
@@ -287,9 +304,10 @@ function construct_cookie_header()
     return "";
   }
   $cookies=array();
-  foreach ($settings["test_cookie_jar"] as $key => $value)
+  foreach ($settings["test_cookie_jar"] as $key => $cookie)
   {
-    $value=\webdb\test\utils\extract_cookie_value($value);
+    $parts=explode(";",$cookie);
+    $value=array_shift($parts);
     if ($value=="deleted")
     {
       unset($settings["test_cookie_jar"][$key]);
@@ -387,6 +405,7 @@ function process_redirect($response,$headers)
 
 function submit_request($request)
 {
+  global $settings;
   #\webdb\test\utils\test_info_message("ATTEMPTING TO CONNECT TO SERVER AND SUBMIT REQUEST...");
   $errno=0;
   $errstr="";
@@ -405,8 +424,23 @@ function submit_request($request)
   fclose($fp);
   #\webdb\test\utils\test_info_message("REQUEST COMPLETED");
   #\webdb\test\utils\test_dump_message($response);
-  $parts=explode("<pre>--DEBUG--",$response);
-  $response=array_shift($parts);
+  $template=\webdb\utils\template_fill("debug_backtrace");
+  $parts=explode("%%",$template);
+  $prefix=array_shift($parts);
+  $parts=explode($prefix,$response);
+  if (isset($settings["test_include_backtrace"])==true)
+  {
+    $n=count($parts);
+    if ($n>1)
+    {
+      $parts[$n-1]=html_entity_decode($parts[$n-1]);
+      $response=implode($prefix,$parts);
+    }
+  }
+  else
+  {
+    $response=array_shift($parts);
+  }
   return $response;
 }
 
@@ -433,6 +467,14 @@ function extract_text($text,$delim1,$delim2)
 
 function compare_template_exluding_percents($template,$response)
 {
+  if ($response=="")
+  {
+    return false;
+  }
+  if ($response==$template)
+  {
+    return true;
+  }
   $template_content=\webdb\utils\template_fill($template);
   $parts=explode("%%",$template_content);
   $excluded=array();
@@ -445,12 +487,24 @@ function compare_template_exluding_percents($template,$response)
   }
   for ($i=0;$i<count($excluded);$i++)
   {
-    if (strpos($response,$excluded[$i])===false)
+    $needle=trim($excluded[$i]);
+    if ($needle=="")
+    {
+      continue;
+    }
+    if (strpos($response,$needle)===false)
     {
       return false;
     }
   }
   return true;
+}
+
+#####################################################################################################
+
+function compare_form_template_exluding_percents($template,$response)
+{
+  return \webdb\test\utils\compare_template_exluding_percents("forms".DIRECTORY_SEPARATOR.$template,$response);
 }
 
 #####################################################################################################
