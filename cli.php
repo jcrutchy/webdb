@@ -83,6 +83,7 @@ function cli_dispatch()
       {
         $filename=$form_data["filename"];
         unset($form_data["filename"]);
+        unset($form_data["form_name"]);
         $data=json_encode($form_data,JSON_PRETTY_PRINT);
         if ($data===false)
         {

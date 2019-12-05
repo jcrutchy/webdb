@@ -342,6 +342,11 @@ th.list_controls_head
     padding-bottom: 10px;
   }
 
+.list_data_table table
+  {
+    max-width: 100% !important;
+  }
+
 .edit_record_table
   {
     width: 100%;

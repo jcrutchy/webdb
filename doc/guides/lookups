@@ -1,9 +1,17 @@
+you can include multiple fieldnames in the display_field value (comma-delimited)
+by default they will be displayed using the value of the \webdb\index\LOOKUP_DISPLAY_FIELD_DELIM constant,
+but you can override this by adding a display_format element to the lookup field section in your form list file
+the display_format value must be a value format string to be passed as the first argument to the PHP vsprintf function
+(refer to https://www.php.net/manual/en/function.vsprintf.php for more details)
+
+
     "lookups": {
         "inventory_item_id": {
             "database": "inventory_db",
             "table": "inventory_items",
             "key_field": "inventory_item_id",
             "display_field": "item_no,item_name",
+            "display_format": "%s - %s",
             "lookup_sql_file": "",
         }
     },

@@ -70,6 +70,5 @@
     "link_table": "",
     "link_fields": [],
     "default_filter": "",
-    "filter_options": [],
-    "form_name": "groups"
+    "filter_options": []
 }

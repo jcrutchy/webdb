@@ -77,6 +77,5 @@
     "link_table": "",
     "link_fields": [],
     "default_filter": "",
-    "filter_options": [],
-    "form_name": "group_users_subform"
+    "filter_options": []
 }

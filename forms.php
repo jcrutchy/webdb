@@ -773,6 +773,14 @@ function lookup_field_display_value($lookup_config,$lookup_record)
     }
     $display_values[]=$lookup_record[$display_field_name];
   }
+  if (isset($lookup_config["display_format"])==true)
+  {
+    $format=trim($lookup_config["display_format"]);
+    if ($format<>"")
+    {
+      return vsprintf($format,$display_values);
+    }
+  }
   return implode(\webdb\index\LOOKUP_DISPLAY_FIELD_DELIM,$display_values);
 }
 

@@ -136,6 +136,5 @@
     "link_table": "",
     "link_fields": [],
     "default_filter": "",
-    "filter_options": [],
-    "form_name": "users"
+    "filter_options": []
 }
