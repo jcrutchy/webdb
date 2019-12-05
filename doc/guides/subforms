@@ -1,0 +1,4 @@
+
+
+when you are inserting a new record in a table from a subform insert row (via an ajax stub),
+you don't need to assign the subform link id from the parent form
