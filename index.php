@@ -177,6 +177,15 @@ else
 \webdb\csrf\check_csrf_token();
 \webdb\csrf\generate_csrf_token();
 
+if (isset($settings["controller_dispatch"])==true)
+{
+  if (function_exists($settings["controller_dispatch"])==true)
+  {
+    call_user_func($settings["controller_dispatch"]);
+    die;
+  }
+}
+
 if (isset($_GET["page"])==true)
 {
   \webdb\forms\form_dispatch($_GET["page"]);

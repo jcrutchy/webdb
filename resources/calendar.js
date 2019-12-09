@@ -241,8 +241,7 @@ function calendar_select_date(year,month,day)
   {
     iso_date_element=document.getElementById("iso_"+calendar_selected_input.id);
     iso_date_element.value=year+"-"+month+"-"+day;
-    var date=new Date(iso_date_element.value);
-    calendar_selected_input.value=format_date(date,document.getElementById("app_date_format").innerHTML);
+    calendar_selected_input.value=iso_to_formatted_date(iso_date_element.value);
     calendar_selected_input=undefined;
   }
   else
@@ -271,7 +270,7 @@ function calendar_clear_input(year,month,day)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function calendar_select_today()
+function get_iso_today_date()
 {
   var today=new Date();
   var day=today.getDate();
@@ -289,12 +288,27 @@ function calendar_select_today()
   {
     year+=1900;
   }
+  return year+"-"+month+"-"+day;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function iso_to_formatted_date(iso_date)
+{
+  var date=new Date(iso_date);
+  return format_date(date,document.getElementById("app_date_format").innerHTML);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function calendar_select_today()
+{
+  var iso_today=get_iso_today_date();
   if (calendar_selected_input)
   {
     iso_date_element=document.getElementById("iso_"+calendar_selected_input.id);
-    iso_date_element.value=year+"-"+month+"-"+day;
-    var date=new Date(iso_date_element.value);
-    calendar_selected_input.value=format_date(date,document.getElementById("app_date_format").innerHTML);
+    iso_date_element.value=iso_today;
+    calendar_selected_input.value=iso_to_formatted_date(iso_today);
     calendar_selected_input=undefined;
   }
   else
