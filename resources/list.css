@@ -132,7 +132,7 @@ th.list_controls_head
 .rotatediv
   {
     transform-origin: left top;
-    transform: translate(-1px,0px) rotate(315deg);
+    /*transform: translate(-1px,0px) rotate(315deg);*/
   }
 
 .rotatespan

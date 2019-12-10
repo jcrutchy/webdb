@@ -115,10 +115,6 @@ function form_dispatch($url_page)
               {
                 \webdb\stubs\list_edit($_GET["id"],$form_config);
               }
-              if ($form_config["url_page"]<>$form_config["edit_cmd_url_page"])
-              {
-                $form_config=\webdb\forms\get_form_config($form_config["edit_cmd_url_page"]);
-              }
               $data=\webdb\forms\edit_form($form_config,$_GET["id"]);
               $data["content"].=\webdb\forms\output_html_includes($form_config);
               $data["content"].=\webdb\forms\output_js_includes($form_config);
@@ -755,6 +751,13 @@ function list_row($form_config,$record,$column_format,$row_spans,$lookup_records
     $row_params["controls_min_width"]=$column_format["controls_min_width"];
   }
   $row_params["fields"]=$fields;
+  $row_params["last_group_border_width"]=$settings["list_border_width"];
+  $row_params["last_group_border_color"]=$settings["list_border_color"];
+  if ($column_format["group_border_last"]==true)
+  {
+    $row_params["last_group_border_width"]=$settings["list_group_border_width"];
+    $row_params["last_group_border_color"]=$settings["list_group_border_color"];
+  }
   return \webdb\forms\form_template_fill("list_row",$row_params);
 }
 
@@ -935,6 +938,13 @@ function list_row_controls($form_config,&$submit_fields,$operation,$column_forma
   $row_params["controls_min_width"]=$column_format["controls_min_width"];
   $row_params["fields"]=$fields;
   $row_params["hidden_fields"]=$hidden_fields;
+  $row_params["last_group_border_width"]=$settings["list_border_width"];
+  $row_params["last_group_border_color"]=$settings["list_border_color"];
+  if ($column_format["group_border_last"]==true)
+  {
+    $row_params["last_group_border_width"]=$settings["list_group_border_width"];
+    $row_params["last_group_border_color"]=$settings["list_group_border_color"];
+  }
   return \webdb\forms\form_template_fill("list_".$operation."_row",$row_params);
 }
 
@@ -1111,6 +1121,7 @@ function get_column_format_data($form_config)
   $data["left_group_borders"]=array();
   $data["right_group_borders"]=array();
   $data["caption_groups"]="";
+  $data["group_border_last"]=false;
   if (count($form_config["caption_groups"])>0)
   {
     $row_params=\webdb\forms\header_row($form_config);
@@ -1190,6 +1201,10 @@ function get_column_format_data($form_config)
     }
     $row_params["field_headers"]=$field_headers;
     $data["caption_groups"]=\webdb\forms\form_template_fill("group_header_row",$row_params);
+    if ($finished_group==true)
+    {
+      $data["group_border_last"]=true;
+    }
   }
   return $data;
 }
@@ -1262,6 +1277,7 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
     $header_params=array();
     $header_params["z_index"]=$z_index;
     $z_index--;
+    $header_params["rotate_div_translate"]=1;
     $header_params["field_name"]=$form_config["captions"][$field_name];
     $header_params["rotate_border_color"]=$settings["list_diagonal_border_color"];
     $header_params["left_border_color"]=$settings["list_border_color"];
@@ -1327,6 +1343,34 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
         $header_params["border_right"]=-1;
       }
     }
+    if (($column_format["group_border_last"]==true) and ($field_name==$last_visible_col))
+    {
+      $header_params["right_border_color"]=$settings["list_group_border_color"];
+      $header_params["right_border_width"]=$settings["list_group_border_width"];
+    }
+    $field_headers.=\webdb\forms\form_template_fill("list_field_header",$header_params);
+  }
+  if ($column_format["group_border_last"]==true)
+  {
+    $header_params=array();
+    $header_params["z_index"]=$z_index;
+    $header_params["rotate_div_translate"]=1;
+    if (strtolower($settings["browser_info"]["browser"])=="firefox")
+    {
+      $header_params["rotate_div_translate"]=2;
+    }
+    $header_params["field_name"]="";
+    $header_params["rotate_height"]=$column_format["rotate_height"];
+    $header_params["left_border_color"]=$settings["list_group_border_color"];
+    $header_params["left_border_width"]=$settings["list_group_border_width"];
+    $header_params["rotate_bottom_border"]=0;
+    $header_params["right_border_width"]=0;
+    $header_params["border_left"]=-1;
+    $header_params["border_right"]=0;
+    $header_params["rotate_span_width"]=$column_format["rotate_span_width"];
+    $header_params["right_border_color"]=$settings["list_border_color"];
+    $header_params["rotate_border_width"]=$settings["list_group_border_width"];
+    $header_params["rotate_border_color"]=$settings["list_group_border_color"];
     $field_headers.=\webdb\forms\form_template_fill("list_field_header",$header_params);
   }
   $head_params=\webdb\forms\header_row($form_config);
@@ -1865,12 +1909,10 @@ function output_editor($form_config,$record,$command,$verb,$id)
       $hidden_fields.=$row_params["field_value"];
     }
   }
-  $form_params=array();
+  $form_params=$form_config;
   $form_params["hidden_fields"]=$hidden_fields;
   $form_params["rows"]=$rows;
-  $form_params["url_page"]=$form_config["url_page"];
   $form_params["edit_cmd_id"]=$id;
-  $form_params["command_caption_noun"]=$form_config["command_caption_noun"];
   $form_params["confirm_caption"]=$verb." ".$form_config["command_caption_noun"];
   $content=\webdb\forms\form_template_fill(strtolower($command),$form_params);
   $title=$form_config["title"].": ".$command;
