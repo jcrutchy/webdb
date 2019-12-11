@@ -410,6 +410,7 @@ function get_subform_content($subform_config,$subform_link_field,$id,$list_only=
   $url_params=array();
   $url_params[$subform_link_field]=$id;
   $subform_config["parent_form_id"]=$id;
+  $subform_config["parent_form_config"]=$parent_form_config;
   $subform_params["subform"]=list_form_content($subform_config,$records,$url_params,$checklist_link_records);
   $subform_params["subform_style"]="";
   if ($parent_form_config!==false)
@@ -799,6 +800,12 @@ function output_readonly_field($field_params,$control_type,$form_config,$field_n
     case "lookup":
       $field_params["value"]="";
       $lookup_config=$form_config["lookups"][$field_name];
+      /*if ($field_name=="control_status_id")
+      {
+        #var_dump($lookup_records[$field_name]);
+        var_dump($lookup_config);
+        die;
+      }*/
       $key_field_name=$lookup_config["key_field"];
       $sibling_field_name=$lookup_config["sibling_field"];
       for ($i=0;$i<count($lookup_records[$field_name]);$i++)
@@ -895,7 +902,7 @@ function list_row_controls($form_config,&$submit_fields,$operation,$column_forma
   $row_params=array();
   $row_params["url_page"]=$form_config["url_page"];
   $row_params["check"]=\webdb\forms\check_column($form_config,"list_check_insert");
-  $lookup_records=lookup_records($form_config);
+  $lookup_records=lookup_records($form_config,false);
   $fields="";
   $hidden_fields="";
   foreach ($form_config["control_types"] as $field_name => $control_type)
@@ -925,7 +932,14 @@ function list_row_controls($form_config,&$submit_fields,$operation,$column_forma
     {
       $control_type_suffix="_check";
     }
-    $field_params["value"]=output_editable_field($field_params,$record,$field_name,$control_type,$form_config,$lookup_records,$submit_fields);
+    if ($control_type<>"lookup")
+    {
+      $field_params["value"]=output_editable_field($field_params,$record,$field_name,$control_type,$form_config,$lookup_records,$submit_fields);
+    }
+    else
+    {
+      $field_params["value"]=$form_config["default_values"][$field_name];
+    }
     if ($control_type<>"hidden")
     {
       $fields.=\webdb\forms\form_template_fill("list_field".$control_type_suffix,$field_params);
@@ -1211,12 +1225,19 @@ function get_column_format_data($form_config)
 
 #####################################################################################################
 
-function lookup_records($form_config)
+function lookup_records($form_config,$include_lookups=true)
 {
   global $settings;
   $lookup_records=array();
   foreach ($form_config["control_types"] as $field_name => $control_type)
   {
+    if ($include_lookups==false)
+    {
+      if ($control_type=="lookup")
+      {
+        continue;
+      }
+    }
     if (isset($form_config["lookups"][$field_name])==true)
     {
       $sibling_field=false;
@@ -1528,9 +1549,11 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
   $form_params=\webdb\forms\handle_custom_form_below_event($form_config,$form_params);
   $form_params["redirect"]="";
   $form_params["parent_id"]="";
-  if (isset($form_config["parent_form_id"])==true)
+  $form_params["parent_form_url_page"]="";
+  if ((isset($form_config["parent_form_id"])==true) and (isset($form_config["parent_form_config"])==true))
   {
     $form_params["parent_id"]=$form_config["parent_form_id"];
+    $form_params["parent_form_url_page"]=$form_config["parent_form_config"]["url_page"];
     $url_params=array();
     if (isset($_GET["redirect"])==true)
     {
@@ -1838,7 +1861,15 @@ function lookup_field_data($form_config,$field_name,$sibling_field=false)
   {
     $sql=\webdb\utils\sql_fill($lookup_config["lookup_sql_file"]);
   }
-  return \webdb\sql\fetch_prepare($sql,array());
+  $where_items=array();
+  if ((isset($form_config["parent_form_config"])==true) and (isset($form_config["parent_form_id"])==true))
+  {
+    if ($form_config["parent_form_config"]!==false)
+    {
+      $where_items=\webdb\forms\config_id_conditions($form_config["parent_form_config"],$form_config["parent_form_id"],"primary_key");
+    }
+  }
+  return \webdb\sql\fetch_prepare($sql,$where_items);
 }
 
 #####################################################################################################

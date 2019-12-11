@@ -105,6 +105,14 @@ function list_edit($id,$form_config)
   {
     \webdb\utils\error_message("error: form record update permission denied");
   }
+  if ((isset($_GET["parent_form"])==true) and (isset($_GET["parent_id"])==true))
+  {
+    $form_config["parent_form_config"]=\webdb\forms\get_form_config($_GET["parent_form"],true);
+    if ($form_config["parent_form_config"]!==false)
+    {
+      $form_config["parent_form_id"]=$_GET["parent_id"];
+    }
+  }
   $data=array();
   $data["url_page"]=$form_config["url_page"];
   $column_format=\webdb\forms\get_column_format_data($form_config);
@@ -128,9 +136,9 @@ function list_edit($id,$form_config)
         $post_fields[$field_name]=$value;
       }
     }
-    if (isset($_GET["parent"])==true)
+    if (isset($_GET["parent_form"])==true)
     {
-      $parent_url_page=$_GET["parent"];
+      $parent_url_page=$_GET["parent_form"];
       $parent_form_config=\webdb\forms\get_form_config($parent_url_page);
       $parent_form_name=$parent_form_config["form_name"];
       $subform_url_page=$_GET["subform"];

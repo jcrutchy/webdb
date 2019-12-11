@@ -10,6 +10,7 @@ the display_format value must be a value format string to be passed as the first
             "database": "inventory_db",
             "table": "inventory_items",
             "key_field": "inventory_item_id",
+            "sibling_field": "hazard_id"
             "display_field": "item_no,item_name",
             "display_format": "%s - %s",
             "lookup_sql_file": "",

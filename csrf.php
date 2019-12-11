@@ -54,14 +54,14 @@ function generate_csrf_token()
 
 #####################################################################################################
 
-function update_csrf_token($user_record,$new_token)
+function update_csrf_token(&$user_record,$new_token)
 {
   global $settings;
   $where_items=array();
   $where_items["user_id"]=$user_record["user_id"];
   $value_items=array();
   $value_items["csrf_token"]=$new_token;
-  if ($new_token<>"")
+  if ($new_token<>"*")
   {
     $value_items["csrf_token_time"]=time();
   }
@@ -71,6 +71,8 @@ function update_csrf_token($user_record,$new_token)
   }
   $settings["sql_check_post_params_override"]=true;
   \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
+  $user_record["csrf_token"]=$new_token;
+  $user_record["csrf_token_time"]=$value_items["csrf_token_time"];
 }
 
 #####################################################################################################

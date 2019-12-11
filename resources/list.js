@@ -41,7 +41,10 @@ function list_body_click(event)
   var row_edit_mode=document.getElementById("row_edit_mode:"+edit_row_url_page).innerHTML;
   if (row_edit_mode=="inline")
   {
-    var url=document.getElementById("inline_edit_page:"+edit_row_url_page).value+edit_row_id+"&ajax&reset";
+    var parent_form=document.getElementById("parent_form:"+edit_row_url_page).value;
+    var parent_id=document.getElementById("parent_id:"+edit_row_url_page).value;
+    var url_prefix=document.getElementById("inline_edit_page:"+edit_row_url_page).value;
+    var url=url_prefix+edit_row_id+"&ajax&reset&parent_form="+parent_form+"&parent_id="+parent_id;
     ajax(url,"get",list_edit_row_reset_load,list_edit_row_reset_error,list_edit_row_reset_timeout);
   }
 }
@@ -304,11 +307,14 @@ function list_edit_row_update(form,url_page)
     data.push(encoded_form_field(form,edit_row_controls[i]));
   }
   var body=data.join("&");
+  var url_prefix=form.elements.namedItem("ajax_edit_page:"+url_page).value;
   var parent=document.getElementById("top_level_url_page");
-  var url=form.elements["ajax_edit_page:"+url_page].value+edit_row_id+"&ajax";
+  var url=url_prefix+edit_row_id+"&ajax";
   if (parent!==null)
   {
-    var url=url+"&subform="+url_page+"&parent="+parent.innerHTML;
+    var parent_form=form.elements.namedItem("parent_form:"+edit_row_url_page).value;
+    var parent_id=form.elements.namedItem("parent_id:"+edit_row_url_page).value;
+    var url=url+"&subform="+url_page+"&parent_form="+parent_form+"&parent_id="+parent_id;
   }
   ajax(url,"post",list_edit_row_update_load,list_edit_row_update_error,list_edit_row_update_timeout,body);
 }
