@@ -1,5 +1,7 @@
 <form id="%%url_page%%" action="$$app_web_index$$?page=%%url_page%%&cmd=edit&id=" method="post" enctype="multipart/form-data">
 
+%%custom_form_above%%
+
 <input type="hidden" name="csrf_token" value="%%csrf_token%%">
 <input type="hidden" name="MAX_FILE_SIZE" value="41943040"> <!-- 40 Mb -->
 
@@ -14,5 +16,7 @@
 <table class="insert_record_table">
 %%rows%%
 </table>
+
+%%custom_form_below%%
 
 </form>

@@ -1945,6 +1945,10 @@ function output_editor($form_config,$record,$command,$verb,$id)
   $form_params["rows"]=$rows;
   $form_params["edit_cmd_id"]=$id;
   $form_params["confirm_caption"]=$verb." ".$form_config["command_caption_noun"];
+  $form_params["custom_form_above"]="";
+  $form_params["custom_form_below"]="";
+  $form_params=\webdb\forms\handle_custom_form_above_event($form_config,$form_params);
+  $form_params=\webdb\forms\handle_custom_form_below_event($form_config,$form_params);
   $content=\webdb\forms\form_template_fill(strtolower($command),$form_params);
   $title=$form_config["title"].": ".$command;
   $result=array();
