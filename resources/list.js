@@ -164,7 +164,15 @@ function list_insert_row_click(form,url_page)
     data.push(encoded_form_field(form,field_names[i]));
   }
   var body=data.join("&");
-  var url=form.elements["insert_page:"+url_page].value+"&ajax";
+  var url_prefix=form.elements.namedItem("insert_page:"+url_page).value;
+  var parent=document.getElementById("top_level_url_page");
+  var url=url_prefix+"&ajax";
+  if (parent!==null)
+  {
+    var parent_form=form.elements.namedItem("parent_form:"+url_page).value;
+    var parent_id=form.elements.namedItem("parent_id:"+url_page).value;
+    var url=url+"&subform="+url_page+"&parent_form="+parent_form+"&parent_id="+parent_id;
+  }
   ajax(url,"post",list_insert_row_load,list_insert_row_error,list_insert_row_timeout,body);
 }
 
@@ -224,7 +232,7 @@ function list_advanced_search_click(url_page)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function list_record_cell_click(element,url_page,id)
+function list_record_cell_click(element,url_page,id,field_name)
 {
   if (edit_row_id!=null)
   {
@@ -356,7 +364,7 @@ function list_edit_row_update_timeout()
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function list_record_cell_mouseover(url_page,id)
+function list_record_cell_mouseover(url_page,id,field_name)
 {
   var row_edit_mode=document.getElementById("row_edit_mode:"+url_page).innerHTML;
   if (row_edit_mode=="inline")
@@ -364,12 +372,15 @@ function list_record_cell_mouseover(url_page,id)
     return;
   }
   var cells=document.getElementsByClassName("list_record:"+url_page+":"+id);
-  var footer=document.getElementById("global_page_footer_content");
   for (var i=0;i<cells.length;i++)
   {
+    var idstr=cells[i].id.substr(9); // trim 'data_cell' from beginning
+    var cell_style=document.getElementById("cell_style"+idstr);
+    cell_style.innerHTML=cells[i].style.cssText;
     cells[i].style.backgroundColor="#a9d2ef";
     cells[i].style.cursor="pointer";
   }
+  var footer=document.getElementById("global_page_footer_content");
   if (footer)
   {
     footer.innerHTML="Navigate to: "+document.getElementById("edit_page:"+url_page).value+id;
@@ -378,7 +389,7 @@ function list_record_cell_mouseover(url_page,id)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function list_record_cell_mouseout(url_page,id)
+function list_record_cell_mouseout(url_page,id,field_name)
 {
   var row_edit_mode=document.getElementById("row_edit_mode:"+url_page).innerHTML;
   if (row_edit_mode=="inline")
@@ -386,12 +397,13 @@ function list_record_cell_mouseout(url_page,id)
     return;
   }
   var cells=document.getElementsByClassName("list_record:"+url_page+":"+id);
-  var footer=document.getElementById("global_page_footer_content");
   for (var i=0;i<cells.length;i++)
   {
-    cells[i].style.backgroundColor="transparent";
-    cells[i].style.cursor="default";
+    var idstr=cells[i].id.substr(9); // trim 'data_cell' from beginning
+    var cell_style=document.getElementById("cell_style"+idstr).innerHTML;
+    cells[i].style.cssText=cell_style;
   }
+  var footer=document.getElementById("global_page_footer_content");
   if (footer)
   {
     footer.innerHTML="";

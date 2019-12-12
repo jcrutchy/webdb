@@ -134,13 +134,13 @@ if ($settings["pdo_user"]===false)
   \webdb\utils\system_message("error: unable to connect to sql server as user");
 }
 
-$settings["forms"]=array();
-\webdb\forms\load_form_defs();
-
 if (\webdb\cli\is_cli_mode()==true)
 {
   \webdb\cli\cli_dispatch();
 }
+
+$settings["forms"]=array();
+\webdb\forms\load_form_defs();
 
 $settings["user_agent"]="";
 $settings["browser_info"]=array();

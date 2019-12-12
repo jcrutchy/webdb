@@ -16,3 +16,6 @@ the display_format value must be a value format string to be passed as the first
             "lookup_sql_file": "",
         }
     },
+
+
+a "lookup" control type requires the "sibling_field" config entry

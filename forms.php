@@ -72,7 +72,10 @@ function form_dispatch($url_page)
       {
         if (($form_config["database"]=="") or ($form_config["table"]==""))
         {
-          return \webdb\utils\template_fill($url_page);
+          if (isset($form_config["event_handlers"]["on_list"])==false)
+          {
+            return \webdb\utils\template_fill($url_page);
+          }
         }
         if (isset($_POST["form_cmd"])==true)
         {
@@ -600,7 +603,14 @@ function config_id_url_value($form_config,$record,$config_key)
   $values=array();
   for ($i=0;$i<count($key_fields);$i++)
   {
-    $values[]=$record[$key_fields[$i]];
+    if (isset($record[$key_fields[$i]])==true)
+    {
+      $values[]=$record[$key_fields[$i]];
+    }
+    else
+    {
+      $values[]="";
+    }
   }
   return implode(\webdb\index\CONFIG_ID_DELIMITER,$values);
 }
@@ -800,12 +810,6 @@ function output_readonly_field($field_params,$control_type,$form_config,$field_n
     case "lookup":
       $field_params["value"]="";
       $lookup_config=$form_config["lookups"][$field_name];
-      /*if ($field_name=="control_status_id")
-      {
-        #var_dump($lookup_records[$field_name]);
-        var_dump($lookup_config);
-        die;
-      }*/
       $key_field_name=$lookup_config["key_field"];
       $sibling_field_name=$lookup_config["sibling_field"];
       for ($i=0;$i<count($lookup_records[$field_name]);$i++)
@@ -900,6 +904,7 @@ function list_row_controls($form_config,&$submit_fields,$operation,$column_forma
   global $settings;
   $rotate_group_borders=$column_format["rotate_group_borders"];
   $row_params=array();
+  $row_params["primary_key"]=\webdb\forms\config_id_url_value($form_config,$record,"primary_key");
   $row_params["url_page"]=$form_config["url_page"];
   $row_params["check"]=\webdb\forms\check_column($form_config,"list_check_insert");
   $lookup_records=lookup_records($form_config,false);
@@ -912,6 +917,7 @@ function list_row_controls($form_config,&$submit_fields,$operation,$column_forma
       continue;
     }
     $field_params=array();
+    $field_params["primary_key"]=$row_params["primary_key"];
     $field_params["handlers"]="";
     $field_params["border_color"]=$settings["list_border_color"];
     $field_params["border_width"]=$settings["list_border_width"];
@@ -1118,11 +1124,17 @@ function get_column_format_data($form_config)
     {
       continue;
     }
-    $box=\imagettfbbox(10,0,$settings["gd_ttf"],$form_config["captions"][$field_name]); # requires php-gd package
-    $width=abs($box[4]-$box[0]);
-    if ($width>$data["max_field_name_width"])
+    $caption=$form_config["captions"][$field_name];
+    $lines=explode("@@break@@",$caption);
+    for ($i=0;$i<count($lines);$i++)
     {
-      $data["max_field_name_width"]=$width;
+      $line=htmlspecialchars_decode($lines[$i]);
+      $box=\imagettfbbox(10,0,$settings["gd_ttf"],$line); # requires php-gd package
+      $width=abs($box[4]-$box[0]);
+      if ($width>$data["max_field_name_width"])
+      {
+        $data["max_field_name_width"]=$width;
+      }
     }
     $data["visible_cols"][]=$field_name;
   }

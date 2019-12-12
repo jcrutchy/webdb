@@ -53,6 +53,14 @@ function list_insert($form_config)
   {
     \webdb\utils\error_message("error: form record update permission denied");
   }
+  if ((isset($_GET["parent_form"])==true) and (isset($_GET["parent_id"])==true))
+  {
+    $form_config["parent_form_config"]=\webdb\forms\get_form_config($_GET["parent_form"],true);
+    if ($form_config["parent_form_config"]!==false)
+    {
+      $form_config["parent_form_id"]=$_GET["parent_id"];
+    }
+  }
   $data=array();
   $params=\webdb\forms\process_form_data_fields($form_config);
   if (count($params)==0)
@@ -82,7 +90,12 @@ function list_insert($form_config)
       $params[$param_name]=$param_value;
       \webdb\forms\check_required_values($form_config,$params);
       \webdb\sql\sql_insert($params,$form_config["table"],$form_config["database"]);
-      $data["html"]=\webdb\forms\get_subform_content($form_config,$param_name,$param_value,true);
+      $parent_form_config=false;
+      if (isset($form_config["parent_form_config"])==true)
+      {
+        $parent_form_config=$form_config["parent_form_config"];
+      }
+      $data["html"]=\webdb\forms\get_subform_content($form_config,$param_name,$param_value,true,$parent_form_config);
       break;
     }
   }

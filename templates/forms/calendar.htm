@@ -12,7 +12,7 @@ var calendar_inputs=[%%calendar_inputs%%];
   <table>
     <thead>
     <tr>
-      <td><input type="button" value="&lt;" id="calendar_previous_month_link" onclick="" title=""></td>
+      <td><input type="button" value="&#9664;" id="calendar_previous_month_link" onclick="" title=""></td>
       <td colspan="5">
         <select id="calendar_month_select" onchange="">
           <option value="0">January</option>
@@ -30,16 +30,16 @@ var calendar_inputs=[%%calendar_inputs%%];
         </select>
         <select id="calendar_year_select" onchange=""></select>
       </td>
-      <td><input type="button" value="&gt;" id="calendar_next_month_link" onclick="" title=""></td>
+      <td><input type="button" value="&#9654;" id="calendar_next_month_link" onclick="" title=""></td>
     </tr>
     <tr>
-      <td>Sun</td>
-      <td>Mon</td>
-      <td>Tue</td>
-      <td>Wed</td>
-      <td>Thu</td>
-      <td>Fri</td>
-      <td>Sat</td>
+      <td class="dayheading">Sun</td>
+      <td class="dayheading">Mon</td>
+      <td class="dayheading">Tue</td>
+      <td class="dayheading">Wed</td>
+      <td class="dayheading">Thu</td>
+      <td class="dayheading">Fri</td>
+      <td class="dayheading">Sat</td>
     </tr>
     </thead>
     <tbody>
@@ -48,18 +48,18 @@ var calendar_inputs=[%%calendar_inputs%%];
     <tfoot>
     <!-- following empty row is a chrome colspan bug workaround -->
     <tr>
-      <td style="font-size: 0; height: 0; margin: 0; padding: 0; border: 0;"></td>
-      <td style="font-size: 0; height: 0; margin: 0; padding: 0; border: 0;"></td>
-      <td style="font-size: 0; height: 0; margin: 0; padding: 0; border: 0;"></td>
-      <td style="font-size: 0; height: 0; margin: 0; padding: 0; border: 0;"></td>
-      <td style="font-size: 0; height: 0; margin: 0; padding: 0; border: 0;"></td>
-      <td style="font-size: 0; height: 0; margin: 0; padding: 0; border: 0;"></td>
-      <td style="font-size: 0; height: 0; margin: 0; padding: 0; border: 0;"></td>
+      <td class="workaround"></td>
+      <td class="workaround"></td>
+      <td class="workaround"></td>
+      <td class="workaround"></td>
+      <td class="workaround"></td>
+      <td class="workaround"></td>
+      <td class="workaround"></td>
     </tr>
     <tr>
-      <td colspan="2" style="padding-top: 3px;"><input style="width: 100%;" type="button" value="Clear" onclick="calendar_clear_input();"></td>
-      <td colspan="3" style="padding-top: 3px;"><input style="width: 100%;" type="button" value="Today" onclick="calendar_select_today();"></td>
-      <td colspan="2" style="padding-top: 3px;"><input style="width: 100%;" type="button" value="Cancel" onclick="hide_calendar();"></td>
+      <td colspan="2"><input type="button" value="Clear" onclick="calendar_clear_input();"></td>
+      <td colspan="3"><input type="button" value="Today" onclick="calendar_select_today();"></td>
+      <td colspan="2"><input type="button" value="Cancel" onclick="hide_calendar();"></td>
     </tr>
     </tfoot>
   </table>

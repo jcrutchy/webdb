@@ -67,10 +67,17 @@ function cli_dispatch()
       \webdb\utils\system_message("webdb schema initialised");
     case "validate_json":
       echo "validating forms...".PHP_EOL;
-      foreach ($settings["forms"] as $form_name => $form_data)
+      $app_file_list=scandir($settings["app_forms_path"]);
+      for ($i=0;$i<count($app_file_list);$i++)
       {
-        $result=trim(shell_exec("jsonlint-php ".escapeshellarg($form_data["filename"])));
-        echo "validating form '".$form_name."': ".$result.PHP_EOL;
+        $fn=$app_file_list[$i];
+        if (($fn==".") or ($fn==".."))
+        {
+          continue;
+        }
+        $full=$settings["app_forms_path"].$fn;
+        $result=trim(shell_exec("jsonlint-php ".escapeshellarg($full)));
+        echo "validating form '".$fn."': ".$result.PHP_EOL;
         if ($result<>"Valid JSON")
         {
           die;
