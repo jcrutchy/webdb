@@ -32,7 +32,12 @@ function webdb_debug_backtrace()
   # TODO: DEBUG INFO ONLY (SECURITY RISK) - UNCOMMENT FOLLOWING LINE FOR PRODUCTION
   #return "";
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  $backtrace=json_encode(debug_backtrace(),JSON_PRETTY_PRINT);
+
+  $backtrace=json_encode(debug_backtrace()); # can't have pretty print indents for replacing settings
+  $settings_json=json_encode($settings);
+  $backtrace=str_replace($settings_json,"{\"settings\":\"...\"}",$backtrace);
+  $backtrace=json_decode($backtrace);
+  $backtrace=json_encode($backtrace,JSON_PRETTY_PRINT);
   if (\webdb\cli\is_cli_mode()==true)
   {
     return $backtrace;

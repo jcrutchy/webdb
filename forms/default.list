@@ -49,6 +49,7 @@
     "edit_cmd_url_page": "",
     "edit_button_caption": "",
     "edit_cmd_id": "",
+    "edit_title_field": "",
     "insert_new": true,
     "insert_row": true,
     "insert_cmd_url_page": "",

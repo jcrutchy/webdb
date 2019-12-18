@@ -387,16 +387,23 @@ function get_subform_content($subform_config,$subform_link_field,$id,$list_only=
   }
   else
   {
-    $sql_params=array();
-    $sql_params["database"]=$subform_config["database"];
-    $sql_params["table"]=$subform_config["table"];
-    $sql_params["sort_sql"]=$subform_config["sort_sql"];
-    $sql_params["link_field_name"]=$subform_link_field;
-    if ($sql_params["sort_sql"]<>"")
+    if ($subform_config["records_sql"]=="")
     {
-      $sql_params["sort_sql"]=\webdb\utils\sql_fill("sort_clause",$sql_params);
+      $sql_params=array();
+      $sql_params["database"]=$subform_config["database"];
+      $sql_params["table"]=$subform_config["table"];
+      $sql_params["sort_sql"]=$subform_config["sort_sql"];
+      $sql_params["link_field_name"]=$subform_link_field;
+      if ($sql_params["sort_sql"]<>"")
+      {
+        $sql_params["sort_sql"]=\webdb\utils\sql_fill("sort_clause",$sql_params);
+      }
+      $sql=\webdb\utils\sql_fill("subform_list_fetch",$sql_params);
     }
-    $sql=\webdb\utils\sql_fill("subform_list_fetch",$sql_params);
+    else
+    {
+      $sql=\webdb\utils\sql_fill($subform_config["records_sql"]);
+    }
     $sql_params=array();
     $sql_params["id"]=$id;
     $records=\webdb\sql\fetch_prepare($sql,$sql_params);
@@ -650,6 +657,7 @@ function list_row($form_config,$record,$column_format,$row_spans,$lookup_records
     }
     $field_params=array();
     $field_params["primary_key"]=$row_params["primary_key"];
+    $field_params["url_page"]=$row_params["url_page"];
     $display_record=$record;
     if (($form_config["checklist"]==true) and (in_array($field_name,$form_config["link_fields"])==true))
     {
@@ -918,6 +926,7 @@ function list_row_controls($form_config,&$submit_fields,$operation,$column_forma
     }
     $field_params=array();
     $field_params["primary_key"]=$row_params["primary_key"];
+    $field_params["url_page"]=$row_params["url_page"];
     $field_params["handlers"]="";
     $field_params["border_color"]=$settings["list_border_color"];
     $field_params["border_width"]=$settings["list_border_width"];
@@ -1268,7 +1277,7 @@ function lookup_records($form_config,$include_lookups=true)
 function list_form_content($form_config,$records=false,$insert_default_params=false,$checklist_link_records=false)
 {
   global $settings;
-  if ($form_config["records_sql"]<>"")
+  if (($form_config["records_sql"]<>"") and ($records===false))
   {
     $sql=\webdb\utils\sql_fill($form_config["records_sql"]);
     $records=\webdb\sql\fetch_prepare($sql,array());
@@ -1581,6 +1590,10 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
   if (isset($_GET["filters"])==true)
   {
     $form_params["filters"]="&filters=".urlencode($_GET["filters"]);
+  }
+  if (($form_params["insert_control"]=="") and ($form_params["delete_selected_control"]=="") and ($form_params["advanced_search_control"]=="") and ($form_params["sort_field_control"]=="") and ($form_params["checklist_update_control"]==""))
+  {
+    $form_params["delete_selected_control"]=\webdb\utils\template_fill("break");
   }
   return \webdb\forms\form_template_fill("list",$form_params);
 }
@@ -1963,6 +1976,14 @@ function output_editor($form_config,$record,$command,$verb,$id)
   $form_params=\webdb\forms\handle_custom_form_below_event($form_config,$form_params);
   $content=\webdb\forms\form_template_fill(strtolower($command),$form_params);
   $title=$form_config["title"].": ".$command;
+  if ($form_config["edit_title_field"]<>"")
+  {
+    $value=$record[$form_config["edit_title_field"]];
+    if ($value<>"")
+    {
+      $title.=" ".$value;
+    }
+  }
   $result=array();
   $result["title"]=$title;
   $result["content"]=$content;

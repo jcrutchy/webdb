@@ -91,7 +91,7 @@ function list_edit_row_reset_load()
   }
   try
   {
-    data=JSON.parse(this.responseText);
+    var data=JSON.parse(this.responseText);
   }
   catch (e)
   {
@@ -182,7 +182,7 @@ function list_insert_row_load()
 {
   try
   {
-    data=JSON.parse(this.responseText);
+    var data=JSON.parse(this.responseText);
   }
   catch (e)
   {
@@ -262,7 +262,7 @@ function list_edit_row_load()
   }
   try
   {
-    data=JSON.parse(this.responseText);
+    var data=JSON.parse(this.responseText);
   }
   catch (e)
   {
@@ -333,7 +333,7 @@ function list_edit_row_update_load()
 {
   try
   {
-    data=JSON.parse(this.responseText);
+    var data=JSON.parse(this.responseText);
   }
   catch (e)
   {
