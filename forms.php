@@ -68,6 +68,18 @@ function form_dispatch($url_page)
   switch ($form_config["form_type"])
   {
     case "list":
+      if ($form_config["generate_stub"]<>"")
+      {
+        if (function_exists($form_config["generate_stub"])==true)
+        {
+          echo call_user_func($form_config["generate_stub"],$form_config);
+          die;
+        }
+        else
+        {
+          \webdb\utils\error_message("error: unhandled generate stub");
+        }
+      }
       if ($form_config["records_sql"]=="")
       {
         if (($form_config["database"]=="") or ($form_config["table"]==""))

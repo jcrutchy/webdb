@@ -99,11 +99,13 @@ th.rotate
     vertical-align: bottom;
     text-align: left;
     background-color: #fafafd;
+    opacity: 0.93;
   }
 
 th.list_controls_head
   {
     background-color: #fafafd;
+    opacity: 0.93;
   }
 
 .verticaltick_left

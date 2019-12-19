@@ -115,6 +115,40 @@ function cli_dispatch()
       {
         \webdb\utils\system_message("error: schema file not found: ".$filename);
       }
+    case "unused_fields":
+      if (isset($argv[2])==false)
+      {
+        \webdb\utils\system_message("database name not specified");
+      }
+      $settings["forms"]=array();
+      \webdb\forms\load_form_defs();
+      $sql_params=array();
+      $sql_params["database"]=$argv[2];
+      $sql=\webdb\utils\sql_fill("column_list",$sql_params);
+      $records=\webdb\sql\fetch_prepare($sql,array(),"",true);
+      $unused_columns=array();
+      for ($i=0;$i<count($records);$i++)
+      {
+        $column_record=$records[$i];
+        $column_used=false;
+        foreach ($settings["forms"] as $form_name => $form_config)
+        {
+          foreach ($form_config["control_types"] as $field_name => $control_type)
+          {
+            if (($form_config["database"]==$column_record["TABLE_SCHEMA"]) and ($form_config["table"]==$column_record["TABLE_NAME"]) and ($field_name==$column_record["COLUMN_NAME"]))
+            {
+              $column_used=true;
+              break;
+            }
+          }
+        }
+        if ($column_used==false)
+        {
+          $unused_columns[]=implode(".",$column_record);
+        }
+      }
+      echo implode(PHP_EOL,$unused_columns).PHP_EOL;
+      die;
   }
 }
 

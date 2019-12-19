@@ -4,6 +4,7 @@
     "enabled": true,
     "title": "",
     "url_page": "",
+    "generate_stub": "",
     "edit_subforms": {
     },
     "edit_subforms_styles": {

@@ -40,3 +40,25 @@ function my_update_record_php_stub($form_config,$id,$where_items,$value_items)
 {
   return true; # handled
 }
+
+
+
+
+
+
+
+
+
+
+{
+    "form_version": "20190829.1",
+    "form_type": "list",
+    "enabled": true,
+    "generate_stub": "\\my_app\\stubs\\output_some_page",
+    "url_page": "some_page"
+}
+
+function output_some_page($form_config)
+{
+  return "test";
+}
