@@ -2,11 +2,11 @@ you can control access to a specific forms by adding to the $settings["permissio
 
 permissions are whitelist-based; if there are any permissions set for a given form, anyone outside those permissions will be denied access
 
-any form without permissions is assumed to be accessible for reading, updating and deleting of records by all users
+however, any form without permissions is assumed to be accessible for reading, updating and deleting of records by all users
 
 in the any of the settings php files (webdb/common/application), add group permissions to specific forms using the following convention:
 
-$settings["permissions"]["group_name"]["forms"]["form_name"]="riud";
+$settings["permissions"]["group_name"]["forms"]["page_id"]="riud";
 
 the permission value consists of a string containing any mixture of "r", "i", "u" and "d"
 

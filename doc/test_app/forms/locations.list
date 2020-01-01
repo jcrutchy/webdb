@@ -3,7 +3,10 @@
     "form_type": "list",
     "enabled": true,
     "title": "Locations",
-    "url_page": "locations",
+    "page_id": "locations",
+    "edit_subforms": {
+        "subform_location_items": "location_id"
+    },
     "control_types": {
         "location_id": "span",
         "created_timestamp": "span",
@@ -45,7 +48,7 @@
     "multi_row_delete": true,
     "delete_cmd": true,
     "edit_cmd": "row",
-    "edit_cmd_url_page": "locations",
+    "edit_cmd_page_id": "locations",
     "edit_cmd_id": "location_id",
     "insert_new": true,
     "insert_row": true,

@@ -29,7 +29,7 @@ function list_body_click(event)
   {
     return;
   }
-  var edit_row=document.getElementById("data_row_tr:"+edit_row_url_page+":"+edit_row_id);
+  var edit_row=document.getElementById("data_row_tr:"+edit_row_page_id+":"+edit_row_id);
   if (!edit_row)
   {
     return;
@@ -38,12 +38,12 @@ function list_body_click(event)
   {
     return;
   }
-  var row_edit_mode=document.getElementById("row_edit_mode:"+edit_row_url_page).innerHTML;
+  var row_edit_mode=document.getElementById("row_edit_mode:"+edit_row_page_id).innerHTML;
   if (row_edit_mode=="inline")
   {
-    var parent_form=document.getElementById("parent_form:"+edit_row_url_page).value;
-    var parent_id=document.getElementById("parent_id:"+edit_row_url_page).value;
-    var url_prefix=document.getElementById("inline_edit_page:"+edit_row_url_page).value;
+    var parent_form=document.getElementById("parent_form:"+edit_row_page_id).value;
+    var parent_id=document.getElementById("parent_id:"+edit_row_page_id).value;
+    var url_prefix=document.getElementById("inline_edit_page:"+edit_row_page_id).value;
     var url=url_prefix+edit_row_id+"&ajax&reset&parent_form="+parent_form+"&parent_id="+parent_id;
     ajax(url,"get",list_edit_row_reset_load,list_edit_row_reset_error,list_edit_row_reset_timeout);
   }
@@ -75,9 +75,9 @@ function update_status_fadeout()
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function list_edit_row_button_click(url_page,id)
+function list_edit_row_button_click(page_id,id)
 {
-  window.location=document.getElementById("edit_page:"+url_page).value+id;
+  window.location=document.getElementById("edit_page:"+page_id).value+id;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -103,16 +103,16 @@ function list_edit_row_reset_load()
     custom_alert(data.error);
     return;
   }
-  if ((data.hasOwnProperty("url_page")==true) && (data.hasOwnProperty("primary_key")==true) && (data.hasOwnProperty("html")==true))
+  if ((data.hasOwnProperty("page_id")==true) && (data.hasOwnProperty("primary_key")==true) && (data.hasOwnProperty("html")==true))
   {
-    var data_row=document.getElementById("data_row_tr:"+data.url_page+":"+data.primary_key);
+    var data_row=document.getElementById("data_row_tr:"+data.page_id+":"+data.primary_key);
     data_row.innerHTML=data.html;
     if ((typeof calendar_inputs)!==(typeof undefined))
     {
       calendar_inputs=initial_calendar_inputs;
     }
     edit_row_controls=new Array();
-    edit_row_url_page=null;
+    edit_row_page_id=null;
     edit_row_id=null;
     if (waiting_edit_row_element!=null)
     {
@@ -155,23 +155,23 @@ function encoded_form_field(form,field_name)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function list_insert_row_click(form,url_page)
+function list_insert_row_click(form,page_id)
 {
   var data=new Array();
-  var field_names=insert_row_controls[url_page];
+  var field_names=insert_row_controls[page_id];
   for (var i=0;i<field_names.length;i++)
   {
     data.push(encoded_form_field(form,field_names[i]));
   }
   var body=data.join("&");
-  var url_prefix=form.elements.namedItem("insert_page:"+url_page).value;
-  var parent=document.getElementById("top_level_url_page");
+  var url_prefix=form.elements.namedItem("insert_page:"+page_id).value;
+  var parent=document.getElementById("top_level_page_id");
   var url=url_prefix+"&ajax";
   if (parent!==null)
   {
-    var parent_form=form.elements.namedItem("parent_form:"+url_page).value;
-    var parent_id=form.elements.namedItem("parent_id:"+url_page).value;
-    var url=url+"&subform="+url_page+"&parent_form="+parent_form+"&parent_id="+parent_id;
+    var parent_form=form.elements.namedItem("parent_form:"+page_id).value;
+    var parent_id=form.elements.namedItem("parent_id:"+page_id).value;
+    var url=url+"&subform="+page_id+"&parent_form="+parent_form+"&parent_id="+parent_id;
   }
   ajax(url,"post",list_insert_row_load,list_insert_row_error,list_insert_row_timeout,body);
 }
@@ -194,9 +194,9 @@ function list_insert_row_load()
     custom_alert(data.error);
     return;
   }
-  if ((data.hasOwnProperty("url_page")==true) && (data.hasOwnProperty("html")==true))
+  if ((data.hasOwnProperty("page_id")==true) && (data.hasOwnProperty("html")==true))
   {
-    insert_row_parents[data.url_page].innerHTML=data.html;
+    insert_row_parents[data.page_id].innerHTML=data.html;
     return;
   }
   list_insert_row_error();
@@ -218,36 +218,36 @@ function list_insert_row_timeout()
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function list_insert_click(url_page)
+function list_insert_click(page_id)
 {
-  window.location=document.getElementById("insert_page:"+url_page).value;
+  window.location=document.getElementById("insert_page:"+page_id).value;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function list_advanced_search_click(url_page)
+function list_advanced_search_click(page_id)
 {
-  window.location=document.getElementById("advanced_search_page:"+url_page).value;
+  window.location=document.getElementById("advanced_search_page:"+page_id).value;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function list_record_cell_click(element,url_page,id,field_name)
+function list_record_cell_click(element,page_id,id,field_name)
 {
   if (edit_row_id!=null)
   {
     waiting_edit_row_element=element;
     return;
   }
-  var row_edit_mode=document.getElementById("row_edit_mode:"+url_page).innerHTML;
+  var row_edit_mode=document.getElementById("row_edit_mode:"+page_id).innerHTML;
   if (row_edit_mode=="row")
   {
-    window.location=document.getElementById("edit_page:"+url_page).value+id;
+    window.location=document.getElementById("edit_page:"+page_id).value+id;
     return;
   }
   if (row_edit_mode=="inline")
   {
-    var url=document.getElementById("inline_edit_page:"+url_page).value+id+"&ajax";
+    var url=document.getElementById("inline_edit_page:"+page_id).value+id+"&ajax";
     ajax(url,"get",list_edit_row_load,list_edit_row_error,list_edit_row_timeout);
   }
 }
@@ -274,16 +274,16 @@ function list_edit_row_load()
     custom_alert(data.error);
     return;
   }
-  if ((data.hasOwnProperty("url_page")==true) && (data.hasOwnProperty("primary_key")==true) && (data.hasOwnProperty("calendar_fields")==true) && (data.hasOwnProperty("edit_fields")==true) && (data.hasOwnProperty("html")==true))
+  if ((data.hasOwnProperty("page_id")==true) && (data.hasOwnProperty("primary_key")==true) && (data.hasOwnProperty("calendar_fields")==true) && (data.hasOwnProperty("edit_fields")==true) && (data.hasOwnProperty("html")==true))
   {
-    var data_row=document.getElementById("data_row_tr:"+data.url_page+":"+data.primary_key);
+    var data_row=document.getElementById("data_row_tr:"+data.page_id+":"+data.primary_key);
     data_row.innerHTML=data.html;
     if ((typeof calendar_inputs)!==(typeof undefined))
     {
       calendar_inputs=calendar_inputs.concat(JSON.parse(data.calendar_fields));
     }
     edit_row_controls=JSON.parse(data.edit_fields);
-    edit_row_url_page=data.url_page;
+    edit_row_page_id=data.page_id;
     edit_row_id=data.primary_key;
     waiting_edit_row_element=null;
     return;
@@ -307,7 +307,7 @@ function list_edit_row_timeout()
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function list_edit_row_update(form,url_page)
+function list_edit_row_update(form,page_id)
 {
   var data=new Array();
   for (var i=0;i<edit_row_controls.length;i++)
@@ -315,14 +315,14 @@ function list_edit_row_update(form,url_page)
     data.push(encoded_form_field(form,edit_row_controls[i]));
   }
   var body=data.join("&");
-  var url_prefix=form.elements.namedItem("ajax_edit_page:"+url_page).value;
-  var parent=document.getElementById("top_level_url_page");
+  var url_prefix=form.elements.namedItem("ajax_edit_page:"+page_id).value;
+  var parent=document.getElementById("top_level_page_id");
   var url=url_prefix+edit_row_id+"&ajax";
   if (parent!==null)
   {
-    var parent_form=form.elements.namedItem("parent_form:"+edit_row_url_page).value;
-    var parent_id=form.elements.namedItem("parent_id:"+edit_row_url_page).value;
-    var url=url+"&subform="+url_page+"&parent_form="+parent_form+"&parent_id="+parent_id;
+    var parent_form=form.elements.namedItem("parent_form:"+edit_row_page_id).value;
+    var parent_id=form.elements.namedItem("parent_id:"+edit_row_page_id).value;
+    var url=url+"&subform="+page_id+"&parent_form="+parent_form+"&parent_id="+parent_id;
   }
   ajax(url,"post",list_edit_row_update_load,list_edit_row_update_error,list_edit_row_update_timeout,body);
 }
@@ -364,14 +364,14 @@ function list_edit_row_update_timeout()
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function list_record_cell_mouseover(url_page,id,field_name)
+function list_record_cell_mouseover(page_id,id,field_name)
 {
-  var row_edit_mode=document.getElementById("row_edit_mode:"+url_page).innerHTML;
+  var row_edit_mode=document.getElementById("row_edit_mode:"+page_id).innerHTML;
   if (row_edit_mode=="inline")
   {
     return;
   }
-  var cells=document.getElementsByClassName("list_record:"+url_page+":"+id);
+  var cells=document.getElementsByClassName("list_record:"+page_id+":"+id);
   for (var i=0;i<cells.length;i++)
   {
     var idstr=cells[i].id.substr(9); // trim 'data_cell' from beginning
@@ -383,20 +383,20 @@ function list_record_cell_mouseover(url_page,id,field_name)
   var footer=document.getElementById("global_page_footer_content");
   if (footer)
   {
-    footer.innerHTML="Navigate to: "+document.getElementById("edit_page:"+url_page).value+id;
+    footer.innerHTML="Navigate to: "+document.getElementById("edit_page:"+page_id).value+id;
   }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function list_record_cell_mouseout(url_page,id,field_name)
+function list_record_cell_mouseout(page_id,id,field_name)
 {
-  var row_edit_mode=document.getElementById("row_edit_mode:"+url_page).innerHTML;
+  var row_edit_mode=document.getElementById("row_edit_mode:"+page_id).innerHTML;
   if (row_edit_mode=="inline")
   {
     return;
   }
-  var cells=document.getElementsByClassName("list_record:"+url_page+":"+id);
+  var cells=document.getElementsByClassName("list_record:"+page_id+":"+id);
   for (var i=0;i<cells.length;i++)
   {
     var idstr=cells[i].id.substr(9); // trim 'data_cell' from beginning

@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS `test_app`.`items` (
   `item_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `created_timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `item_name` VARCHAR(255) NOT NULL,
+  `item_type` VARCHAR(255) NOT NULL,
   `location_id` INT UNSIGNED NOT NULL,
   PRIMARY KEY (`item_id`),
   UNIQUE INDEX `item_name` (`item_name` ASC),

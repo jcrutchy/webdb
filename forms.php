@@ -4,14 +4,14 @@ namespace webdb\forms;
 
 #####################################################################################################
 
-function get_form_config($url_page,$return=false)
+function get_form_config($page_id,$return=false)
 {
   global $settings;
-  foreach ($settings["forms"] as $form_name => $form_config)
+  foreach ($settings["forms"] as $key => $form_config)
   {
-    if ($url_page===$form_config["url_page"])
+    if ($page_id===$form_config["page_id"])
     {
-      if (\webdb\utils\check_user_form_permission($form_name,"r")==false)
+      if (\webdb\utils\check_user_form_permission($page_id,"r")==false)
       {
         \webdb\utils\error_message("error: form read permission denied");
       }
@@ -27,12 +27,11 @@ function get_form_config($url_page,$return=false)
 
 #####################################################################################################
 
-function form_dispatch($url_page)
+function form_dispatch($page_id)
 {
   global $settings;
-  $form_config=\webdb\forms\get_form_config($url_page);
-  $form_name=$form_config["form_name"];
-  if ($form_name=="users")
+  $form_config=\webdb\forms\get_form_config($page_id);
+  if ($page_id=="users")
   {
     $admin_auth=false;
     if (isset($settings["user_record"])==true)
@@ -86,7 +85,7 @@ function form_dispatch($url_page)
         {
           if (isset($form_config["event_handlers"]["on_list"])==false)
           {
-            return \webdb\utils\template_fill($url_page);
+            return \webdb\utils\template_fill($page_id);
           }
         }
         if (isset($_POST["form_cmd"])==true)
@@ -156,7 +155,7 @@ function form_dispatch($url_page)
       }
       $list_params=array();
       $event_params=array();
-      $event_params["form_name"]=$form_name;
+      $event_params["page_id"]=$page_id;
       $event_params["form_config"]=$form_config;
       $event_params["custom_list_content"]=false;
       $event_params["records"]=false;
@@ -185,7 +184,7 @@ function form_dispatch($url_page)
       $content.=\webdb\forms\output_html_includes($form_config);
       $content.=\webdb\forms\output_js_includes($form_config);
       $content.=\webdb\forms\output_css_includes($form_config);
-      $title=$form_name;
+      $title=$page_id;
       if ($form_config["title"]<>"")
       {
         $title=$form_config["title"];
@@ -199,8 +198,7 @@ function form_dispatch($url_page)
 function checklist_update($form_config)
 {
   global $settings;
-  $form_name=$form_config["form_name"];
-  $parent_id=$_POST["parent_id:".$form_name];
+  $parent_id=$_POST["parent_id:".$page_id];
   $link_database=$form_config["link_database"];
   $link_table=$form_config["link_table"];
   $parent_key=$form_config["parent_key"];
@@ -245,7 +243,7 @@ function checklist_update($form_config)
       $where_items=array();
       $where_items[$parent_key]=$parent_id;
       $where_items[$link_key]=$child_id;
-      if (\webdb\utils\check_user_form_permission($form_name,"d")==false)
+      if (\webdb\utils\check_user_form_permission($page_id,"d")==false)
       {
         \webdb\utils\error_message("error: form record(s) delete permission denied");
       }
@@ -282,7 +280,7 @@ function checklist_update($form_config)
         }
         if (count($value_items)>0)
         {
-          if (\webdb\utils\check_user_form_permission($form_name,"u")==false)
+          if (\webdb\utils\check_user_form_permission($page_id,"u")==false)
           {
             \webdb\utils\error_message("error: form record(s) update permission denied");
           }
@@ -292,7 +290,7 @@ function checklist_update($form_config)
       }
       else
       {
-        if (\webdb\utils\check_user_form_permission($form_name,"i")==false)
+        if (\webdb\utils\check_user_form_permission($page_id,"i")==false)
         {
           \webdb\utils\error_message("error: form record(s) insert permission denied");
         }
@@ -303,7 +301,7 @@ function checklist_update($form_config)
     }
   }
   $params=array();
-  $params["update"]=$form_config["url_page"];
+  $params["update"]=$form_config["page_id"];
   \webdb\forms\page_redirect(false,$params);
 }
 
@@ -358,10 +356,10 @@ function process_filter_sql(&$form_config)
   if (isset($_GET["filters"])==true)
   {
     $filters=json_decode($_GET["filters"],true);
-    $url_page=$form_config["url_page"];
-    if (isset($filters[$url_page])==true)
+    $page_id=$form_config["page_id"];
+    if (isset($filters[$page_id])==true)
     {
-      $form_config["default_filter"]=$filters[$url_page];
+      $form_config["default_filter"]=$filters[$page_id];
     }
   }
   $form_config["default_filter_sql"]="";
@@ -437,10 +435,10 @@ function get_subform_content($subform_config,$subform_link_field,$id,$list_only=
   $subform_params["subform_style"]="";
   if ($parent_form_config!==false)
   {
-    $subform_name=$subform_config["form_name"];
-    if (isset($parent_form_config["edit_subforms_styles"][$subform_name])==true)
+    $subform_page_id=$subform_config["page_id"];
+    if (isset($parent_form_config["edit_subforms_styles"][$subform_page_id])==true)
     {
-      $subform_params["subform_style"]=$parent_form_config["edit_subforms_styles"][$subform_name];
+      $subform_params["subform_style"]=$parent_form_config["edit_subforms_styles"][$subform_page_id];
     }
   }
   $subform_params["title"]=$subform_config["title"];
@@ -481,17 +479,10 @@ function js_date_field($fieldname)
 function load_form_defs()
 {
   global $settings;
-  $webdb_file_list=scandir($settings["webdb_forms_path"]);
+  $webdb_files=\webdb\utils\load_files($settings["webdb_forms_path"],"","",false);
   $webdb_forms=array();
-  for ($i=0;$i<count($webdb_file_list);$i++)
+  foreach ($webdb_files as $fn => $data)
   {
-    $fn=$webdb_file_list[$i];
-    if (($fn==".") or ($fn==".."))
-    {
-      continue;
-    }
-    $full=$settings["webdb_forms_path"].$fn;
-    $data=trim(file_get_contents($full));
     $data=json_decode($data,true);
     if (isset($data["form_version"])==false)
     {
@@ -505,47 +496,46 @@ function load_form_defs()
     {
       \webdb\utils\error_message("error: invalid webdb form def (missing enabled): ".$fn);
     }
+    if (isset($data["page_id"])==false)
+    {
+      \webdb\utils\error_message("error: invalid webdb form def (missing page_id): ".$fn);
+    }
     if ($data["enabled"]==false)
     {
       continue;
     }
+    $data["basename"]=$fn;
+    $full=$settings["webdb_forms_path"].$fn;
+    $data["filename"]=$full;
     if ($fn==($settings["webdb_default_form"].".".$data["form_type"]))
     {
       $settings["form_defaults"][$data["form_type"]]=$data;
     }
     else
     {
-      $webdb_forms[$fn]=$data;
+      $page_id=$data["page_id"];
+      $webdb_forms[$page_id]=$data;
     }
   }
-  foreach ($webdb_forms as $fn => $data)
+  foreach ($webdb_forms as $page_id => $data)
   {
-    $full=$settings["webdb_forms_path"].$fn;
-    if (isset($settings["form_defaults"][$data["form_type"]])==false)
+    $form_type=$data["form_type"];
+    if (isset($settings["form_defaults"][$form_type])==false)
     {
-      \webdb\utils\error_message("error: invalid form def (invalid form_type): ".$fn);
+      \webdb\utils\error_message("error: invalid webdb form def (invalid form_type): ".$data["basename"]);
     }
-    $data["filename"]=$full;
-    $default=$settings["form_defaults"][$data["form_type"]];
-    $form_name=basename($fn,".".$data["form_type"]);
-    if (isset($settings["forms"][$form_name])==true)
+    $default=$settings["form_defaults"][$form_type];
+    if (isset($settings["forms"][$page_id])==true)
     {
-      \webdb\utils\error_message("error: form '".$form_name."' already exists: ".$fn);
+      \webdb\utils\error_message("error: form '".$page_id."' already exists: ".$data["basename"]);
     }
-    $settings["forms"][$form_name]=array_merge($default,$data);
+    $settings["forms"][$page_id]=array_merge($default,$data);
   }
   if (\webdb\utils\is_app_mode()==true)
   {
-    $app_file_list=scandir($settings["app_forms_path"]);
-    for ($i=0;$i<count($app_file_list);$i++)
+    $app_files=\webdb\utils\load_files($settings["app_forms_path"],"","",false);
+    foreach ($app_files as $fn => $data)
     {
-      $fn=$app_file_list[$i];
-      if (($fn==".") or ($fn==".."))
-      {
-        continue;
-      }
-      $full=$settings["app_forms_path"].$fn;
-      $data=trim(file_get_contents($full));
       $data=json_decode($data,true);
       if (isset($data["form_version"])==false)
       {
@@ -563,27 +553,30 @@ function load_form_defs()
       {
         \webdb\utils\error_message("error: invalid app form def (missing enabled): ".$fn);
       }
+      if (isset($data["page_id"])==false)
+      {
+        \webdb\utils\error_message("error: invalid app form def (missing page_id): ".$fn);
+      }
       if ($data["enabled"]==false)
       {
         continue;
       }
-      if (isset($settings["form_defaults"][$data["form_type"]])==false)
+      $form_type=$data["form_type"];
+      if (isset($settings["form_defaults"][$form_type])==false)
       {
-        \webdb\utils\error_message("error: invalid form def (invalid form_type): ".$fn);
+        \webdb\utils\error_message("error: invalid app form def (invalid form_type): ".$fn);
       }
+      $data["basename"]=$fn;
+      $full=$settings["app_forms_path"].$fn;
       $data["filename"]=$full;
-      $default=$settings["form_defaults"][$data["form_type"]];
-      $form_name=basename($fn,".".$data["form_type"]);
-      if (isset($settings["forms"][$form_name])==true)
+      $page_id=$data["page_id"];
+      $default=$settings["form_defaults"][$form_type];
+      if (isset($settings["forms"][$page_id])==true)
       {
-        \webdb\utils\error_message("error: form '".$form_name."' already exists: ".$fn);
+        \webdb\utils\error_message("error: form '".$page_id."' already exists: ".$fn);
       }
-      $settings["forms"][$form_name]=array_merge($default,$data);
+      $settings["forms"][$page_id]=array_merge($default,$data);
     }
-  }
-  foreach ($settings["forms"] as $form_name => $data)
-  {
-    $settings["forms"][$form_name]["form_name"]=$form_name;
   }
 }
 
@@ -641,7 +634,7 @@ function list_row($form_config,$record,$column_format,$row_spans,$lookup_records
   global $settings;
   $rotate_group_borders=$column_format["rotate_group_borders"];
   $row_params=array();
-  $row_params["url_page"]=$form_config["url_page"];
+  $row_params["page_id"]=$form_config["page_id"];
   $row_params["primary_key"]=\webdb\forms\config_id_url_value($form_config,$record,"primary_key");
   $row_params["edit_cmd_id"]=$row_params["primary_key"];
   if ($form_config["edit_cmd"]<>"inline")
@@ -669,7 +662,7 @@ function list_row($form_config,$record,$column_format,$row_spans,$lookup_records
     }
     $field_params=array();
     $field_params["primary_key"]=$row_params["primary_key"];
-    $field_params["url_page"]=$row_params["url_page"];
+    $field_params["page_id"]=$row_params["page_id"];
     $display_record=$record;
     if (($form_config["checklist"]==true) and (in_array($field_name,$form_config["link_fields"])==true))
     {
@@ -703,7 +696,7 @@ function list_row($form_config,$record,$column_format,$row_spans,$lookup_records
     {
       $field_params["field_name"].="[".$form_config["parent_form_id"].\webdb\index\CONFIG_ID_DELIMITER.$field_params["primary_key"]."]";
     }
-    $field_params["url_page"]=$form_config["url_page"];
+    $field_params["page_id"]=$form_config["page_id"];
     $field_params["group_span"]="";
     $field_params["handlers"]="";
     $field_params["table_cell_style"]="";
@@ -755,7 +748,7 @@ function list_row($form_config,$record,$column_format,$row_spans,$lookup_records
       }
       else
       {
-        $fields.=output_readonly_field($field_params,$control_type,$form_config,$field_name,$lookup_records,$display_record);
+        $fields.=output_readonly_field($field_params,$control_type,$form_config,$field_name,$lookup_records,$display_record,$checklist_link_record);
       }
     }
     $row_params["default_checked"]="";
@@ -820,7 +813,7 @@ function lookup_field_display_value($lookup_config,$lookup_record)
 
 #####################################################################################################
 
-function output_readonly_field($field_params,$control_type,$form_config,$field_name,$lookup_records,$display_record)
+function output_readonly_field($field_params,$control_type,$form_config,$field_name,$lookup_records,$display_record,$checklist_link_record=false)
 {
   global $settings;
   switch ($control_type)
@@ -832,14 +825,34 @@ function output_readonly_field($field_params,$control_type,$form_config,$field_n
       $lookup_config=$form_config["lookups"][$field_name];
       $key_field_name=$lookup_config["key_field"];
       $sibling_field_name=$lookup_config["sibling_field"];
-      for ($i=0;$i<count($lookup_records[$field_name]);$i++)
+      if ($form_config["checklist"]==false)
       {
-        $key_value=$lookup_records[$field_name][$i][$key_field_name];
-        $display_value=\webdb\forms\lookup_field_display_value($lookup_config,$lookup_records[$field_name][$i]);
-        if ($display_record[$sibling_field_name]==$key_value)
+        for ($i=0;$i<count($lookup_records[$field_name]);$i++)
         {
-          $field_params["value"]=$display_value;
-          break;
+          $lookup_record=$lookup_records[$field_name][$i];
+          $key_value=$lookup_record[$key_field_name];
+          if ($display_record[$sibling_field_name]==$key_value)
+          {
+            $field_params["value"]=\webdb\forms\lookup_field_display_value($lookup_config,$lookup_record);
+            break;
+          }
+        }
+      }
+      else
+      {
+        if ($checklist_link_record!==false)
+        {
+          $key_value=$checklist_link_record[$key_field_name];
+          $sibling_value=$display_record[$sibling_field_name];
+          for ($i=0;$i<count($lookup_records[$field_name]);$i++)
+          {
+            $lookup_record=$lookup_records[$field_name][$i];
+            if (($lookup_record[$key_field_name]==$key_value) and ($lookup_record[$sibling_field_name]==$sibling_value))
+            {
+              $field_params["value"]=\webdb\forms\lookup_field_display_value($lookup_config,$lookup_record);
+              break;
+            }
+          }
         }
       }
       $field_params["value"]=htmlspecialchars(str_replace(\webdb\index\LINEBREAK_DB_DELIM,\webdb\index\LINEBREAK_PLACEHOLDER,$field_params["value"]));
@@ -925,7 +938,7 @@ function list_row_controls($form_config,&$submit_fields,$operation,$column_forma
   $rotate_group_borders=$column_format["rotate_group_borders"];
   $row_params=array();
   $row_params["primary_key"]=\webdb\forms\config_id_url_value($form_config,$record,"primary_key");
-  $row_params["url_page"]=$form_config["url_page"];
+  $row_params["page_id"]=$form_config["page_id"];
   $row_params["check"]=\webdb\forms\check_column($form_config,"list_check_insert");
   $lookup_records=lookup_records($form_config,false);
   $fields="";
@@ -938,7 +951,7 @@ function list_row_controls($form_config,&$submit_fields,$operation,$column_forma
     }
     $field_params=array();
     $field_params["primary_key"]=$row_params["primary_key"];
-    $field_params["url_page"]=$row_params["url_page"];
+    $field_params["page_id"]=$row_params["page_id"];
     $field_params["handlers"]="";
     $field_params["border_color"]=$settings["list_border_color"];
     $field_params["border_width"]=$settings["list_border_width"];
@@ -999,7 +1012,7 @@ function output_editable_field(&$field_params,$record,$field_name,$control_type,
   {
     $field_params["field_value"]=htmlspecialchars($record[$field_name]);
   }
-  $field_params["url_page"]=$form_config["url_page"];
+  $field_params["page_id"]=$form_config["page_id"];
   $field_params["control_style"]="";
   if (isset($form_config["control_styles"][$field_name])==true)
   {
@@ -1118,7 +1131,7 @@ function output_editable_field(&$field_params,$record,$field_name,$control_type,
       $submit_fields[]=$field_params["field_name"];
       break;
     default:
-      \webdb\utils\error_message("error: invalid control type '".$control_type."' for field '".$field_name."' on form '".$form_config["form_name"]."'");
+      \webdb\utils\error_message("error: invalid control type '".$control_type."' for field '".$field_name."' on form '".$form_config["page_id"]."'");
   }
   return \webdb\forms\form_template_fill("field_edit_".$control_type,$field_params);
 }
@@ -1135,7 +1148,7 @@ function get_column_format_data($form_config)
   {
     if (isset($form_config["visible"][$field_name])==false)
     {
-      \webdb\utils\error_message("error: field visibility not found for '".$field_name."' on form '".$form_config["form_name"]."'");
+      \webdb\utils\error_message("error: field visibility not found for '".$field_name."' on form '".$form_config["page_id"]."'");
     }
     if ($form_config["visible"][$field_name]==false)
     {
@@ -1295,12 +1308,12 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
     $records=\webdb\sql\fetch_prepare($sql,array());
   }
   $form_params=array();
-  $form_params["url_page"]=$form_config["url_page"];
-  $form_params["edit_cmd_url_page"]=$form_config["edit_cmd_url_page"];
-  $form_params["insert_cmd_url_page"]=$form_config["url_page"];
-  if ($form_config["insert_cmd_url_page"]<>"")
+  $form_params["page_id"]=$form_config["page_id"];
+  $form_params["edit_cmd_page_id"]=$form_config["edit_cmd_page_id"];
+  $form_params["insert_cmd_page_id"]=$form_config["page_id"];
+  if ($form_config["insert_cmd_page_id"]<>"")
   {
-    $form_params["insert_cmd_url_page"]=$form_config["insert_cmd_url_page"];
+    $form_params["insert_cmd_page_id"]=$form_config["insert_cmd_page_id"];
   }
   $form_params["insert_default_params"]="";
   if ($insert_default_params!==false)
@@ -1582,11 +1595,11 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
   $form_params=\webdb\forms\handle_custom_form_below_event($form_config,$form_params);
   $form_params["redirect"]="";
   $form_params["parent_id"]="";
-  $form_params["parent_form_url_page"]="";
+  $form_params["parent_form_page_id"]="";
   if ((isset($form_config["parent_form_id"])==true) and (isset($form_config["parent_form_config"])==true))
   {
     $form_params["parent_id"]=$form_config["parent_form_id"];
-    $form_params["parent_form_url_page"]=$form_config["parent_form_config"]["url_page"];
+    $form_params["parent_form_page_id"]=$form_config["parent_form_config"]["page_id"];
     $url_params=array();
     if (isset($_GET["redirect"])==true)
     {
@@ -1697,7 +1710,7 @@ function advanced_search($form_config)
         }
         break;
       default:
-        \webdb\utils\error_message("error: invalid control type '".$control_type."' for field '".$field_name."' on form '".$form_config["form_name"]."'");
+        \webdb\utils\error_message("error: invalid control type '".$control_type."' for field '".$field_name."' on form '".$form_config["page_id"]."'");
     }
     $row_params=array();
     $row_params["field_name"]=$form_config["captions"][$field_name];
@@ -1716,7 +1729,7 @@ function advanced_search($form_config)
   $form_params=array();
   $form_params["title"]=$form_config["title"];
   $form_params["rows"]=$rows;
-  $form_params["url_page"]=$form_config["url_page"];
+  $form_params["page_id"]=$form_config["page_id"];
   $search_page_params=array();
   $search_page_params["advanced_search"]=\webdb\forms\form_template_fill("advanced_search",$form_params);
   $fieldnames=array_keys($sql_params);
@@ -1841,10 +1854,10 @@ function edit_form($form_config,$id)
   $record=\webdb\forms\get_record_by_id($form_config,$id,"edit_cmd_id");
   \webdb\forms\process_computed_fields($form_config,$record);
   $subforms="";
-  foreach ($form_config["edit_subforms"] as $subform_name => $subform_link_field)
+  foreach ($form_config["edit_subforms"] as $subform_page_id => $subform_link_field)
   {
-    $subform_config=$settings["forms"][$subform_name];
-    $subforms.=get_subform_content($subform_config,$subform_link_field,$id,false,$form_config);
+    $subform_config=\webdb\forms\get_form_config($subform_page_id);
+    $subforms.=\webdb\forms\get_subform_content($subform_config,$subform_link_field,$id,false,$form_config);
   }
   $data=\webdb\forms\output_editor($form_config,$record,"Edit","Update",$id);
   $edit_page_params=array();
@@ -1853,8 +1866,8 @@ function edit_form($form_config,$id)
   $edit_page_params["form_script_modified"]=\webdb\utils\resource_modified_timestamp("list.js");
   $edit_page_params["form_styles_modified"]=\webdb\utils\resource_modified_timestamp("list.css");
   $edit_page_params["command_caption_noun"]=$form_config["command_caption_noun"];
-  $edit_page_params["url_page"]=$form_config["url_page"];
-  $edit_page_params["edit_cmd_url_page"]=$form_config["edit_cmd_url_page"];
+  $edit_page_params["page_id"]=$form_config["page_id"];
+  $edit_page_params["edit_cmd_page_id"]=$form_config["edit_cmd_page_id"];
   $content=\webdb\forms\form_template_fill("edit_page",$edit_page_params);
   $result=array();
   $result["title"]=$data["title"];
@@ -1869,7 +1882,7 @@ function lookup_field_data($form_config,$field_name,$sibling_field=false)
   global $settings;
   if (isset($form_config["lookups"][$field_name])==false)
   {
-    \webdb\utils\error_message("error: invalid lookup config for field '".$field_name."' in form '".$form_config["form_name"]."' (lookup config missing)");
+    \webdb\utils\error_message("error: invalid lookup config for field '".$field_name."' in form '".$form_config["page_id"]."' (lookup config missing)");
   }
   $lookup_config=$form_config["lookups"][$field_name];
   $config_keys=array("database","table","key_field","display_field","lookup_sql_file","order_by");
@@ -1946,7 +1959,7 @@ function output_editor($form_config,$record,$command,$verb,$id)
     }
     $field_value=$record[$field_name];
     $field_params=array();
-    $field_params["url_page"]=$form_config["url_page"];
+    $field_params["page_id"]=$form_config["page_id"];
     $field_params["disabled"]=\webdb\forms\field_disabled($form_config,$field_name);
     $field_params["js_events"]=\webdb\forms\field_js_events($form_config,$field_name,$record);
     $field_params["field_name"]=$field_name;
@@ -2124,9 +2137,9 @@ function process_form_data_fields($form_config,$post_override=false)
 function insert_record($form_config)
 {
   global $settings;
-  if (\webdb\utils\check_user_form_permission($form_config["form_name"],"i")==false)
+  if (\webdb\utils\check_user_form_permission($form_config["page_id"],"i")==false)
   {
-    \webdb\utils\error_message("error: form record insert permission denied");
+    \webdb\utils\error_message("error: record insert permission denied for form '".$page_id."'");
   }
   $value_items=\webdb\forms\process_form_data_fields($form_config);
   \webdb\forms\check_required_values($form_config,$value_items);
@@ -2140,7 +2153,7 @@ function insert_record($form_config)
   {
     $id=$handled;
   }
-  if (($form_config["edit_cmd_url_page"]<>"") and (isset($_GET["cmd"])==true))
+  if (($form_config["edit_cmd_page_id"]<>"") and (isset($_GET["cmd"])==true))
   {
     $url=trim(\webdb\forms\form_template_fill("insert_redirect_url",$form_config)).$id;
     \webdb\utils\redirect($url);
@@ -2246,9 +2259,9 @@ function handle_custom_form_below_event($form_config,$form_params)
 function update_record($form_config,$id)
 {
   global $settings;
-  if (\webdb\utils\check_user_form_permission($form_config["form_name"],"u")==false)
+  if (\webdb\utils\check_user_form_permission($form_config["page_id"],"u")==false)
   {
-    \webdb\utils\error_message("error: form record update permission denied");
+    \webdb\utils\error_message("error: record update permission denied form form '".$page_id."'");
   }
   $value_items=\webdb\forms\process_form_data_fields($form_config);
   \webdb\forms\check_required_values($form_config,$value_items);
@@ -2259,7 +2272,7 @@ function update_record($form_config,$id)
   {
     \webdb\sql\sql_update($value_items,$where_items,$form_config["table"],$form_config["database"]);
     $params=array();
-    $params["update"]=$form_config["url_page"];
+    $params["update"]=$form_config["page_id"];
   }
   \webdb\forms\page_redirect(false,$params);
 }
@@ -2303,7 +2316,7 @@ function get_record_by_id($form_config,$id,$config_key)
     if (function_exists($func_name)==true)
     {
       $event_params=array();
-      $event_params["url_page"]=$form_config["url_page"];
+      $event_params["page_id"]=$form_config["page_id"];
       $event_params["form_config"]=$form_config;
       $event_params["id"]=$id;
       $event_params["config_key"]=$config_key;
@@ -2346,7 +2359,7 @@ function delete_confirmation($form_config,$id)
     $list_form_config["visible"][$field_name]=true;
   }
   $form_params["list"]=list_form_content($list_form_config,$records,false);
-  $form_params["url_page"]=$form_config["url_page"];
+  $form_params["page_id"]=$form_config["page_id"];
   $form_params["primary_key"]=$id;
   $form_params["command_caption_noun"]=$form_config["command_caption_noun"];
   $foreign_keys=\webdb\sql\foreign_key_used($form_config["database"],$form_config["table"],$record);
@@ -2382,7 +2395,7 @@ function delete_confirmation($form_config,$id)
     $form_params["redirect"]=\webdb\forms\form_template_fill("redirect_url_param",$url_params);
   }
   $result=array();
-  $result["title"]=$form_config["form_name"].": confirm deletion";
+  $result["title"]=$form_config["page_id"].": confirm deletion";
   $result["content"]=\webdb\forms\form_template_fill("delete_confirm",$form_params);
   return $result;
 }
@@ -2439,7 +2452,7 @@ function form_url($form_config)
 {
   global $settings;
   $url_params=array();
-  $url_params["url_page"]=$form_config["url_page"];
+  $url_params["page_id"]=$form_config["page_id"];
   return \webdb\forms\form_template_fill("form_url",$url_params);
 }
 
@@ -2448,9 +2461,9 @@ function form_url($form_config)
 function delete_record($form_config,$id)
 {
   global $settings;
-  if (\webdb\utils\check_user_form_permission($form_config["form_name"],"d")==false)
+  if (\webdb\utils\check_user_form_permission($form_config["page_id"],"d")==false)
   {
-    \webdb\utils\error_message("error: form record delete permission denied");
+    \webdb\utils\error_message("error: record delete permission denied for form '".$page_id."'");
   }
   $where_items=\webdb\forms\config_id_conditions($form_config,$id,"primary_key");
   \webdb\sql\sql_delete($where_items,$form_config["table"],$form_config["database"]);
@@ -2514,7 +2527,7 @@ function delete_selected_confirmation($form_config)
   $list_form_config["insert_row"]=false;
   $list_form_config["advanced_search"]=false;
   $form_params["records"]=\webdb\forms\list_form_content($list_form_config,$records,false);
-  $form_params["url_page"]=$form_config["url_page"];
+  $form_params["page_id"]=$form_config["page_id"];
   $form_params["command_caption_noun"]=$form_config["command_caption_noun"];
   $form_params["delete_all_button"]=\webdb\forms\form_template_fill("delete_selected_cancel_controls",$form_params);
   if ($foreign_key_used==false)
@@ -2531,7 +2544,7 @@ function delete_selected_confirmation($form_config)
     $form_params["redirect"]=\webdb\forms\form_template_fill("redirect_url_param",$url_params);
   }
   $content=\webdb\forms\form_template_fill("list_del_selected_confirm",$form_params);
-  $title=$form_config["form_name"].": confirm selected deletion";
+  $title=$form_config["page_id"].": confirm selected deletion";
   \webdb\utils\output_page($content,$title);
   \webdb\forms\page_redirect();
 }
@@ -2541,9 +2554,9 @@ function delete_selected_confirmation($form_config)
 function delete_selected_records($form_config)
 {
   global $settings;
-  if (\webdb\utils\check_user_form_permission($form_config["form_name"],"d")==false)
+  if (\webdb\utils\check_user_form_permission($form_config["page_id"],"d")==false)
   {
-    \webdb\utils\error_message("error: form record(s) delete permission denied");
+    \webdb\utils\error_message("error: record(s) delete permission denied for form '".$page_id."'");
   }
   foreach ($_POST["id"] as $id => $value)
   {

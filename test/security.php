@@ -21,6 +21,8 @@ function start()
   #\webdb\test\utils\test_cleanup();
   #die;
 
+  # check to make sure only \webdb\forms\get_form_config is loading form configs (checking for permission)
+
   \webdb\test\security\test_user_agent();
   $settings["test_user_agent"]=\webdb\test\security\utils\TEST_USER_AGENT;
   \webdb\test\security\test_login_csrf_token();

@@ -3,7 +3,7 @@
     "form_type": "list",
     "enabled": true,
     "title": "Items",
-    "url_page": "items",
+    "page_id": "items",
     "control_types": {
         "item_id": "span",
         "created_timestamp": "span",
@@ -41,7 +41,7 @@
     "multi_row_delete": true,
     "delete_cmd": true,
     "edit_cmd": "row",
-    "edit_cmd_url_page": "items",
+    "edit_cmd_page_id": "items",
     "edit_cmd_id": "item_id",
     "insert_new": true,
     "insert_row": true,

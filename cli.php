@@ -86,11 +86,11 @@ function cli_dispatch()
       die;
     case "format_json":
       echo "formatting forms...".PHP_EOL;
-      foreach ($settings["forms"] as $form_name => $form_data)
+      foreach ($settings["forms"] as $page_id => $form_data)
       {
         $filename=$form_data["filename"];
         unset($form_data["filename"]);
-        unset($form_data["form_name"]);
+        unset($form_data["basename"]);
         $data=json_encode($form_data,JSON_PRETTY_PRINT);
         if ($data===false)
         {
@@ -131,7 +131,7 @@ function cli_dispatch()
       {
         $column_record=$records[$i];
         $column_used=false;
-        foreach ($settings["forms"] as $form_name => $form_config)
+        foreach ($settings["forms"] as $page_id => $form_config)
         {
           foreach ($form_config["control_types"] as $field_name => $control_type)
           {

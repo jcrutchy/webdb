@@ -3,9 +3,9 @@
     "form_type": "list",
     "enabled": true,
     "title": "Users",
-    "url_page": "users",
+    "page_id": "users",
     "edit_subforms": {
-        "user_groups_subform": "user_id"
+        "subform_user_groups": "user_id"
     },
     "edit_subforms_styles": [],
     "control_types": {
@@ -115,12 +115,12 @@
     "multi_row_delete": false,
     "delete_cmd": true,
     "edit_cmd": "row",
-    "edit_cmd_url_page": "users",
+    "edit_cmd_page_id": "users",
     "edit_button_caption": "",
     "edit_cmd_id": "user_id",
     "insert_new": true,
     "insert_row": true,
-    "insert_cmd_url_page": "",
+    "insert_cmd_page_id": "",
     "advanced_search": false,
     "sort_field_select": true,
     "allow_field_sort": true,

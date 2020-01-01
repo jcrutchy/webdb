@@ -27,6 +27,14 @@ function run_tests()
   {
     require_once("test".DIRECTORY_SEPARATOR."security.php");
     \webdb\test\security\start();
+    \webdb\test\utils\test_cleanup();
+    require_once("test".DIRECTORY_SEPARATOR."functional.php");
+    \webdb\test\functional\run_functional_tests();
+    \webdb\test\utils\test_cleanup();
+    if (file_exists($settings["app_test_include"])==true)
+    {
+      require_once($settings["app_test_include"]);
+    }
   }
   else
   {
@@ -86,6 +94,7 @@ function check_app_settings()
     "app_resources_path",
     "app_forms_path",
     "gd_ttf",
+    "app_test_include",
     "webdb_default_form",
     "list_diagonal_border_color",
     "list_border_color",
@@ -113,7 +122,8 @@ function check_app_settings()
   $required_files=array(
     "db_admin_file",
     "db_user_file",
-    "gd_ttf");
+    "gd_ttf",
+    "app_test_include");
   for ($i=0;$i<count($required_files);$i++)
   {
     $file=$required_files[$i];

@@ -4,6 +4,60 @@ namespace webdb\stubs;
 
 #####################################################################################################
 
+function output_filter_select($form_config,$filter_select_template,$blank_option,$active_template,$select_all_template,$deselect_all_template)
+{
+  $params=array();
+  $page_id=$form_config["page_id"];
+  $filter=$form_config["default_filter"];
+  if (isset($_GET["filters"])==true)
+  {
+    $filters=json_decode($_GET["filters"],true);
+    if (isset($filters[$page_id])==true)
+    {
+      $filter=$filters[$page_id];
+    }
+  }
+  if (isset($_GET["new_filter"])==true)
+  {
+    $filter=$_GET["new_filter"];
+  }
+  foreach ($form_config["filter_options"] as $filter_name => $sql_condition)
+  {
+    $params["active_filter_".$filter_name]="";
+  }
+  if ($filter<>"")
+  {
+    $params["active_filter_".$filter]=\webdb\utils\template_fill($active_template);
+    $params[$blank_option]=$deselect_all_template;
+  }
+  else
+  {
+    $params[$blank_option]=$select_all_template;
+  }
+  $params["subform"]=$page_id;
+  return \webdb\utils\template_fill($filter_select_template,$params);
+}
+
+#####################################################################################################
+
+function filter_select_change($form_config)
+{
+  $required_params=array("new_filter","id","redirect","subform");
+  \webdb\stubs\check_get_parameters_exist($required_params);
+  $filter=$_GET["new_filter"];
+  $subform=$_GET["subform"];
+  $data=array();
+  $id=$_GET["id"];
+  $subform_config=\webdb\forms\get_form_config($subform);
+  $subform_config["default_filter"]=$filter;
+  $data["html"]=\webdb\forms\get_subform_content($subform_config,$subform_config["parent_key"],$id,true,$form_config);
+  $data["subform"]=$subform_config["page_id"];
+  $data=json_encode($data);
+  die($data);
+}
+
+#####################################################################################################
+
 function stub_error($error_msg)
 {
   $data=array();
@@ -49,9 +103,9 @@ function get_unique_stub_record($id_field_name,$id,$sql_stub_name,$return_field_
 function list_insert($form_config)
 {
   global $settings;
-  if (\webdb\utils\check_user_form_permission($form_config["form_name"],"i")==false)
+  if (\webdb\utils\check_user_form_permission($form_config["page_id"],"i")==false)
   {
-    \webdb\utils\error_message("error: form record update permission denied");
+    \webdb\utils\error_message("error: record update permission denied for form '".$page_id."'");
   }
   if ((isset($_GET["parent_form"])==true) and (isset($_GET["parent_id"])==true))
   {
@@ -67,7 +121,7 @@ function list_insert($form_config)
   {
     \webdb\stubs\stub_error("error: no field data to insert");
   }
-  $data["url_page"]=$form_config["url_page"];
+  $data["page_id"]=$form_config["page_id"];
   $insert_default_params=array();
   foreach ($_GET as $param_name => $param_value)
   {
@@ -114,9 +168,9 @@ function list_insert($form_config)
 function list_edit($id,$form_config)
 {
   global $settings;
-  if (\webdb\utils\check_user_form_permission($form_config["form_name"],"u")==false)
+  if (\webdb\utils\check_user_form_permission($form_config["page_id"],"u")==false)
   {
-    \webdb\utils\error_message("error: form record update permission denied");
+    \webdb\utils\error_message("error: record update permission denied for form '".$page_id."'");
   }
   if ((isset($_GET["parent_form"])==true) and (isset($_GET["parent_id"])==true))
   {
@@ -127,7 +181,7 @@ function list_edit($id,$form_config)
     }
   }
   $data=array();
-  $data["url_page"]=$form_config["url_page"];
+  $data["page_id"]=$form_config["page_id"];
   $column_format=\webdb\forms\get_column_format_data($form_config);
   $record=\webdb\forms\get_record_by_id($form_config,$id,"primary_key");
   \webdb\forms\process_computed_fields($form_config,$record);
@@ -151,15 +205,14 @@ function list_edit($id,$form_config)
     }
     if (isset($_GET["parent_form"])==true)
     {
-      $parent_url_page=$_GET["parent_form"];
-      $parent_form_config=\webdb\forms\get_form_config($parent_url_page);
-      $parent_form_name=$parent_form_config["form_name"];
-      $subform_url_page=$_GET["subform"];
-      if (\webdb\utils\check_user_form_permission($subform_url_page,"u")==false)
+      $parent_page_id=$_GET["parent_form"];
+      $parent_form_config=\webdb\forms\get_form_config($parent_page_id);
+      $subform_page_id=$_GET["subform"];
+      if (\webdb\utils\check_user_form_permission($subform_page_id,"u")==false)
       {
-        \webdb\utils\error_message("error: form record update permission denied");
+        \webdb\utils\error_message("error: record update permission denied for subform '".$subform_page_id."'");
       }
-      $subform_form_config=\webdb\forms\get_form_config($subform_url_page);
+      $subform_form_config=\webdb\forms\get_form_config($subform_page_id);
       $value_items=\webdb\forms\process_form_data_fields($subform_form_config,$post_fields);
       \webdb\forms\check_required_values($subform_form_config,$value_items);
       $where_items=\webdb\forms\config_id_conditions($subform_form_config,$id,"primary_key");
@@ -171,9 +224,9 @@ function list_edit($id,$form_config)
     }
     else
     {
-      if (\webdb\utils\check_user_form_permission($form_config["form_name"],"u")==false)
+      if (\webdb\utils\check_user_form_permission($form_config["page_id"],"u")==false)
       {
-        \webdb\utils\error_message("error: form record update permission denied");
+        \webdb\utils\error_message("error: record update permission denied for form '".$page_id."'");
       }
       $value_items=\webdb\forms\process_form_data_fields($form_config,$post_fields);
       \webdb\forms\check_required_values($form_config,$value_items);
@@ -199,7 +252,7 @@ function list_edit($id,$form_config)
     die($data);
   }
   $edit_fields=array();
-  $field_name_prefix="edit_control:".$form_config["url_page"].":".$id.":";
+  $field_name_prefix="edit_control:".$form_config["page_id"].":".$id.":";
   $data["html"]=\webdb\forms\list_row_controls($form_config,$edit_fields,"edit",$column_format,$record,$field_name_prefix);
   $data["primary_key"]=$id;
   for ($i=0;$i<count($settings["calendar_fields"]);$i++)

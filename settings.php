@@ -21,6 +21,8 @@ $settings["webdb_forms_path"]=$settings["webdb_root_path"]."forms".DIRECTORY_SEP
 
 $settings["webdb_default_form"]="default";
 
+$settings["app_test_include"]=$settings["app_root_path"]."test".DIRECTORY_SEPARATOR."test.php";
+
 $settings["links_template"]="";
 $settings["footer_template"]="";
 
@@ -87,9 +89,10 @@ $settings["permissions"]["admin"]["templates"]["user_groups_page_link"]="";
 $settings["permissions"]["admin"]["templates"]["users_page_link"]="";
 
 # webdb form permissions
-# $settings["permissions"]["group_name"]["forms"]["form_name"]="riud";
+# $settings["permissions"]["group_name"]["forms"]["page_id"]="riud";
 # r=read, i=insert, u=update, d=delete
 
 $settings["permissions"]["admin"]["forms"]["groups"]="riud";
 $settings["permissions"]["admin"]["forms"]["users"]="riud";
-$settings["permissions"]["admin"]["forms"]["user_group_links"]="riud";
+$settings["permissions"]["admin"]["forms"]["subform_group_users"]="riud";
+$settings["permissions"]["admin"]["forms"]["subform_user_groups"]="riud";

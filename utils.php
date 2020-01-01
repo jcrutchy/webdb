@@ -80,7 +80,7 @@ function error_message($message)
 
 #####################################################################################################
 
-function debug_var_dump($data,$backtrace=true)
+function debug_var_dump($data,$backtrace=false)
 {
   global $settings;
   $settings["unauthenticated_content"]=true;
@@ -402,13 +402,13 @@ function append_resource_links($template_key,$template_content)
 
 #####################################################################################################
 
-function check_user_form_permission($form_name,$permission)
+function check_user_form_permission($page_id,$permission)
 {
   global $settings;
   $whitelisted=false;
   foreach ($settings["permissions"] as $group_name_iterator => $group_permissions)
   {
-    if (isset($group_permissions["forms"][$form_name])==true)
+    if (isset($group_permissions["forms"][$page_id])==true)
     {
       $whitelisted=true;
       break;
@@ -426,9 +426,9 @@ function check_user_form_permission($form_name,$permission)
   for ($i=0;$i<count($user_groups);$i++)
   {
     $user_group=$user_groups[$i]["group_name"];
-    if (isset($settings["permissions"][$user_group]["forms"][$form_name])==true)
+    if (isset($settings["permissions"][$user_group]["forms"][$page_id])==true)
     {
-      $permissions=$settings["permissions"][$user_group]["forms"][$form_name];
+      $permissions=$settings["permissions"][$user_group]["forms"][$page_id];
       if (strpos($permissions,$permission)!==false)
       {
         return true;

@@ -3,9 +3,9 @@
     "form_type": "list",
     "enabled": true,
     "title": "Groups",
-    "url_page": "groups",
+    "page_id": "groups",
     "edit_subforms": {
-        "group_users_subform": "group_id"
+        "subform_group_users": "group_id"
     },
     "edit_subforms_styles": [],
     "control_types": {
@@ -49,12 +49,12 @@
     "multi_row_delete": false,
     "delete_cmd": true,
     "edit_cmd": "row",
-    "edit_cmd_url_page": "groups",
+    "edit_cmd_page_id": "groups",
     "edit_button_caption": "",
     "edit_cmd_id": "group_id",
     "insert_new": true,
     "insert_row": true,
-    "insert_cmd_url_page": "",
+    "insert_cmd_page_id": "",
     "advanced_search": false,
     "sort_field_select": true,
     "allow_field_sort": true,

@@ -2,8 +2,8 @@
     "form_version": "20190829.1",
     "form_type": "list",
     "enabled": true,
-    "title": "User Groups",
-    "url_page": "user_groups",
+    "title": "Group Users",
+    "page_id": "subform_group_users",
     "edit_subforms": [],
     "edit_subforms_styles": [],
     "control_types": {
@@ -17,7 +17,7 @@
     "caption_groups": [],
     "visible": {
         "user_id": true,
-        "group_id": true
+        "group_id": false
     },
     "disabled": [],
     "default_values": {
@@ -56,13 +56,13 @@
     "multi_row_delete": true,
     "delete_cmd": true,
     "edit_cmd": "inline",
-    "edit_cmd_url_page": "",
+    "edit_cmd_page_id": "users",
     "edit_button_caption": "",
-    "edit_cmd_id": "user_id,group_id",
+    "edit_cmd_id": "user_id",
     "insert_new": true,
     "insert_row": true,
-    "insert_cmd_url_page": "",
-    "advanced_search": true,
+    "insert_cmd_page_id": "",
+    "advanced_search": false,
     "sort_field_select": true,
     "allow_field_sort": true,
     "database": "webdb",

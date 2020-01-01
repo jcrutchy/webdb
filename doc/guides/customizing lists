@@ -55,7 +55,7 @@ function my_update_record_php_stub($form_config,$id,$where_items,$value_items)
     "form_type": "list",
     "enabled": true,
     "generate_stub": "\\my_app\\stubs\\output_some_page",
-    "url_page": "some_page"
+    "page_id": "some_page"
 }
 
 function output_some_page($form_config)
