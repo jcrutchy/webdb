@@ -310,7 +310,7 @@ function load_files($path,$root="",$ext="",$trim_ext=true) # path (and root) mus
       }
       if ($trim_ext==true)
       {
-        $fn=substr($fn,0,strlen($fn)-strlen($fext)-1);
+        $fn=pathinfo($fn,PATHINFO_FILENAME);
       }
       $result[$fn]=trim(file_get_contents($full));
     }

@@ -76,6 +76,10 @@ function cli_dispatch()
           continue;
         }
         $full=$settings["app_forms_path"].$fn;
+        if (is_dir($full)==true)
+        {
+          continue;
+        }
         $result=trim(shell_exec("jsonlint-php ".escapeshellarg($full)));
         echo "validating form '".$fn."': ".$result.PHP_EOL;
         if ($result<>"Valid JSON")
@@ -120,36 +124,91 @@ function cli_dispatch()
       {
         \webdb\utils\system_message("database name not specified");
       }
-      $settings["forms"]=array();
-      \webdb\forms\load_form_defs();
-      $sql_params=array();
-      $sql_params["database"]=$argv[2];
-      $sql=\webdb\utils\sql_fill("column_list",$sql_params);
-      $records=\webdb\sql\fetch_prepare($sql,array(),"",true);
-      $unused_columns=array();
-      for ($i=0;$i<count($records);$i++)
+      \webdb\cli\unused_fields($argv[2]);
+    case "generate_form":
+      if (isset($argv[2])==false)
       {
-        $column_record=$records[$i];
-        $column_used=false;
-        foreach ($settings["forms"] as $page_id => $form_config)
+        \webdb\utils\system_message("database name not specified");
+      }
+      if (isset($argv[3])==false)
+      {
+        \webdb\utils\system_message("table name not specified");
+      }
+      if (isset($argv[4])==false)
+      {
+        \webdb\utils\system_message("filename not specified");
+      }
+      \webdb\cli\generate_form($argv[2],$argv[3],$argv[4]);
+  }
+}
+
+#####################################################################################################
+
+function unused_fields($database)
+{
+  global $settings;
+  $settings["forms"]=array();
+  \webdb\forms\load_form_defs();
+  $sql_params=array();
+  $sql_params["database"]=$database;
+  $sql=\webdb\utils\sql_fill("column_list",$sql_params);
+  $records=\webdb\sql\fetch_prepare($sql,array(),"",true);
+  $unused_columns=array();
+  for ($i=0;$i<count($records);$i++)
+  {
+    $column_record=$records[$i];
+    $column_used=false;
+    foreach ($settings["forms"] as $page_id => $form_config)
+    {
+      foreach ($form_config["control_types"] as $field_name => $control_type)
+      {
+        if (($form_config["database"]==$column_record["TABLE_SCHEMA"]) and ($form_config["table"]==$column_record["TABLE_NAME"]) and ($field_name==$column_record["COLUMN_NAME"]))
         {
-          foreach ($form_config["control_types"] as $field_name => $control_type)
-          {
-            if (($form_config["database"]==$column_record["TABLE_SCHEMA"]) and ($form_config["table"]==$column_record["TABLE_NAME"]) and ($field_name==$column_record["COLUMN_NAME"]))
-            {
-              $column_used=true;
-              break;
-            }
-          }
-        }
-        if ($column_used==false)
-        {
-          $unused_columns[]=implode(".",$column_record);
+          $column_used=true;
+          break;
         }
       }
-      echo implode(PHP_EOL,$unused_columns).PHP_EOL;
-      die;
+    }
+    if ($column_used==false)
+    {
+      $unused_columns[]=implode(".",$column_record);
+    }
   }
+  echo implode(PHP_EOL,$unused_columns).PHP_EOL;
+  die;
+}
+
+#####################################################################################################
+
+function generate_form($database,$table,$filename)
+{
+  global $settings;
+  $settings["forms"]=array();
+  \webdb\forms\load_form_defs();
+  $sql_params=array();
+  $sql_params["table"]=$table;
+  $sql_params["database"]=$database;
+  $sql=\webdb\utils\sql_fill("generate_form_column_list",$sql_params);
+  $records=\webdb\sql\fetch_prepare($sql,array(),"",true);
+  $form_type=pathinfo($filename,PATHINFO_EXTENSION);
+  $full_filename=$settings["app_forms_path"].$filename;
+  $form_data=$settings["form_defaults"][$form_type];
+  for ($i=0;$i<count($records);$i++)
+  {
+    $field_data=$records[$i];
+    var_dump($field_data);
+    die;
+  }
+  if ($form_data===false)
+  {
+    \webdb\utils\system_message("error encoding form json: ".$full_filename);
+  }
+  if (file_put_contents($full_filename,$form_data)===false)
+  {
+    \webdb\utils\system_message("error writing form file: ".$full_filename);
+  }
+  echo "generated form: ".$full_filename.PHP_EOL;
+  die;
 }
 
 #####################################################################################################
