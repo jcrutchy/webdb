@@ -12,6 +12,6 @@ INNER JOIN
 ON
 cu.`CONSTRAINT_NAME` = tc.`CONSTRAINT_NAME`
 WHERE
-cu.`REFERENCED_TABLE_SCHEMA` = :database
+cu.`TABLE_SCHEMA` = :database
 AND
-cu.`REFERENCED_TABLE_NAME` = :table
+cu.`TABLE_NAME` = :table

@@ -324,6 +324,34 @@ function load_files($path,$root="",$ext="",$trim_ext=true) # path (and root) mus
 
 #####################################################################################################
 
+function trim_suffix($value,$suffix)
+{
+  $suffix_len=strlen($suffix);
+  $test=substr($value,-$suffix_len);
+  $ignore=array("s"=>array("es"));
+  foreach ($ignore as $ignore_suffix => $suffix_conditions)
+  {
+    if ($suffix==$ignore_suffix)
+    {
+      for ($i=0;$i<count($suffix_conditions);$i++)
+      {
+        $cond=$suffix_conditions[$i];
+        if (substr($value,-strlen($cond))==$cond)
+        {
+          return $value;
+        }
+      }
+    }
+  }
+  if ($test==$suffix)
+  {
+    $value=substr($value,0,strlen($value)-$suffix_len);
+  }
+  return $value;
+}
+
+#####################################################################################################
+
 function sql_fill($sql_key,$params=false)
 {
   global $settings;

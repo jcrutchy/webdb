@@ -562,6 +562,11 @@ function load_form_defs()
         continue;
       }
       $form_type=$data["form_type"];
+      $fext=pathinfo($fn,PATHINFO_EXTENSION);
+      if ($form_type<>$fext)
+      {
+        \webdb\utils\error_message("error: invalid app form def (form type mismatch): ".$fn);
+      }
       if (isset($settings["form_defaults"][$form_type])==false)
       {
         \webdb\utils\error_message("error: invalid app form def (invalid form_type): ".$fn);
@@ -1946,7 +1951,7 @@ function output_editor($form_config,$record,$command,$verb,$id)
   global $settings;
   $submit_fields=array();
   $lookup_records=lookup_records($form_config);
-  $rows="";
+  $rows=array();
   $hidden_fields="";
   foreach ($form_config["control_types"] as $field_name => $control_type)
   {
@@ -1983,7 +1988,14 @@ function output_editor($form_config,$record,$command,$verb,$id)
     $row_params["interface_button"]=\webdb\forms\get_interface_button($form_config,$record,$field_name,$field_value);
     if ($control_type<>"hidden")
     {
-      $rows.=\webdb\forms\form_template_fill("field_row",$row_params);
+      if ($form_config["custom_".strtolower($command)."_template"]=="")
+      {
+        $rows[]=\webdb\forms\form_template_fill("field_row",$row_params);
+      }
+      else
+      {
+        $rows[$field_name]=$row_params["field_value"];
+      }
     }
     else
     {
@@ -1992,7 +2004,15 @@ function output_editor($form_config,$record,$command,$verb,$id)
   }
   $form_params=$form_config;
   $form_params["hidden_fields"]=$hidden_fields;
-  $form_params["rows"]=$rows;
+  $form_params["rows"]=implode("",$rows);
+  if ($form_config["custom_".strtolower($command)."_template"]=="")
+  {
+    $form_params[strtolower($command)."_table"]=\webdb\forms\form_template_fill(strtolower($command)."_table",$form_params);
+  }
+  else
+  {
+    $form_params[strtolower($command)."_table"]=\webdb\utils\template_fill($form_config["custom_".strtolower($command)."_template"],$rows);
+  }
   $form_params["edit_cmd_id"]=$id;
   $form_params["confirm_caption"]=$verb." ".$form_config["command_caption_noun"];
   $form_params["custom_form_above"]="";
@@ -2358,7 +2378,7 @@ function delete_confirmation($form_config,$id)
   {
     $list_form_config["visible"][$field_name]=true;
   }
-  $form_params["list"]=list_form_content($list_form_config,$records,false);
+  $form_params["list"]=\webdb\forms\list_form_content($list_form_config,$records,false);
   $form_params["page_id"]=$form_config["page_id"];
   $form_params["primary_key"]=$id;
   $form_params["command_caption_noun"]=$form_config["command_caption_noun"];
@@ -2369,7 +2389,7 @@ function delete_confirmation($form_config,$id)
     for ($i=0;$i<count($foreign_keys);$i++)
     {
       $key_def=$foreign_keys[$i]["def"];
-      $key_form_config=get_form_config($key_def["TABLE_NAME"],true);
+      $key_form_config=\webdb\forms\get_form_config($key_def["TABLE_NAME"],true);
       $caption=$key_def["TABLE_SCHEMA"].".".$key_def["TABLE_NAME"];
       if ($key_form_config!==false)
       {

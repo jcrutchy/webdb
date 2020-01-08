@@ -37,6 +37,8 @@
     "event_handlers": {
     },
     "editor_visible": false,
+    "custom_insert_template": "",
+    "custom_edit_template": "",
     "html_includes": [],
     "js_includes": [],
     "css_includes": [],
