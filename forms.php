@@ -1890,6 +1890,10 @@ function lookup_field_data($form_config,$field_name,$sibling_field=false)
     \webdb\utils\error_message("error: invalid lookup config for field '".$field_name."' in form '".$form_config["page_id"]."' (lookup config missing)");
   }
   $lookup_config=$form_config["lookups"][$field_name];
+  if (isset($form_config["lookups"][$field_name]["value_list"])==true)
+  {
+    return $form_config["lookups"][$field_name]["value_list"];
+  }
   $config_keys=array("database","table","key_field","display_field","lookup_sql_file","order_by");
   for ($i=0;$i<count($config_keys);$i++)
   {

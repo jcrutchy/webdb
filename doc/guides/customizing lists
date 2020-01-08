@@ -1,3 +1,9 @@
+    "custom_insert_template": "",
+    "custom_edit_template": "",
+uses field names as %% templates
+can auto-link css and js to template files by creating files in app resources directory with the same name and in subfolder corresponding to templates
+
+
 
 
     "event_handlers": {

@@ -13,9 +13,12 @@ the display_format value must be a value format string to be passed as the first
             "sibling_field": "hazard_id",
             "display_field": "item_no,item_name",
             "display_format": "%s - %s",
-            "lookup_sql_file": "inventory_item_lookup"
+            "lookup_sql_file": "inventory_item_lookup",
+            "value_list": [{"key_field": 1, "display_field": "Yes"},{"key_field": 2, "display_field": "No"},{"key_field": 3, "display_field": "N/A"}]
         }
     },
 
 
 a "lookup" control type requires the "sibling_field" config entry
+
+if "value_list" is set, it will be used
