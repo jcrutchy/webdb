@@ -46,6 +46,10 @@ function form_dispatch($page_id)
       \webdb\utils\error_message("error: users form not permitted from non-admin account");
     }
   }
+  if (($form_config["default_cmd_override"]<>"") and (isset($_GET["cmd"])==false))
+  {
+    $_GET["cmd"]=$form_config["default_cmd_override"];
+  }
   if ((isset($_GET["ajax"])==true) and (isset($_GET["field_name"])==true))
   {
     $event_type=$_GET["ajax"];
