@@ -202,6 +202,7 @@ function form_dispatch($page_id)
 function checklist_update($form_config)
 {
   global $settings;
+  $page_id=$form_config["page_id"];
   $parent_id=$_POST["parent_id:".$page_id];
   $link_database=$form_config["link_database"];
   $link_table=$form_config["link_table"];
@@ -834,7 +835,7 @@ function output_readonly_field($field_params,$control_type,$form_config,$field_n
       $lookup_config=$form_config["lookups"][$field_name];
       $key_field_name=$lookup_config["key_field"];
       $sibling_field_name=$lookup_config["sibling_field"];
-      if ($form_config["checklist"]==false)
+      if (($form_config["checklist"]==false) or (isset($display_record[$sibling_field_name])==true))
       {
         for ($i=0;$i<count($lookup_records[$field_name]);$i++)
         {
@@ -1142,9 +1143,12 @@ function output_editable_field(&$field_params,$record,$field_name,$control_type,
       $records=\webdb\forms\lookup_field_data($form_config,$field_name);
       $lookup_config=$form_config["lookups"][$field_name];
       $parent_list=false;
-      if (($lookup_config["database"]==$form_config["database"]) and ($lookup_config["table"]==$form_config["table"]))
+      if ((isset($lookup_config["database"])==true) and (isset($lookup_config["table"])==true))
       {
-        $parent_list=true;
+        if (($lookup_config["database"]==$form_config["database"]) and ($lookup_config["table"]==$form_config["table"]))
+        {
+          $parent_list=true;
+        }
       }
       $selected_found=false;
       for ($i=0;$i<count($records);$i++)

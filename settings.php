@@ -71,6 +71,8 @@ $settings["auth_log_path"]="";
 
 $settings["test_settings_file"]="webdb_test.conf";
 
+$settings["irregular_plurals"]=array(); # singular => plural
+
 # the following settings are also in list.css
 $settings["list_diagonal_border_color"]="888";
 $settings["list_border_color"]="888";

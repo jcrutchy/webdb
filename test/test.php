@@ -116,6 +116,7 @@ function check_app_settings()
     "ip_whitelist_file",
     "sql_log_path",
     "auth_log_path",
+    "irregular_plurals",
     "format_tag_templates_subdirectory");
   for ($i=0;$i<count($required_settings);$i++)
   {

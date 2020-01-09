@@ -339,6 +339,7 @@ function trim_suffix($value,$suffix)
 
 function make_singular($plural)
 {
+  global $settings;
   $replaces=array(
     "children"=>"child",
     "geese"=>"goose",
@@ -351,7 +352,6 @@ function make_singular($plural)
     "i"=>"us",
     "yses"=>"ysis",
     "pses"=>"psis",
-    "ernies"=>"ernie",
     "ies"=>"y",
     "ses"=>"s",
     "shes"=>"sh",
@@ -361,6 +361,16 @@ function make_singular($plural)
     "ves"=>"f",
     "oes"=>"o",
     "s"=>"");
+  $priority=array();
+  foreach ($settings["irregular_plurals"] as $singular => $plural)
+  {
+    $priority[$plural]=$singular;
+  }
+  $replaces=array_merge($priority,$replaces);
+  foreach ($settings["irregular_plurals"] as $singular => $plural)
+  {
+    $replaces[$plural]=$singular;
+  }
   return \webdb\utils\replace_suffix($plural,$replaces,\webdb\utils\singular_plurals());
 }
 
@@ -382,6 +392,7 @@ function singular_plurals()
 
 function make_plural($singular)
 {
+  global $settings;
   $replaces=array(
     "child"=>"children",
     "goose"=>"geese",
@@ -390,7 +401,6 @@ function make_plural($singular)
     "foot"=>"feet",
     "mouse"=>"mice",
     "person"=>"people",
-    "ernie"=>"ernies",
     "ion"=>"ions",
     "on"=>"a",
     "us"=>"i",
@@ -415,6 +425,16 @@ function make_plural($singular)
     "ife"=>"ives",
     "fe"=>"ves",
     "lf"=>"lves");
+  $priority=array();
+  foreach ($settings["irregular_plurals"] as $singular => $plural)
+  {
+    $priority[$singular]=$plural;
+  }
+  $replaces=array_merge($priority,$replaces);
+  foreach ($settings["irregular_plurals"] as $singular => $plural)
+  {
+    $replaces[$singular]=$plural;
+  }
   return \webdb\utils\replace_suffix($singular,$replaces,\webdb\utils\singular_plurals(),"s");
 }
 
