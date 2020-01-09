@@ -181,6 +181,13 @@ function unused_fields($database)
 function generate_all_forms($database)
 {
   global $settings;
+  system("clear");
+  $input=readline("All existing forms will be deleted. Are you sure you want to continue? (type 'yes' to continue, press Enter or type anything else to cancel): ");
+  if ($input<>"yes")
+  {
+    \webdb\test\utils\test_info_message("aborted by user (no changes made)");
+    die;
+  }
   $settings["forms"]=array();
   \webdb\forms\load_form_defs();
   $cmd="rm -rf ".escapeshellarg($settings["app_forms_path"]);
