@@ -1,0 +1,15 @@
+create files under the format_tags subdirectory of the templates directory
+(specified by the format_tag_templates_subdirectory setting)
+
+each formatting tag must have two files named per the following convention:
+
+tag_open.htm
+tag_close.htm
+
+tag can be anything
+
+
+to use tags in memo fields, the user surrounds their piece of text with <tag>text</tag>
+
+you can create a format_tags subdirectory in your application, which will override the webdb templates
+and allow you to make application-specific formatting

@@ -53,6 +53,8 @@ $settings["webdb_web_index"]=$settings["webdb_web_root"]."index.php";
 
 $settings["favicon_source"]=$settings["webdb_web_resources"]."favicon.png";
 
+$settings["format_tag_templates_subdirectory"]="format_tags";
+
 # the following initialised settings later come from webdb_common_settings.php
 $settings["server_email_from"]="";
 $settings["server_email_reply_to"]="";

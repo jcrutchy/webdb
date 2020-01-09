@@ -115,7 +115,8 @@ function check_app_settings()
     "ip_blacklist_file",
     "ip_whitelist_file",
     "sql_log_path",
-    "auth_log_path");
+    "auth_log_path",
+    "format_tag_templates_subdirectory");
   for ($i=0;$i<count($required_settings);$i++)
   {
     \webdb\test\utils\check_required_setting_exists($required_settings[$i]);

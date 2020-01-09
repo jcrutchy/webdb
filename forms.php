@@ -867,10 +867,14 @@ function output_readonly_field($field_params,$control_type,$form_config,$field_n
       $field_params["value"]=htmlspecialchars(str_replace(\webdb\index\LINEBREAK_DB_DELIM,\webdb\index\LINEBREAK_PLACEHOLDER,$field_params["value"]));
       $field_params["value"]=str_replace(\webdb\index\LINEBREAK_PLACEHOLDER,\webdb\utils\template_fill("break"),$field_params["value"]);
       return \webdb\forms\form_template_fill("list_field",$field_params);
+    case "memo":
+      $field_params["value"]=htmlspecialchars(str_replace(\webdb\index\LINEBREAK_DB_DELIM,\webdb\index\LINEBREAK_PLACEHOLDER,$display_record[$field_name]));
+      $field_params["value"]=str_replace(\webdb\index\LINEBREAK_PLACEHOLDER,\webdb\utils\template_fill("break"),$field_params["value"]);
+      $field_params["value"]=\webdb\forms\memo_field_formatting($field_params["value"]);
+      return \webdb\forms\form_template_fill("list_field",$field_params);
     case "span":
     case "file":
     case "text":
-    case "memo":
       $field_params["value"]=htmlspecialchars(str_replace(\webdb\index\LINEBREAK_DB_DELIM,\webdb\index\LINEBREAK_PLACEHOLDER,$display_record[$field_name]));
       $field_params["value"]=str_replace(\webdb\index\LINEBREAK_PLACEHOLDER,\webdb\utils\template_fill("break"),$field_params["value"]);
       return \webdb\forms\form_template_fill("list_field",$field_params);
@@ -923,6 +927,51 @@ function output_readonly_field($field_params,$control_type,$form_config,$field_n
       return \webdb\forms\form_template_fill("list_field_check",$field_params);
   }
   return "";
+}
+
+#####################################################################################################
+
+function memo_field_formatting($value)
+{
+  global $settings;
+  $subdir=$settings["format_tag_templates_subdirectory"];
+  $template_prefix=$subdir.DIRECTORY_SEPARATOR;
+  $format_tag_templates=array();
+  foreach ($settings["templates"] as $name => $content)
+  {
+    if (substr($name,0,strlen($template_prefix))==$template_prefix)
+    {
+      $name=substr($name,strlen($template_prefix));
+      $name_parts=explode("_",$name);
+      $position=array_pop($name_parts);
+      $tag=trim(implode("_",$name_parts));
+      if (($position<>"open") and ($position<>"close"))
+      {
+        continue;
+      }
+      if ($tag=="")
+      {
+        continue;
+      }
+      if (isset($format_tag_templates[$tag])==false)
+      {
+        $format_tag_templates[$tag]=array();
+      }
+      $format_tag_templates[$tag][$position]=$content;
+    }
+  }
+  foreach ($format_tag_templates as $tag => $positions)
+  {
+    if ((isset($positions["open"])==false) or (isset($positions["close"])==false))
+    {
+      continue;
+    }
+    $open_markup="&lt;".$tag."&gt;";
+    $close_markup="&lt;/".$tag."&gt;";
+    $value=str_replace($open_markup,$positions["open"],$value);
+    $value=str_replace($close_markup,$positions["close"],$value);
+  }
+  return $value;
 }
 
 #####################################################################################################
