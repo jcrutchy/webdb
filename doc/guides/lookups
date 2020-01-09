@@ -14,7 +14,8 @@ the display_format value must be a value format string to be passed as the first
             "display_field": "item_no,item_name",
             "display_format": "%s - %s",
             "lookup_sql_file": "inventory_item_lookup",
-            "value_list": [{"key_fieldname": 1, "display_fieldname": "Yes"},{"key_fieldname": 2, "display_fieldname": "No"},{"key_fieldname": 3, "display_fieldname": "N/A"}]
+            "value_list": [{"key_fieldname": 1, "display_fieldname": "Yes"},{"key_fieldname": 2, "display_fieldname": "No"},{"key_fieldname": 3, "display_fieldname": "N/A"}],
+            "exclude_parent": true
         }
     },
 
@@ -22,3 +23,6 @@ the display_format value must be a value format string to be passed as the first
 a "lookup" control type requires the "sibling_field" config entry
 
 if "value_list" is set, it will be used
+
+exclude_parent is only required if the parent form database.table is the same as the lookup database.table,
+and if true will exclude the parent form key from the lookup list

@@ -1092,6 +1092,12 @@ function output_editable_field(&$field_params,$record,$field_name,$control_type,
       $options=\webdb\utils\template_fill($option_template."_option",$option_params);
       $records=\webdb\forms\lookup_field_data($form_config,$field_name);
       $lookup_config=$form_config["lookups"][$field_name];
+      $parent_list=false;
+      if (($lookup_config["database"]==$form_config["database"]) and ($lookup_config["table"]==$form_config["table"]))
+      {
+        $parent_list=true;
+      }
+      $selected_found=false;
       for ($i=0;$i<count($records);$i++)
       {
         $loop_record=$records[$i];
@@ -1102,9 +1108,25 @@ function output_editable_field(&$field_params,$record,$field_name,$control_type,
         $option_params["caption"]=htmlspecialchars($display_value);
         $option_params["disabled"]=\webdb\forms\field_disabled($form_config,$field_name);
         $option_params["js_events"]=\webdb\forms\field_js_events($form_config,$field_name,$record);
-        if ($loop_record[$lookup_config["key_field"]]==$record[$field_name])
+        $excluded_parent=false;
+        if (isset($lookup_config["exclude_parent"])==true)
+        {
+          if ($lookup_config["exclude_parent"]==true)
+          {
+            if ($record[$lookup_config["key_field"]]==$option_params["value"])
+            {
+              $excluded_parent=true;
+            }
+          }
+        }
+        if ($excluded_parent==true)
+        {
+          continue;
+        }
+        if (($loop_record[$lookup_config["key_field"]]==$record[$field_name]) and ($selected_found==false))
         {
           $options.=\webdb\utils\template_fill($option_template."_option_selected",$option_params);
+          $selected_found=true;
         }
         else
         {
