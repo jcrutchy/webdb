@@ -328,26 +328,121 @@ function trim_suffix($value,$suffix)
 {
   $suffix_len=strlen($suffix);
   $test=substr($value,-$suffix_len);
-  $ignore=array("s"=>array("es"));
-  foreach ($ignore as $ignore_suffix => $suffix_conditions)
-  {
-    if ($suffix==$ignore_suffix)
-    {
-      for ($i=0;$i<count($suffix_conditions);$i++)
-      {
-        $cond=$suffix_conditions[$i];
-        if (substr($value,-strlen($cond))==$cond)
-        {
-          return $value;
-        }
-      }
-    }
-  }
   if ($test==$suffix)
   {
     $value=substr($value,0,strlen($value)-$suffix_len);
   }
   return $value;
+}
+
+#####################################################################################################
+
+function make_singular($plural)
+{
+  $replaces=array(
+    "children"=>"child",
+    "geese"=>"goose",
+    "men"=>"man",
+    "teeth"=>"tooth",
+    "feet"=>"foot",
+    "mice"=>"mouse",
+    "people"=>"person",
+    "a"=>"on",
+    "i"=>"us",
+    "yses"=>"ysis",
+    "pses"=>"psis",
+    "ernies"=>"ernie",
+    "ies"=>"y",
+    "ses"=>"s",
+    "shes"=>"sh",
+    "ches"=>"ch",
+    "xes"=>"x",
+    "zes"=>"z",
+    "ves"=>"f",
+    "oes"=>"o",
+    "s"=>"");
+  return \webdb\utils\replace_suffix($plural,$replaces,\webdb\utils\singular_plurals());
+}
+
+#####################################################################################################
+
+function singular_plurals()
+{
+  return array(
+    "aircraft",
+    "deer",
+    "series",
+    "species",
+    "sheep",
+    "fish",
+    "equipment");
+}
+
+#####################################################################################################
+
+function make_plural($singular)
+{
+  $replaces=array(
+    "child"=>"children",
+    "goose"=>"geese",
+    "man"=>"men",
+    "tooth"=>"teeth",
+    "foot"=>"feet",
+    "mouse"=>"mice",
+    "person"=>"people",
+    "ernie"=>"ernies",
+    "ion"=>"ions",
+    "on"=>"a",
+    "us"=>"i",
+    "is"=>"es",
+    "oto"=>"otos",
+    "ano"=>"anos",
+    "alo"=>"alos",
+    "o"=>"oes",
+    "ay"=>"ays",
+    "ey"=>"eys",
+    "iy"=>"iys",
+    "oy"=>"oys",
+    "uy"=>"uys",
+    "y"=>"ies",
+    "as"=>"asses",
+    "s"=>"ses",
+    "sh"=>"shes",
+    "ch"=>"ches",
+    "x"=>"xes",
+    "ez"=>"ezzes",
+    "z"=>"zes",
+    "ife"=>"ives",
+    "fe"=>"ves",
+    "lf"=>"lves");
+  return \webdb\utils\replace_suffix($singular,$replaces,\webdb\utils\singular_plurals(),"s");
+}
+
+#####################################################################################################
+
+function replace_suffix($subject,$replaces,$unchanged,$default_append=false)
+{
+  $subject_parts=str_replace(" ","_",$subject);
+  $subject_parts=explode("_",$subject);
+  $last_part=array_pop($subject_parts);
+  if (in_array($last_part,$unchanged)==true)
+  {
+    return $subject;
+  }
+  foreach ($replaces as $old => $new)
+  {
+    $test=substr($last_part,-strlen($old));
+    if ($test==$old)
+    {
+      $last_part_new=substr($last_part,0,strlen($last_part)-strlen($old)).$new;
+      return substr($subject,0,strlen($subject)-strlen($last_part)).$last_part_new;
+    }
+  }
+  if ($default_append!==false)
+  {
+    return $subject.$default_append;
+  }
+  return $subject;
 }
 
 #####################################################################################################

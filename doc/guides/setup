@@ -178,6 +178,7 @@ you can use the files under ~/dev/public/webdb/doc/app/ to base a new applicatio
 $ cd ~/dev/public/my_app/sql
 $ nano schema.sql
 create your application-specific database and table create statements here
+note: use snake_case (all lowercase) naming convention for database, table and field names
 
 $ cd ~/dev/public/my_app
 
@@ -188,3 +189,13 @@ executes webdb/sql/schema.sql
 $ php index.php init_app_schema
 executes my_app/sql/schema.sql
 (don't run on webdb index.php because requires database access parameters in settings.php)
+
+the following command generatess form list files (including subforms) for all tables in mysql database named <database>
+note 1: all existing forms in the application forms directory will be deleted, so if you have created forms that you don't
+want to lose be sure to move or back them up prior to running this command
+note 2: you may need to tweak the generated forms depending on your naming conventions and specific requirements (the command
+will only generate basic configurations based on information from the mysql database
+note 3: subforms are generated based on foreign key relationships, except any foreign key that references the same table the
+key is defined in is ignored
+note 4: tables with multi-field primary keys are ignored except when generating subforms for relationships with other tables
+$ php index.php generate_form <database> all

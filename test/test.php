@@ -16,6 +16,7 @@ function run_tests()
     \webdb\test\utils\test_info_message("testing terminated without changes to database");
     die;
   }
+  \webdb\test\test_utils();
   \webdb\test\utils\test_cleanup();
   $settings["test_user_agent"]="webdb testing framework";
   \webdb\test\utils\test_info_message("CHECKING SETTINGS");
@@ -156,6 +157,36 @@ function check_sql_settings()
   {
     \webdb\test\utils\check_required_setting_exists($required_settings[$i]);
   }
+}
+
+#####################################################################################################
+
+function test_utils()
+{
+  \webdb\test\utils\test_info_message("STARTING UTILITY TESTS...");
+  $test_cases=array(
+    "something_something_document"=>"something_something_documents",
+    "something_something_aircraft"=>"something_something_aircraft");
+  foreach ($test_cases as $correct_singular => $correct_plural)
+  {
+    $test_result=\webdb\utils\make_plural($correct_singular);
+    $test_success=true;
+    if ($test_result<>$correct_plural)
+    {
+      $test_success=false;
+    }
+    $test_case_msg="\webdb\utils\make_plural(\"".$correct_singular."\")";
+    \webdb\test\utils\test_result_message($test_case_msg,$test_success);
+    $test_result=\webdb\utils\make_singular($correct_plural);
+    $test_success=true;
+    if ($test_result<>$correct_singular)
+    {
+      $test_success=false;
+    }
+    $test_case_msg="\webdb\utils\make_singular(\"".$correct_plural."\")";
+    \webdb\test\utils\test_result_message($test_case_msg,$test_success);
+  }
+  die;
 }
 
 #####################################################################################################

@@ -198,7 +198,7 @@ function generate_all_forms($database)
 
 #####################################################################################################
 
-function generate_form($database,$table,$filename,$link_subforms_only=true)
+function generate_form($database,$table,$filename,$parent_page_id=false,$parent_primary_key=false)
 {
   global $settings;
   $settings["forms"]=array();
@@ -215,7 +215,6 @@ function generate_form($database,$table,$filename,$link_subforms_only=true)
     \webdb\cli\term_echo("[ALERT] existing file found, renamed from '".$full_filename."' to '".$newname."'",34);
   }
   $form_data=$settings["form_defaults"][$form_type];
-  $form_data["title"]=$table;
   $form_data["page_id"]=$page_id;
   $form_data["database"]=$database;
   $form_data["table"]=$table;
@@ -289,60 +288,49 @@ function generate_form($database,$table,$filename,$link_subforms_only=true)
     }
     $form_data["control_types"][$field_name]=$control_type;
     $form_data["default_values"][$field_name]=$default_value;
-    $form_data["captions"][$field_name]=\webdb\cli\captionize($field_name);
-    $form_data["visible"][$field_name]=true;
-  }
-  $edit_cmd_id="";
-  $edit_cmd_page_id=$page_id;
-  $noun=\webdb\utils\trim_suffix(\webdb\cli\captionize($table),"s");
-  if (count($form_data["primary_key"])>1)
-  {
-    $edit_cmd_id=$form_data["primary_key"][0];
-    $page_id_parts=explode("_",$page_id);
-    $subform_check_part=array_shift($page_id_parts);
-    if ($subform_check_part<>"subform")
+    if ((in_array($field_name,$form_data["primary_key"])==true) and (count($form_data["primary_key"])==1))
     {
-      /*for ($i=0;$i<count($form_data["primary_key"]);$i++)
-      {
-        $key=$form_data["primary_key"][$i];
-        $key=\webdb\utils\trim_suffix($key,"_id");
-        $subdir=$key;
-        if (substr($subdir,-1)<>"s")
-        {
-          $subdir.="s";
-        }
-        $full_subdir=$settings["app_forms_path"].$subdir;
-        if (file_exists($full_subdir)==false)
-        {
-          mkdir($full_subdir);
-        }
-        $other_keys=$form_data["primary_key"];
-        unset($other_keys[$i]);
-        $other_keys=array_values($other_keys);
-        $subform_filename_prefix=$subdir.DIRECTORY_SEPARATOR."subform_".$key;
-        for ($j=0;$j<count($other_keys);$j++)
-        {
-          $other_key=\webdb\utils\trim_suffix($other_keys[$j],"_id");
-          $subform_filename=$subform_filename_prefix."_".$other_key."s.".$form_type;
-          \webdb\cli\generate_form($database,$table,$subform_filename);
-        }
-      }*/
-      if ($link_subforms_only==true)
-      {
-        return; # disables generation of form specified in $filename argument
-      }
+      $form_data["captions"][$field_name]=\webdb\cli\captionize($field_name,false);
     }
     else
     {
-      $edit_cmd_id=array_shift($page_id_parts);
-      $noun=\webdb\utils\trim_suffix($edit_cmd_id,"_id");
-      $edit_cmd_page_id=$noun;
-      if (substr($edit_cmd_page_id,-1)<>"s")
-      {
-        $edit_cmd_page_id.="s";
-      }
-      $noun=\webdb\cli\captionize($noun);
+      $form_data["captions"][$field_name]=\webdb\cli\captionize($field_name);
     }
+    $form_data["visible"][$field_name]=true;
+  }
+  if ((count($form_data["primary_key"])>1) and ($parent_page_id===false))
+  {
+    return;
+  }
+  $edit_cmd_id="";
+  $edit_cmd_page_id=$page_id;
+  $noun=\webdb\cli\captionize(\webdb\utils\make_singular($table));
+  if ($parent_page_id!==false)
+  {
+    $primary_key=$form_data["primary_key"];
+    $n=count($primary_key);
+    for ($i=0;$i<$n;$i++)
+    {
+      if ($primary_key[$i]==$parent_primary_key)
+      {
+        unset($primary_key[$i]);
+      }
+    }
+    $primary_key=array_values($primary_key);
+    $edit_cmd_id=array_shift($primary_key);
+    $noun=\webdb\utils\trim_suffix($edit_cmd_id,"_id");
+    $edit_cmd_page_id=\webdb\utils\make_plural($noun);
+    $noun=\webdb\cli\captionize($noun);
+  }
+  else
+  {
+    $edit_cmd_id=$form_data["primary_key"][0];
+  }
+  $form_data["title"]=\webdb\cli\captionize($table);
+  $title_parts=explode("_",$page_id);
+  if ($title_parts[0]=="subform")
+  {
+    $form_data["title"]=\webdb\cli\captionize(\webdb\utils\make_plural($noun));
   }
   $form_data["primary_key"]=implode(",",$form_data["primary_key"]);
   $form_data["edit_cmd_id"]=$edit_cmd_id;
@@ -350,36 +338,33 @@ function generate_form($database,$table,$filename,$link_subforms_only=true)
   $form_data["command_caption_noun"]=$noun;
   $form_data["edit_button_caption"]="Edit ".$noun;
   $foreign_key_defs=\webdb\sql\get_foreign_key_defs($database,$table);
+  $subform_lists=array();
   for ($i=0;$i<count($foreign_key_defs);$i++)
   {
     $fk=$foreign_key_defs[$i];
-    $link_table=$fk["TABLE_NAME"];
-    $link_table_parts=explode("_",$link_table);
-    $n=count($link_table_parts);
-    for ($j=0;$j<$n;$j++)
+    if ($fk["REFERENCED_TABLE_NAME"]==$fk["TABLE_NAME"])
     {
-      if (($link_table_parts[$j]==strtolower($noun)) or ($link_table_parts[$j]=="links"))
-      {
-        unset($link_table_parts[$j]);
-      }
+      continue;
     }
-    $link_page_id=array_values($link_table_parts);
-    $link_page_id=implode("_",$link_page_id);
-    if (substr($link_page_id,-1)<>"s")
-    {
-      $link_page_id.="s";
-    }
-    $subform_page_id="subform_".\webdb\utils\trim_suffix($table,"s")."_".$link_page_id;
     $subform_key=$fk["REFERENCED_COLUMN_NAME"];
-    $form_data["edit_subforms"][$subform_page_id]=$subform_key;
-    $subform_database=$fk["TABLE_SCHEMA"];
-    $subform_table=$fk["TABLE_NAME"];
-    $subform_filename=$fk["REFERENCED_TABLE_NAME"].DIRECTORY_SEPARATOR.$subform_page_id.".".$form_type;
-    if (file_exists($settings["app_forms_path"].$subform_filename)==false)
+    $subform_page_id="subform_".\webdb\utils\make_singular($table)."_";
+    if ($subform_key==$fk["COLUMN_NAME"])
     {
-      term_echo($subform_database.".".$subform_table." => ".$subform_filename);
-      #\webdb\cli\generate_form($subform_database,$subform_table,$subform_filename);
+      $subform_page_id.=\webdb\cli\link_page_id($fk["TABLE_NAME"],$table);
     }
+    else
+    {
+      $subform_page_id.=\webdb\utils\trim_suffix($fk["COLUMN_NAME"],"_id");
+    }
+    $subform_page_id=\webdb\utils\make_plural($subform_page_id);
+    $form_data["edit_subforms"][$subform_page_id]=$subform_key;
+    $subform_list=array();
+    $subform_list["database"]=$fk["TABLE_SCHEMA"];
+    $subform_list["table"]=$fk["TABLE_NAME"];
+    $subform_list["filename"]=$fk["REFERENCED_TABLE_NAME"].DIRECTORY_SEPARATOR.$subform_page_id.".".$form_type;
+    $subform_list["parent_page_id"]=$form_data["page_id"];
+    $subform_list["parent_primary_key"]=$form_data["primary_key"];
+    $subform_lists[]=$subform_list;
   }
   unset($form_data["filename"]);
   unset($form_data["basename"]);
@@ -397,7 +382,7 @@ function generate_form($database,$table,$filename,$link_subforms_only=true)
   {
     \webdb\utils\system_message("error writing form file: ".$full_filename);
   }
-  #\webdb\cli\term_echo("generated form: ".$full_filename);
+  \webdb\cli\term_echo("generated form: ".$full_filename);
   if ($newname<>"")
   {
     if (file_exists($newname)==true)
@@ -406,12 +391,42 @@ function generate_form($database,$table,$filename,$link_subforms_only=true)
       \webdb\cli\term_echo("[ALERT] renamed file '".$newname."' deleted",34);
     }
   }
+  for ($i=0;$i<count($subform_lists);$i++)
+  {
+    $subform_list=$subform_lists[$i];
+    if (file_exists($settings["app_forms_path"].$subform_list["filename"])==false)
+    {
+      \webdb\cli\generate_form($subform_list["database"],$subform_list["table"],$subform_list["filename"],$subform_list["parent_page_id"],$subform_list["parent_primary_key"]);
+    }
+  }
 }
 
 #####################################################################################################
 
-function captionize($field_name)
+function link_page_id($link_table,$parent_table)
 {
+  $parent_singular=\webdb\utils\make_singular($parent_table);
+  $parent_plural=\webdb\utils\make_plural($parent_singular);
+  $link_page_id=str_replace($parent_plural,"",$link_table);
+  $link_page_id=str_replace($parent_singular,"",$link_page_id);
+  $link_page_id=str_replace("_links","",$link_page_id);
+  $link_page_id=\webdb\utils\trim_suffix($link_page_id,"_");
+  if (substr($link_page_id,0,1)=="_")
+  {
+    $link_page_id=substr($link_page_id,1);
+  }
+  return \webdb\utils\make_singular($link_page_id);
+}
+
+#####################################################################################################
+
+function captionize($field_name,$trim_id=true)
+{
+  $uc_words=array("id","sql");
+  if ($trim_id==true)
+  {
+    $field_name=trim(\webdb\utils\trim_suffix($field_name,"_id"));
+  }
   if ($field_name=="")
   {
     return "";
@@ -420,12 +435,19 @@ function captionize($field_name)
   for ($i=0;$i<count($parts);$i++)
   {
     $part=$parts[$i];
-    if (($part=="") or ($part=="id"))
+    if ($part=="")
     {
       unset($parts[$i]);
       continue;
     }
-    $part[0]=strtoupper($part[0]);
+    if (in_array($part,$uc_words)==true)
+    {
+      $part=strtoupper($part);
+    }
+    else
+    {
+      $part[0]=strtoupper($part[0]);
+    }
     $parts[$i]=$part;
   }
   return implode(" ",array_values($parts));

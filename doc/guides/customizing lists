@@ -5,6 +5,11 @@ can auto-link css and js to template files by creating files in app resources di
 
 
 
+"default_cmd_override": "insert"
+"default_cmd_override": "edit"
+app/index.php?page=page_id => app/index.php?page=page_id&cmd=insert|edit
+
+
 
     "event_handlers": {
         "on_list": "\\my_app\\stubs\\my_list_php_stub",
