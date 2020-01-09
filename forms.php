@@ -721,6 +721,10 @@ function list_row($form_config,$record,$column_format,$row_spans,$lookup_records
         $field_params["table_cell_style"].=\webdb\forms\form_template_fill("delete_selected_foreign_key_used_style");
       }
     }
+    if ($checklist_row_linked==true)
+    {
+      $field_params["table_cell_style"].=\webdb\forms\form_template_fill("checklist_row_linked_style");
+    }
     if (($form_config["edit_cmd"]=="row") or ($form_config["edit_cmd"]=="inline"))
     {
       $field_params["edit_cmd_id"]=$row_params["edit_cmd_id"];
