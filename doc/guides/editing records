@@ -3,3 +3,17 @@
 edit_cmd form config setting can be either none, row, button or inline
 
 inline is where you click a row and it turns into editable controls (ajax-driven)
+
+
+    "edit_cmd": "row",
+    "edit_cmd_page_id": "event_types",
+    "edit_button_caption": "Edit Event Type",
+    "edit_cmd_id": "event_type_id",
+    "edit_title_field": "",
+
+"edit_cmd_page_id" is for the id of the controller navigated to when clicking the edit button (or the highlighted record row)
+
+"edit_cmd_id" is for the name of the field to navigate to when clicking the edit button
+(or the highlighted record row), corresponding to the primary key of the dataset inferred by the "edit_cmd_page_id" controller
+
+"edit_title_field" is for the name of the field to show in the browser title bar for the editor page

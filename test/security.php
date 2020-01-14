@@ -129,6 +129,7 @@ function test_user_agent()
 function test_login_csrf_token()
 {
   global $settings;
+  \webdb\test\utils\test_cleanup();
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~
   $test_case_msg="unable to login with username and password via post request without csrf token";
   $test_success=true;
@@ -138,15 +139,19 @@ function test_login_csrf_token()
   $params["login_username"]=$field_values["username"];
   $params["login_password"]=$field_values["password"];
   $response=\webdb\test\utils\wpost($settings["app_web_root"],$params);
+  # [cookies] webdb_login=deleted, webdb_csrf_token=(new value with no corresponding outputted token so unable to be used)
   if (\webdb\test\utils\compare_template("csrf_error",$response)==false)
   {
     $test_success=false;
   }
   \webdb\test\utils\test_result_message($test_case_msg,$test_success);
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  $test_case_msg="able to successfully login with username and password via post request with valid csrf token and hash";
+  $test_case_msg="able to successfully login with username and password via post request with valid csrf token and hash cookie";
   $test_success=true;
   $response=\webdb\test\security\utils\test_user_login();
+  # get request for csrf token
+  # post request for test_user login
+  # on successful login post request, the server will redirect to eliminate re-posting on page refresh (get request)
   if (\webdb\test\security\utils\check_authentication_status($response)==false)
   {
     $test_success=false;
@@ -178,6 +183,7 @@ function test_login_csrf_token()
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~
   $test_case_msg="after successful cookie login, post request with valid csrf token to insert a new user succeeds without csrf error";
   $test_success=true;
+  $response=\webdb\test\utils\wget($settings["app_web_root"]);
   $response=\webdb\test\security\utils\admin_login();
   if (\webdb\test\security\utils\check_authentication_status($response)==false)
   {
@@ -236,8 +242,26 @@ function test_login_csrf_token()
   $field_values=\webdb\test\security\utils\output_user_field_values();
   $field_values["csrf_token_time"]=time()-$settings["max_csrf_token_age"]-1;
   \webdb\test\security\utils\update_test_user($field_values);
+  $user_record=\webdb\test\security\utils\get_test_user();
+  $old_csrf_token=$user_record["csrf_token"];
+  $old_csrf_token_time=$user_record["csrf_token_time"];
   $response=\webdb\test\utils\wpost($test_url,$params);
-  if (\webdb\test\utils\compare_template("csrf_error",$response)==false)
+  $user_record=\webdb\test\security\utils\get_test_user();
+  $new_csrf_token=$user_record["csrf_token"];
+  $new_csrf_token_time=$user_record["csrf_token_time"];
+  if ($old_csrf_token==$new_csrf_token)
+  {
+    $test_success=false;
+  }
+  if ($old_csrf_token_time>=$new_csrf_token_time)
+  {
+    $test_success=false;
+  }
+  if (\webdb\test\utils\compare_template("csrf_error",$response)==true)
+  {
+    $test_success=false;
+  }
+  if (\webdb\test\security\utils\check_authentication_status($response)==false)
   {
     $test_success=false;
   }

@@ -82,7 +82,8 @@ function check_app_settings()
     "app_date_format",
     "login_cookie",
     "username_cookie",
-    "csrf_cookie",
+    "csrf_cookie_unauth",
+    "csrf_cookie_auth",
     "max_cookie_age",
     "max_csrf_token_age",
     "password_reset_timeout",
@@ -117,6 +118,7 @@ function check_app_settings()
     "sql_log_path",
     "auth_log_path",
     "irregular_plurals",
+    "csrf_hash_prefix",
     "format_tag_templates_subdirectory");
   for ($i=0;$i<count($required_settings);$i++)
   {
@@ -177,7 +179,7 @@ function test_utils()
     {
       $test_success=false;
     }
-    $test_case_msg="\webdb\utils\make_plural(\"".$correct_singular."\")";
+    $test_case_msg="\\webdb\\utils\\make_plural(\"".$correct_singular."\")";
     \webdb\test\utils\test_result_message($test_case_msg,$test_success);
     $test_result=\webdb\utils\make_singular($correct_plural);
     $test_success=true;
@@ -185,10 +187,20 @@ function test_utils()
     {
       $test_success=false;
     }
-    $test_case_msg="\webdb\utils\make_singular(\"".$correct_plural."\")";
+    $test_case_msg="\\webdb\\utils\\make_singular(\"".$correct_plural."\")";
     \webdb\test\utils\test_result_message($test_case_msg,$test_success);
   }
-  die;
+  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  $correct_result="correct";
+  $test_input="test<test>".$correct_result."</test>test";
+  $test_result=\webdb\test\utils\extract_text($test_input,"<test>","</test>");
+  $test_success=true;
+  if ($test_result<>$correct_result)
+  {
+    $test_success=false;
+  }
+  $test_case_msg="\\webdb\\test\\utils\\extract_text";
+  \webdb\test\utils\test_result_message($test_case_msg,$test_success);
 }
 
 #####################################################################################################

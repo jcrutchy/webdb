@@ -232,7 +232,7 @@ function list_advanced_search_click(page_id)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function list_record_cell_click(element,page_id,id,field_name)
+function list_record_cell_click(element,page_id,id,field_name,edit_cmd_id)
 {
   if (edit_row_id!=null)
   {
@@ -242,7 +242,7 @@ function list_record_cell_click(element,page_id,id,field_name)
   var row_edit_mode=document.getElementById("row_edit_mode:"+page_id).innerHTML;
   if (row_edit_mode=="row")
   {
-    window.location=document.getElementById("edit_page:"+page_id).value+id;
+    window.location=document.getElementById("edit_page:"+page_id).value+edit_cmd_id;
     return;
   }
   if (row_edit_mode=="inline")
@@ -364,7 +364,7 @@ function list_edit_row_update_timeout()
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function list_record_cell_mouseover(page_id,id,field_name)
+function list_record_cell_mouseover(page_id,id,field_name,edit_cmd_id)
 {
   var row_edit_mode=document.getElementById("row_edit_mode:"+page_id).innerHTML;
   if (row_edit_mode=="inline")
@@ -383,13 +383,13 @@ function list_record_cell_mouseover(page_id,id,field_name)
   var footer=document.getElementById("global_page_footer_content");
   if (footer)
   {
-    footer.innerHTML="Navigate to: "+document.getElementById("edit_page:"+page_id).value+id;
+    footer.innerHTML="Navigate to: "+document.getElementById("edit_page:"+page_id).value+edit_cmd_id;
   }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function list_record_cell_mouseout(page_id,id,field_name)
+function list_record_cell_mouseout(page_id,id,field_name,edit_cmd_id)
 {
   var row_edit_mode=document.getElementById("row_edit_mode:"+page_id).innerHTML;
   if (row_edit_mode=="inline")

@@ -108,7 +108,6 @@ if (\webdb\cli\is_cli_mode()==false)
   }
   if (\webdb\utils\is_app_mode()==false)
   {
-    \webdb\csrf\generate_csrf_token();
     $settings["unauthenticated_content"]=true;
     \webdb\utils\static_page("home","WebDB");
   }
@@ -172,10 +171,9 @@ else
   \webdb\utils\system_message($ua_error." [no user agent]");
 }
 
-\webdb\csrf\check_csrf_token();
+\webdb\csrf\check_unauthenticated_csrf_token();
 \webdb\users\auth_dispatch();
-\webdb\csrf\check_csrf_token();
-\webdb\csrf\generate_csrf_token();
+\webdb\csrf\check_authenticated_csrf_token();
 
 if (isset($settings["controller_dispatch"])==true)
 {

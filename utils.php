@@ -32,7 +32,6 @@ function webdb_debug_backtrace()
   # TODO: DEBUG INFO ONLY (SECURITY RISK) - UNCOMMENT FOLLOWING LINE FOR PRODUCTION
   #return "";
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
   $backtrace=json_encode(debug_backtrace()); # can't have pretty print indents for replacing settings
   $settings_json=json_encode($settings);
   $backtrace=str_replace($settings_json,"{\"settings\":\"...\"}",$backtrace);
@@ -362,14 +361,14 @@ function make_singular($plural)
     "oes"=>"o",
     "s"=>"");
   $priority=array();
-  foreach ($settings["irregular_plurals"] as $singular => $plural)
+  foreach ($settings["irregular_plurals"] as $loop_singular => $loop_plural)
   {
-    $priority[$plural]=$singular;
+    $priority[$loop_plural]=$loop_singular;
   }
   $replaces=array_merge($priority,$replaces);
-  foreach ($settings["irregular_plurals"] as $singular => $plural)
+  foreach ($settings["irregular_plurals"] as $loop_singular => $loop_plural)
   {
-    $replaces[$plural]=$singular;
+    $replaces[$loop_plural]=$loop_singular;
   }
   return \webdb\utils\replace_suffix($plural,$replaces,\webdb\utils\singular_plurals());
 }
@@ -426,14 +425,14 @@ function make_plural($singular)
     "fe"=>"ves",
     "lf"=>"lves");
   $priority=array();
-  foreach ($settings["irregular_plurals"] as $singular => $plural)
+  foreach ($settings["irregular_plurals"] as $loop_singular => $loop_plural)
   {
-    $priority[$singular]=$plural;
+    $priority[$loop_singular]=$loop_plural;
   }
   $replaces=array_merge($priority,$replaces);
-  foreach ($settings["irregular_plurals"] as $singular => $plural)
+  foreach ($settings["irregular_plurals"] as $loop_singular => $loop_plural)
   {
-    $replaces[$singular]=$plural;
+    $replaces[$loop_singular]=$loop_plural;
   }
   return \webdb\utils\replace_suffix($singular,$replaces,\webdb\utils\singular_plurals(),"s");
 }

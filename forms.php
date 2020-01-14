@@ -83,7 +83,7 @@ function form_dispatch($page_id)
           \webdb\utils\error_message("error: unhandled generate stub");
         }
       }
-      if ($form_config["records_sql"]=="")
+      if (($form_config["records_sql"]=="") or ($form_config["checklist"]==true))
       {
         if (($form_config["database"]=="") or ($form_config["table"]==""))
         {
@@ -393,12 +393,19 @@ function get_subform_content($subform_config,$subform_link_field,$id,$list_only=
     $subform_config["insert_row"]=false;
     $subform_config["advanced_search"]=false;
     \webdb\forms\process_filter_sql($subform_config);
-    if ($subform_config["sort_sql"]<>"")
+    if ($subform_config["records_sql"]=="")
     {
-      $subform_config["sort_sql"]=\webdb\utils\sql_fill("sort_clause",$subform_config);
+      if ($subform_config["sort_sql"]<>"")
+      {
+        $subform_config["sort_sql"]=\webdb\utils\sql_fill("sort_clause",$subform_config);
+      }
+      $sql=\webdb\utils\sql_fill("form_list_fetch_all",$subform_config);
+      $records=\webdb\sql\fetch_prepare($sql,array());
     }
-    $sql=\webdb\utils\sql_fill("form_list_fetch_all",$subform_config);
-    $records=\webdb\sql\fetch_prepare($sql,array());
+    else
+    {
+      $records=\webdb\sql\file_fetch_prepare($subform_config["records_sql"]);
+    }
   }
   else
   {
@@ -983,12 +990,13 @@ function memo_field_formatting($value)
 
 function check_column($form_config,$template,$params=array())
 {
-  if ($form_config["records_sql"]=="")
+  if ($form_config["checklist"]==true)
   {
-    if (($form_config["multi_row_delete"]==true) or ($form_config["checklist"]==true))
-    {
-      return \webdb\forms\form_template_fill($template,$params);
-    }
+    return \webdb\forms\form_template_fill($template,$params);
+  }
+  if (($form_config["records_sql"]=="") and ($form_config["multi_row_delete"]==true))
+  {
+    return \webdb\forms\form_template_fill($template,$params);
   }
   return "";
 }
@@ -1644,7 +1652,7 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
   $form_params["insert_control"]="";
   $form_params["delete_selected_control"]="";
   $form_params["checklist_update_control"]="";
-  if ($form_config["records_sql"]=="")
+  if (($form_config["records_sql"]=="") or ($form_config["checklist"]==true))
   {
     if ($form_config["advanced_search"]==true)
     {

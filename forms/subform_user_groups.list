@@ -57,7 +57,7 @@
     "delete_cmd": true,
     "edit_cmd": "inline",
     "edit_cmd_page_id": "groups",
-    "edit_button_caption": "",
+    "edit_button_caption": "Edit Group",
     "edit_cmd_id": "group_id",
     "insert_new": true,
     "insert_row": true,

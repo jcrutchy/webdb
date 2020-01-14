@@ -21,6 +21,11 @@ $settings["webdb_forms_path"]=$settings["webdb_root_path"]."forms".DIRECTORY_SEP
 
 $settings["webdb_default_form"]="default";
 
+$settings["csrf_hash_prefix"]="uwkTy+ZgSP5jaowf2ghk";
+$settings["csrf_cookie_unauth"]="webdb_csrf_unauth";
+$settings["csrf_cookie_auth"]="webdb_csrf_auth";
+$settings["max_csrf_token_age"]=60*60*24;
+
 $settings["app_test_include"]=$settings["app_root_path"]."test".DIRECTORY_SEPARATOR."test.php";
 
 $settings["links_template"]="";
@@ -28,9 +33,9 @@ $settings["footer_template"]="";
 
 $settings["login_cookie"]="webdb_login";
 $settings["username_cookie"]="webdb_username";
-$settings["csrf_cookie"]="webdb_csrf_hash";
+
 $settings["max_cookie_age"]=60*60*24*365;
-$settings["max_csrf_token_age"]=60*60*24;
+
 $settings["password_reset_timeout"]=60*60*24;
 $settings["password_bcrypt_cost"]=11; # 10 is a good baseline, 13 is very difficult to crack (but slower to hash) - eventually replace with Argon2id (requires PHP 7.3)
 $settings["admin_password_bcrypt_cost"]=13;

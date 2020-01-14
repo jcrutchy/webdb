@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS `webdb`.`users` (
   `username` VARCHAR(255) NOT NULL,
   `fullname` VARCHAR(255) NOT NULL,
   `email` VARCHAR(255) DEFAULT NULL,
-  `csrf_token` VARCHAR(255) DEFAULT "*",
+  `csrf_token` VARCHAR(255) DEFAULT "",
   `csrf_token_time` BIGINT DEFAULT 0,
   `login_cookie` VARCHAR(255) DEFAULT "*",
   `login_setcookie_time` BIGINT DEFAULT 0,

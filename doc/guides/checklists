@@ -1,0 +1,32 @@
+assume for example you have three tables:
+- locations
+- widgets
+- location_widget_links
+
+subform_location_widgets.list is the controller for a subform within the location edit page
+
+in subform_location_widgets.list:
+
+    "primary_key": "widget_id",
+    "command_caption_noun": "Widget",
+    "multi_row_delete": false,
+    "delete_cmd": false,
+    "edit_cmd": "button",
+    "edit_cmd_page_id": "widgets",
+    "edit_button_caption": "Edit Widget",
+    "edit_cmd_id": "widget_id",
+    "database": "mydb",
+    "table": "widgets",
+    "records_sql": "widgets_checklist", # <== can optionally use for basis of a checklist subform instead of database and table
+
+    "checklist": true,
+    "parent_key": "location_id",
+    "link_key": "widget_id",
+    "link_database": "mydb",
+    "link_table": "location_widget_links",
+    "link_fields": [], # <== can optionally use to include controls for fields within the link table
+
+    "default_filter": "my_filter", # <== filtering is optional
+    "filter_options": {
+        "my_filter": "(some_field='some_value')"
+    }

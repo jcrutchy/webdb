@@ -152,11 +152,6 @@ TODO: CHANGE FROM PASSWORD_BCRYPT TO PASSWORD_ARGON2ID (REQUIRES PHP 7.3.0) => R
   * control types: lookup, span, file, text, memo, combobox, listbox, radiogroup, date, checkbox
   * list cells, edit page controls, insert page controls, list insert/update row controls, advanced search controls
 
-- csrf check is performed prior to user authentication
-- throw error if user csrf token exceeds max age
-- invalidation of login cookie on csrf error was considered (based on username cookie) but in the event of deliberate attack, this invalidation could indirectly
-  become a form of forgery itself as a deliberate annoyance (the attacker could forge username cookies and repeatedly invalidate a bunch of legitimate logins)
-
 - framework security flow of control:
   * an application is always started by navigating to the application index.php file in the web browser
   * the application index.php file can include other application-specific files containing custom interfaces, ajax stubs and computed field functions, but should finally include the framework index.php file
@@ -210,6 +205,15 @@ tips (https://www.rackaid.com/blog/server-security-tips/):
 - Do not rely on relative file and path names. Always set base directories
 - Limit file upload, creation activities to specific directories
 - Create safe error messages by not disclosing sensitive information in errors
+
+
+CSRF
+----
+
+- csrf check is performed prior to user authentication
+- throw error if user csrf token exceeds max age
+- invalidation of login cookie on csrf error was considered (based on username cookie) but in the event of deliberate attack, this invalidation could indirectly
+  become a form of forgery itself as a deliberate annoyance (the attacker could forge username cookies and repeatedly invalidate a bunch of legitimate logins)
 
 
 APPLICATION SECURITY

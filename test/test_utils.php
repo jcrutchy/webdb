@@ -282,7 +282,7 @@ function extract_cookie_value($setting_key)
   $cookie=$settings["test_cookie_jar"][$key];
   $parts=explode(";",$cookie);
   $value=array_shift($parts);
-  if ($value=="deleted")
+  if (($value=="deleted") or ($value==""))
   {
     unset($settings["test_cookie_jar"][$key]);
     return false;
@@ -307,15 +307,8 @@ function construct_cookie_header()
   foreach ($settings["test_cookie_jar"] as $key => $cookie)
   {
     $parts=explode(";",$cookie);
-    $value=array_shift($parts);
-    if ($value=="deleted")
-    {
-      unset($settings["test_cookie_jar"][$key]);
-    }
-    else
-    {
-      $cookies[]=$key."=".$value;
-    }
+    $value=urlencode(array_shift($parts));
+    $cookies[]=$key."=".$value;
   }
   return "Cookie: ".implode("; ",$cookies)."\r\n";
 }
@@ -331,9 +324,13 @@ function wget($uri)
   $headers.=\webdb\test\utils\construct_cookie_header();
   $headers.="Connection: Close\r\n\r\n";
   $response=\webdb\test\utils\submit_request($headers);
+  #var_dump($headers);
   $headers=\webdb\test\utils\extract_http_headers($response);
+  #var_dump($headers);
   #\webdb\test\utils\test_dump_message($headers.PHP_EOL.PHP_EOL);
   \webdb\test\utils\append_cookie_jar($headers);
+  #var_dump(\webdb\test\security\utils\extract_csrf_token($response));
+  #var_dump($settings["test_cookie_jar"]);
   $response=\webdb\test\utils\process_redirect($response,$headers);
   return $response;
 }
@@ -364,6 +361,10 @@ function wpost($uri,$params)
   $headers=\webdb\test\utils\extract_http_headers($response);
   #\webdb\test\utils\test_dump_message($headers.PHP_EOL.PHP_EOL);
   \webdb\test\utils\append_cookie_jar($headers);
+  #var_dump($request);
+  #var_dump($headers);
+  #var_dump(\webdb\test\security\utils\extract_csrf_token($response));
+  #var_dump($settings["test_cookie_jar"]);
   $response=\webdb\test\utils\process_redirect($response,$headers);
   return $response;
 }
@@ -383,8 +384,17 @@ function append_cookie_jar($headers)
     $header=$cookie_headers[$i];
     $parts=explode("=",$header);
     $key=array_shift($parts);
-    $value=implode("=",$parts);
-    $settings["test_cookie_jar"][$key]=$value;
+    $value=urldecode(implode("=",$parts));
+    $cookie_parts=explode(";",$value);
+    $cookie_value=urlencode(array_shift($cookie_parts));
+    if ($cookie_value=="deleted")
+    {
+      unset($settings["test_cookie_jar"][$key]);
+    }
+    else
+    {
+      $settings["test_cookie_jar"][$key]=$value;
+    }
   }
 }
 

@@ -107,7 +107,6 @@ function login_failure($user_record,$message)
   $value_items["failed_login_count"]=$user_record["failed_login_count"]+1;
   $value_items["failed_login_time"]=time();
   $value_items["login_cookie"]="*"; # disable login with cookie
-  $value_items["csrf_token"]=\webdb\csrf\invalid_csrf_token();
   $settings["sql_check_post_params_override"]=true;
   \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
   \webdb\utils\webdb_unsetcookie("login_cookie");
@@ -121,7 +120,7 @@ function login_failure($user_record,$message)
 
 #####################################################################################################
 
-function auth_log($user_record,$status,$message)
+function auth_log($user_record,$status,$message="")
 {
   global $settings;
   $username="<NOUSER>";
@@ -138,8 +137,18 @@ function auth_log($user_record,$status,$message)
   {
     $username=$user_record["username"];
   }
+  $referer="";
+  if (isset($_SERVER["HTTP_REFERER"])==true)
+  {
+    $referer=$_SERVER["HTTP_REFERER"];
+  }
+  $remote_address="";
+  if (isset($_SERVER["REMOTE_ADDR"])==true)
+  {
+    $remote_address=$_SERVER["REMOTE_ADDR"];
+  }
   \webdb\users\obfuscate_hashes($user_record);
-  $content=date("Y-m-d H:i:s")."\t".$username."\t".$status."\t".json_encode($user_record);
+  $content=date("Y-m-d H:i:s")."\tusername=".$username."\tstatus=".$status."\tremote_address=".$remote_address."\treferer=".$referer."\tuser_record=".json_encode($user_record)."\tmessage=".$message;
   $settings["logs"]["auth"][]=$content;
 }
 
@@ -275,7 +284,6 @@ function login()
     }
   }
   \webdb\utils\webdb_unsetcookie("login_cookie");
-  \webdb\csrf\generate_csrf_token();
   $content=\webdb\utils\template_fill("login_form",$login_form_params);
   $buffer=ob_get_contents();
   if (strlen($buffer)<>0)
@@ -322,7 +330,7 @@ function webdb_password_hash($password=false,$username=false)
 
 #####################################################################################################
 
-function initialise_login_cookie($user_record)
+function initialise_login_cookie(&$user_record)
 {
   global $settings;
   $where_items=array();
