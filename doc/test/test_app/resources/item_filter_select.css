@@ -99,19 +99,19 @@
     color: black;
   }
 
-#active_filter,
+#active_filter
   {
     background-color: #65a9d7;
     box-shadow: 0 0 20px 1px rgba(100,100,100,0.67);
   }
 
-#active_filter:before,
+#active_filter:before
   {
     border-top-color: #65a9d7;
     border-bottom-color: #65a9d7;
   }
 
-#active_filter:after,
+#active_filter:after
   {
     border-left-color: #65a9d7;
   }
@@ -150,7 +150,6 @@
     padding: 0;
     padding-top: 4px;
     margin: 0;
-    /*width: 120px;*/
     min-width: 70px;
     padding-left: 6px;
     padding-right: 5px;

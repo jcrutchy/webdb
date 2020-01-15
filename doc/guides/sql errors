@@ -1,0 +1,7 @@
+in .list file:
+
+
+    "sql_errors": {
+        "Column 'location_id' cannot be null": "Location must be set.",
+        "Duplicate entry '*-*' for key 'PRIMARY'": "Location has already been selected previously."
+    },

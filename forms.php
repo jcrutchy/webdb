@@ -30,7 +30,7 @@ function get_form_config($page_id,$return=false)
 function form_dispatch($page_id)
 {
   global $settings;
-  $form_config=\webdb\forms\get_form_config($page_id);
+  $form_config=\webdb\forms\get_form_config($page_id,false);
   if ($page_id=="users")
   {
     $admin_auth=false;
@@ -218,7 +218,7 @@ function checklist_update($form_config)
       $form_config["sort_sql"]=\webdb\utils\sql_fill("sort_clause",$form_config);
     }
     $sql=\webdb\utils\sql_fill("form_list_fetch_all",$form_config);
-    $list_records=\webdb\sql\fetch_prepare($sql,array());
+    $list_records=\webdb\sql\fetch_prepare($sql,array(),"form_list_fetch_all",false,$form_config["table"],$form_config["database"],$form_config);
   }
   $sql_params=array();
   $sql_params["link_database"]=$link_database;
@@ -227,7 +227,7 @@ function checklist_update($form_config)
   $sql=\webdb\utils\sql_fill("checklist_link_records",$sql_params);
   $sql_params=array();
   $sql_params["parent_key"]=$parent_id;
-  $exist_parent_link_records=\webdb\sql\fetch_prepare($sql,$sql_params);
+  $exist_parent_link_records=\webdb\sql\fetch_prepare($sql,$sql_params,"checklist_link_records",false,$link_table,$link_database,$form_config);
   $sql_params=array();
   $sql_params["link_database"]=$link_database;
   $sql_params["link_table"]=$link_table;
@@ -252,7 +252,7 @@ function checklist_update($form_config)
       {
         \webdb\utils\error_message("error: form record(s) delete permission denied");
       }
-      \webdb\sql\sql_delete($where_items,$link_table,$link_database);
+      \webdb\sql\sql_delete($where_items,$link_table,$link_database,false,$form_config);
     }
   }
   if (isset($_POST["list_select"])==true)
@@ -272,7 +272,7 @@ function checklist_update($form_config)
           $value_items[$field_name]=$_POST[$field_name][$field_id];
         }
       }
-      $records=\webdb\sql\fetch_prepare($sql,$where_items);
+      $records=\webdb\sql\fetch_prepare($sql,$where_items,"checklist_exist_links",false,$link_table,$link_database,$form_config);
       if (count($records)==1)
       {
         $record=$records[0];
@@ -290,7 +290,7 @@ function checklist_update($form_config)
             \webdb\utils\error_message("error: form record(s) update permission denied");
           }
           \webdb\forms\check_required_values($form_config,$value_items);
-          \webdb\sql\sql_update($value_items,$where_items,$link_table,$link_database);
+          \webdb\sql\sql_update($value_items,$where_items,$link_table,$link_database,false,$form_config);
         }
       }
       else
@@ -301,7 +301,7 @@ function checklist_update($form_config)
         }
         $value_items+=$where_items;
         \webdb\forms\check_required_values($form_config,$value_items);
-        \webdb\sql\sql_insert($value_items,$link_table,$link_database);
+        \webdb\sql\sql_insert($value_items,$link_table,$link_database,false,$form_config);
       }
     }
   }
@@ -400,11 +400,11 @@ function get_subform_content($subform_config,$subform_link_field,$id,$list_only=
         $subform_config["sort_sql"]=\webdb\utils\sql_fill("sort_clause",$subform_config);
       }
       $sql=\webdb\utils\sql_fill("form_list_fetch_all",$subform_config);
-      $records=\webdb\sql\fetch_prepare($sql,array());
+      $records=\webdb\sql\fetch_prepare($sql,array(),"form_list_fetch_all",false,$subform_config["table"],$subform_config["database"],$subform_config);
     }
     else
     {
-      $records=\webdb\sql\file_fetch_prepare($subform_config["records_sql"]);
+      $records=\webdb\sql\file_fetch_prepare($subform_config["records_sql"],array(),false,"","",$subform_config);
     }
   }
   else
@@ -420,15 +420,21 @@ function get_subform_content($subform_config,$subform_link_field,$id,$list_only=
       {
         $sql_params["sort_sql"]=\webdb\utils\sql_fill("sort_clause",$sql_params);
       }
+      $sql_filename="subform_list_fetch";
+      $database=$sql_params["database"];
+      $table=$sql_params["table"];
       $sql=\webdb\utils\sql_fill("subform_list_fetch",$sql_params);
     }
     else
     {
+      $sql_filename=$subform_config["records_sql"];
+      $database="";
+      $table="";
       $sql=\webdb\utils\sql_fill($subform_config["records_sql"]);
     }
     $sql_params=array();
     $sql_params["id"]=$id;
-    $records=\webdb\sql\fetch_prepare($sql,$sql_params);
+    $records=\webdb\sql\fetch_prepare($sql,$sql_params,$sql_filename,false,$table,$database,$subform_config);
   }
   $checklist_link_records=false;
   if ($subform_config["checklist"]==true)
@@ -436,7 +442,7 @@ function get_subform_content($subform_config,$subform_link_field,$id,$list_only=
     $sql=\webdb\utils\sql_fill("checklist_link_records",$subform_config);
     $sql_params=array();
     $sql_params["parent_key"]=$id;
-    $checklist_link_records=\webdb\sql\fetch_prepare($sql,$sql_params);
+    $checklist_link_records=\webdb\sql\fetch_prepare($sql,$sql_params,"checklist_link_records",false,"","",$subform_config);
   }
   $subform_params=array();
   $url_params=array();
@@ -846,7 +852,7 @@ function output_readonly_field($field_params,$control_type,$form_config,$field_n
       $lookup_config=$form_config["lookups"][$field_name];
       $key_field_name=$lookup_config["key_field"];
       $sibling_field_name=$lookup_config["sibling_field"];
-      if (($form_config["checklist"]==false) or (isset($display_record[$sibling_field_name])==true))
+      if (($form_config["checklist"]==false) or (array_key_exists($sibling_field_name,$display_record)==true))
       {
         for ($i=0;$i<count($lookup_records[$field_name]);$i++)
         {
@@ -1401,7 +1407,7 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
   if (($form_config["records_sql"]<>"") and ($records===false))
   {
     $sql=\webdb\utils\sql_fill($form_config["records_sql"]);
-    $records=\webdb\sql\fetch_prepare($sql,array());
+    $records=\webdb\sql\fetch_prepare($sql,array(),$form_config["records_sql"],false,"","",$form_config);
   }
   $form_params=array();
   $form_params["page_id"]=$form_config["page_id"];
@@ -1568,7 +1574,7 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
       $form_config["sort_sql"]=\webdb\utils\sql_fill("sort_clause",$form_config);
     }
     $sql=\webdb\utils\sql_fill("form_list_fetch_all",$form_config);
-    $records=\webdb\sql\fetch_prepare($sql,array());
+    $records=\webdb\sql\fetch_prepare($sql,array(),"form_list_fetch_all",false,"","",$form_config);
   }
   $previous_group_by_fields=false;
   $row_spans=array();
@@ -1900,7 +1906,7 @@ function advanced_search($form_config)
     $params["prepared_where"]=$prepared_where;
     $params["sort_sql"]=$form_config["sort_sql"];
     $sql=\webdb\utils\sql_fill("form_list_advanced_search",$params);
-    $records=\webdb\sql\fetch_prepare($sql,$sql_params);
+    $records=\webdb\sql\fetch_prepare($sql,$sql_params,"form_list_advanced_search",false,$form_config["table"],$form_config["database"],$form_config);
   }
   $form_config["insert_new"]=false;
   $form_config["insert_row"]=false;
@@ -1952,7 +1958,7 @@ function edit_form($form_config,$id)
   $subforms="";
   foreach ($form_config["edit_subforms"] as $subform_page_id => $subform_link_field)
   {
-    $subform_config=\webdb\forms\get_form_config($subform_page_id);
+    $subform_config=\webdb\forms\get_form_config($subform_page_id,false);
     $subforms.=\webdb\forms\get_subform_content($subform_config,$subform_link_field,$id,false,$form_config);
   }
   $data=\webdb\forms\output_editor($form_config,$record,"Edit","Update",$id);
@@ -1999,6 +2005,9 @@ function lookup_field_data($form_config,$field_name,$sibling_field=false)
   }
   if ($lookup_config["lookup_sql_file"]=="")
   {
+    $filename="form_lookup";
+    $database=$lookup_config["database"];
+    $table=$lookup_config["table"];
     if ($lookup_config["order_by"]=="")
     {
       $display_fields=explode(",",$lookup_config["display_field"]);
@@ -2009,6 +2018,9 @@ function lookup_field_data($form_config,$field_name,$sibling_field=false)
   }
   else
   {
+    $filename=$lookup_config["lookup_sql_file"];
+    $database="";
+    $table="";
     $sql=\webdb\utils\sql_fill($lookup_config["lookup_sql_file"]);
   }
   $where_items=array();
@@ -2019,7 +2031,7 @@ function lookup_field_data($form_config,$field_name,$sibling_field=false)
       $where_items=\webdb\forms\config_id_conditions($form_config["parent_form_config"],$form_config["parent_form_id"],"primary_key");
     }
   }
-  return \webdb\sql\fetch_prepare($sql,$where_items);
+  return \webdb\sql\fetch_prepare($sql,$where_items,$filename,false,$table,$database,$form_config);
 }
 
 #####################################################################################################
@@ -2261,7 +2273,7 @@ function insert_record($form_config)
   $handled=\webdb\forms\handle_insert_record_event($form_config,$value_items);
   if ($handled===false)
   {
-    \webdb\sql\sql_insert($value_items,$form_config["table"],$form_config["database"]);
+    \webdb\sql\sql_insert($value_items,$form_config["table"],$form_config["database"],false,$form_config);
     $id=\webdb\sql\sql_last_insert_autoinc_id();
   }
   else
@@ -2385,7 +2397,7 @@ function update_record($form_config,$id)
   $params=false;
   if ($handled==false)
   {
-    \webdb\sql\sql_update($value_items,$where_items,$form_config["table"],$form_config["database"]);
+    \webdb\sql\sql_update($value_items,$where_items,$form_config["table"],$form_config["database"],false,$form_config);
     $params=array();
     $params["update"]=$form_config["page_id"];
   }
@@ -2441,7 +2453,7 @@ function get_record_by_id($form_config,$id,$config_key)
   $items=\webdb\forms\config_id_conditions($form_config,$id,$config_key);
   $form_config["where_conditions"]=\webdb\sql\build_prepared_where($items);
   $sql=\webdb\utils\sql_fill("form_list_fetch_by_id",$form_config);
-  $records=\webdb\sql\fetch_prepare($sql,$items);
+  $records=\webdb\sql\fetch_prepare($sql,$items,"form_list_fetch_by_id",false,$form_config["table"],$form_config["database"],$form_config);
   if (count($records)==0)
   {
     \webdb\utils\error_message("error: no records found for id '".$id."' in query: ".$sql);
@@ -2581,7 +2593,7 @@ function delete_record($form_config,$id)
     \webdb\utils\error_message("error: record delete permission denied for form '".$page_id."'");
   }
   $where_items=\webdb\forms\config_id_conditions($form_config,$id,"primary_key");
-  \webdb\sql\sql_delete($where_items,$form_config["table"],$form_config["database"]);
+  \webdb\sql\sql_delete($where_items,$form_config["table"],$form_config["database"],false,$form_config);
   \webdb\forms\page_redirect();
 }
 
@@ -2676,7 +2688,7 @@ function delete_selected_records($form_config)
   foreach ($_POST["id"] as $id => $value)
   {
     $where_items=\webdb\forms\config_id_conditions($form_config,$id,"primary_key");
-    \webdb\sql\sql_delete($where_items,$form_config["table"],$form_config["database"]);
+    \webdb\sql\sql_delete($where_items,$form_config["table"],$form_config["database"],false,$form_config);
   }
   \webdb\forms\page_redirect();
 }

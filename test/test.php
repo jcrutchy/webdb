@@ -201,6 +201,12 @@ function test_utils()
   }
   $test_case_msg="\\webdb\\test\\utils\\extract_text";
   \webdb\test\utils\test_result_message($test_case_msg,$test_success);
+  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  $wildcard_value="1*3*5";
+  $compare_value="122234445";
+  $test_success=\webdb\utils\wildcard_compare($compare_value,$wildcard_value);
+  $test_case_msg="\\webdb\\utils\\wildcard_compare";
+  \webdb\test\utils\test_result_message($test_case_msg,$test_success);
 }
 
 #####################################################################################################

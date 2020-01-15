@@ -48,7 +48,7 @@ function webdb_debug_backtrace()
 
 #####################################################################################################
 
-function error_message($message)
+function info_message($message)
 {
   global $settings;
   if (isset($_GET["ajax"])==true)
@@ -59,7 +59,6 @@ function error_message($message)
       ob_end_clean(); # discard buffer
     }
     $data=array();
-    $message.=\webdb\utils\webdb_debug_backtrace();
     $data["error"]=$message;
     $data=json_encode($data);
     $settings["system_message"]=$message;
@@ -75,6 +74,17 @@ function error_message($message)
   $params["message"]=$message;
   $content=\webdb\utils\template_fill("error_message",$params);
   \webdb\utils\system_message($content);
+}
+
+#####################################################################################################
+
+function error_message($message)
+{
+  if (isset($_GET["ajax"])==true)
+  {
+    $message.=\webdb\utils\webdb_debug_backtrace();
+  }
+  \webdb\utils\info_message($message);
 }
 
 #####################################################################################################
@@ -816,6 +826,49 @@ function static_page($template,$title)
 {
   $content=\webdb\utils\template_fill($template);
   \webdb\utils\output_page($content,$title);
+}
+
+#####################################################################################################
+
+function wildcard_compare($compare_value,$wildcard_value)
+{
+  # wildcard is * character
+  $compare_length=strlen($compare_value);
+  $wildcard_length=strlen($wildcard_value);
+  if ($wildcard_length>$compare_length)
+  {
+    return false;
+  }
+  $is_wildcard=false;
+  $wildcard_index=0;
+  for ($i=0;$i<count($compare_length);$i++)
+  {
+    if ($wildcard_index>($wildcard_length-1))
+    {
+      return false;
+    }
+    if ($wildcard_value[$wildcard_index]=="*")
+    {
+      $is_wildcard=true;
+      $wildcard_index++;
+      continue;
+    }
+    if (($wildcard_value[$wildcard_index]==$compare_value[$i]) and ($is_wildcard==true))
+    {
+      $is_wildcard=false;
+      $wildcard_index++;
+      continue;
+    }
+    if ($wildcard_value[$wildcard_index]<>$compare_value[$i])
+    {
+      return false;
+    }
+    if ($is_wildcard==false)
+    {
+      $wildcard_index++;
+    }
+  }
+  return true;
 }
 
 #####################################################################################################

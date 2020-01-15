@@ -15,3 +15,5 @@ $settings["app_web_index"]=$settings["app_web_root"]."index.php";
 $settings["favicon_source"]=$settings["app_web_resources"]."favicon.png";
 
 $settings["app_logo_filename"]="favicon.png";
+
+$settings["csrf_hash_prefix"]="g7qbz62.Og";

@@ -226,8 +226,8 @@ function login()
         \webdb\users\login_failure($user_record,"error: incorrect password");
       }
       unset($_POST["login_password"]);
-      \webdb\users\initialise_login_cookie($user_record);
       $settings["user_record"]=$user_record;
+      \webdb\users\initialise_login_cookie($user_record);
       \webdb\users\auth_log($user_record,"PASSWORD_LOGIN","");
       \webdb\utils\redirect($settings["app_web_index"]);
     }
@@ -266,9 +266,10 @@ function login()
           $value_items["user_agent"]=$settings["user_agent"];
           $value_items["remote_address"]=$_SERVER["REMOTE_ADDR"];
           $value_items["failed_login_count"]=0;
+          $settings["user_record"]=$user_record;
           $settings["sql_check_post_params_override"]=true;
           \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
-          $settings["user_record"]=$user_record;
+          $settings["user_record"]=\webdb\users\get_user_record($user_record["username"]);
           \webdb\users\auth_log($user_record,"COOKIE_LOGIN","");
           if ($user_record["pw_change"]==1)
           {

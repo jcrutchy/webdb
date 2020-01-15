@@ -36,6 +36,8 @@
     },
     "event_handlers": {
     },
+    "sql_errors": {
+    },
     "default_cmd_override": "",
     "editor_visible": false,
     "custom_insert_template": "",

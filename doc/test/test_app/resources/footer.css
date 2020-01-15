@@ -1,0 +1,22 @@
+.footer_info
+  {
+    font-weight: normal;
+    position: absolute;
+    right: 10px;
+    top: 5px;
+  }
+
+.footer_info_username
+  {
+    color: green;
+    font-weight: bold;
+  }
+
+#global_page_body_inner
+  {
+    background-color: #fafafd;
+    background-image: url("sms_list.jpg");
+    background-position: right bottom;
+    background-repeat: no-repeat;
+    background-size: 300px;
+  }
