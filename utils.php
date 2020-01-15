@@ -18,7 +18,6 @@ function system_message($message)
   {
     ob_end_clean(); # discard buffer
   }
-  $message.=\webdb\utils\webdb_debug_backtrace();
   $settings["system_message"]=$message;
   die;
 }
@@ -48,7 +47,7 @@ function webdb_debug_backtrace()
 
 #####################################################################################################
 
-function info_message($message)
+function info_message($message,$show_backtrace=false)
 {
   global $settings;
   if (isset($_GET["ajax"])==true)
@@ -73,6 +72,10 @@ function info_message($message)
   $params["page_title"]=$settings["app_name"];
   $params["message"]=$message;
   $content=\webdb\utils\template_fill("error_message",$params);
+  if ($show_backtrace==true)
+  {
+    $content.=\webdb\utils\webdb_debug_backtrace();
+  }
   \webdb\utils\system_message($content);
 }
 
@@ -84,7 +87,7 @@ function error_message($message)
   {
     $message.=\webdb\utils\webdb_debug_backtrace();
   }
-  \webdb\utils\info_message($message);
+  \webdb\utils\info_message($message,true);
 }
 
 #####################################################################################################
