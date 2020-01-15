@@ -130,7 +130,7 @@ function check_authentication_status($response)
   {
     return false;
   }
-  \webdb\test\utils\test_info_message("AUTHENTICATION STATUS NOT FOUND IN PAGE CONTENT");
+  #\webdb\test\utils\test_info_message("AUTHENTICATION STATUS NOT FOUND IN PAGE CONTENT");
 }
 
 #####################################################################################################

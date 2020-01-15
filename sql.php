@@ -473,21 +473,9 @@ function null_user_check($sql,$where_items,$table,$database)
     return $user_id;
   }
   # user_id is null from here on
-  if ($database=="webdb")
+  if (($database=="webdb") and ($table=="auth_log"))
   {
-    switch ($table)
-    {
-      case "auth_log":
-        return $user_id;
-    }
-    if (isset($where_items["user_id"])==true)
-    {
-      switch ($table)
-      {
-        case "users":
-          return $user_id;
-      }
-    }
+    return $user_id;
   }
   $error_params=array();
   $error_params["database"]=$database;

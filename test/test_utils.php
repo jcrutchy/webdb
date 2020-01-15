@@ -85,7 +85,7 @@ function initialize_webdb_schema()
 {
   global $settings;
   $result=shell_exec("php ".$settings["app_root_path"]."index.php init_webdb_schema");
-  \webdb\test\utils\test_info_message(trim($result));
+  #\webdb\test\utils\test_info_message(trim($result));
 }
 
 #####################################################################################################
@@ -104,7 +104,7 @@ function test_server_setting($key,$value,$message)
   $test_settings=array();
   $test_settings[$key]=$value;
   \webdb\test\utils\write_test_config($test_settings);
-  \webdb\test\utils\test_info_message($message);
+  #\webdb\test\utils\test_info_message($message);
 }
 
 #####################################################################################################
@@ -112,7 +112,7 @@ function test_server_setting($key,$value,$message)
 function test_server_settings($settings,$message)
 {
   \webdb\test\utils\write_test_config($settings);
-  \webdb\test\utils\test_info_message($message);
+  #\webdb\test\utils\test_info_message($message);
 }
 
 #####################################################################################################
@@ -163,7 +163,7 @@ function delete_file($filename)
 {
   if (file_exists($filename)==false)
   {
-    \webdb\test\utils\test_info_message("UNABLE TO DELETE FILE (FILE NOT FOUND): ".$filename);
+    #\webdb\test\utils\test_info_message("UNABLE TO DELETE FILE (FILE NOT FOUND): ".$filename);
     return;
   }
   $result=unlink($filename);
