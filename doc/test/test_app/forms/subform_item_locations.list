@@ -45,7 +45,7 @@
         }
     },
     "sql_errors": {
-        "Column 'location_id' cannot be null": "Location must be set.",
+        "Column 'location_id' cannot be null": "A valid location must be selected.",
         "Duplicate entry '*-*' for key 'PRIMARY'": "Selected location has already been used previously.<br>Choose a different location.<br><br>Selected Location ID: %%location_id%%"
     },
     "editor_visible": false,

@@ -8,6 +8,7 @@ function run_tests()
 {
   global $settings;
   require_once("test".DIRECTORY_SEPARATOR."test_utils.php");
+  #require_once("test".DIRECTORY_SEPARATOR."w3c.php");
   system("clear");
   #$input=readline("Running tests will reinitialize the webdb database. Are you sure you want to continue? (type 'yes' to continue, press Enter or type anything else to cancel): ");
   $input="yes"; # TODO / DEBUG
