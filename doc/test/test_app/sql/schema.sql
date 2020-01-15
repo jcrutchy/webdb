@@ -36,6 +36,14 @@ CREATE TABLE IF NOT EXISTS `test_app`.`items` (
 ENGINE = InnoDB
 AUTO_INCREMENT = 1;
 
+INSERT INTO `test_app`.`items` (`item_name`,`item_type_id`) VALUES ('Microsoft Windows XP',2);
+INSERT INTO `test_app`.`items` (`item_name`,`item_type_id`) VALUES ('Adobe Acrobat Reader',2);
+INSERT INTO `test_app`.`items` (`item_name`,`item_type_id`) VALUES ('Debian GNU/Linux',2);
+INSERT INTO `test_app`.`items` (`item_name`,`item_type_id`) VALUES ('Intel Processor',1);
+INSERT INTO `test_app`.`items` (`item_name`,`item_type_id`) VALUES ('Asus Laptop',1);
+INSERT INTO `test_app`.`items` (`item_name`,`item_type_id`) VALUES ('Dell Monitor',1);
+INSERT INTO `test_app`.`items` (`item_name`,`item_type_id`) VALUES ('Dell Docking Station',1);
+
 DROP TABLE IF EXISTS `test_app`.`locations` ;
 CREATE TABLE IF NOT EXISTS `test_app`.`locations` (
   `location_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -52,6 +60,10 @@ CREATE TABLE IF NOT EXISTS `test_app`.`locations` (
     ON UPDATE NO ACTION)
 ENGINE = InnoDB
 AUTO_INCREMENT = 1;
+
+INSERT INTO `test_app`.`locations` (`location_name`,`description`) VALUES ('Melbourne City Store','Store located in Melbourne city square.');
+INSERT INTO `test_app`.`locations` (`location_name`,`description`,`parent_location_id`) VALUES ('Front Window Cabinet','Locked cabinet inside front window of shop.',1);
+INSERT INTO `test_app`.`locations` (`location_name`,`description`,`parent_location_id`) VALUES ('Checkout Cabinet','Locked cabinet at checkout near rear of shop.',1);
 
 DROP TABLE IF EXISTS `test_app`.`item_location_links` ;
 CREATE TABLE IF NOT EXISTS `test_app`.`item_location_links` (
@@ -71,6 +83,10 @@ CREATE TABLE IF NOT EXISTS `test_app`.`item_location_links` (
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
+
+INSERT INTO `test_app`.`item_location_links` (`item_id`,`location_id`,`quantity`) VALUES (1,2,10);
+INSERT INTO `test_app`.`item_location_links` (`item_id`,`location_id`,`quantity`) VALUES (2,2,7);
+INSERT INTO `test_app`.`item_location_links` (`item_id`,`location_id`,`quantity`) VALUES (5,3,2);
 
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
