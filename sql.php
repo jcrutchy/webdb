@@ -35,7 +35,7 @@ function check_post_params($sql)
 
 #####################################################################################################
 
-function query_error($sql,$source="",$filename="",$form_config=false)
+function query_error($sql,$source="",$filename="",$params=array(),$form_config=false)
 {
   $error_code="";
   $source_error="";
@@ -52,7 +52,9 @@ function query_error($sql,$source="",$filename="",$form_config=false)
         {
           if (\webdb\utils\wildcard_compare($source_error,$key)==true)
           {
-            \webdb\utils\info_message(htmlspecialchars($value));
+            $custom_templates=array("sql_error"=>$value);
+            $message=\webdb\utils\template_fill("sql_error",$params,array(),$custom_templates);
+            \webdb\utils\info_message($message);
           }
         }
       }
@@ -66,6 +68,7 @@ function query_error($sql,$source="",$filename="",$form_config=false)
     \webdb\cli\term_echo("filename: ".$filename,31);
     \webdb\cli\term_echo("error: ".$source_error,31);
     \webdb\cli\term_echo("sql: ".$sql,31);
+    var_dump($params);
     die;
   }
   else
@@ -88,6 +91,7 @@ function query_error($sql,$source="",$filename="",$form_config=false)
     $msg_params["filename"]=$filename;
     $msg_params["source_error"]=htmlspecialchars($source_error);
     $msg_params["sql"]=htmlspecialchars($sql);
+    $msg_params["params"]=json_encode($params,JSON_PRETTY_PRINT);
     \webdb\utils\error_message(\webdb\utils\template_fill("sql_error",$msg_params));
   }
 }
@@ -306,7 +310,7 @@ function execute_return($sql,$params=array(),$filename="",$is_admin=false,$table
   if ($statement===false)
   {
     \webdb\sql\sql_log("PREPARE ERROR",$sql,$params,$table,$database);
-    \webdb\sql\query_error($sql,"",$filename,$form_config);
+    \webdb\sql\query_error($sql,"",$filename,$params,$form_config);
   }
   foreach ($params as $key => $value)
   {
@@ -316,7 +320,7 @@ function execute_return($sql,$params=array(),$filename="",$is_admin=false,$table
       if ($statement->bindValue(":$key",$tmp,\PDO::PARAM_INT)==false)
       {
         \webdb\sql\sql_log("BIND NULL VALUE ERROR",$sql,$params,$table,$database);
-        \webdb\sql\query_error($sql,$statement,$filename,$form_config);
+        \webdb\sql\query_error($sql,$statement,$filename,$params,$form_config);
       }
     }
     elseif (ctype_digit(strval($value))==true)
@@ -324,7 +328,7 @@ function execute_return($sql,$params=array(),$filename="",$is_admin=false,$table
       if ($statement->bindParam(":$key",$params[$key],\PDO::PARAM_INT)==false)
       {
         \webdb\sql\sql_log("BIND INT PARAM ERROR",$sql,$params,$table,$database);
-        \webdb\sql\query_error($sql,$statement,$filename,$form_config);
+        \webdb\sql\query_error($sql,$statement,$filename,$params,$form_config);
       }
     }
     else
@@ -332,14 +336,14 @@ function execute_return($sql,$params=array(),$filename="",$is_admin=false,$table
       if ($statement->bindParam(":$key",$params[$key],\PDO::PARAM_STR)==false)
       {
         \webdb\sql\sql_log("BIND STR PARAM ERROR",$sql,$params,$table,$database);
-        \webdb\sql\query_error($sql,$statement,$filename,$form_config);
+        \webdb\sql\query_error($sql,$statement,$filename,$params,$form_config);
       }
     }
   }
   if ($statement->execute()===false)
   {
     \webdb\sql\sql_log("EXECUTE ERROR",$sql,$params,$table,$database);
-    \webdb\sql\query_error($sql,$statement,$filename,$form_config);
+    \webdb\sql\query_error($sql,$statement,$filename,$params,$form_config);
   }
   \webdb\sql\sql_log("SUCCESS",$sql,$params,$table,$database);
   return $statement;
