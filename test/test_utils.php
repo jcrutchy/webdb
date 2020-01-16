@@ -20,6 +20,73 @@ function test_error_message($message)
 
 #####################################################################################################
 
+function apply_test_app_settings()
+{
+  global $settings;
+  if (isset($settings["restore_settings"])==true)
+  {
+    \webdb\test\utils\test_error_message("TEST APP SETTINGS ALREADY APPLIED");
+    return;
+  }
+  $restore_settings=$settings;
+  if (isset($settings["test_app_settings"])==true)
+  {
+    $settings=$settings["test_app_settings"];
+    $settings["restore_settings"]=$restore_settings;
+  }
+  else
+  {
+    $test_app_root_dir=$settings["webdb_root_path"]."doc".DIRECTORY_SEPARATOR."test".DIRECTORY_SEPARATOR."test_app";
+    $settings["app_root_path"]=$test_app_root_dir.DIRECTORY_SEPARATOR;
+    $settings["app_directory_name"]=basename($settings["app_root_path"]);
+    $settings["app_parent_path"]=dirname($test_app_root_dir).DIRECTORY_SEPARATOR;
+    $settings["app_web_root"]="/".$settings["app_directory_name"]."/";
+    $settings["app_web_resources"]=$settings["app_web_root"]."resources/";
+    $settings["app_web_index"]=$settings["app_web_root"]."index.php";
+    $settings["app_root_namespace"]="\\".$settings["app_directory_name"]."\\";
+    $settings["app_templates_path"]=$settings["app_root_path"]."templates".DIRECTORY_SEPARATOR;
+    $settings["app_sql_path"]=$settings["app_root_path"]."sql".DIRECTORY_SEPARATOR;
+    $settings["app_resources_path"]=$settings["app_root_path"]."resources".DIRECTORY_SEPARATOR;
+    $settings["app_forms_path"]=$settings["app_root_path"]."forms".DIRECTORY_SEPARATOR;
+    $common_settings_filename=$settings["app_parent_path"]."webdb_common_settings.php";
+    if (file_exists($common_settings_filename)==true)
+    {
+      require_once($common_settings_filename);
+    }
+    else
+    {
+      \webdb\utils\system_message("error: webdb common settings file not found: ".$common_settings_filename);
+    }
+    $settings_filename=$settings["app_root_path"]."settings.php";
+    if (file_exists($settings_filename)==false)
+    {
+      \webdb\utils\system_message("error: settings file not found: ".$settings_filename);
+    }
+    require_once($settings_filename);
+    $restore_settings["test_app_settings"]=$settings;
+    $settings["restore_settings"]=$restore_settings;
+  }
+  #\webdb\test\utils\test_info_message("TEST APP SETTINGS APPLIED");
+}
+
+#####################################################################################################
+
+function restore_app_settings()
+{
+  global $settings;
+  if (isset($settings["restore_settings"])==true)
+  {
+    $settings=$settings["restore_settings"];
+    #\webdb\test\utils\test_info_message("SETTINGS RESTORED");
+  }
+  else
+  {
+    \webdb\test\utils\test_error_message("ERROR RESTORING SETTINGS");
+  }
+}
+
+#####################################################################################################
+
 function handle_error()
 {
   global $settings;
@@ -90,11 +157,34 @@ function initialize_webdb_schema()
 
 #####################################################################################################
 
+function initialize_test_app_schema()
+{
+  global $settings;
+  $is_test_app=false;
+  if (isset($settings["restore_settings"])==true)
+  {
+    $is_test_app=true;
+  }
+  else
+  {
+    \webdb\test\utils\apply_test_app_settings();
+  }
+  $result=shell_exec("php ".$settings["app_root_path"]."index.php init_app_schema");
+  #\webdb\test\utils\test_info_message(trim($result));
+  if ($is_test_app==false)
+  {
+    \webdb\test\utils\restore_app_settings();
+  }
+}
+
+#####################################################################################################
+
 function test_cleanup()
 {
   \webdb\test\utils\clear_cookie_jar();
   \webdb\test\utils\delete_test_config();
   \webdb\test\utils\initialize_webdb_schema();
+  \webdb\test\utils\initialize_test_app_schema();
 }
 
 #####################################################################################################
@@ -181,7 +271,7 @@ function check_required_file_exists($filename,$is_path=false)
   {
     if ($is_path==true)
     {
-      \webdb\test\utils\test_error_message("error: required path not found: ".$filename);
+      \webdb\test\utils\test_result_message("required path found: ".$filename,false);
     }
     else
     {
@@ -202,10 +292,12 @@ function check_required_file_exists($filename,$is_path=false)
 function check_required_setting_exists($key)
 {
   global $settings;
+  $test_success=true;
   if (isset($settings[$key])==false)
   {
-    \webdb\test\utils\test_error_message("error: required setting not found: ".$key);
+    $test_success=false;
   }
+  \webdb\test\utils\test_result_message("required setting exists: ".$key,$test_success);
 }
 
 #####################################################################################################

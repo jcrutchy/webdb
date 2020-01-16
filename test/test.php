@@ -10,11 +10,11 @@ function run_tests()
   require_once("test".DIRECTORY_SEPARATOR."test_utils.php");
   #require_once("test".DIRECTORY_SEPARATOR."w3c.php");
   system("clear");
-  #$input=readline("Running tests will reinitialize the webdb database. Are you sure you want to continue? (type 'yes' to continue, press Enter or type anything else to cancel): ");
+  #$input=readline("Running tests will reinitialize the webdb and test_app databases. Are you sure you want to continue? (type 'yes' to continue, press Enter or type anything else to cancel): ");
   $input="yes"; # TODO / DEBUG
   if ($input<>"yes")
   {
-    \webdb\test\utils\test_info_message("testing terminated without changes to database");
+    \webdb\test\utils\test_info_message("testing terminated without changes to databases");
     die;
   }
   \webdb\test\test_utils();
