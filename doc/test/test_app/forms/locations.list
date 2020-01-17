@@ -7,6 +7,9 @@
     "edit_subforms": {
         "subform_location_items": "location_id"
     },
+    "edit_subforms_styles": {
+        "subform_location_items": "height: 530px;"
+    },
     "control_types": {
         "location_id": "span",
         "created_timestamp": "span",

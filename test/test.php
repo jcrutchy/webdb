@@ -20,11 +20,10 @@ function run_tests()
   \webdb\test\test_utils();
   \webdb\test\utils\test_cleanup();
   $settings["test_user_agent"]="webdb testing framework";
-  \webdb\test\utils\test_info_message("CHECKING SETTINGS");
+  \webdb\test\utils\test_info_message("CHECKING SETTINGS...");
   \webdb\test\check_webdb_settings();
   \webdb\test\check_app_settings();
   \webdb\test\check_sql_settings();
-  \webdb\test\utils\test_success_message("SETTINGS CHECK OK");
   if (\webdb\utils\is_app_mode()==true)
   {
     require_once("test".DIRECTORY_SEPARATOR."security.php");

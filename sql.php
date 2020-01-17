@@ -79,10 +79,10 @@ function query_error($sql,$source="",$filename="",$params=array(),$form_config=f
       switch ($error_code)
       {
         case 1048: # field cannot be null
-          \webdb\utils\info_message($source_error);
+          #\webdb\utils\info_message($source_error);
           break;
         case 1062: # duplicate key
-          \webdb\utils\info_message($source_error);
+          #\webdb\utils\info_message($source_error);
           break;
       }
     }

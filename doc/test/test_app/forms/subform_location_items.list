@@ -6,6 +6,7 @@
     "page_id": "subform_location_items",
     "control_types": {
         "item_id": "span",
+        "location_id": "span",
         "item_name": "span",
         "item_type_id": "lookup",
         "quantity": "text",
@@ -13,13 +14,15 @@
     },
     "captions": {
         "item_id": "Item ID",
+        "location_id": "Location ID",
         "item_name": "Item Name",
         "item_type_id": "Item Type",
         "quantity": "Quantity",
         "notes": "Notes"
     },
     "visible": {
-        "item_id": false,
+        "item_id": true,
+        "location_id": true,
         "item_name": true,
         "item_type_id": true,
         "quantity": true,
@@ -27,6 +30,7 @@
     },
     "default_values": {
         "item_id": "",
+        "location_id": "",
         "item_name": "",
         "item_type_id": "",
         "quantity": "0",
@@ -43,6 +47,9 @@
     },
     "event_handlers": {
         "on_custom_form_above": "\\test_app\\stubs\\output_item_filter_select"
+    },
+    "control_styles": {
+        "notes": "height: 30px;"
     },
     "editor_visible": false,
     "primary_key": "item_id",
@@ -66,6 +73,7 @@
     "link_database": "test_app",
     "link_table": "item_location_links",
     "link_fields": [
+        "location_id",
         "quantity",
         "notes"
     ],

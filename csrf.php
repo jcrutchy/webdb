@@ -12,7 +12,7 @@ function check_unauthenticated_csrf_token()
   {
     return;
   }
-  if (isset($_COOKIE[$settings["csrf_cookie_auth"]])==true)
+  if ((isset($_COOKIE[$settings["csrf_cookie_auth"]])==true) and (isset($_POST["login_username"])==false))
   {
     return;
   }
@@ -36,15 +36,14 @@ function check_unauthenticated_csrf_token()
       \webdb\users\auth_log(false,"INVALID_UNAUTHENTICATED_CSRF_TOKEN");
     }
   }
-  $token=\webdb\users\crypto_random_key();
-  \webdb\utils\webdb_setcookie("csrf_cookie_unauth",$token,0);
-  $token=$settings["csrf_hash_prefix"].$token;
-  \webdb\users\auth_log(false,"GENERATE_UNAUTHENTICATED_CSRF_TOKEN");
-  $settings["csrf_token"]=\webdb\users\webdb_password_hash($token);
   if ($csrf_ok==false)
   {
     \webdb\utils\error_message(\webdb\utils\template_fill("csrf_error"));
   }
+  $token=\webdb\users\crypto_random_key();
+  $settings["csrf_header_unauth"]=$token;
+  $token=$settings["csrf_hash_prefix"].$token;
+  $settings["csrf_token"]=\webdb\users\webdb_password_hash($token);
 }
 
 #####################################################################################################
@@ -57,7 +56,7 @@ function check_authenticated_csrf_token()
   {
     return;
   }
-  \webdb\utils\webdb_unsetcookie("csrf_cookie_unauth");
+  unset($settings["csrf_header_unauth"]);
   $user_record=$settings["user_record"];
   $where_items=array();
   $where_items["user_id"]=$user_record["user_id"];
@@ -75,13 +74,13 @@ function check_authenticated_csrf_token()
   if ($delta>$settings["max_csrf_token_age"])
   {
     $user_token_regen=true;
-    \webdb\users\auth_log(false,"AUTHENTICATED_CSRF_TOKEN_EXCEEDS_MAX_AGE");
+    \webdb\users\auth_log($user_record,"AUTHENTICATED_CSRF_TOKEN_EXCEEDS_MAX_AGE");
   }
   $token=$user_record["csrf_token"];
   if ($token=="")
   {
     $user_token_regen=true;
-    \webdb\users\auth_log(false,"AUTHENTICATED_CSRF_TOKEN_EMPTY");
+    \webdb\users\auth_log($user_record,"AUTHENTICATED_CSRF_TOKEN_EMPTY");
   }
   if ($user_token_regen==true)
   {
@@ -93,8 +92,6 @@ function check_authenticated_csrf_token()
     \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
     \webdb\users\auth_log($user_record,"GENERATE_AUTHENTICATED_CSRF_TOKEN");
     $settings["csrf_token"]=\webdb\users\webdb_password_hash($token);
-    \webdb\utils\webdb_setcookie("csrf_cookie_auth",$settings["csrf_token"],0);
-    \webdb\utils\redirect($settings["app_web_index"]);
   }
   if ((isset($_POST["csrf_token"])==true) and (isset($_COOKIE[$settings["csrf_cookie_auth"]])==true))
   {
@@ -102,38 +99,30 @@ function check_authenticated_csrf_token()
     $cookie=$_COOKIE[$settings["csrf_cookie_auth"]];
     if ($hash<>$cookie)
     {
-      \webdb\users\auth_log(false,"AUTHENTICATED_CSRF_HASH_MISMATCH");
+      \webdb\users\auth_log($user_record,"AUTHENTICATED_CSRF_HASH_MISMATCH");
     }
     if (password_verify($token,$hash)==true)
     {
-      \webdb\users\auth_log(false,"VALID_AUTHENTICATED_CSRF_TOKEN");
+      \webdb\users\auth_log($user_record,"VALID_AUTHENTICATED_CSRF_TOKEN");
       $settings["csrf_token"]=$hash;
       $csrf_ok=true;
     }
     else
     {
-      \webdb\users\auth_log(false,"INVALID_AUTHENTICATED_CSRF_TOKEN");
+      \webdb\users\auth_log($user_record,"INVALID_AUTHENTICATED_CSRF_TOKEN");
     }
   }
   if ($csrf_ok==false)
   {
-    $value_items=array();
-    $value_items["csrf_token"]="";
-    $value_items["csrf_token_time"]=null;
-    $settings["sql_check_post_params_override"]=true;
-    \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
-    \webdb\users\auth_log($user_record,"CLEAR_AUTHENTICATED_CSRF_TOKEN");
-    \webdb\utils\webdb_unsetcookie("login_cookie");
-    \webdb\utils\webdb_unsetcookie("csrf_cookie_auth");
-    \webdb\utils\error_message(\webdb\utils\template_fill("csrf_error"));
+    \webdb\users\login_failure($user_record,\webdb\utils\template_fill("csrf_error"));
   }
   else
   {
     if ($settings["csrf_token"]=="")
     {
       $settings["csrf_token"]=\webdb\users\webdb_password_hash($token);
-      \webdb\utils\webdb_setcookie("csrf_cookie_auth",$settings["csrf_token"],0);
     }
+    $settings["csrf_header_auth"]=$settings["csrf_token"];
   }
 }
 
@@ -142,6 +131,22 @@ function check_authenticated_csrf_token()
 function fill_csrf_token($buffer)
 {
   global $settings;
+  if (isset($settings["csrf_header_unauth"])==true)
+  {
+    \webdb\utils\webdb_setcookie("csrf_cookie_unauth",$settings["csrf_header_unauth"],0);
+    \webdb\utils\webdb_unsetcookie("csrf_cookie_auth");
+  }
+  elseif (isset($settings["csrf_header_auth"])==true)
+  {
+    \webdb\utils\webdb_setcookie("csrf_cookie_auth",$settings["csrf_header_auth"],0);
+    \webdb\utils\webdb_unsetcookie("csrf_cookie_unauth");
+  }
+  else
+  {
+    \webdb\utils\webdb_unsetcookie("csrf_cookie_auth");
+    \webdb\utils\webdb_unsetcookie("csrf_cookie_unauth");
+    \webdb\users\unset_login_cookie();
+  }
   if (isset($settings["csrf_token"])==false)
   {
     $settings["csrf_token"]="";

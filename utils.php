@@ -109,6 +109,7 @@ function debug_var_dump($data,$backtrace=false)
 function webdb_setcookie($setting_key,$value,$max_age=false)
 {
   global $settings;
+  $settings["cookie_headers_set"][$setting_key]=$value;
   if ($max_age===false)
   {
     $max_age=$settings["max_cookie_age"];
@@ -236,6 +237,12 @@ function ob_postprocess($buffer)
       $buffer=gzencode($buffer);
       header("Content-Encoding: gzip");
     }
+  }
+  if (\webdb\cli\is_cli_mode()==false)
+  {
+    $msg="REQUEST_COMPLETED";
+    $settings["logs"]["auth"][]=$msg;
+    $settings["logs"]["sql"][]=$msg;
   }
   \webdb\utils\save_logs();
   return $buffer;
@@ -735,6 +742,7 @@ function exception_handler($exception)
 
 function redirect($url,$clean_buffer=true)
 {
+  global $settings;
   if ($clean_buffer==true)
   {
     ob_end_clean(); # discard buffer

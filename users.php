@@ -58,7 +58,7 @@ function get_user_record($username)
   $records=\webdb\sql\file_fetch_prepare("user_get_by_username",$sql_params);
   if (count($records)<>1)
   {
-    \webdb\utils\webdb_unsetcookie("login_cookie");
+    \webdb\users\unset_login_cookie();
     \webdb\utils\error_message("error: username not found: ".htmlspecialchars($username));
   }
   return $records[0];
@@ -108,13 +108,15 @@ function login_failure($user_record,$message)
   $value_items=array();
   $value_items["failed_login_count"]=$user_record["failed_login_count"]+1;
   $value_items["failed_login_time"]=time();
+  $value_items["csrf_token"]="";
+  $value_items["csrf_token_time"]=null;
   $value_items["login_cookie"]="*"; # disable login with cookie
   $settings["sql_check_post_params_override"]=true;
   $settings["user_record"]=$user_record; # allow unauthenticated change to database
   \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
   unset($settings["user_record"]);
-  \webdb\utils\webdb_unsetcookie("login_cookie");
-  \webdb\users\auth_log($user_record,"FAILED",$message);
+  \webdb\users\unset_login_cookie();
+  \webdb\users\auth_log($user_record,"LOGIN_FAILURE",$message);
   if ($value_items["failed_login_count"]>$settings["max_login_attempts"])
   {
     \webdb\users\login_lockout($user_record);
@@ -170,7 +172,7 @@ function login_lockout($user_record)
   $settings["user_record"]=$user_record; # allow unauthenticated change to database
   \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
   unset($settings["user_record"]);
-  \webdb\utils\webdb_unsetcookie("login_cookie");
+  \webdb\users\unset_login_cookie();
   \webdb\users\auth_log($user_record,"LOCKOUT","");
   \webdb\utils\error_message(\webdb\utils\template_fill("lockout_error"));
 }
@@ -189,6 +191,18 @@ function check_admin($user_record)
       $msg=\webdb\utils\template_fill("admin_address_whitelist_error",$params);
       \webdb\users\login_failure($user_record,$msg);
     }
+  }
+}
+
+#####################################################################################################
+
+function unset_login_cookie()
+{
+  global $settings;
+  if ($settings["login_cookie_unset"]==false)
+  {
+    \webdb\utils\webdb_unsetcookie("login_cookie");
+    $settings["login_cookie_unset"]=true;
   }
 }
 
@@ -234,8 +248,13 @@ function login()
       }
       unset($_POST["login_password"]);
       $settings["user_record"]=$user_record;
-      \webdb\users\initialise_login_cookie($user_record);
       \webdb\users\auth_log($user_record,"PASSWORD_LOGIN","");
+      \webdb\users\initialise_login_cookie($user_record);
+      $target_url=$_POST["target_url"];
+      if (($target_url<>"") and ($target_url<>$settings["app_web_root"]) and ($target_url<>$settings["app_web_index"]))
+      {
+        \webdb\utils\redirect($target_url);
+      }
       \webdb\utils\redirect($settings["app_web_index"]);
     }
     else
@@ -291,7 +310,13 @@ function login()
       }
     }
   }
-  \webdb\utils\webdb_unsetcookie("login_cookie");
+  \webdb\users\unset_login_cookie();
+  $target_url=\webdb\utils\get_url();
+  $login_form_params["target_url"]="";
+  if (($target_url<>$settings["app_web_root"]) and ($target_url<>$settings["app_web_index"]))
+  {
+    $login_form_params["target_url"]=$target_url;
+  }
   $content=\webdb\utils\template_fill("login_form",$login_form_params);
   $buffer=ob_get_contents();
   if (strlen($buffer)<>0)
@@ -362,7 +387,7 @@ function logout()
 {
   global $settings;
   \webdb\users\auth_log(false,"LOGOUT","");
-  \webdb\utils\webdb_unsetcookie("login_cookie");
+  \webdb\users\unset_login_cookie();
   $url=$settings["app_web_index"];
   \webdb\utils\redirect($url,false);
 }
@@ -505,7 +530,7 @@ function reset_password()
   }
   if ($user_record===false)
   {
-    \webdb\utils\webdb_unsetcookie("login_cookie");
+    \webdb\users\unset_login_cookie();
     \webdb\users\auth_log(false,"INVALID__PASSWORD_RESET_KEY","");
     \webdb\utils\error_message("error: invalid password reset key");
   }
@@ -567,7 +592,7 @@ function send_reset_password_message()
   \webdb\utils\info_message($message); # TESTING (REMOVE/COMMENT OUT FOR PROD)
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   \webdb\utils\send_email($user_record["email"],"",$settings["app_name"]." password reset",$message,$settings["server_email_from"],$settings["server_email_reply_to"],$settings["server_email_bounce_to"]);
-  \webdb\utils\webdb_unsetcookie("login_cookie");
+  \webdb\users\unset_login_cookie();
   $message=\webdb\utils\template_fill("password_reset_valid_to_message",$msg_params);
   \webdb\users\auth_log($user_record,"RESET_PASSWORD_EMAIL","");
   \webdb\utils\error_message($message);

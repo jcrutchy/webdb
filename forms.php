@@ -202,6 +202,8 @@ function form_dispatch($page_id)
 function checklist_update($form_config)
 {
   global $settings;
+  var_dump($_POST);
+  die;
   $page_id=$form_config["page_id"];
   $parent_id=$_POST["parent_id:".$page_id];
   $link_database=$form_config["link_database"];
@@ -211,7 +213,7 @@ function checklist_update($form_config)
   $link_fields=$form_config["link_fields"];
   $list_records=false;
   \webdb\forms\process_filter_sql($form_config);
-  if ($form_config["default_filter_sql"]<>"")
+  if ($form_config["selected_filter_sql"]<>"")
   {
     if ($form_config["sort_sql"]<>"")
     {
@@ -224,6 +226,10 @@ function checklist_update($form_config)
   $sql_params["link_database"]=$link_database;
   $sql_params["link_table"]=$link_table;
   $sql_params["parent_key"]=$parent_key;
+  $sql_params["link_key"]=$link_key;
+  $sql_params["database"]=$form_config["database"];
+  $sql_params["table"]=$form_config["table"];
+  $sql_params["selected_filter_condition"]=$form_config["selected_filter_condition"];
   $sql=\webdb\utils\sql_fill("checklist_link_records",$sql_params);
   $sql_params=array();
   $sql_params["parent_key"]=$parent_id;
@@ -367,15 +373,21 @@ function process_filter_sql(&$form_config)
       $form_config["default_filter"]=$filters[$page_id];
     }
   }
-  $form_config["default_filter_sql"]="";
+  $form_config["selected_filter_sql"]="";
+  $form_config["selected_filter_condition"]="";
   if ($form_config["default_filter"]<>"")
   {
     $filter_name=$form_config["default_filter"];
     if (isset($form_config["filter_options"][$filter_name])==true)
     {
+      $form_config["selected_filter_condition"]=$form_config["filter_options"][$filter_name];
       $where_params=array();
-      $where_params["where_items"]=$form_config["filter_options"][$filter_name];
-      $form_config["default_filter_sql"]=\webdb\utils\sql_fill("where_clause",$where_params);
+      $where_params["where_items"]=$form_config["selected_filter_condition"];
+      if ($form_config["selected_filter_condition"]<>"")
+      {
+        $form_config["selected_filter_condition"]="AND ".$form_config["selected_filter_condition"];
+      }
+      $form_config["selected_filter_sql"]=\webdb\utils\sql_fill("where_clause",$where_params);
     }
   }
 }
@@ -2120,7 +2132,7 @@ function output_editor($form_config,$record,$command,$verb,$id)
   {
     $form_params[strtolower($command)."_table"]=\webdb\utils\template_fill($form_config["custom_".strtolower($command)."_template"],$rows);
   }
-  $form_params["edit_cmd_id"]=$id;
+  $form_params["id"]=$id;
   $form_params["confirm_caption"]=$verb." ".$form_config["command_caption_noun"];
   $form_params["custom_form_above"]="";
   $form_params["custom_form_below"]="";
@@ -2280,9 +2292,11 @@ function insert_record($form_config)
   {
     $id=$handled;
   }
-  if (($form_config["edit_cmd_page_id"]<>"") and (isset($_GET["cmd"])==true))
+  if ($form_config["edit_cmd_page_id"]<>"")
   {
-    $url=trim(\webdb\forms\form_template_fill("insert_redirect_url",$form_config)).$id;
+    $record=\webdb\forms\get_record_by_id($form_config,$id,"primary_key");
+    $form_config["id"]=\webdb\forms\config_id_url_value($form_config,$record,"edit_cmd_id");
+    $url=trim(\webdb\forms\form_template_fill("edit_redirect_url",$form_config));
     \webdb\utils\redirect($url);
   }
   \webdb\forms\page_redirect(false,false,$id);
@@ -2400,6 +2414,13 @@ function update_record($form_config,$id)
     \webdb\sql\sql_update($value_items,$where_items,$form_config["table"],$form_config["database"],false,$form_config);
     $params=array();
     $params["update"]=$form_config["page_id"];
+  }
+  if ($form_config["edit_cmd_page_id"]<>"")
+  {
+    $record=\webdb\forms\get_record_by_id($form_config,$id,"primary_key");
+    $form_config["id"]=\webdb\forms\config_id_url_value($form_config,$record,"edit_cmd_id");
+    $url=trim(\webdb\forms\form_template_fill("edit_redirect_url",$form_config));
+    \webdb\utils\redirect($url);
   }
   \webdb\forms\page_redirect(false,$params);
 }

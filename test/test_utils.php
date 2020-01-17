@@ -26,7 +26,6 @@ function apply_test_app_settings()
   if (isset($settings["restore_settings"])==true)
   {
     \webdb\test\utils\test_error_message("TEST APP SETTINGS ALREADY APPLIED");
-    return;
   }
   $restore_settings=$settings;
   if (isset($settings["test_app_settings"])==true)
@@ -55,12 +54,12 @@ function apply_test_app_settings()
     }
     else
     {
-      \webdb\utils\system_message("error: webdb common settings file not found: ".$common_settings_filename);
+      \webdb\test\utils\test_error_message("error: webdb common settings file not found: ".$common_settings_filename);
     }
     $settings_filename=$settings["app_root_path"]."settings.php";
     if (file_exists($settings_filename)==false)
     {
-      \webdb\utils\system_message("error: settings file not found: ".$settings_filename);
+      \webdb\test\utils\test_error_message("error: settings file not found: ".$settings_filename);
     }
     require_once($settings_filename);
     $restore_settings["test_app_settings"]=$settings;
@@ -267,24 +266,24 @@ function delete_file($filename)
 
 function check_required_file_exists($filename,$is_path=false)
 {
+  $test_success=true;
   if (file_exists($filename)==false)
   {
-    if ($is_path==true)
-    {
-      \webdb\test\utils\test_result_message("required path found: ".$filename,false);
-    }
-    else
-    {
-      \webdb\test\utils\test_error_message("error: required file not found: ".$filename);
-    }
+    $test_success=false;
   }
   if ($is_path==true)
   {
+    $test_case_msg="required path found: ".$filename;
     if (is_dir($filename)==false)
     {
-      \webdb\test\utils\test_error_message("error: required path is not a directory: ".$filename);
+      $test_success=false;
     }
   }
+  else
+  {
+    $test_case_msg="required file found: ".$filename;
+  }
+  \webdb\test\utils\test_result_message($test_case_msg,$test_success);
 }
 
 #####################################################################################################
@@ -407,7 +406,7 @@ function construct_cookie_header()
 
 #####################################################################################################
 
-function wget($uri)
+function wget($uri,$process_redirects=true)
 {
   global $settings;
   $headers="GET $uri HTTP/1.0\r\n";
@@ -423,13 +422,16 @@ function wget($uri)
   \webdb\test\utils\append_cookie_jar($headers);
   #var_dump(\webdb\test\security\utils\extract_csrf_token($response));
   #var_dump($settings["test_cookie_jar"]);
-  $response=\webdb\test\utils\process_redirect($response,$headers);
+  if ($process_redirects==true)
+  {
+    $response=\webdb\test\utils\process_redirect($response,$headers);
+  }
   return $response;
 }
 
 #####################################################################################################
 
-function wpost($uri,$params)
+function wpost($uri,$params,$process_redirects=true)
 {
   global $settings;
   $encoded_params=array();
@@ -457,7 +459,10 @@ function wpost($uri,$params)
   #var_dump($headers);
   #var_dump(\webdb\test\security\utils\extract_csrf_token($response));
   #var_dump($settings["test_cookie_jar"]);
-  $response=\webdb\test\utils\process_redirect($response,$headers);
+  if ($process_redirects==true)
+  {
+    $response=\webdb\test\utils\process_redirect($response,$headers);
+  }
   return $response;
 }
 
@@ -494,6 +499,7 @@ function append_cookie_jar($headers)
 
 function process_redirect($response,$headers)
 {
+  #var_dump($headers);
   $result=\webdb\test\utils\search_http_headers($headers,"location");
   if (count($result)>0)
   {

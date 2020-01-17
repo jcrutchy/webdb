@@ -1,4 +1,4 @@
-<form id="%%page_id%%" action="$$app_web_index$$?page=%%edit_cmd_page_id%%&cmd=edit&id=%%edit_cmd_id%%" method="post" enctype="multipart/form-data">
+<form id="%%page_id%%" action="$$app_web_index$$?page=%%page_id%%&cmd=edit&id=%%id%%" method="post" enctype="multipart/form-data">
 
 %%custom_form_above%%
 
@@ -10,7 +10,7 @@
 </div>
 
 <div class="edit_form_controls">
-  <input type="submit" name="form_cmd[edit_confirm][%%edit_cmd_id%%]" value="%%confirm_caption%%">
+  <input type="submit" name="form_cmd[edit_confirm][%%id%%]" value="%%confirm_caption%%">
   <span class="update_status" id="update_status:%%page_id%%">UPDATED RECORD SUCCESSFULLY</span>
 </div>
 
