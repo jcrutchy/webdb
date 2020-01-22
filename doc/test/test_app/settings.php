@@ -7,6 +7,7 @@ $settings["links_template"]="links";
 $settings["footer_template"]="footer";
 
 $settings["permissions"]["admin"]["forms"]["locations"]="riud";
+$settings["permissions"]["test_group"]["forms"]["locations"]="riud";
 
 $settings["app_web_root"]="/webdb/doc/test/".$settings["app_directory_name"]."/";
 $settings["app_web_resources"]=$settings["app_web_root"]."resources/";

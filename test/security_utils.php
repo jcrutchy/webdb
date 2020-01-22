@@ -70,6 +70,16 @@ function insert_test_user($field_values)
 {
   unset($field_values["password"]);
   \webdb\sql\sql_insert($field_values,"users","webdb",true);
+  $user_id=\webdb\sql\sql_last_insert_autoinc_id(true);
+  $group_values=array();
+  $group_values["group_name"]="test_group";
+  $group_values["enabled"]=1;
+  \webdb\sql\sql_insert($group_values,"groups","webdb",true);
+  $group_id=\webdb\sql\sql_last_insert_autoinc_id(true);
+  $link_values=array();
+  $link_values["user_id"]=$user_id;
+  $link_values["group_id"]=$group_id;
+  \webdb\sql\sql_insert($link_values,"user_group_links","webdb",true);
 }
 
 #####################################################################################################
