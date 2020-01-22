@@ -8,22 +8,22 @@ function run_tests()
 {
   global $settings;
   require_once("test".DIRECTORY_SEPARATOR."test_utils.php");
+  #require_once("test".DIRECTORY_SEPARATOR."w3c.php");
   system("clear");
-  #$input=readline("Running tests will reinitialize the webdb database. Are you sure you want to continue? (type 'yes' to continue, press Enter or type anything else to cancel): ");
+  #$input=readline("Running tests will reinitialize the webdb and test_app databases. Are you sure you want to continue? (type 'yes' to continue, press Enter or type anything else to cancel): ");
   $input="yes"; # TODO / DEBUG
   if ($input<>"yes")
   {
-    \webdb\test\utils\test_info_message("testing terminated without changes to database");
+    \webdb\test\utils\test_info_message("testing terminated without changes to databases");
     die;
   }
   \webdb\test\test_utils();
   \webdb\test\utils\test_cleanup();
   $settings["test_user_agent"]="webdb testing framework";
-  \webdb\test\utils\test_info_message("CHECKING SETTINGS");
+  \webdb\test\utils\test_info_message("CHECKING SETTINGS...");
   \webdb\test\check_webdb_settings();
   \webdb\test\check_app_settings();
   \webdb\test\check_sql_settings();
-  \webdb\test\utils\test_success_message("SETTINGS CHECK OK");
   if (\webdb\utils\is_app_mode()==true)
   {
     require_once("test".DIRECTORY_SEPARATOR."security.php");
@@ -200,6 +200,12 @@ function test_utils()
     $test_success=false;
   }
   $test_case_msg="\\webdb\\test\\utils\\extract_text";
+  \webdb\test\utils\test_result_message($test_case_msg,$test_success);
+  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  $wildcard_value="1*3*5";
+  $compare_value="122234445";
+  $test_success=\webdb\utils\wildcard_compare($compare_value,$wildcard_value);
+  $test_case_msg="\\webdb\\utils\\wildcard_compare";
   \webdb\test\utils\test_result_message($test_case_msg,$test_success);
 }
 

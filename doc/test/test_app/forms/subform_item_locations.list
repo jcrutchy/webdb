@@ -1,0 +1,63 @@
+{
+    "form_version": "20190829.1",
+    "form_type": "list",
+    "enabled": true,
+    "title": "Item Locations",
+    "page_id": "subform_item_locations",
+    "control_types": {
+        "item_id": "combobox",
+        "location_id": "combobox",
+        "quantity": "text",
+        "notes": "memo"
+    },
+    "captions": {
+        "item_id": "Item",
+        "location_id": "Location",
+        "quantity": "Quantity",
+        "notes": "Notes"
+    },
+    "visible": {
+        "item_id": false,
+        "location_id": true,
+        "quantity": true,
+        "notes": true
+    },
+    "default_values": {
+        "item_id": "",
+        "location_id": "",
+        "quantity": 0,
+        "notes": ""
+    },
+    "lookups": {
+        "item_id": {
+            "database": "test_app",
+            "table": "items",
+            "sibling_field": "item_id",
+            "key_field": "item_id",
+            "display_field": "item_name"
+        },
+        "location_id": {
+            "database": "test_app",
+            "table": "locations",
+            "sibling_field": "location_id",
+            "key_field": "location_id",
+            "display_field": "location_name"
+        }
+    },
+    "sql_errors": {
+        "Column 'location_id' cannot be null": "A valid location must be selected.",
+        "Duplicate entry '*-*' for key 'PRIMARY'": "Selected location has already been used previously.<br>Choose a different location.<br><br>Selected Location ID: %%location_id%%"
+    },
+    "editor_visible": false,
+    "primary_key": "location_id,item_id",
+    "multi_row_delete": true,
+    "delete_cmd": true,
+    "edit_cmd": "inline",
+    "edit_cmd_page_id": "locations",
+    "edit_button_caption": "Edit Location",
+    "edit_cmd_id": "location_id",
+    "insert_new": false,
+    "insert_row": true,
+    "database": "test_app",
+    "table": "item_location_links"
+}

@@ -20,6 +20,72 @@ function test_error_message($message)
 
 #####################################################################################################
 
+function apply_test_app_settings()
+{
+  global $settings;
+  if (isset($settings["restore_settings"])==true)
+  {
+    \webdb\test\utils\test_error_message("TEST APP SETTINGS ALREADY APPLIED");
+  }
+  $restore_settings=$settings;
+  if (isset($settings["test_app_settings"])==true)
+  {
+    $settings=$settings["test_app_settings"];
+    $settings["restore_settings"]=$restore_settings;
+  }
+  else
+  {
+    $test_app_root_dir=$settings["webdb_root_path"]."doc".DIRECTORY_SEPARATOR."test".DIRECTORY_SEPARATOR."test_app";
+    $settings["app_root_path"]=$test_app_root_dir.DIRECTORY_SEPARATOR;
+    $settings["app_directory_name"]=basename($settings["app_root_path"]);
+    $settings["app_parent_path"]=dirname($test_app_root_dir).DIRECTORY_SEPARATOR;
+    $settings["app_web_root"]="/".$settings["app_directory_name"]."/";
+    $settings["app_web_resources"]=$settings["app_web_root"]."resources/";
+    $settings["app_web_index"]=$settings["app_web_root"]."index.php";
+    $settings["app_root_namespace"]="\\".$settings["app_directory_name"]."\\";
+    $settings["app_templates_path"]=$settings["app_root_path"]."templates".DIRECTORY_SEPARATOR;
+    $settings["app_sql_path"]=$settings["app_root_path"]."sql".DIRECTORY_SEPARATOR;
+    $settings["app_resources_path"]=$settings["app_root_path"]."resources".DIRECTORY_SEPARATOR;
+    $settings["app_forms_path"]=$settings["app_root_path"]."forms".DIRECTORY_SEPARATOR;
+    $common_settings_filename=$settings["app_parent_path"]."webdb_common_settings.php";
+    if (file_exists($common_settings_filename)==true)
+    {
+      require_once($common_settings_filename);
+    }
+    else
+    {
+      \webdb\test\utils\test_error_message("error: webdb common settings file not found: ".$common_settings_filename);
+    }
+    $settings_filename=$settings["app_root_path"]."settings.php";
+    if (file_exists($settings_filename)==false)
+    {
+      \webdb\test\utils\test_error_message("error: settings file not found: ".$settings_filename);
+    }
+    require_once($settings_filename);
+    $restore_settings["test_app_settings"]=$settings;
+    $settings["restore_settings"]=$restore_settings;
+  }
+  #\webdb\test\utils\test_info_message("TEST APP SETTINGS APPLIED");
+}
+
+#####################################################################################################
+
+function restore_app_settings()
+{
+  global $settings;
+  if (isset($settings["restore_settings"])==true)
+  {
+    $settings=$settings["restore_settings"];
+    #\webdb\test\utils\test_info_message("SETTINGS RESTORED");
+  }
+  else
+  {
+    \webdb\test\utils\test_error_message("ERROR RESTORING SETTINGS");
+  }
+}
+
+#####################################################################################################
+
 function handle_error()
 {
   global $settings;
@@ -85,7 +151,29 @@ function initialize_webdb_schema()
 {
   global $settings;
   $result=shell_exec("php ".$settings["app_root_path"]."index.php init_webdb_schema");
-  \webdb\test\utils\test_info_message(trim($result));
+  #\webdb\test\utils\test_info_message(trim($result));
+}
+
+#####################################################################################################
+
+function initialize_test_app_schema()
+{
+  global $settings;
+  $is_test_app=false;
+  if (isset($settings["restore_settings"])==true)
+  {
+    $is_test_app=true;
+  }
+  else
+  {
+    \webdb\test\utils\apply_test_app_settings();
+  }
+  $result=shell_exec("php ".$settings["app_root_path"]."index.php init_app_schema");
+  #\webdb\test\utils\test_info_message(trim($result));
+  if ($is_test_app==false)
+  {
+    \webdb\test\utils\restore_app_settings();
+  }
 }
 
 #####################################################################################################
@@ -95,6 +183,7 @@ function test_cleanup()
   \webdb\test\utils\clear_cookie_jar();
   \webdb\test\utils\delete_test_config();
   \webdb\test\utils\initialize_webdb_schema();
+  \webdb\test\utils\initialize_test_app_schema();
 }
 
 #####################################################################################################
@@ -104,7 +193,7 @@ function test_server_setting($key,$value,$message)
   $test_settings=array();
   $test_settings[$key]=$value;
   \webdb\test\utils\write_test_config($test_settings);
-  \webdb\test\utils\test_info_message($message);
+  #\webdb\test\utils\test_info_message($message);
 }
 
 #####################################################################################################
@@ -112,7 +201,7 @@ function test_server_setting($key,$value,$message)
 function test_server_settings($settings,$message)
 {
   \webdb\test\utils\write_test_config($settings);
-  \webdb\test\utils\test_info_message($message);
+  #\webdb\test\utils\test_info_message($message);
 }
 
 #####################################################################################################
@@ -163,7 +252,7 @@ function delete_file($filename)
 {
   if (file_exists($filename)==false)
   {
-    \webdb\test\utils\test_info_message("UNABLE TO DELETE FILE (FILE NOT FOUND): ".$filename);
+    #\webdb\test\utils\test_info_message("UNABLE TO DELETE FILE (FILE NOT FOUND): ".$filename);
     return;
   }
   $result=unlink($filename);
@@ -177,24 +266,24 @@ function delete_file($filename)
 
 function check_required_file_exists($filename,$is_path=false)
 {
+  $test_success=true;
   if (file_exists($filename)==false)
   {
-    if ($is_path==true)
-    {
-      \webdb\test\utils\test_error_message("error: required path not found: ".$filename);
-    }
-    else
-    {
-      \webdb\test\utils\test_error_message("error: required file not found: ".$filename);
-    }
+    $test_success=false;
   }
   if ($is_path==true)
   {
+    $test_case_msg="required path found: ".$filename;
     if (is_dir($filename)==false)
     {
-      \webdb\test\utils\test_error_message("error: required path is not a directory: ".$filename);
+      $test_success=false;
     }
   }
+  else
+  {
+    $test_case_msg="required file found: ".$filename;
+  }
+  \webdb\test\utils\test_result_message($test_case_msg,$test_success);
 }
 
 #####################################################################################################
@@ -202,10 +291,12 @@ function check_required_file_exists($filename,$is_path=false)
 function check_required_setting_exists($key)
 {
   global $settings;
+  $test_success=true;
   if (isset($settings[$key])==false)
   {
-    \webdb\test\utils\test_error_message("error: required setting not found: ".$key);
+    $test_success=false;
   }
+  \webdb\test\utils\test_result_message("required setting exists: ".$key,$test_success);
 }
 
 #####################################################################################################
@@ -315,7 +406,7 @@ function construct_cookie_header()
 
 #####################################################################################################
 
-function wget($uri)
+function wget($uri,$process_redirects=true)
 {
   global $settings;
   $headers="GET $uri HTTP/1.0\r\n";
@@ -331,13 +422,16 @@ function wget($uri)
   \webdb\test\utils\append_cookie_jar($headers);
   #var_dump(\webdb\test\security\utils\extract_csrf_token($response));
   #var_dump($settings["test_cookie_jar"]);
-  $response=\webdb\test\utils\process_redirect($response,$headers);
+  if ($process_redirects==true)
+  {
+    $response=\webdb\test\utils\process_redirect($response,$headers);
+  }
   return $response;
 }
 
 #####################################################################################################
 
-function wpost($uri,$params)
+function wpost($uri,$params,$process_redirects=true)
 {
   global $settings;
   $encoded_params=array();
@@ -365,7 +459,10 @@ function wpost($uri,$params)
   #var_dump($headers);
   #var_dump(\webdb\test\security\utils\extract_csrf_token($response));
   #var_dump($settings["test_cookie_jar"]);
-  $response=\webdb\test\utils\process_redirect($response,$headers);
+  if ($process_redirects==true)
+  {
+    $response=\webdb\test\utils\process_redirect($response,$headers);
+  }
   return $response;
 }
 
@@ -402,6 +499,7 @@ function append_cookie_jar($headers)
 
 function process_redirect($response,$headers)
 {
+  #var_dump($headers);
   $result=\webdb\test\utils\search_http_headers($headers,"location");
   if (count($result)>0)
   {

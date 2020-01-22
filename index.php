@@ -41,6 +41,8 @@ $settings["logs"]=array();
 $settings["logs"]["sql"]=array();
 $settings["logs"]["auth"]=array();
 
+$settings["login_cookie_unset"]=false;
+
 $settings["sql_check_post_params_override"]=false;
 $settings["sql_database_change"]=false;
 $settings["calendar_fields"]=array();
@@ -95,6 +97,9 @@ require_once($settings_filename);
 
 if (\webdb\cli\is_cli_mode()==false)
 {
+  $msg="REQUEST_RECEIVED: ".\webdb\utils\get_url();
+  $settings["logs"]["auth"][]=$msg;
+  $settings["logs"]["sql"][]=$msg;
   header("Cache-Control: no-cache");
   header("Expires: -1");
   header("Pragma: no-cache");

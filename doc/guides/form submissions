@@ -1,0 +1,55 @@
+
+clicking the insert button at the top of a form
+===============================================
+
+where this goes depends on the value of the "insert_cmd_page_id" setting in the page list file
+if the setting is empty it will go to the same page with cmd=insert
+otherwise it will go to the page referenced by the "insert_cmd_page_id" setting, with cmd=insert
+
+this button doesn't submit a post request, so there is only one request in this process
+there is a javascript handler (list_insert_click) that redirects the browser to the url specified in the insert_page:%%page_id%% hidden field,
+which generally consists of $$app_web_index$$?page=%%insert_cmd_page_id%%&cmd=insert (sometimes with additional things) per the forms/list.htm template
+
+
+clicking a record row that highlights blue when you move your mouse over it
+===========================================================================
+
+
+
+clicking the edit button to the right of a record row
+=====================================================
+
+
+
+clicking a field in a record row that changes into edit controls with an update button
+======================================================================================
+
+
+
+
+clicking insert for an empty row at the bottom of a list
+========================================================
+
+
+
+
+clicking insert for a new record editor page (with cmd=insert)
+==============================================================
+
+
+this is a submit button that makes a post request to the server according to the action specified in the forms/insert.htm template
+the form action is $$app_web_index$$?page=%%page_id%%&cmd=edit&id=
+when the form is submitted (using a form_cmd element named insert_confirm), the form_dispatch function calls the insert_record function
+the record is inserted into the database
+then a location (redirect) header is set depending on the value of the "edit_cmd_page_id" setting
+if the setting is empty, the page_redirect function is called with only the new record id for appending to the end of the form submit action
+if the setting contains a valid page_id, the utils\redirect function is called with a url constructed from the form/insert_redirect_url.htm template,
+which is the same as the insert form action except that instead of %%page_id%% it has %%edit_cmd_page_id%%
+
+the purpose of the redirect is to prevent form resubmission if the user clicks the browser refresh button after inserting the record,
+as the redirected page is just a get request with no form submission data
+
+
+clicking update for an existing record editor page (with cmd=edit)
+==================================================================
+

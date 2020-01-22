@@ -48,7 +48,7 @@ function filter_select_change($form_config)
   $subform=$_GET["subform"];
   $data=array();
   $id=$_GET["id"];
-  $subform_config=\webdb\forms\get_form_config($subform);
+  $subform_config=\webdb\forms\get_form_config($subform,false);
   $subform_config["default_filter"]=$filter;
   $data["html"]=\webdb\forms\get_subform_content($subform_config,$subform_config["parent_key"],$id,true,$form_config);
   $data["subform"]=$subform_config["page_id"];
@@ -143,7 +143,7 @@ function list_insert($form_config)
     {
       $params[$param_name]=$param_value;
       \webdb\forms\check_required_values($form_config,$params);
-      \webdb\sql\sql_insert($params,$form_config["table"],$form_config["database"]);
+      \webdb\sql\sql_insert($params,$form_config["table"],$form_config["database"],false,$form_config);
       $parent_form_config=false;
       if (isset($form_config["parent_form_config"])==true)
       {
@@ -156,7 +156,7 @@ function list_insert($form_config)
   else
   {
     \webdb\forms\check_required_values($form_config,$params);
-    \webdb\sql\sql_insert($params,$form_config["table"],$form_config["database"]);
+    \webdb\sql\sql_insert($params,$form_config["table"],$form_config["database"],false,$form_config);
     $data["html"]=\webdb\forms\list_form_content($form_config);
   }
   $data=json_encode($data);
@@ -219,7 +219,7 @@ function list_edit($id,$form_config)
       $handled=\webdb\forms\handle_update_record_event($subform_form_config,$id,$where_items,$value_items);
       if ($handled==false)
       {
-        \webdb\sql\sql_update($value_items,$where_items,$subform_form_config["table"],$subform_form_config["database"]);
+        \webdb\sql\sql_update($value_items,$where_items,$subform_form_config["table"],$subform_form_config["database"],false,$subform_form_config);
       }
     }
     else
@@ -234,7 +234,7 @@ function list_edit($id,$form_config)
       $handled=\webdb\forms\handle_update_record_event($form_config,$id,$where_items,$value_items);
       if ($handled==false)
       {
-        \webdb\sql\sql_update($value_items,$where_items,$form_config["table"],$form_config["database"]);
+        \webdb\sql\sql_update($value_items,$where_items,$form_config["table"],$form_config["database"],false,$form_config);
       }
     }
     $data=json_encode($data);

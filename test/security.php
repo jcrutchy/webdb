@@ -10,6 +10,7 @@ function start()
   require_once("test".DIRECTORY_SEPARATOR."security_utils.php");
   \webdb\test\utils\test_info_message("STARTING WEBDB SECURITY TESTS...");
   $settings["test_error_handler"]="\\webdb\\test\\security\\utils\\security_test_error_callback";
+  \webdb\test\utils\test_cleanup();
 
   #$settings["test_include_backtrace"]=true; # use for debugging problem test (prevents trimming of backtrace in responses)
 
@@ -23,7 +24,8 @@ function start()
 
   # check to make sure only \webdb\forms\get_form_config is loading form configs (checking for permission)
 
-  \webdb\test\security\test_user_agent();
+  #\webdb\test\security\test_login_redirect();
+  #\webdb\test\security\test_user_agent();
   $settings["test_user_agent"]=\webdb\test\security\utils\TEST_USER_AGENT;
   \webdb\test\security\test_login_csrf_token();
   \webdb\test\security\test_remote_address();
@@ -35,7 +37,50 @@ function start()
   # use /webdb/doc/test_app/index.php as a testing platform (start by doing index.php init_app_schema)
 
   \webdb\test\utils\test_cleanup();
-  \webdb\test\utils\test_info_message("FINISHED SECURITY TESTS");
+  \webdb\test\utils\test_info_message("FINISHED WEBDB SECURITY TESTS");
+}
+
+#####################################################################################################
+
+function test_login_redirect()
+{
+  global $settings;
+  \webdb\test\utils\apply_test_app_settings();
+  $settings["test_user_agent"]=\webdb\test\security\utils\TEST_USER_AGENT;
+  $test_case_msg="when navigating to a data page, if not authenticated show login form and on login redirect to original data page";
+  $test_success=true;
+  $test_url=$settings["app_web_index"]."?page=locations&cmd=edit&id=2";
+  $response=\webdb\test\utils\wget($test_url);
+  $delim1="<input type=\"hidden\" name=\"target_url\" value=\"";
+  $delim2="\">";
+  $target_url=\webdb\test\utils\extract_text($response,$delim1,$delim2);
+  $parts=parse_url($target_url);
+  if ((isset($parts["path"])==true) and (isset($parts["query"])==true))
+  {
+    $target_url=$parts["path"].$parts["query"];
+  }
+  if ($target_url<>$test_url)
+  {
+    $test_success=false;
+  }
+  $field_values=\webdb\test\security\utils\output_user_field_values();
+  \webdb\test\security\utils\start_test_user($field_values);
+  $params=array();
+  $params["login_username"]=$field_values["username"];
+  $params["login_password"]=$field_values["password"];
+  $params["csrf_token"]=\webdb\test\security\utils\extract_csrf_token($response);
+  $params["target_url"]=$test_url;
+  $response=\webdb\test\utils\wpost($settings["app_web_root"],$params);
+  #var_dump($response);
+  die;
+  /*if (\webdb\test\utils\compare_template("csrf_error",$response)==false)
+  {
+    $test_success=false;
+  }*/
+  \webdb\test\utils\test_result_message($test_case_msg,$test_success);
+  \webdb\test\utils\restore_app_settings();
+  \webdb\test\utils\test_cleanup();
+  die;
 }
 
 #####################################################################################################
@@ -138,6 +183,7 @@ function test_login_csrf_token()
   $params=array();
   $params["login_username"]=$field_values["username"];
   $params["login_password"]=$field_values["password"];
+  $params["target_url"]="";
   $response=\webdb\test\utils\wpost($settings["app_web_root"],$params);
   # [cookies] webdb_login=deleted, webdb_csrf_token=(new value with no corresponding outputted token so unable to be used)
   if (\webdb\test\utils\compare_template("csrf_error",$response)==false)
@@ -158,8 +204,35 @@ function test_login_csrf_token()
   }
   \webdb\test\utils\test_result_message($test_case_msg,$test_success);
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  $test_case_msg="after successful cookie login as test_user, post login as a different user (admin) fails with csrf error and previous login invalidated";
+  $test_success=true;
+  $response=\webdb\test\security\utils\admin_login();
+  if (\webdb\test\utils\compare_template("csrf_error",$response)==false)
+  {
+    $test_success=false;
+  }
+  if (isset($settings["test_cookie_jar"][$settings["login_cookie"]])==true)
+  {
+    $test_success=false;
+  }
+  \webdb\test\utils\test_result_message($test_case_msg,$test_success);
+  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  $test_case_msg="after csrf login attempt by different user, subsequent request reverts to login form";
+  $test_success=true;
+  $response=\webdb\test\utils\wget($settings["app_web_root"],false);
+  if (\webdb\test\utils\compare_template("login_form",$response)==false)
+  {
+    $test_success=false;
+  }
+  if (\webdb\test\security\utils\check_authentication_status($response)==true)
+  {
+    $test_success=false;
+  }
+  \webdb\test\utils\test_result_message($test_case_msg,$test_success);
+  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~
   $test_case_msg="after successful cookie login, post request without a csrf token to insert a new user fails with csrf error";
   $test_success=true;
+  $response=\webdb\test\utils\wget($settings["app_web_root"]."?logout");
   $response=\webdb\test\security\utils\admin_login();
   if (\webdb\test\security\utils\check_authentication_status($response)==false)
   {
@@ -229,23 +302,20 @@ function test_login_csrf_token()
   }
   \webdb\test\utils\test_result_message($test_case_msg,$test_success);
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  $test_case_msg="throw error if user csrf token exceeds max age";
+  $test_case_msg="on get request renew csrf token if exceeds max age";
   $test_success=true;
   $response=\webdb\test\security\utils\test_user_login();
   if (\webdb\test\security\utils\check_authentication_status($response)==false)
   {
     $test_success=false;
   }
-  $params=array();
-  $params["edit_control:user_groups_subform:1,1:group_id"]=1;
-  $params["csrf_token"]=\webdb\test\security\utils\get_csrf_token();
   $field_values=\webdb\test\security\utils\output_user_field_values();
   $field_values["csrf_token_time"]=time()-$settings["max_csrf_token_age"]-1;
   \webdb\test\security\utils\update_test_user($field_values);
   $user_record=\webdb\test\security\utils\get_test_user();
   $old_csrf_token=$user_record["csrf_token"];
   $old_csrf_token_time=$user_record["csrf_token_time"];
-  $response=\webdb\test\utils\wpost($test_url,$params);
+  $response=\webdb\test\utils\wget($settings["app_web_root"]);
   $user_record=\webdb\test\security\utils\get_test_user();
   $new_csrf_token=$user_record["csrf_token"];
   $new_csrf_token_time=$user_record["csrf_token_time"];
@@ -265,6 +335,57 @@ function test_login_csrf_token()
   {
     $test_success=false;
   }
+  \webdb\test\utils\test_result_message($test_case_msg,$test_success);
+  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  $test_case_msg="on get request renew csrf token if exceeds max age";
+  $test_success=true;
+  $response=\webdb\test\security\utils\test_user_login();
+  if (\webdb\test\security\utils\check_authentication_status($response)==false)
+  {
+    $test_success=false;
+  }
+
+  die;
+
+  /*$params=array();
+  $params["edit_control:user_groups_subform:1,1:group_id"]=1;
+  $params["csrf_token"]=\webdb\test\security\utils\get_csrf_token();
+  $field_values=\webdb\test\security\utils\output_user_field_values();
+  $field_values["csrf_token_time"]=time()-$settings["max_csrf_token_age"]-1;
+  \webdb\test\security\utils\update_test_user($field_values);
+  $user_record=\webdb\test\security\utils\get_test_user();
+  $old_csrf_token=$user_record["csrf_token"];
+  $old_csrf_token_time=$user_record["csrf_token_time"];
+  $response=\webdb\test\utils\wpost($test_url,$params);
+  var_dump($response);
+  die;
+  $user_record=\webdb\test\security\utils\get_test_user();
+  $new_csrf_token=$user_record["csrf_token"];
+  $new_csrf_token_time=$user_record["csrf_token_time"];
+  if ($old_csrf_token==$new_csrf_token)
+  {
+    $test_success=false;
+  }
+  if ($old_csrf_token_time>=$new_csrf_token_time)
+  {
+    $test_success=false;
+  }
+  $response=\webdb\test\utils\wget($test_url);
+  var_dump($user_record);
+  var_dump($response);
+  die;
+  if (\webdb\test\utils\compare_template("csrf_error",$response)==true)
+  {
+    $test_success=false;
+  }
+  if (\webdb\test\security\utils\check_authentication_status($response)==false)
+  {
+    $test_success=false;
+  }*/
+
+
+
+
   \webdb\test\utils\test_result_message($test_case_msg,$test_success);
   \webdb\test\utils\test_cleanup();
 }

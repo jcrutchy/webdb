@@ -130,7 +130,7 @@ function check_authentication_status($response)
   {
     return false;
   }
-  \webdb\test\utils\test_info_message("AUTHENTICATION STATUS NOT FOUND IN PAGE CONTENT");
+  #\webdb\test\utils\test_info_message("AUTHENTICATION STATUS NOT FOUND IN PAGE CONTENT");
 }
 
 #####################################################################################################
@@ -227,6 +227,7 @@ function test_user_login($field_values=false,$reset_user=true)
   $params=array();
   $params["login_username"]=$field_values["username"];
   $params["login_password"]=$field_values["password"];
+  $params["target_url"]="";
   $params["csrf_token"]=\webdb\test\security\utils\get_csrf_token();
   return \webdb\test\utils\wpost($settings["app_web_root"],$params);
 }

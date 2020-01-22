@@ -18,7 +18,6 @@ function system_message($message)
   {
     ob_end_clean(); # discard buffer
   }
-  $message.=\webdb\utils\webdb_debug_backtrace();
   $settings["system_message"]=$message;
   die;
 }
@@ -48,7 +47,7 @@ function webdb_debug_backtrace()
 
 #####################################################################################################
 
-function error_message($message)
+function info_message($message,$show_backtrace=false)
 {
   global $settings;
   if (isset($_GET["ajax"])==true)
@@ -59,7 +58,6 @@ function error_message($message)
       ob_end_clean(); # discard buffer
     }
     $data=array();
-    $message.=\webdb\utils\webdb_debug_backtrace();
     $data["error"]=$message;
     $data=json_encode($data);
     $settings["system_message"]=$message;
@@ -74,7 +72,22 @@ function error_message($message)
   $params["page_title"]=$settings["app_name"];
   $params["message"]=$message;
   $content=\webdb\utils\template_fill("error_message",$params);
+  if ($show_backtrace==true)
+  {
+    $content.=\webdb\utils\webdb_debug_backtrace();
+  }
   \webdb\utils\system_message($content);
+}
+
+#####################################################################################################
+
+function error_message($message)
+{
+  if (isset($_GET["ajax"])==true)
+  {
+    $message.=\webdb\utils\webdb_debug_backtrace();
+  }
+  \webdb\utils\info_message($message,true);
 }
 
 #####################################################################################################
@@ -96,6 +109,7 @@ function debug_var_dump($data,$backtrace=false)
 function webdb_setcookie($setting_key,$value,$max_age=false)
 {
   global $settings;
+  $settings["cookie_headers_set"][$setting_key]=$value;
   if ($max_age===false)
   {
     $max_age=$settings["max_cookie_age"];
@@ -223,6 +237,12 @@ function ob_postprocess($buffer)
       $buffer=gzencode($buffer);
       header("Content-Encoding: gzip");
     }
+  }
+  if (\webdb\cli\is_cli_mode()==false)
+  {
+    $msg="REQUEST_COMPLETED";
+    $settings["logs"]["auth"][]=$msg;
+    $settings["logs"]["sql"][]=$msg;
   }
   \webdb\utils\save_logs();
   return $buffer;
@@ -722,6 +742,7 @@ function exception_handler($exception)
 
 function redirect($url,$clean_buffer=true)
 {
+  global $settings;
   if ($clean_buffer==true)
   {
     ob_end_clean(); # discard buffer
@@ -816,6 +837,49 @@ function static_page($template,$title)
 {
   $content=\webdb\utils\template_fill($template);
   \webdb\utils\output_page($content,$title);
+}
+
+#####################################################################################################
+
+function wildcard_compare($compare_value,$wildcard_value)
+{
+  # wildcard is * character
+  $compare_length=strlen($compare_value);
+  $wildcard_length=strlen($wildcard_value);
+  if ($wildcard_length>$compare_length)
+  {
+    return false;
+  }
+  $is_wildcard=false;
+  $wildcard_index=0;
+  for ($i=0;$i<count($compare_length);$i++)
+  {
+    if ($wildcard_index>($wildcard_length-1))
+    {
+      return false;
+    }
+    if ($wildcard_value[$wildcard_index]=="*")
+    {
+      $is_wildcard=true;
+      $wildcard_index++;
+      continue;
+    }
+    if (($wildcard_value[$wildcard_index]==$compare_value[$i]) and ($is_wildcard==true))
+    {
+      $is_wildcard=false;
+      $wildcard_index++;
+      continue;
+    }
+    if ($wildcard_value[$wildcard_index]<>$compare_value[$i])
+    {
+      return false;
+    }
+    if ($is_wildcard==false)
+    {
+      $wildcard_index++;
+    }
+  }
+  return true;
 }
 
 #####################################################################################################

@@ -2,32 +2,25 @@
     "form_version": "20190829.1",
     "form_type": "list",
     "enabled": true,
-    "title": "Items",
-    "page_id": "items",
-    "edit_subforms": {
-        "subform_item_locations": "item_id"
-    },
+    "title": "Item Type Items",
+    "page_id": "subform_item_type_items",
     "control_types": {
         "item_id": "span",
-        "created_timestamp": "span",
-        "item_name": "text",
-        "item_type_id": "combobox"
+        "item_name": "span",
+        "item_type_id": "lookup"
     },
     "captions": {
         "item_id": "Item ID",
-        "created_timestamp": "Created Timestamp",
         "item_name": "Item Name",
         "item_type_id": "Item Type"
     },
     "visible": {
         "item_id": true,
-        "created_timestamp": true,
         "item_name": true,
         "item_type_id": true
     },
     "default_values": {
-        "item_id": "(auto)",
-        "created_timestamp": "(auto)",
+        "item_id": "",
         "item_name": "",
         "item_type_id": ""
     },
@@ -40,14 +33,14 @@
             "display_field": "description"
         }
     },
+    "editor_visible": false,
     "primary_key": "item_id",
-    "command_caption_noun": "Item",
     "multi_row_delete": true,
     "delete_cmd": true,
     "edit_cmd": "inline",
     "edit_cmd_page_id": "items",
-    "edit_cmd_id": "item_id",
     "edit_button_caption": "Edit Item",
+    "edit_cmd_id": "item_id",
     "insert_new": true,
     "insert_row": true,
     "advanced_search": true,

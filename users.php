@@ -11,22 +11,22 @@ function auth_dispatch()
   {
     \webdb\users\logout();
   }
-  if (isset($_POST["send_reset_password"])==true)
+  if (isset($_POST["send_reset_password"])==true) # user clicked reset password button on login form (unauthenticated)
   {
     \webdb\users\send_reset_password_message();
   }
-  if (isset($_GET["reset_password"])==true)
+  if (isset($_GET["reset_password"])==true) # user clicked emailed password reset link or change password button on reset password change form (unauthenticated)
   {
     \webdb\users\reset_password();
-  }
-  if (isset($_GET["change_password"])==true)
-  {
-    \webdb\users\change_password();
   }
   \webdb\users\login();
   $settings["logged_in_username"]=$settings["user_record"]["username"];
   $user_id=$settings["user_record"]["user_id"];
   $settings["logged_in_user_groups"]=\webdb\users\get_user_groups($user_id);
+  if (isset($_GET["change_password"])==true)
+  {
+    \webdb\users\change_password();
+  }
 }
 
 #####################################################################################################
@@ -58,7 +58,7 @@ function get_user_record($username)
   $records=\webdb\sql\file_fetch_prepare("user_get_by_username",$sql_params);
   if (count($records)<>1)
   {
-    \webdb\utils\webdb_unsetcookie("login_cookie");
+    \webdb\users\unset_login_cookie();
     \webdb\utils\error_message("error: username not found: ".htmlspecialchars($username));
   }
   return $records[0];
@@ -85,7 +85,9 @@ function cancel_password_reset($user_record)
   $value_items["pw_reset_key"]="*";
   $value_items["pw_reset_time"]=0;
   $settings["sql_check_post_params_override"]=true;
+  $settings["user_record"]=$user_record; # allow unauthenticated change to database
   \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
+  unset($settings["user_record"]);
 }
 
 #####################################################################################################
@@ -106,11 +108,15 @@ function login_failure($user_record,$message)
   $value_items=array();
   $value_items["failed_login_count"]=$user_record["failed_login_count"]+1;
   $value_items["failed_login_time"]=time();
+  $value_items["csrf_token"]="";
+  $value_items["csrf_token_time"]=null;
   $value_items["login_cookie"]="*"; # disable login with cookie
   $settings["sql_check_post_params_override"]=true;
+  $settings["user_record"]=$user_record; # allow unauthenticated change to database
   \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
-  \webdb\utils\webdb_unsetcookie("login_cookie");
-  \webdb\users\auth_log($user_record,"FAILED",$message);
+  unset($settings["user_record"]);
+  \webdb\users\unset_login_cookie();
+  \webdb\users\auth_log($user_record,"LOGIN_FAILURE",$message);
   if ($value_items["failed_login_count"]>$settings["max_login_attempts"])
   {
     \webdb\users\login_lockout($user_record);
@@ -162,8 +168,11 @@ function login_lockout($user_record)
   $value_items=array();
   $value_items["pw_hash"]="*"; # disable login with password
   $value_items["login_cookie"]="*"; # disable login with cookie
+  $settings["sql_check_post_params_override"]=true;
+  $settings["user_record"]=$user_record; # allow unauthenticated change to database
   \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
-  \webdb\utils\webdb_unsetcookie("login_cookie");
+  unset($settings["user_record"]);
+  \webdb\users\unset_login_cookie();
   \webdb\users\auth_log($user_record,"LOCKOUT","");
   \webdb\utils\error_message(\webdb\utils\template_fill("lockout_error"));
 }
@@ -182,6 +191,18 @@ function check_admin($user_record)
       $msg=\webdb\utils\template_fill("admin_address_whitelist_error",$params);
       \webdb\users\login_failure($user_record,$msg);
     }
+  }
+}
+
+#####################################################################################################
+
+function unset_login_cookie()
+{
+  global $settings;
+  if ($settings["login_cookie_unset"]==false)
+  {
+    \webdb\utils\webdb_unsetcookie("login_cookie");
+    $settings["login_cookie_unset"]=true;
   }
 }
 
@@ -226,9 +247,14 @@ function login()
         \webdb\users\login_failure($user_record,"error: incorrect password");
       }
       unset($_POST["login_password"]);
-      \webdb\users\initialise_login_cookie($user_record);
       $settings["user_record"]=$user_record;
       \webdb\users\auth_log($user_record,"PASSWORD_LOGIN","");
+      \webdb\users\initialise_login_cookie($user_record);
+      $target_url=$_POST["target_url"];
+      if (($target_url<>"") and ($target_url<>$settings["app_web_root"]) and ($target_url<>$settings["app_web_index"]))
+      {
+        \webdb\utils\redirect($target_url);
+      }
       \webdb\utils\redirect($settings["app_web_index"]);
     }
     else
@@ -266,9 +292,10 @@ function login()
           $value_items["user_agent"]=$settings["user_agent"];
           $value_items["remote_address"]=$_SERVER["REMOTE_ADDR"];
           $value_items["failed_login_count"]=0;
+          $settings["user_record"]=$user_record;
           $settings["sql_check_post_params_override"]=true;
           \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
-          $settings["user_record"]=$user_record;
+          $settings["user_record"]=\webdb\users\get_user_record($user_record["username"]);
           \webdb\users\auth_log($user_record,"COOKIE_LOGIN","");
           if ($user_record["pw_change"]==1)
           {
@@ -283,7 +310,13 @@ function login()
       }
     }
   }
-  \webdb\utils\webdb_unsetcookie("login_cookie");
+  \webdb\users\unset_login_cookie();
+  $target_url=\webdb\utils\get_url();
+  $login_form_params["target_url"]="";
+  if (($target_url<>$settings["app_web_root"]) and ($target_url<>$settings["app_web_index"]))
+  {
+    $login_form_params["target_url"]=$target_url;
+  }
   $content=\webdb\utils\template_fill("login_form",$login_form_params);
   $buffer=ob_get_contents();
   if (strlen($buffer)<>0)
@@ -354,7 +387,7 @@ function logout()
 {
   global $settings;
   \webdb\users\auth_log(false,"LOGOUT","");
-  \webdb\utils\webdb_unsetcookie("login_cookie");
+  \webdb\users\unset_login_cookie();
   $url=$settings["app_web_index"];
   \webdb\utils\redirect($url,false);
 }
@@ -448,8 +481,35 @@ function remote_address_changed($user_record) # allow right/lowest octet to chan
 function reset_password()
 {
   global $settings;
+  # warning: this function is run without authentication
+  if (isset($_POST["reset_change_password"])==true)
+  {
+    if (isset($_COOKIE[$settings["username_cookie"]])==false)
+    {
+      \webdb\utils\error_message("error: username cookie not set");
+    }
+    $pw_old=$_POST["change_password_old"];
+    $pw_new=trim($_POST["change_password_new"]);
+    $pw_new_conf=$_POST["change_password_new_confirm"];
+    \webdb\users\validate_new_password($pw_old,$pw_new,$pw_new_conf);
+    $user_record=\webdb\users\get_user_record($_COOKIE[$settings["username_cookie"]]);
+    if (password_verify($pw_old,$user_record["pw_hash"])==false)
+    {
+      \webdb\utils\error_message("error: old password is incorrect");
+    }
+    $value_items=array();
+    $value_items["pw_hash"]=\webdb\users\webdb_password_hash($pw_new,$user_record["username"]);
+    $value_items["pw_change"]=0;
+    $where_items=array();
+    $where_items["user_id"]=$user_record["user_id"];
+    $settings["user_record"]=$user_record; # allow unauthenticated change to database
+    \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
+    unset($settings["user_record"]);
+    \webdb\users\auth_log($user_record,"RESET_PASSWORD_CHANGED","");
+    \webdb\utils\info_message(\webdb\utils\template_fill("reset_password_changed_message"));
+  }
   $records=\webdb\sql\file_fetch_prepare("user_get_all_enabled");
-  $validated=false;
+  $user_record=false;
   for ($i=0;$i<count($records);$i++)
   {
     $record=$records[$i];
@@ -464,19 +524,38 @@ function reset_password()
     }
     if (password_verify($_GET["reset_password"],$record["pw_reset_key"])==true)
     {
-      $validated=$record;
+      $user_record=$record;
       break;
     }
   }
-  if ($validated===false)
+  if ($user_record===false)
   {
-    \webdb\utils\webdb_unsetcookie("login_cookie");
-    \webdb\users\auth_log(false,"INVALID_RESET_KEY","");
+    \webdb\users\unset_login_cookie();
+    \webdb\users\auth_log(false,"INVALID__PASSWORD_RESET_KEY","");
     \webdb\utils\error_message("error: invalid password reset key");
   }
-  \webdb\users\cancel_password_reset($validated);
-  \webdb\users\auth_log($validated,"RESET_PASSWORD","");
-  \webdb\users\change_password($validated);
+  \webdb\users\cancel_password_reset($user_record);
+  $value_items=array();
+  $temp_password=\webdb\users\crypto_random_key();
+  $value_items["pw_hash"]=\webdb\users\webdb_password_hash($temp_password,$user_record["username"]);
+  $value_items["pw_login_time"]=time();
+  $value_items["user_agent"]=$settings["user_agent"];
+  $value_items["remote_address"]=$_SERVER["REMOTE_ADDR"];
+  $value_items["failed_login_count"]=0;
+  $where_items=array();
+  $where_items["user_id"]=$user_record["user_id"];
+  $settings["sql_check_post_params_override"]=true;
+  $settings["user_record"]=$user_record; # allow unauthenticated change to database
+  \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
+  unset($settings["user_record"]);
+  $change_password_params=array();
+  $change_password_params["login_script_modified"]=\webdb\utils\resource_modified_timestamp("login.js");
+  $change_password_params["login_styles_modified"]=\webdb\utils\resource_modified_timestamp("login.css");
+  $change_password_params["old_password_default"]=$temp_password;
+  \webdb\users\auth_log($user_record,"RESET_PASSWORD_PROMPT","");
+  $content=\webdb\utils\template_fill("change_password_reset",$change_password_params);
+  $settings["unauthenticated_content"]=true;
+  \webdb\utils\output_page($content,"Reset Password Change");
 }
 
 #####################################################################################################
@@ -484,6 +563,7 @@ function reset_password()
 function send_reset_password_message()
 {
   global $settings;
+  # warning: this function is run without authentication
   if (isset($_POST["login_username"])==false)
   {
     \webdb\utils\error_message("error: missing username");
@@ -498,7 +578,10 @@ function send_reset_password_message()
   $value_items["pw_change"]=1; # force password change on user clicking link from email
   $where_items=array();
   $where_items["user_id"]=$user_record["user_id"];
+  $settings["sql_check_post_params_override"]=true;
+  $settings["user_record"]=$user_record; # allow unauthenticated change to database
   \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
+  unset($settings["user_record"]);
   $t=$value_items["pw_reset_time"]+$settings["password_reset_timeout"];
   $msg_params=array();
   $msg_params["key"]=urlencode($key);
@@ -506,10 +589,10 @@ function send_reset_password_message()
   $msg_params["valid_to_date"]=date("l, j F Y (T)",$t);
   $message=\webdb\utils\template_fill("password_reset_message",$msg_params);
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  \webdb\utils\error_message($message); # TESTING (REMOVE/COMMENT OUT FOR PROD)
+  \webdb\utils\info_message($message); # TESTING (REMOVE/COMMENT OUT FOR PROD)
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   \webdb\utils\send_email($user_record["email"],"",$settings["app_name"]." password reset",$message,$settings["server_email_from"],$settings["server_email_reply_to"],$settings["server_email_bounce_to"]);
-  \webdb\utils\webdb_unsetcookie("login_cookie");
+  \webdb\users\unset_login_cookie();
   $message=\webdb\utils\template_fill("password_reset_valid_to_message",$msg_params);
   \webdb\users\auth_log($user_record,"RESET_PASSWORD_EMAIL","");
   \webdb\utils\error_message($message);
@@ -517,35 +600,20 @@ function send_reset_password_message()
 
 #####################################################################################################
 
-function change_password($password_reset_user=false)
+function change_password()
 {
   global $settings;
   if (isset($_POST["change_password"])==true)
   {
+    if (isset($_COOKIE[$settings["username_cookie"]])==false)
+    {
+      \webdb\utils\error_message("error: username cookie not set");
+    }
     $pw_old=$_POST["change_password_old"];
     $pw_new=trim($_POST["change_password_new"]);
     $pw_new_conf=$_POST["change_password_new_confirm"];
-    if ($pw_new<>$pw_new_conf)
-    {
-      \webdb\utils\error_message("error: new passwords do not match");
-    }
-    if (in_array($pw_new,$settings["prohibited_passwords"])==true)
-    {
-      \webdb\utils\error_message("error: cannot use any of the following for your new password: ".htmlspecialchars(implode(" ",$settings["prohibited_passwords"])));
-    }
-    if (strlen($pw_new)<$settings["min_password_length"])
-    {
-      \webdb\utils\error_message("error: new password must be at least ".$settings["min_password_length"]." characters");
-    }
-    if (strlen($pw_new)>$settings["max_password_length"])
-    {
-      \webdb\utils\error_message("error: a password of more than ".$settings["max_password_length"]." characters, while commendable, is considered a bit much. please try something shorter");
-    }
-    if ($pw_new==$pw_old)
-    {
-      \webdb\utils\error_message("error: new password cannot be the same as your old password");
-    }
-    $user_record=\webdb\users\get_user_record($_POST["login_username"]);
+    \webdb\users\validate_new_password($pw_old,$pw_new,$pw_new_conf);
+    $user_record=\webdb\users\get_user_record($_COOKIE[$settings["username_cookie"]]);
     if (password_verify($pw_old,$user_record["pw_hash"])==false)
     {
       \webdb\utils\error_message("error: old password is incorrect");
@@ -556,52 +624,48 @@ function change_password($password_reset_user=false)
     $where_items=array();
     $where_items["user_id"]=$user_record["user_id"];
     \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
-    \webdb\users\cancel_password_reset($user_record);
     \webdb\users\initialise_login_cookie($user_record);
     $settings["user_record"]=$user_record;
     \webdb\users\auth_log($user_record,"CHANGED_PASSWORD","");
-    \webdb\utils\redirect($settings["app_web_index"]);
+    \webdb\utils\info_message(\webdb\utils\template_fill("password_changed_message"));
   }
   $change_password_params=array();
   $change_password_params["login_script_modified"]=\webdb\utils\resource_modified_timestamp("login.js");
   $change_password_params["login_styles_modified"]=\webdb\utils\resource_modified_timestamp("login.css");
   $change_password_params["home_link_display"]="none";
-  if ($password_reset_user===false)
+  if ($settings["user_record"]["pw_change"]==0)
   {
-    $change_password_params["old_password_default"]="";
-    $change_password_params["old_password_display"]="table-row";
-    if (isset($settings["user_record"])==false)
-    {
-      \webdb\users\login();
-    }
-    if ($settings["user_record"]["pw_change"]==0)
-    {
-      $change_password_params["home_link_display"]="block";
-    }
-    $change_password_params["login_username"]=$settings["user_record"]["username"];
-  }
-  else
-  {
-    # from password reset
-    $value_items=array();
-    $temp_password=\webdb\users\crypto_random_key();
-    $value_items["pw_hash"]=\webdb\users\webdb_password_hash($temp_password,$password_reset_user["username"]);
-    $value_items["pw_login_time"]=time();
-    $value_items["user_agent"]=$settings["user_agent"];
-    $value_items["remote_address"]=$_SERVER["REMOTE_ADDR"];
-    $value_items["failed_login_count"]=0;
-    $where_items=array();
-    $where_items["user_id"]=$password_reset_user["user_id"];
-    $settings["sql_check_post_params_override"]=true;
-    \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
-    $change_password_params["old_password_default"]=$temp_password;
-    $change_password_params["old_password_display"]="none";
-    $change_password_params["login_username"]=$password_reset_user["username"];
-    $settings["user_record"]=$password_reset_user;
-    \webdb\users\auth_log($password_reset_user,"RESET_PASSWORD_CHANGE","");
+    $change_password_params["home_link_display"]="block";
   }
   $content=\webdb\utils\template_fill("change_password",$change_password_params);
   \webdb\utils\output_page($content,"Change Password");
+}
+
+#####################################################################################################
+
+function validate_new_password($old_password,$new_password,$new_password_confirm)
+{
+  global $settings;
+  if ($new_password<>$new_password_confirm)
+  {
+    \webdb\utils\error_message("error: new passwords do not match");
+  }
+  if (in_array($new_password,$settings["prohibited_passwords"])==true)
+  {
+    \webdb\utils\error_message("error: cannot use any of the following for your new password: ".htmlspecialchars(implode(" ",$settings["prohibited_passwords"])));
+  }
+  if (strlen($new_password)<$settings["min_password_length"])
+  {
+    \webdb\utils\error_message("error: new password must be at least ".$settings["min_password_length"]." characters");
+  }
+  if (strlen($new_password)>$settings["max_password_length"])
+  {
+    \webdb\utils\error_message("error: a password of more than ".$settings["max_password_length"]." characters, while commendable, is considered a bit much. please try something shorter");
+  }
+  if ($new_password==$old_password)
+  {
+    \webdb\utils\error_message("error: new password cannot be the same as your old password");
+  }
 }
 
 #####################################################################################################

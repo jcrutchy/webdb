@@ -92,6 +92,8 @@ TODO: CHANGE FROM PASSWORD_BCRYPT TO PASSWORD_ARGON2ID (REQUIRES PHP 7.3.0) => R
 
 - [] when user first logs in, trigger password change (implemented via default value of 1 for pw_change field in users.list)
 - [] when password reset has been triggered, disable login by password/cookie (allow 'reset password' button to resend new email)
+- [] when reset link has been clicked and user changes password, user must then login normally to ensure login cookie has been set
+- don't show username in password reset email (if intercepted by mitm the attacker can change password but will then have to guess username when prompted to login normally)
 
 - [] when changing password, don't allow old and new passwords to be the same
 - [] when changing password, don't allow new password to be any of a list of prohibited passwords (eg: 'password')

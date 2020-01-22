@@ -6,22 +6,50 @@
     "page_id": "subform_location_items",
     "control_types": {
         "item_id": "span",
-        "item_name": "span"
+        "location_id": "span",
+        "item_name": "span",
+        "item_type_id": "lookup",
+        "quantity": "text",
+        "notes": "memo"
     },
     "captions": {
-        "item_id": "item_id",
-        "item_name": "item_name"
+        "item_id": "Item ID",
+        "location_id": "Location ID",
+        "item_name": "Item Name",
+        "item_type_id": "Item Type",
+        "quantity": "Quantity",
+        "notes": "Notes"
     },
     "visible": {
         "item_id": true,
-        "item_name": true
+        "location_id": true,
+        "item_name": true,
+        "item_type_id": true,
+        "quantity": true,
+        "notes": true
     },
     "default_values": {
         "item_id": "",
-        "item_name": ""
+        "location_id": "",
+        "item_name": "",
+        "item_type_id": "",
+        "quantity": "0",
+        "notes": ""
+    },
+    "lookups": {
+        "item_type_id": {
+            "database": "test_app",
+            "table": "item_types",
+            "sibling_field": "item_type_id",
+            "key_field": "item_type_id",
+            "display_field": "description"
+        }
     },
     "event_handlers": {
         "on_custom_form_above": "\\test_app\\stubs\\output_item_filter_select"
+    },
+    "control_styles": {
+        "notes": "height: 30px;"
     },
     "editor_visible": false,
     "primary_key": "item_id",
@@ -38,11 +66,20 @@
     "allow_field_sort": true,
     "database": "test_app",
     "table": "items",
+    "sort_sql": "item_name asc",
     "checklist": true,
     "parent_key": "location_id",
-    "default_filter": "hardware",
+    "link_key": "item_id",
+    "link_database": "test_app",
+    "link_table": "item_location_links",
+    "link_fields": [
+        "location_id",
+        "quantity",
+        "notes"
+    ],
+    "default_filter": "",
     "filter_options": {
-        "hardware": "item_type='hardware'",
-        "software": "item_type='software'"
+        "hardware": "item_type_id=1",
+        "software": "item_type_id=2"
     }
 }
