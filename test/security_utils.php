@@ -17,6 +17,21 @@ function security_test_error_callback()
 
 #####################################################################################################
 
+function check_csrf_error($response)
+{
+  if (\webdb\test\utils\compare_template("csrf_error_unauth",$response)==true)
+  {
+    return true;
+  }
+  if (\webdb\test\utils\compare_template("csrf_error_auth",$response)==true)
+  {
+    return true;
+  }
+  return false;
+}
+
+#####################################################################################################
+
 function output_user_field_values($username=false,$enabled=1,$email="",$pw_change=0,$password=false)
 {
   $field_values=array();

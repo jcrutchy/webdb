@@ -199,3 +199,15 @@ note 3: subforms are generated based on foreign key relationships, except any fo
 key is defined in is ignored
 note 4: tables with multi-field primary keys are ignored except when generating subforms for relationships with other tables
 $ php index.php generate_form <database> all
+
+
+mssql setup
+===========
+
+sudo apt-get install php-sybase freetds-common libsybdb5
+
+$pdo=new PDO("dblib:host=$hostname:$port;dbname=$dbname",$dbuser,$dbpassword);
+
+or
+
+$pdo=new PDO("sqlsrv:server=$hostname;database=$dbname",$dbuser,$dbpassword);

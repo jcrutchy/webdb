@@ -890,7 +890,6 @@ function save_logs()
   foreach ($settings["logs"] as $key => $lines)
   {
     $fn=$settings[$key."_log_path"].$key."_".date("Ymd").".log";
-    #file_put_contents($log_filename,$content,FILE_APPEND);
     $fp=fopen($fn,"a");
     stream_set_blocking($fp,false);
     if (flock($fp,LOCK_EX)==true)
