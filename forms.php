@@ -1657,7 +1657,8 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
   if (($form_config["insert_row"]==true) and ($form_config["records_sql"]==""))
   {
     $insert_fields=array();
-    $rows.=\webdb\forms\list_row_controls($form_config,$insert_fields,"insert",$column_format,$form_config["default_values"]);
+    $default_values=\webdb\forms\default_values($form_config);
+    $rows.=\webdb\forms\list_row_controls($form_config,$insert_fields,"insert",$column_format,$default_values);
     for ($i=0;$i<count($insert_fields);$i++)
     {
       $insert_fields[$i]="'".$insert_fields[$i]."'";
@@ -1937,17 +1938,35 @@ function advanced_search($form_config)
 
 #####################################################################################################
 
-function insert_form($form_config)
+function default_values($form_config)
 {
   global $settings;
   $record=$form_config["default_values"];
   foreach ($record as $fieldname => $value)
   {
+    foreach ($settings as $setting_key => $setting_value)
+    {
+      $template='$$'.$setting_key.'$$';
+      if (strpos($value,$template)===false)
+      {
+        continue;
+      }
+      $record[$fieldname]=str_replace($template,$setting_value,$value);
+    }
     if (isset($_GET[$fieldname])==true)
     {
-      $record[$fieldname]=$_GET[$fieldname];
+      $record[$fieldname]=htmlspecialchars($_GET[$fieldname]);
     }
   }
+  return $record;
+}
+
+#####################################################################################################
+
+function insert_form($form_config)
+{
+  global $settings;
+  $record=\webdb\forms\default_values($form_config);
   $data=\webdb\forms\output_editor($form_config,$record,"Insert","Insert",0);
   $insert_page_params=array();
   $insert_page_params["record_insert_form"]=$data["content"];

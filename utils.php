@@ -691,11 +691,12 @@ function template_fill($template_key,$params=false,$tracking=array(),$custom_tem
   }
   foreach ($settings as $key => $value)
   {
-    if (strpos($result,'$$'.$key.'$$')===false)
+    $setting_template='$$'.$key.'$$';
+    if (strpos($result,$setting_template)===false)
     {
       continue;
     }
-    $result=str_replace('$$'.$key.'$$',$value,$result);
+    $result=str_replace($setting_template,$value,$result);
   }
   if ($params!==false)
   {

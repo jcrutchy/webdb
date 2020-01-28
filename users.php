@@ -21,6 +21,7 @@ function auth_dispatch()
   }
   \webdb\users\login();
   $settings["logged_in_username"]=$settings["user_record"]["username"];
+  $settings["logged_in_user_id"]=$settings["user_record"]["user_id"];
   $user_id=$settings["user_record"]["user_id"];
   $settings["logged_in_user_groups"]=\webdb\users\get_user_groups($user_id);
   if (isset($_GET["change_password"])==true)
