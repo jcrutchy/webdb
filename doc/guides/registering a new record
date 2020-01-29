@@ -1,0 +1,21 @@
+
+
+in the default_values section of a list form, you can specify setting templates
+
+for example:
+
+    "default_values": {
+        "item_id": "(auto)",
+        "created_timestamp": "(auto)",
+        "entered_user_id": "$$logged_in_user_id$$",
+        "description": ""
+    },
+
+settings available include any setting in the framework or application settings.php files, or in the webdb_common_settings.php file, or any of the following:
+- logged_in_username
+- logged_in_user_id
+
+
+you can also specify a default value using a url parameter, such as:
+http://localhost/mdo_risks/index.php?page=events&cmd=insert&description=line1\nline2 with spaces\nline3
+note that values will be run through htmlspecialchars so things like html tags will be converted to entity form

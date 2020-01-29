@@ -26,3 +26,13 @@ if "value_list" is set, it will be used
 
 exclude_parent is only required if the parent form database.table is the same as the lookup database.table,
 and if true will exclude the parent form key from the lookup list
+
+
+
+    "lookups": {
+        "item_type_id": {
+            "display_field": "x",
+            "key_field": "item_type_id",
+            "value_list": [{"item_type_id": 1, "x": "Yes"},{"item_type_id": 2, "x": "No"},{"item_type_id": 3, "x": "N/A"}]
+        }
+    },
