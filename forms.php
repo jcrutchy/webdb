@@ -202,8 +202,8 @@ function form_dispatch($page_id)
 function checklist_update($form_config)
 {
   global $settings;
-  var_dump($_POST);
-  die;
+  #var_dump($_POST);
+  #die;
   $page_id=$form_config["page_id"];
   $parent_id=$_POST["parent_id:".$page_id];
   $link_database=$form_config["link_database"];
@@ -397,13 +397,13 @@ function process_filter_sql(&$form_config)
 function get_subform_content($subform_config,$subform_link_field,$id,$list_only=false,$parent_form_config=false)
 {
   global $settings;
+  $subform_config["advanced_search"]=false;
   if ($subform_config["checklist"]==true)
   {
     $subform_config["multi_row_delete"]=false;
     $subform_config["delete_cmd"]=false;
     $subform_config["insert_new"]=false;
     $subform_config["insert_row"]=false;
-    $subform_config["advanced_search"]=false;
     \webdb\forms\process_filter_sql($subform_config);
     if ($subform_config["records_sql"]=="")
     {
@@ -2419,6 +2419,8 @@ function handle_custom_form_below_event($form_config,$form_params)
 function update_record($form_config,$id)
 {
   global $settings;
+  var_dump("test");
+  die;
   if (\webdb\utils\check_user_form_permission($form_config["page_id"],"u")==false)
   {
     \webdb\utils\error_message("error: record update permission denied form form '".$page_id."'");

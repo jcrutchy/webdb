@@ -194,6 +194,6 @@ if (isset($_GET["page"])==true)
   \webdb\forms\form_dispatch($_GET["page"]);
 }
 
-\webdb\utils\static_page($settings["app_home_template"],$settings["app_name"]);
+\webdb\utils\static_page($settings["app_home_template"],$settings["app_title"]);
 
 #####################################################################################################
