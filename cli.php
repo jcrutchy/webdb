@@ -39,15 +39,27 @@ function term_echo($msg,$color=false)
 
 function is_cli_mode()
 {
-  global $argv;
-  if ((isset($_SERVER["argv"])==true) and (isset($argv[1])==true))
+  if (defined("STDIN")==true)
   {
     return true;
   }
-  else
+  if (php_sapi_name()==="cli")
   {
-    return false;
+    return true;
   }
+  if (array_key_exists("SHELL",$_ENV)==true)
+  {
+    return true;
+  }
+  if ((empty($_SERVER["REMOTE_ADDR"])==true) and (isset($_SERVER["HTTP_USER_AGENT"])==false) and (count($_SERVER["argv"])>0))
+  {
+    return true;
+  }
+  if (array_key_exists("REQUEST_METHOD",$_SERVER)==false)
+  {
+    return true;
+  }
+  return false;
 }
 
 #####################################################################################################
