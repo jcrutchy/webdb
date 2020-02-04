@@ -202,8 +202,6 @@ function form_dispatch($page_id)
 function checklist_update($form_config)
 {
   global $settings;
-  #var_dump($_POST);
-  #die;
   $page_id=$form_config["page_id"];
   $parent_id=$_POST["parent_id:".$page_id];
   $link_database=$form_config["link_database"];
@@ -463,6 +461,7 @@ function get_subform_content($subform_config,$subform_link_field,$id,$list_only=
   $subform_config["parent_form_config"]=$parent_form_config;
   $subform_params["subform"]=list_form_content($subform_config,$records,$url_params,$checklist_link_records);
   $subform_params["subform_style"]="";
+  $subform_params["page_id"]=$subform_config["page_id"];
   if ($parent_form_config!==false)
   {
     $subform_page_id=$subform_config["page_id"];
