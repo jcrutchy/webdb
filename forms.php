@@ -2418,8 +2418,8 @@ function handle_custom_form_below_event($form_config,$form_params)
 function update_record($form_config,$id)
 {
   global $settings;
-  var_dump("test");
-  die;
+  // var_dump("test");
+  // die;
   if (\webdb\utils\check_user_form_permission($form_config["page_id"],"u")==false)
   {
     \webdb\utils\error_message("error: record update permission denied form form '".$page_id."'");
