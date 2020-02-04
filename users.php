@@ -21,6 +21,7 @@ function auth_dispatch()
   }
   \webdb\users\login();
   $settings["logged_in_username"]=$settings["user_record"]["username"];
+  $settings["logged_in_user_id"]=$settings["user_record"]["user_id"];
   $user_id=$settings["user_record"]["user_id"];
   $settings["logged_in_user_groups"]=\webdb\users\get_user_groups($user_id);
   if (isset($_GET["change_password"])==true)
@@ -115,6 +116,7 @@ function login_failure($user_record,$message)
   $settings["user_record"]=$user_record; # allow unauthenticated change to database
   \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
   unset($settings["user_record"]);
+  \webdb\csrf\unset_authenticated_csrf(false);
   \webdb\users\unset_login_cookie();
   \webdb\users\auth_log($user_record,"LOGIN_FAILURE",$message);
   if ($value_items["failed_login_count"]>$settings["max_login_attempts"])
@@ -310,6 +312,7 @@ function login()
       }
     }
   }
+  \webdb\csrf\unset_authenticated_csrf(true);
   \webdb\users\unset_login_cookie();
   $target_url=\webdb\utils\get_url();
   $login_form_params["target_url"]="";

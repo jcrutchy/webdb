@@ -494,6 +494,10 @@ function sql_change($old_records,$sql,$where_items,$value_items,$table,$database
   {
     return;
   }
+  if ($is_admin==true)
+  {
+    return;
+  }
   if ($database=="webdb")
   {
     switch ($table)

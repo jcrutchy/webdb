@@ -199,3 +199,30 @@ note 3: subforms are generated based on foreign key relationships, except any fo
 key is defined in is ignored
 note 4: tables with multi-field primary keys are ignored except when generating subforms for relationships with other tables
 $ php index.php generate_form <database> all
+
+
+mssql setup
+===========
+
+sudo apt-get install php-sybase freetds-common libsybdb5
+
+$pdo=new PDO("dblib:host=$hostname:$port;dbname=$dbname",$dbuser,$dbpassword);
+or
+$pdo=new PDO("sqlsrv:server=$hostname;database=$dbname",$dbuser,$dbpassword);
+
+
+install mssql server:
+https://docs.microsoft.com/en-us/sql/linux/quickstart-install-connect-ubuntu?view=sql-server-linux-ver15
+
+$ wget -qO- https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
+$ sudo add-apt-repository "$(wget -qO- https://packages.microsoft.com/config/ubuntu/16.04/mssql-server-2019.list)"
+$ sudo apt-get update
+$ sudo apt-get install -y mssql-server
+$ sudo /opt/mssql/bin/mssql-conf setup
+$ systemctl status mssql-server --no-pager
+
+$ curl https://packages.microsoft.com/config/ubuntu/16.04/prod.list | sudo tee /etc/apt/sources.list.d/msprod.list
+$ sudo apt-get install mssql-tools unixodbc-dev
+$ echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bash_profile
+
+$ sqlcmd -S localhost -U SA -P '<YourPassword>'

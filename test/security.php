@@ -24,8 +24,8 @@ function start()
 
   # check to make sure only \webdb\forms\get_form_config is loading form configs (checking for permission)
 
-  #\webdb\test\security\test_login_redirect();
-  #\webdb\test\security\test_user_agent();
+  \webdb\test\security\test_login_redirect();
+  \webdb\test\security\test_user_agent();
   $settings["test_user_agent"]=\webdb\test\security\utils\TEST_USER_AGENT;
   \webdb\test\security\test_login_csrf_token();
   \webdb\test\security\test_remote_address();
@@ -57,7 +57,7 @@ function test_login_redirect()
   $parts=parse_url($target_url);
   if ((isset($parts["path"])==true) and (isset($parts["query"])==true))
   {
-    $target_url=$parts["path"].$parts["query"];
+    $target_url=$parts["path"]."?".$parts["query"];
   }
   if ($target_url<>$test_url)
   {
@@ -71,16 +71,24 @@ function test_login_redirect()
   $params["csrf_token"]=\webdb\test\security\utils\extract_csrf_token($response);
   $params["target_url"]=$test_url;
   $response=\webdb\test\utils\wpost($settings["app_web_root"],$params);
-  #var_dump($response);
-  die;
-  /*if (\webdb\test\utils\compare_template("csrf_error",$response)==false)
+  if (\webdb\test\security\utils\check_csrf_error($response)==true)
   {
     $test_success=false;
-  }*/
+  }
+  if (\webdb\test\security\utils\check_authentication_status($response)==false)
+  {
+    $test_success=false;
+  }
+  $delim1="<form id=\"locations\" class=\"locations\" action=\"";
+  $delim2="\" method=\"post\" enctype=\"multipart/form-data\">";
+  $action=\webdb\test\utils\extract_text($response,$delim1,$delim2);
+  if ($action<>$test_url)
+  {
+    $test_success=false;
+  }
   \webdb\test\utils\test_result_message($test_case_msg,$test_success);
   \webdb\test\utils\restore_app_settings();
   \webdb\test\utils\test_cleanup();
-  die;
 }
 
 #####################################################################################################
@@ -186,7 +194,7 @@ function test_login_csrf_token()
   $params["target_url"]="";
   $response=\webdb\test\utils\wpost($settings["app_web_root"],$params);
   # [cookies] webdb_login=deleted, webdb_csrf_token=(new value with no corresponding outputted token so unable to be used)
-  if (\webdb\test\utils\compare_template("csrf_error",$response)==false)
+  if (\webdb\test\security\utils\check_csrf_error($response)==false)
   {
     $test_success=false;
   }
@@ -207,7 +215,7 @@ function test_login_csrf_token()
   $test_case_msg="after successful cookie login as test_user, post login as a different user (admin) fails with csrf error and previous login invalidated";
   $test_success=true;
   $response=\webdb\test\security\utils\admin_login();
-  if (\webdb\test\utils\compare_template("csrf_error",$response)==false)
+  if (\webdb\test\security\utils\check_csrf_error($response)==false)
   {
     $test_success=false;
   }
@@ -248,7 +256,7 @@ function test_login_csrf_token()
   $params["fullname"]="test_user2";
   $params["email"]="test_user2@localhost.local";
   $response=\webdb\test\utils\wpost($settings["app_web_root"]."?page=users&cmd=edit",$params);
-  if (\webdb\test\utils\compare_template("csrf_error",$response)==false)
+  if (\webdb\test\security\utils\check_csrf_error($response)==false)
   {
     $test_success=false;
   }
@@ -274,7 +282,7 @@ function test_login_csrf_token()
   {
     $test_success=false;
   }
-  if (\webdb\test\utils\compare_template("csrf_error",$response)==true)
+  if (\webdb\test\security\utils\check_csrf_error($response)==true)
   {
     $test_success=false;
   }
@@ -286,7 +294,7 @@ function test_login_csrf_token()
   $params["edit_control:user_groups_subform:1,1:group_id"]=1;
   $test_url=$settings["app_web_root"]."?page=user_groups_subform&cmd=edit&id=1,1&ajax&subform=user_groups_subform&parent=users";
   $response=\webdb\test\utils\wpost($test_url,$params);
-  if (\webdb\test\utils\compare_template("csrf_error",$response)==false)
+  if (\webdb\test\security\utils\check_csrf_error($response)==false)
   {
     $test_success=false;
   }
@@ -296,7 +304,7 @@ function test_login_csrf_token()
   $test_success=true;
   $params["csrf_token"]=\webdb\test\security\utils\get_csrf_token();
   $response=\webdb\test\utils\wpost($test_url,$params);
-  if (\webdb\test\utils\compare_template("csrf_error",$response)==true)
+  if (\webdb\test\security\utils\check_csrf_error($response)==true)
   {
     $test_success=false;
   }
@@ -327,7 +335,7 @@ function test_login_csrf_token()
   {
     $test_success=false;
   }
-  if (\webdb\test\utils\compare_template("csrf_error",$response)==true)
+  if (\webdb\test\security\utils\check_csrf_error($response)==true)
   {
     $test_success=false;
   }
@@ -374,7 +382,7 @@ function test_login_csrf_token()
   var_dump($user_record);
   var_dump($response);
   die;
-  if (\webdb\test\utils\compare_template("csrf_error",$response)==true)
+  if (\webdb\test\security\utils\check_csrf_error($response)==true)
   {
     $test_success=false;
   }

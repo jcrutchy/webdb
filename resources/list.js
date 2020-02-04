@@ -6,6 +6,8 @@ function list_page_load()
   var url=window.location.href;
   var url_obj=new URL(url);
   var update_page=url_obj.searchParams.get("update");
+  //custom_alert(url);
+  //return;
   if (update_page!=null)
   {
     url=remove_url_param("update",url);

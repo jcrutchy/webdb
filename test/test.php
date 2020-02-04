@@ -72,6 +72,7 @@ function check_app_settings()
   $required_settings=array(
     "db_host",
     "app_name",
+    "app_title",
     "webdb_web_root",
     "webdb_web_index",
     "webdb_web_resources",

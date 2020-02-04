@@ -224,6 +224,14 @@ APPLICATION SECURITY
 - application-specific ajax stubs, custom interfaces and computed field functions should be developed and tested in ways as to not introduce any new
   vulnerabilities or counter/negate existing framework security mechanisms
 
+- only store files that need browser access in publicly accessible directory
+
+
+DATABASE SECURITY
+=================
+
+- only the webdb_admin sql user should have access to the webdb.users table
+
 
 SECURITY TESTING
 ================
