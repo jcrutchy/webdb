@@ -120,6 +120,8 @@ function check_app_settings()
     "ip_blacklist_enabled",
     "sql_log_path",
     "auth_log_path",
+    "sql_log_enabled",
+    "auth_log_enabled",
     "irregular_plurals",
     "csrf_hash_prefix",
     "format_tag_templates_subdirectory");

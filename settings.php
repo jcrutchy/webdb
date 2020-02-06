@@ -78,6 +78,9 @@ $settings["ip_blacklist_enabled"]=true;
 $settings["sql_log_path"]="";
 $settings["auth_log_path"]="";
 
+$settings["sql_log_enabled"]=true;
+$settings["auth_log_enabled"]=true;
+
 $settings["test_settings_file"]="webdb_test.conf";
 
 $settings["irregular_plurals"]=array(); # singular => plural

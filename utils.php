@@ -893,21 +893,33 @@ function wildcard_compare($compare_value,$wildcard_value)
 
 #####################################################################################################
 
+function save_log($key)
+{
+  global $settings;
+  $lines=$settings["logs"][$key];
+  $fn=$settings[$key."_log_path"].$key."_".date("Ymd").".log";
+  $fp=fopen($fn,"a");
+  stream_set_blocking($fp,false);
+  if (flock($fp,LOCK_EX)==true)
+  {
+    $data=PHP_EOL.PHP_EOL.trim(implode(PHP_EOL,$lines));
+    fwrite($fp,$data);
+  }
+  flock($fp,LOCK_UN);
+  fclose($fp);
+}
+
+#####################################################################################################
+
 function save_logs()
 {
   global $settings;
   foreach ($settings["logs"] as $key => $lines)
   {
-    $fn=$settings[$key."_log_path"].$key."_".date("Ymd").".log";
-    $fp=fopen($fn,"a");
-    stream_set_blocking($fp,false);
-    if (flock($fp,LOCK_EX)==true)
+    if ($settings[$key."_log_enabled"]==true)
     {
-      $data=PHP_EOL.PHP_EOL.trim(implode(PHP_EOL,$lines));
-      fwrite($fp,$data);
+      \webdb\utils\save_log($key);
     }
-    flock($fp,LOCK_UN);
-    fclose($fp);
   }
 }
 
