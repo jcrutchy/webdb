@@ -322,6 +322,7 @@ function output_html_includes($form_config)
 
 function output_resource_includes($form_config,$type)
 {
+  global $settings;
   for ($i=0;$i<count($form_config[$type."_includes"]);$i++)
   {
     $key=$form_config[$type."_includes"][$i];
