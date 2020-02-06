@@ -116,6 +116,8 @@ function check_app_settings()
     "test_settings_file",
     "ip_blacklist_file",
     "ip_whitelist_file",
+    "ip_whitelist_enabled",
+    "ip_blacklist_enabled",
     "sql_log_path",
     "auth_log_path",
     "irregular_plurals",

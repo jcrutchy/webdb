@@ -36,7 +36,7 @@ AUTO_INCREMENT = 1;
 username: admin
 password: password
 */
-INSERT INTO `webdb`.`users` (`username`,`pw_hash`,`enabled`) VALUES ("admin","$2y$13$Vn8rJB73AHq56cAqbBwkEuKrQt3lSdoA3sDmKULZEgQLE4.nmsKzW",1);
+INSERT INTO `webdb`.`users` (`username`,`fullname`,`pw_hash`,`enabled`) VALUES ("admin","admin","$2y$13$Vn8rJB73AHq56cAqbBwkEuKrQt3lSdoA3sDmKULZEgQLE4.nmsKzW",1);
 
 /* TODO: THE FOLLOWING UPDATE STATEMENT IS FOR DEVELOPMENT/TESTING ONLY - REMOVE FOR PRODUCTION */
 UPDATE `webdb`.`users` SET `pw_change`=0 WHERE (`username`="admin");

@@ -72,6 +72,9 @@ $settings["db_user_file"]="";
 $settings["ip_blacklist_file"]="";
 $settings["ip_whitelist_file"]="";
 
+$settings["ip_whitelist_enabled"]=true;
+$settings["ip_blacklist_enabled"]=true;
+
 $settings["sql_log_path"]="";
 $settings["auth_log_path"]="";
 

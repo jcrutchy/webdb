@@ -83,6 +83,8 @@ function form_dispatch($page_id)
           \webdb\utils\error_message("error: unhandled generate stub");
         }
       }
+      \webdb\forms\output_resource_includes($form_config,"css");
+      \webdb\forms\output_resource_includes($form_config,"js");
       if (($form_config["records_sql"]=="") or ($form_config["checklist"]==true))
       {
         if (($form_config["database"]=="") or ($form_config["table"]==""))
@@ -108,8 +110,6 @@ function form_dispatch($page_id)
               $id=\webdb\utils\get_child_array_key($_POST["form_cmd"],"delete");
               $data=\webdb\forms\delete_confirmation($form_config,$id);
               $data["content"].=\webdb\forms\output_html_includes($form_config);
-              $data["content"].=\webdb\forms\output_js_includes($form_config);
-              $data["content"].=\webdb\forms\output_css_includes($form_config);
               \webdb\utils\output_page($data["content"],$data["title"]);
             case "delete_confirm":
               $id=\webdb\utils\get_child_array_key($_POST["form_cmd"],"delete_confirm");
@@ -135,8 +135,6 @@ function form_dispatch($page_id)
               }
               $data=\webdb\forms\edit_form($form_config,$_GET["id"]);
               $data["content"].=\webdb\forms\output_html_includes($form_config);
-              $data["content"].=\webdb\forms\output_js_includes($form_config);
-              $data["content"].=\webdb\forms\output_css_includes($form_config);
               \webdb\utils\output_page($data["content"],$data["title"]);
             case "insert":
               if (isset($_GET["ajax"])==true)
@@ -145,14 +143,10 @@ function form_dispatch($page_id)
               }
               $data=\webdb\forms\insert_form($form_config);
               $data["content"].=\webdb\forms\output_html_includes($form_config);
-              $data["content"].=\webdb\forms\output_js_includes($form_config);
-              $data["content"].=\webdb\forms\output_css_includes($form_config);
               \webdb\utils\output_page($data["content"],$data["title"]);
             case "advanced_search":
               $data=\webdb\forms\advanced_search($form_config);
               $data["content"].=\webdb\forms\output_html_includes($form_config);
-              $data["content"].=\webdb\forms\output_js_includes($form_config);
-              $data["content"].=\webdb\forms\output_css_includes($form_config);
               \webdb\utils\output_page($data["content"],$data["title"]);
           }
         }
@@ -186,8 +180,6 @@ function form_dispatch($page_id)
       $list_params["title"]=$form_config["title"];
       $content=\webdb\forms\form_template_fill("list_page",$list_params);
       $content.=\webdb\forms\output_html_includes($form_config);
-      $content.=\webdb\forms\output_js_includes($form_config);
-      $content.=\webdb\forms\output_css_includes($form_config);
       $title=$page_id;
       if ($form_config["title"]<>"")
       {
@@ -328,26 +320,17 @@ function output_html_includes($form_config)
 
 #####################################################################################################
 
-function output_js_includes($form_config)
+function output_resource_includes($form_config,$type)
 {
-  $result="";
-  for ($i=0;$i<count($form_config["js_includes"]);$i++)
+  for ($i=0;$i<count($form_config[$type."_includes"]);$i++)
   {
-    $result.=\webdb\utils\link_app_js_resource($form_config["js_includes"][$i]);
+    $key=$form_config[$type."_includes"][$i];
+    $link=\webdb\utils\link_app_resource($key,$type);
+    if ($link!==false)
+    {
+      $settings["links_".$type][$key]=$link;
+    }
   }
-  return $result;
-}
-
-#####################################################################################################
-
-function output_css_includes($form_config)
-{
-  $result="";
-  for ($i=0;$i<count($form_config["css_includes"]);$i++)
-  {
-    $result.=\webdb\utils\link_app_css_resource($form_config["css_includes"][$i]);
-  }
-  return $result;
 }
 
 #####################################################################################################

@@ -22,8 +22,8 @@ require_once("sql.php");
 require_once("stubs.php");
 require_once("cli.php");
 
-set_error_handler('\webdb\utils\error_handler',E_ALL);
-set_exception_handler('\webdb\utils\exception_handler');
+set_error_handler("\\webdb\\utils\\error_handler",E_ALL);
+set_exception_handler("\\webdb\\utils\\exception_handler");
 
 define("webdb\\index\\CONFIG_ID_DELIMITER",",");
 define("webdb\\index\\LINEBREAK_PLACEHOLDER","@@@@");
@@ -32,10 +32,13 @@ define("webdb\\index\\LOOKUP_DISPLAY_FIELD_DELIM"," - ");
 
 if (\webdb\cli\is_cli_mode()==false)
 {
-  ob_start("\webdb\utils\ob_postprocess");
+  ob_start("\\webdb\\utils\\ob_postprocess");
 }
 
 $settings=array();
+
+$settings["links_css"]=array();
+$settings["links_js"]=array();
 
 $settings["logs"]=array();
 $settings["logs"]["sql"]=array();
@@ -103,13 +106,19 @@ if (\webdb\cli\is_cli_mode()==false)
   header("Cache-Control: no-cache");
   header("Expires: -1");
   header("Pragma: no-cache");
-  if (\webdb\users\remote_address_listed($_SERVER["REMOTE_ADDR"],"black")==true)
+  if ($settings["ip_blacklist_enabled"]==true)
   {
-    \webdb\utils\system_message("ip blacklisted: ".htmlspecialchars($_SERVER["REMOTE_ADDR"]));
+    if (\webdb\users\remote_address_listed($_SERVER["REMOTE_ADDR"],"black")==true)
+    {
+      \webdb\utils\system_message("ip blacklisted: ".htmlspecialchars($_SERVER["REMOTE_ADDR"]));
+    }
   }
-  if (\webdb\users\remote_address_listed($_SERVER["REMOTE_ADDR"],"white")==false)
+  if ($settings["ip_whitelist_enabled"]==true)
   {
-    \webdb\utils\system_message("ip not whitelisted: ".htmlspecialchars($_SERVER["REMOTE_ADDR"]));
+    if (\webdb\users\remote_address_listed($_SERVER["REMOTE_ADDR"],"white")==false)
+    {
+      \webdb\utils\system_message("ip not whitelisted: ".htmlspecialchars($_SERVER["REMOTE_ADDR"]));
+    }
   }
   if (\webdb\utils\is_app_mode()==false)
   {

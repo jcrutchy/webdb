@@ -200,10 +200,27 @@ function load_test_settings()
 
 #####################################################################################################
 
+function output_resource_links($buffer,$type)
+{
+  global $settings;
+  $links=array();
+  foreach ($settings["links_".$type] as $template_key => $link)
+  {
+    $links[]=$link;
+  }
+  $links=implode(PHP_EOL,$links);
+  $buffer=explode("%%page_links_".$type."%%",$buffer,2);
+  return implode($links,$buffer);
+}
+
+#####################################################################################################
+
 function ob_postprocess($buffer)
 {
   global $settings;
   $buffer=\webdb\csrf\fill_csrf_token($buffer);
+  $buffer=\webdb\utils\output_resource_links($buffer,"css");
+  $buffer=\webdb\utils\output_resource_links($buffer,"js");
   if (isset($settings["system_message"])==false)
   {
     if (strpos($buffer,"%%")!==false)
@@ -522,44 +539,35 @@ function group_by_fields($form_config,$record)
 
 #####################################################################################################
 
-function link_app_js_resource($name)
+function link_app_resource($name,$type)
 {
   global $settings;
-  $filename=$settings["app_resources_path"].$name.".js";
+  $filename=$settings["app_resources_path"].$name.".".$type;
   if (file_exists($filename)==true)
   {
     $params=array();
     $params["name"]=$name;
     $params["modified"]=filemtime($filename);
-    return \webdb\utils\template_fill("app_resource_script",$params);
+    return \webdb\utils\template_fill("app_resource_".$type,$params);
   }
-  return "";
+  return false;
 }
 
 #####################################################################################################
 
-function link_app_css_resource($name)
+function resource_links($template_key)
 {
   global $settings;
-  $filename=$settings["app_resources_path"].$name.".css";
-  if (file_exists($filename)==true)
+  $link=\webdb\utils\link_app_resource($template_key,"css");
+  if ($link!==false)
   {
-    $params=array();
-    $params["name"]=$name;
-    $params["modified"]=filemtime($filename);
-    return \webdb\utils\template_fill("app_resource_styles",$params);
+    $settings["links_css"][$template_key]=$link;
   }
-  return "";
-}
-
-#####################################################################################################
-
-function append_resource_links($template_key,$template_content)
-{
-  global $settings;
-  $styles=\webdb\utils\link_app_css_resource($template_key);
-  $script=\webdb\utils\link_app_js_resource($template_key);
-  return $styles.PHP_EOL.$template_content.PHP_EOL.$script;
+  $link=\webdb\utils\link_app_resource($template_key,"js");
+  if ($link!==false)
+  {
+    $settings["links_js"][$template_key]=$link;
+  }
 }
 
 #####################################################################################################
@@ -710,7 +718,7 @@ function template_fill($template_key,$params=false,$tracking=array(),$custom_tem
   }
   if (($custom_templates===false) and ($template_key<>"app_resource_styles") and ($template_key<>"app_resource_script"))
   {
-    $result=\webdb\utils\append_resource_links($template_key,$result);
+    \webdb\utils\resource_links($template_key);
   }
   foreach ($template_array as $key => $value)
   {
