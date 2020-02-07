@@ -443,7 +443,30 @@ function get_subform_content($subform_config,$subform_link_field,$id,$list_only=
   $url_params[$subform_link_field]=$id;
   $subform_config["parent_form_id"]=$id;
   $subform_config["parent_form_config"]=$parent_form_config;
-  $subform_params["subform"]=list_form_content($subform_config,$records,$url_params,$checklist_link_records);
+  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  $event_params=array();
+  $event_params["custom_list_content"]=false;
+  $event_params["content"]="";
+  $event_params["parent_form_config"]=$parent_form_config;
+  $event_params["subform_config"]=$subform_config;
+  $event_params["parent_id"]=$id;
+  if (isset($form_config["event_handlers"]["on_list"])==true)
+  {
+    $func_name=$form_config["event_handlers"]["on_list"];
+    if (function_exists($func_name)==true)
+    {
+      $event_params=call_user_func($func_name,$event_params);
+    }
+  }
+  if ($event_params["custom_list_content"]==false)
+  {
+    $subform_params["subform"]=list_form_content($subform_config,$records,$url_params,$checklist_link_records);
+  }
+  else
+  {
+    $subform_params["subform"]=$event_params["content"];
+  }
+  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   $subform_params["subform_style"]="";
   $subform_params["page_id"]=$subform_config["page_id"];
   if ($parent_form_config!==false)
