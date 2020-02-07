@@ -136,12 +136,18 @@ $settings["templates"]=array_merge($settings["webdb_templates"],$settings["app_t
 $settings["app_sql"]=\webdb\utils\load_files($settings["app_sql_path"],"","sql",true);
 $settings["sql"]=array_merge($settings["webdb_sql"],$settings["app_sql"]);
 
-$settings["pdo_admin"]=new \PDO($settings["db_engine"].":host=".$settings["db_host"],$settings["db_admin_username"],$settings["db_admin_password"]);
+$db_database="";
+if ($settings["db_database"]<>"")
+{
+  $db_database="; Database=".$settings["db_database"];
+}
+
+$settings["pdo_admin"]=new \PDO($settings["db_engine"].":host=".$settings["db_host"].$db_database,$settings["db_admin_username"],$settings["db_admin_password"]);
 if ($settings["pdo_admin"]===false)
 {
   \webdb\utils\system_message("error: unable to connect to sql server as admin");
 }
-$settings["pdo_user"]=new \PDO($settings["db_engine"].":host=".$settings["db_host"],$settings["db_user_username"],$settings["db_user_password"]);
+$settings["pdo_user"]=new \PDO($settings["db_engine"].":host=".$settings["db_host"].$db_database,$settings["db_user_username"],$settings["db_user_password"]);
 if ($settings["pdo_user"]===false)
 {
   \webdb\utils\system_message("error: unable to connect to sql server as user");

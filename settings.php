@@ -51,6 +51,7 @@ $settings["admin_remote_address_whitelist"]=array("127.0.0.1","::1");
 
 $settings["db_host"]="localhost";
 $settings["db_engine"]="mysql";
+$settings["db_database"]="";
 
 $settings["gd_ttf"]="/usr/share/fonts/truetype/msttcorefonts/arial.ttf";
 
