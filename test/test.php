@@ -71,6 +71,7 @@ function check_app_settings()
   global $settings;
   $required_settings=array(
     "db_host",
+    "db_engine",
     "app_name",
     "app_title",
     "webdb_web_root",
