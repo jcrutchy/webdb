@@ -142,12 +142,12 @@ if ($settings["db_database"]<>"")
   $db_database="; Database=".$settings["db_database"];
 }
 
-$settings["pdo_admin"]=new \PDO($settings["db_engine"].":host=".$settings["db_host"].$db_database,$settings["db_admin_username"],$settings["db_admin_password"]);
+$settings["pdo_admin"]=new \PDO($settings["db_engine"].":".$settings["db_host"].$db_database,$settings["db_admin_username"],$settings["db_admin_password"]);
 if ($settings["pdo_admin"]===false)
 {
   \webdb\utils\system_message("error: unable to connect to sql server as admin");
 }
-$settings["pdo_user"]=new \PDO($settings["db_engine"].":host=".$settings["db_host"].$db_database,$settings["db_user_username"],$settings["db_user_password"]);
+$settings["pdo_user"]=new \PDO($settings["db_engine"].":".$settings["db_host"].$db_database,$settings["db_user_username"],$settings["db_user_password"]);
 if ($settings["pdo_user"]===false)
 {
   \webdb\utils\system_message("error: unable to connect to sql server as user");
