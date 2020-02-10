@@ -1614,7 +1614,7 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
     }
   }
   $lookup_records=lookup_records($form_config);
-  if ($form_config["checklist"]==true)
+  if (($form_config["checklist"]==true) and ($form_config["checklist_sort"]=="top"))
   {
     # arrange checklist records with checked first
     $primary_key=$form_config["primary_key"];
@@ -1887,33 +1887,37 @@ function advanced_search($form_config)
     $conditions=array();
     for ($i=0;$i<count($fieldnames);$i++)
     {
-      $parts=explode(" ",$values[$i]);
-      $operator=" like ";
-      if (count($parts)>1)
+      $value=$values[$i];
+      $operator=substr($value,0,2);
+      switch ($operator)
       {
-        switch ($parts[0])
-        {
-          case "<":
-          case ">":
-          case "=":
-          case ">=":
-          case "<=":
-          case "<>":
-            $operator=array_shift($parts);
-            $sql_params[$fieldnames[$i]]=implode(" ",$parts);
-        }
-      }
-      else
-      {
-        switch ($form_config["control_types"][$fieldnames[$i]])
-        {
-          case "checkbox":
-          case "date":
-            $operator=$_POST["search_operator_".$fieldnames[$i]];
-            break;
-          default:
-            break;
-        }
+        case ">=":
+        case "<=":
+        case "<>":
+          $sql_params[$fieldnames[$i]]=trim(substr($value,2));
+          break;
+        default:
+          $operator=substr($value,0,1);
+          switch ($operator)
+          {
+            case "<":
+            case ">":
+            case "=":
+              $sql_params[$fieldnames[$i]]=trim(substr($value,1));
+              break;
+            default:
+              $operator=" like ";
+              switch ($form_config["control_types"][$fieldnames[$i]])
+              {
+                case "checkbox":
+                  $operator="=";
+                  break;
+                case "date":
+                  $operator=$_POST["search_operator_".$fieldnames[$i]];
+                  break;
+              }
+              break;
+          }
       }
       $conditions[]="(".$quoted_fieldnames[$i].$operator.$placeholders[$i].")";
       $prepared_where="WHERE (".implode(" AND ",$conditions).")";
