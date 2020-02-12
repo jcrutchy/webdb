@@ -30,3 +30,8 @@ in subform_location_widgets.list:
     "filter_options": {
         "my_filter": "(some_field='some_value')"
     }
+
+
+
+"checklist_sort": "", # checked items stay in same sort order as normal
+"checklist_sort": "top", # checked items at the top
