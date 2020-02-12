@@ -72,20 +72,15 @@ $settings["format_tag_templates_subdirectory"]="format_tags";
 
 #########################################################
 
-$settings["linux_user"]="<user>";
-$settings["email_user"]="<user>";
-$settings["email_domain"]="example.com";
+$settings["server_email_from"]="";
+$settings["server_email_reply_to"]="";
+$settings["server_email_bounce_to"]="";
 
-$settings["server_email_from"]=$settings["email_user"]." <".$settings["email_user"]."@".$settings["email_domain"].">";
-$settings["server_email_reply_to"]=$settings["email_user"]." <".$settings["email_user"]."@".$settings["email_domain"].">";
-$settings["server_email_bounce_to"]=$settings["email_user"]."@".$settings["email_domain"];
+$settings["db_admin_file"]="";
+$settings["db_user_file"]="";
 
-$settings["db_pwd_path"]="/home/".$settings["linux_user"]."/dev/pwd/";
-$settings["db_admin_file"]=$settings["db_pwd_path"]."sql_admin";
-$settings["db_user_file"]=$settings["db_pwd_path"]."sql_user";
-
-$settings["ip_blacklist_file"]="/home/".$settings["linux_user"]."/dev/ip_blacklist.txt";
-$settings["ip_whitelist_file"]="/home/".$settings["linux_user"]."/dev/ip_whitelist.txt";
+$settings["ip_blacklist_file"]="";
+$settings["ip_whitelist_file"]="";
 
 $settings["ip_whitelist_enabled"]=true;
 $settings["ip_blacklist_enabled"]=true;

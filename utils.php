@@ -261,7 +261,7 @@ function ob_postprocess($buffer)
     $settings["logs"]["auth"][]=$msg;
     $settings["logs"]["sql"][]=$msg;
   }
-  \webdb\utils\save_logs();
+  #\webdb\utils\save_logs();
   return $buffer;
 }
 
