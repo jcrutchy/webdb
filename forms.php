@@ -322,7 +322,6 @@ function output_html_includes($form_config)
 
 function output_resource_includes($form_config,$type)
 {
-  global $settings;
   for ($i=0;$i<count($form_config[$type."_includes"]);$i++)
   {
     $key=$form_config[$type."_includes"][$i];
@@ -443,30 +442,7 @@ function get_subform_content($subform_config,$subform_link_field,$id,$list_only=
   $url_params[$subform_link_field]=$id;
   $subform_config["parent_form_id"]=$id;
   $subform_config["parent_form_config"]=$parent_form_config;
-  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  $event_params=array();
-  $event_params["custom_list_content"]=false;
-  $event_params["content"]="";
-  $event_params["parent_form_config"]=$parent_form_config;
-  $event_params["subform_config"]=$subform_config;
-  $event_params["parent_id"]=$id;
-  if (isset($subform_config["event_handlers"]["on_list"])==true)
-  {
-    $func_name=$subform_config["event_handlers"]["on_list"];
-    if (function_exists($func_name)==true)
-    {
-      $event_params=call_user_func($func_name,$event_params);
-    }
-  }
-  if ($event_params["custom_list_content"]==false)
-  {
-    $subform_params["subform"]=list_form_content($subform_config,$records,$url_params,$checklist_link_records);
-  }
-  else
-  {
-    $subform_params["subform"]=$event_params["content"];
-  }
-  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  $subform_params["subform"]=list_form_content($subform_config,$records,$url_params,$checklist_link_records);
   $subform_params["subform_style"]="";
   $subform_params["page_id"]=$subform_config["page_id"];
   if ($parent_form_config!==false)
@@ -1614,7 +1590,7 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
     }
   }
   $lookup_records=lookup_records($form_config);
-  if (($form_config["checklist"]==true) and ($form_config["checklist_sort"]=="top"))
+  if ($form_config["checklist"]==true)
   {
     # arrange checklist records with checked first
     $primary_key=$form_config["primary_key"];
@@ -1887,37 +1863,33 @@ function advanced_search($form_config)
     $conditions=array();
     for ($i=0;$i<count($fieldnames);$i++)
     {
-      $value=$values[$i];
-      $operator=substr($value,0,2);
-      switch ($operator)
+      $parts=explode(" ",$values[$i]);
+      $operator=" like ";
+      if (count($parts)>1)
       {
-        case ">=":
-        case "<=":
-        case "<>":
-          $sql_params[$fieldnames[$i]]=trim(substr($value,2));
-          break;
-        default:
-          $operator=substr($value,0,1);
-          switch ($operator)
-          {
-            case "<":
-            case ">":
-            case "=":
-              $sql_params[$fieldnames[$i]]=trim(substr($value,1));
-              break;
-            default:
-              $operator=" like ";
-              switch ($form_config["control_types"][$fieldnames[$i]])
-              {
-                case "checkbox":
-                  $operator="=";
-                  break;
-                case "date":
-                  $operator=$_POST["search_operator_".$fieldnames[$i]];
-                  break;
-              }
-              break;
-          }
+        switch ($parts[0])
+        {
+          case "<":
+          case ">":
+          case "=":
+          case ">=":
+          case "<=":
+          case "<>":
+            $operator=array_shift($parts);
+            $sql_params[$fieldnames[$i]]=implode(" ",$parts);
+        }
+      }
+      else
+      {
+        switch ($form_config["control_types"][$fieldnames[$i]])
+        {
+          case "checkbox":
+          case "date":
+            $operator=$_POST["search_operator_".$fieldnames[$i]];
+            break;
+          default:
+            break;
+        }
       }
       $conditions[]="(".$quoted_fieldnames[$i].$operator.$placeholders[$i].")";
       $prepared_where="WHERE (".implode(" AND ",$conditions).")";

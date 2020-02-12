@@ -71,16 +71,13 @@ else
   \webdb\utils\system_message("error: webdb settings file not found");
 }
 
-# load common application settings
-$common_settings_filename=$settings["parent_path"]."webdb_common_settings.php";
-if (file_exists($common_settings_filename)==true)
+# load application settings
+$settings_filename=$settings["app_root_path"]."settings.php";
+if (file_exists($settings_filename)==false)
 {
-  require_once($common_settings_filename);
+  \webdb\utils\system_message("error: settings file not found: ".$settings_filename);
 }
-else
-{
-  \webdb\utils\system_message("error: webdb common settings file not found");
-}
+require_once($settings_filename);
 
 \webdb\utils\load_test_settings();
 
@@ -89,14 +86,6 @@ $settings["webdb_templates"]=$settings["templates"];
 
 $settings["sql"]=\webdb\utils\load_files($settings["webdb_sql_path"],"","sql",true);
 $settings["webdb_sql"]=$settings["sql"];
-
-# load application settings
-$settings_filename=$settings["app_root_path"]."settings.php";
-if (file_exists($settings_filename)==false)
-{
-  \webdb\utils\system_message("error: settings file not found: ".$settings_filename);
-}
-require_once($settings_filename);
 
 if (\webdb\cli\is_cli_mode()==false)
 {
@@ -161,15 +150,19 @@ if (\webdb\cli\is_cli_mode()==true)
 $settings["forms"]=array();
 \webdb\forms\load_form_defs();
 
+$settings["user_agent"]="";
+if (isset($_SERVER["HTTP_USER_AGENT"])==true)
+{
+  $settings["user_agent"]=$_SERVER["HTTP_USER_AGENT"];
+}
+$settings["browser_info"]=array();
+$settings["browser_info"]["browser"]="chrome"; # default to chrome settings if user agent check not enabled
+
 if ($settings["check_ua"]==true)
 {
-  $settings["user_agent"]="";
-  $settings["browser_info"]=array();
-  $settings["browser_info"]["browser"]="";
   $ua_error=\webdb\utils\template_fill("user_agent_error");
-  if (isset($_SERVER["HTTP_USER_AGENT"])==true)
+  if ($settings["user_agent"]<>"")
   {
-    $settings["user_agent"]=$_SERVER["HTTP_USER_AGENT"];
     $settings["browser_info"]=get_browser($_SERVER["HTTP_USER_AGENT"],true);
     switch (strtolower($settings["browser_info"]["browser"]))
     {

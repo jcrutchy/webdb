@@ -45,13 +45,6 @@ function my_get_record_by_id_php_stub($event_params)
 
 function my_list_php_stub($event_params)
 {
-  $event_params["custom_list_content"]=true;
-  $filename="my_query";
-  $params=array();
-  $table=""; # for sq_change record only
-  $database=""; # for sq_change record only
-  $records=\webdb\sql\file_fetch_prepare($filename,$params,false,$table,$database,$event_params["form_config"]);
-  $event_params["content"]="...";
   return $event_params;
 }
 

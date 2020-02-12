@@ -71,8 +71,8 @@ function check_app_settings()
   global $settings;
   $required_settings=array(
     "db_host",
-    "db_engine",
-    "db_database",
+	"db_engine",
+	"db_database",
     "app_name",
     "app_title",
     "webdb_web_root",
@@ -127,7 +127,9 @@ function check_app_settings()
     "irregular_plurals",
     "csrf_hash_prefix",
     "format_tag_templates_subdirectory",
-    "check_ua");
+    "check_ua",
+    "database_webdb",
+    "database_app");
   for ($i=0;$i<count($required_settings);$i++)
   {
     \webdb\test\utils\check_required_setting_exists($required_settings[$i]);

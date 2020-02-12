@@ -87,7 +87,7 @@ function cancel_password_reset($user_record)
   $value_items["pw_reset_time"]=0;
   $settings["sql_check_post_params_override"]=true;
   $settings["user_record"]=$user_record; # allow unauthenticated change to database
-  \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
+  \webdb\sql\sql_update($value_items,$where_items,"users",$settings["database_webdb"],true);
   unset($settings["user_record"]);
 }
 
@@ -114,7 +114,7 @@ function login_failure($user_record,$message)
   $value_items["login_cookie"]="*"; # disable login with cookie
   $settings["sql_check_post_params_override"]=true;
   $settings["user_record"]=$user_record; # allow unauthenticated change to database
-  \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
+  \webdb\sql\sql_update($value_items,$where_items,"users",$settings["database_webdb"],true);
   unset($settings["user_record"]);
   \webdb\csrf\unset_authenticated_csrf(false);
   \webdb\users\unset_login_cookie();
@@ -172,7 +172,7 @@ function login_lockout($user_record)
   $value_items["login_cookie"]="*"; # disable login with cookie
   $settings["sql_check_post_params_override"]=true;
   $settings["user_record"]=$user_record; # allow unauthenticated change to database
-  \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
+  \webdb\sql\sql_update($value_items,$where_items,"users",$settings["database_webdb"],true);
   unset($settings["user_record"]);
   \webdb\users\unset_login_cookie();
   \webdb\users\auth_log($user_record,"LOCKOUT","");
@@ -296,7 +296,7 @@ function login()
           $value_items["failed_login_count"]=0;
           $settings["user_record"]=$user_record;
           $settings["sql_check_post_params_override"]=true;
-          \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
+          \webdb\sql\sql_update($value_items,$where_items,"users",$settings["database_webdb"],true);
           $settings["user_record"]=\webdb\users\get_user_record($user_record["username"]);
           \webdb\users\auth_log($user_record,"COOKIE_LOGIN","");
           if ($user_record["pw_change"]==1)
@@ -381,7 +381,7 @@ function initialise_login_cookie(&$user_record)
   $value_items["login_setcookie_time"]=time();
   \webdb\utils\webdb_setcookie("login_cookie",$key);
   \webdb\users\auth_log($user_record,"LOGIN_COOKIE_INIT","");
-  \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
+  \webdb\sql\sql_update($value_items,$where_items,"users",$settings["database_webdb"],true);
 }
 
 #####################################################################################################
@@ -506,7 +506,7 @@ function reset_password()
     $where_items=array();
     $where_items["user_id"]=$user_record["user_id"];
     $settings["user_record"]=$user_record; # allow unauthenticated change to database
-    \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
+    \webdb\sql\sql_update($value_items,$where_items,"users",$settings["database_webdb"],true);
     unset($settings["user_record"]);
     \webdb\users\auth_log($user_record,"RESET_PASSWORD_CHANGED","");
     \webdb\utils\info_message(\webdb\utils\template_fill("reset_password_changed_message"));
@@ -549,7 +549,7 @@ function reset_password()
   $where_items["user_id"]=$user_record["user_id"];
   $settings["sql_check_post_params_override"]=true;
   $settings["user_record"]=$user_record; # allow unauthenticated change to database
-  \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
+  \webdb\sql\sql_update($value_items,$where_items,"users",$settings["database_webdb"],true);
   unset($settings["user_record"]);
   $change_password_params=array();
   $change_password_params["login_script_modified"]=\webdb\utils\resource_modified_timestamp("login.js");
@@ -583,7 +583,7 @@ function send_reset_password_message()
   $where_items["user_id"]=$user_record["user_id"];
   $settings["sql_check_post_params_override"]=true;
   $settings["user_record"]=$user_record; # allow unauthenticated change to database
-  \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
+  \webdb\sql\sql_update($value_items,$where_items,"users",$settings["database_webdb"],true);
   unset($settings["user_record"]);
   $t=$value_items["pw_reset_time"]+$settings["password_reset_timeout"];
   $msg_params=array();
@@ -626,7 +626,7 @@ function change_password()
     $value_items["pw_change"]=0;
     $where_items=array();
     $where_items["user_id"]=$user_record["user_id"];
-    \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
+    \webdb\sql\sql_update($value_items,$where_items,"users",$settings["database_webdb"],true);
     \webdb\users\initialise_login_cookie($user_record);
     $settings["user_record"]=$user_record;
     \webdb\users\auth_log($user_record,"CHANGED_PASSWORD","");

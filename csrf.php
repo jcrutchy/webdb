@@ -89,7 +89,7 @@ function check_authenticated_csrf_token()
     $value_items["csrf_token"]=$token;
     $value_items["csrf_token_time"]=time();
     $settings["sql_check_post_params_override"]=true;
-    \webdb\sql\sql_update($value_items,$where_items,"users","webdb",true);
+    \webdb\sql\sql_update($value_items,$where_items,"users",$settings["database_webdb"],true);
     \webdb\users\auth_log($user_record,"GENERATE_AUTHENTICATED_CSRF_TOKEN");
     $settings["csrf_token"]=\webdb\users\webdb_password_hash($token);
   }

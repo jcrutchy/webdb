@@ -136,6 +136,10 @@ function sql_insert($items,$table,$database,$is_admin=false,$form_config=false)
   $placeholders=array_map("\webdb\sql\callback_prepare",$fieldnames);
   $fieldnames=array_map("\webdb\sql\callback_quote",$fieldnames);
   $sql="INSERT INTO `".$database."`.`".$table."` (".implode(",",$fieldnames).") VALUES (".implode(",",$placeholders).")";
+  if ($settings["db_engine"]=="sqlsrv")
+  {
+    $sql="INSERT INTO [".$database."].[".$table."] (".implode(",",$fieldnames).") VALUES (".implode(",",$placeholders).")";
+  }
   $settings["sql_database_change"]=true;
   $result=\webdb\sql\execute_prepare($sql,$items,"",$is_admin,$table,$database,$form_config);
   if ($result===true)
@@ -150,7 +154,12 @@ function sql_insert($items,$table,$database,$is_admin=false,$form_config=false)
 function sql_delete($items,$table,$database,$is_admin=false,$form_config=false)
 {
   global $settings;
-  $sql="DELETE FROM `".$database."`.`".$table."` WHERE (".\webdb\sql\build_prepared_where($items).")";
+  $where_clause=\webdb\sql\build_prepared_where($items);
+  $sql="DELETE FROM `".$database."`.`".$table."` WHERE (".$where_clause.")";
+  if ($settings["db_engine"]=="sqlsrv")
+  {
+    $sql="DELETE FROM [".$database."].[".$table."] WHERE (".$where_clause.")";
+  }
   $old_records=\webdb\sql\get_exist_records($database,$table,$items,$is_admin);
   $settings["sql_database_change"]=true;
   $result=\webdb\sql\execute_prepare($sql,$items,"",$is_admin,$table,$database,$form_config);
@@ -200,7 +209,11 @@ function sql_update($value_items,$where_items,$table,$database,$is_admin=false,$
   }
   $items=array_merge($update_value_items,$where_items);
   $where_clause=\webdb\sql\build_prepared_where($where_items);
-  $sql="UPDATE `$database`.`".$table."` SET ".$values_string." WHERE (".$where_clause.")";
+  $sql="UPDATE `".$database."`.`".$table."` SET ".$values_string." WHERE (".$where_clause.")";
+  if ($settings["db_engine"]=="sqlsrv")
+  {
+    $sql="UPDATE [".$database."].[".$table."] SET ".$values_string." WHERE (".$where_clause.")";
+  }
   $old_records=\webdb\sql\get_exist_records($database,$table,$where_items,$is_admin);
   $settings["sql_database_change"]=true;
   $result=\webdb\sql\execute_prepare($sql,$items,"",$is_admin,$table,$database,$form_config);
@@ -263,6 +276,11 @@ function current_sql_timestamp()
 
 function callback_quote($field)
 {
+  global $settings;
+  if ($settings["db_engine"]=="sqlsrv")
+  {
+    return "[$field]";
+  }
   return "`$field`";
 }
 
@@ -306,6 +324,8 @@ function execute_return($sql,$params=array(),$filename="",$is_admin=false,$table
 {
   global $settings;
   $pdo=\webdb\sql\get_pdo_object($is_admin);
+  $tmp_sql=array("temp_sql"=>$sql);
+  $sql=\webdb\utils\template_fill("temp_sql",false,array(),$tmp_sql);
   $statement=$pdo->prepare($sql);
   if ($statement===false)
   {

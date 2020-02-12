@@ -49,9 +49,14 @@ $settings["max_login_attempts"]=7;
 
 $settings["admin_remote_address_whitelist"]=array("127.0.0.1","::1");
 
-$settings["db_host"]="host=localhost"; # host=localhost (mysql engine) / Server=localhost (sqlsrv engine)
-$settings["db_engine"]="mysql"; # mysql / sqlsrv (mssql)
-$settings["db_database"]=""; # dbname=mydb (mysql engine) / Database=mydb (sqlsrv engine)
+$settings["db_host"]="host=localhost";
+$settings["db_engine"]="mysql";
+$settings["db_database"]="";
+
+$settings["webdb_sql_path"]=$settings["webdb_root_path"]."sql_".$settings["db_engine"].DIRECTORY_SEPARATOR;
+
+$settings["database_webdb"]="webdb";
+$settings["database_app"]="";
 
 $settings["check_ua"]=true;
 
@@ -65,16 +70,22 @@ $settings["favicon_source"]=$settings["webdb_web_resources"]."favicon.png";
 
 $settings["format_tag_templates_subdirectory"]="format_tags";
 
-# the following initialised settings later come from webdb_common_settings.php
-$settings["server_email_from"]="";
-$settings["server_email_reply_to"]="";
-$settings["server_email_bounce_to"]="";
+#########################################################
 
-$settings["db_admin_file"]="";
-$settings["db_user_file"]="";
+$settings["linux_user"]="<user>";
+$settings["email_user"]="<user>";
+$settings["email_domain"]="example.com";
 
-$settings["ip_blacklist_file"]="";
-$settings["ip_whitelist_file"]="";
+$settings["server_email_from"]=$settings["email_user"]." <".$settings["email_user"]."@".$settings["email_domain"].">";
+$settings["server_email_reply_to"]=$settings["email_user"]." <".$settings["email_user"]."@".$settings["email_domain"].">";
+$settings["server_email_bounce_to"]=$settings["email_user"]."@".$settings["email_domain"];
+
+$settings["db_pwd_path"]="/home/".$settings["linux_user"]."/dev/pwd/";
+$settings["db_admin_file"]=$settings["db_pwd_path"]."sql_admin";
+$settings["db_user_file"]=$settings["db_pwd_path"]."sql_user";
+
+$settings["ip_blacklist_file"]="/home/".$settings["linux_user"]."/dev/ip_blacklist.txt";
+$settings["ip_whitelist_file"]="/home/".$settings["linux_user"]."/dev/ip_whitelist.txt";
 
 $settings["ip_whitelist_enabled"]=true;
 $settings["ip_blacklist_enabled"]=true;
@@ -87,7 +98,12 @@ $settings["auth_log_enabled"]=true;
 
 $settings["test_settings_file"]="webdb_test.conf";
 
+$settings["admin_remote_address_whitelist"][]="192.168.0.50"; # add as required
+
 $settings["irregular_plurals"]=array(); # singular => plural
+
+$settings["webdb_sql_path"]=$settings["webdb_root_path"]."sql_".$settings["db_engine"].DIRECTORY_SEPARATOR;
+$settings["app_sql_path"]=$settings["app_root_path"]."sql_".$settings["db_engine"].DIRECTORY_SEPARATOR;
 
 # the following settings are also in list.css
 $settings["list_diagonal_border_color"]="888";

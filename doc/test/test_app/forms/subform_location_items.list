@@ -68,7 +68,6 @@
     "table": "items",
     "sort_sql": "item_name asc",
     "checklist": true,
-    "checklist_sort": "none",
     "parent_key": "location_id",
     "link_key": "item_id",
     "link_database": "test_app",
