@@ -126,7 +126,8 @@ function check_app_settings()
     "auth_log_enabled",
     "irregular_plurals",
     "csrf_hash_prefix",
-    "format_tag_templates_subdirectory");
+    "format_tag_templates_subdirectory",
+    "check_ua");
   for ($i=0;$i<count($required_settings);$i++)
   {
     \webdb\test\utils\check_required_setting_exists($required_settings[$i]);

@@ -208,6 +208,8 @@ tips (https://www.rackaid.com/blog/server-security-tips/):
 - Limit file upload, creation activities to specific directories
 - Create safe error messages by not disclosing sensitive information in errors
 
+DISP: disable user access if not logged on in X days (eg: 30 days) - administrator must re-enable
+
 
 CSRF
 ----

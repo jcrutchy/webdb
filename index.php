@@ -139,7 +139,7 @@ $settings["sql"]=array_merge($settings["webdb_sql"],$settings["app_sql"]);
 $db_database="";
 if ($settings["db_database"]<>"")
 {
-  $db_database="; Database=".$settings["db_database"];
+  $db_database=";".$settings["db_database"];
 }
 
 $settings["pdo_admin"]=new \PDO($settings["db_engine"].":".$settings["db_host"].$db_database,$settings["db_admin_username"],$settings["db_admin_password"]);
@@ -161,34 +161,37 @@ if (\webdb\cli\is_cli_mode()==true)
 $settings["forms"]=array();
 \webdb\forms\load_form_defs();
 
-$settings["user_agent"]="";
-$settings["browser_info"]=array();
-$settings["browser_info"]["browser"]="";
-$ua_error=\webdb\utils\template_fill("user_agent_error");
-if (isset($_SERVER["HTTP_USER_AGENT"])==true)
+if ($settings["check_ua"]==true)
 {
-  $settings["user_agent"]=$_SERVER["HTTP_USER_AGENT"];
-  $settings["browser_info"]=get_browser($_SERVER["HTTP_USER_AGENT"],true);
-  switch (strtolower($settings["browser_info"]["browser"]))
+  $settings["user_agent"]="";
+  $settings["browser_info"]=array();
+  $settings["browser_info"]["browser"]="";
+  $ua_error=\webdb\utils\template_fill("user_agent_error");
+  if (isset($_SERVER["HTTP_USER_AGENT"])==true)
   {
-    case "chrome":
-    case "firefox":
-      break;
-    default:
-      \webdb\utils\system_message($ua_error." [neither chrome nor firefox]");
+    $settings["user_agent"]=$_SERVER["HTTP_USER_AGENT"];
+    $settings["browser_info"]=get_browser($_SERVER["HTTP_USER_AGENT"],true);
+    switch (strtolower($settings["browser_info"]["browser"]))
+    {
+      case "chrome":
+      case "firefox":
+        break;
+      default:
+        \webdb\utils\system_message($ua_error." [neither chrome nor firefox]");
+    }
+    if (strtolower($settings["browser_info"]["device_type"])<>"desktop")
+    {
+      \webdb\utils\system_message($ua_error." [not desktop]");
+    }
+    if (($settings["browser_info"]["ismobiledevice"]<>"") or ($settings["browser_info"]["istablet"]<>""))
+    {
+      \webdb\utils\system_message($ua_error." [is mobile or tablet]");
+    }
   }
-  if (strtolower($settings["browser_info"]["device_type"])<>"desktop")
+  else
   {
-    \webdb\utils\system_message($ua_error." [not desktop]");
+    \webdb\utils\system_message($ua_error." [no user agent]");
   }
-  if (($settings["browser_info"]["ismobiledevice"]<>"") or ($settings["browser_info"]["istablet"]<>""))
-  {
-    \webdb\utils\system_message($ua_error." [is mobile or tablet]");
-  }
-}
-else
-{
-  \webdb\utils\system_message($ua_error." [no user agent]");
 }
 
 \webdb\csrf\check_unauthenticated_csrf_token();

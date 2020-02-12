@@ -49,9 +49,11 @@ $settings["max_login_attempts"]=7;
 
 $settings["admin_remote_address_whitelist"]=array("127.0.0.1","::1");
 
-$settings["db_host"]="host=localhost";
-$settings["db_engine"]="mysql";
-$settings["db_database"]="";
+$settings["db_host"]="host=localhost"; # host=localhost (mysql engine) / Server=localhost (sqlsrv engine)
+$settings["db_engine"]="mysql"; # mysql / sqlsrv (mssql)
+$settings["db_database"]=""; # dbname=mydb (mysql engine) / Database=mydb (sqlsrv engine)
+
+$settings["check_ua"]=true;
 
 $settings["gd_ttf"]="/usr/share/fonts/truetype/msttcorefonts/arial.ttf";
 
