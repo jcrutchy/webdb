@@ -53,8 +53,6 @@ $settings["db_host"]="host=localhost";
 $settings["db_engine"]="mysql";
 $settings["db_database"]="";
 
-$settings["webdb_sql_path"]=$settings["webdb_root_path"]."sql_".$settings["db_engine"].DIRECTORY_SEPARATOR;
-
 $settings["database_webdb"]="webdb";
 $settings["database_app"]="";
 
@@ -127,3 +125,9 @@ $settings["permissions"]["admin"]["forms"]["groups"]="riud";
 $settings["permissions"]["admin"]["forms"]["users"]="riud";
 $settings["permissions"]["admin"]["forms"]["subform_group_users"]="riud";
 $settings["permissions"]["admin"]["forms"]["subform_user_groups"]="riud";
+
+#########################################################
+#########################################################
+
+$settings["ip_blacklist_file"]="/home/jared/dev/public/ip_blacklist.txt";
+$settings["ip_whitelist_file"]="/home/jared/dev/public/ip_whitelist.txt";

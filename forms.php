@@ -1382,12 +1382,7 @@ function lookup_records($form_config,$include_lookups=true)
     }
     if (isset($form_config["lookups"][$field_name])==true)
     {
-      $sibling_field=false;
-      if (isset($form_config["lookups"][$field_name]["sibling_key_field"])==true)
-      {
-        $sibling_field=$form_config["lookups"][$field_name]["sibling_key_field"];
-      }
-      $lookup_records[$field_name]=\webdb\forms\lookup_field_data($form_config,$field_name,$sibling_field);
+      $lookup_records[$field_name]=\webdb\forms\lookup_field_data($form_config,$field_name);
     }
   }
   return $lookup_records;
@@ -1992,7 +1987,7 @@ function edit_form($form_config,$id)
 
 #####################################################################################################
 
-function lookup_field_data($form_config,$field_name,$sibling_field=false)
+function lookup_field_data($form_config,$field_name)
 {
   global $settings;
   if (isset($form_config["lookups"][$field_name])==false)
@@ -2004,17 +1999,13 @@ function lookup_field_data($form_config,$field_name,$sibling_field=false)
   {
     return $form_config["lookups"][$field_name]["value_list"];
   }
-  $config_keys=array("database","table","key_field","display_field","lookup_sql_file","order_by");
-  for ($i=0;$i<count($config_keys);$i++)
+  if (isset($lookup_config["lookup_sql_file"])==false)
   {
-    if (isset($lookup_config[$config_keys[$i]])==false)
-    {
-      $lookup_config[$config_keys[$i]]="";
-    }
+    $lookup_config["lookup_sql_file"]="";
   }
-  if ($sibling_field!==false)
+  if (isset($lookup_config["order_by"])==false)
   {
-    $lookup_config["key_field"]=$sibling_field;
+    $lookup_config["order_by"]="";
   }
   if ($lookup_config["lookup_sql_file"]=="")
   {
@@ -2039,9 +2030,16 @@ function lookup_field_data($form_config,$field_name,$sibling_field=false)
   $where_items=array();
   if ((isset($form_config["parent_form_config"])==true) and (isset($form_config["parent_form_id"])==true))
   {
-    if ($form_config["parent_form_config"]!==false)
+    if (($form_config["parent_form_config"]!==false) and (isset($lookup_config["parent_key_field"])==true))
     {
-      $where_items=\webdb\forms\config_id_conditions($form_config["parent_form_config"],$form_config["parent_form_id"],"primary_key");
+      $parent_ids=\webdb\forms\config_id_conditions($form_config["parent_form_config"],$form_config["parent_form_id"],"primary_key");
+      foreach ($parent_ids as $parent_field_name => $parent_field_value)
+      {
+        if ($parent_field_name==$lookup_config["parent_key_field"])
+        {
+          $where_items[$parent_field_name]=$parent_field_value;
+        }
+      }
     }
   }
   return \webdb\sql\fetch_prepare($sql,$where_items,$filename,false,$table,$database,$form_config);
