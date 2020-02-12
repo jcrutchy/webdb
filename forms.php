@@ -452,7 +452,6 @@ function get_subform_content($subform_config,$subform_link_field,$id,$list_only=
   $event_params["parent_id"]=$id;
   if (isset($subform_config["event_handlers"]["on_list"])==true)
   {
-    $func_name=$form_config["event_handlers"]["on_list"];
     $func_name=$subform_config["event_handlers"]["on_list"];
     if (function_exists($func_name)==true)
     {
