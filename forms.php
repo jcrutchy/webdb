@@ -1997,7 +1997,6 @@ function edit_form($form_config,$id)
     $subform_config=\webdb\forms\get_form_config($subform_page_id,false);
     $subforms.=\webdb\forms\get_subform_content($subform_config,$subform_link_field,$id,false,$form_config);
   }
-  $data=\webdb\forms\output_editor($form_config,$record,"Edit","Update",$id);
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   $event_params=array();
   $event_params["custom_content"]=false;
@@ -2015,15 +2014,15 @@ function edit_form($form_config,$id)
   }
   if ($event_params["custom_content"]==false)
   {
-    $content=$data["content"];
+    $data=\webdb\forms\output_editor($form_config,$record,"Edit","Update",$id);
   }
   else
   {
-    $content=$event_params["content"];
+    $data=\webdb\forms\output_editor($form_config,$record,"Edit","Update",$id,$event_params["content"]);
   }
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   $edit_page_params=array();
-  $edit_page_params["record_edit_form"]=$content;
+  $edit_page_params["record_edit_form"]=$data["content"];
   $edit_page_params["subforms"]=$subforms;
   $edit_page_params["form_script_modified"]=\webdb\utils\resource_modified_timestamp("list.js");
   $edit_page_params["form_styles_modified"]=\webdb\utils\resource_modified_timestamp("list.css");
@@ -2116,7 +2115,7 @@ function get_interface_button($form_config,$record,$field_name,$field_value)
 
 #####################################################################################################
 
-function output_editor($form_config,$record,$command,$verb,$id)
+function output_editor($form_config,$record,$command,$verb,$id,$custom_content=false)
 {
   global $settings;
   $submit_fields=array();
@@ -2175,13 +2174,20 @@ function output_editor($form_config,$record,$command,$verb,$id)
   $form_params=$form_config;
   $form_params["hidden_fields"]=$hidden_fields;
   $form_params["rows"]=implode("",$rows);
-  if ($form_config["custom_".strtolower($command)."_template"]=="")
+  if ($custom_content===false)
   {
-    $form_params[strtolower($command)."_table"]=\webdb\forms\form_template_fill(strtolower($command)."_table",$form_params);
+    if ($form_config["custom_".strtolower($command)."_template"]=="")
+    {
+      $form_params[strtolower($command)."_table"]=\webdb\forms\form_template_fill(strtolower($command)."_table",$form_params);
+    }
+    else
+    {
+      $form_params[strtolower($command)."_table"]=\webdb\utils\template_fill($form_config["custom_".strtolower($command)."_template"],$rows);
+    }
   }
   else
   {
-    $form_params[strtolower($command)."_table"]=\webdb\utils\template_fill($form_config["custom_".strtolower($command)."_template"],$rows);
+    $form_params[strtolower($command)."_table"]=$custom_content;
   }
   $form_params["id"]=$id;
   $form_params["confirm_caption"]=$verb." ".$form_config["command_caption_noun"];
