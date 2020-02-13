@@ -1,1 +1,1 @@
-`%%database%%`.`%%table%%`.`%%field_name%%`
+[%%database%%].[%%table%%].[%%field_name%%]
