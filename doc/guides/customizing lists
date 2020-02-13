@@ -48,9 +48,16 @@ function my_list_php_stub($event_params)
   return $event_params;
 }
 
-function my_update_record_php_stub($form_config,$id,$where_items,$value_items)
+
+
+  $event_params["handled"]=false;
+  $event_params["form_config"]=$form_config;
+  $event_params["id"]=$id;
+  $event_params["where_items"]=$where_items;
+  $event_params["value_items"]=$value_items;
+function my_update_record_php_stub($event_params)
 {
-  return true; # handled
+  return $event_params;
 }
 
 

@@ -2386,17 +2386,18 @@ function handle_insert_record_event($form_config,$value_items)
 
 #####################################################################################################
 
-function handle_update_record_event($form_config,$id,$where_items,$value_items)
+function handle_update_record_event($event_params)
 {
+  $form_config=$event_params["form_config"];
   if (isset($form_config["event_handlers"]["on_update_record"])==true)
   {
     $func_name=$form_config["event_handlers"]["on_update_record"];
     if (function_exists($func_name)==true)
     {
-      return call_user_func($func_name,$form_config,$id,$where_items,$value_items);
+      return call_user_func($func_name,$event_params);
     }
   }
-  return false;
+  return $event_params;
 }
 
 #####################################################################################################
@@ -2448,8 +2449,6 @@ function handle_custom_form_below_event($form_config,$form_params)
 function update_record($form_config,$id)
 {
   global $settings;
-  // var_dump("test");
-  // die;
   if (\webdb\utils\check_user_form_permission($form_config["page_id"],"u")==false)
   {
     \webdb\utils\error_message("error: record update permission denied form form '".$page_id."'");
@@ -2457,9 +2456,17 @@ function update_record($form_config,$id)
   $value_items=\webdb\forms\process_form_data_fields($form_config);
   \webdb\forms\check_required_values($form_config,$value_items);
   $where_items=\webdb\forms\config_id_conditions($form_config,$id,"edit_cmd_id");
-  $handled=\webdb\forms\handle_update_record_event($form_config,$id,$where_items,$value_items);
+  $event_params=array();
+  $event_params["handled"]=false;
+  $event_params["form_config"]=$form_config;
+  $event_params["id"]=$id;
+  $event_params["where_items"]=$where_items;
+  $event_params["value_items"]=$value_items;
+  $event_params=\webdb\forms\handle_update_record_event($event_params);
+  $where_items=$event_params["where_items"];
+  $value_items=$event_params["value_items"];
   $params=false;
-  if ($handled==false)
+  if ($event_params["handled"]==false)
   {
     \webdb\sql\sql_update($value_items,$where_items,$form_config["table"],$form_config["database"],false,$form_config);
     $params=array();
