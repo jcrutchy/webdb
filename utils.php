@@ -223,21 +223,24 @@ function ob_postprocess($buffer)
   $buffer=\webdb\utils\output_resource_links($buffer,"js");
   if (isset($settings["system_message"])==false)
   {
-    if (strpos($buffer,"%%")!==false)
+    if ($settings["check_templates"]==true)
     {
-      $buffer="error: unassigned % template found: ".htmlspecialchars($buffer);
-    }
-    if (strpos($buffer,"$$")!==false)
-    {
-      $buffer="error: unassigned $ template found: ".htmlspecialchars($buffer);
-    }
-    if (strpos($buffer,"@@")!==false)
-    {
-      $buffer="error: unassigned @ template found: ".htmlspecialchars($buffer);
-    }
-    if ((isset($settings["unauthenticated_content"])==false) and (isset($settings["user_record"])==false))
-    {
-      $buffer="error: authentication failure";
+      if (strpos($buffer,"%%")!==false)
+      {
+        $buffer="error: unassigned % template found: ".htmlspecialchars($buffer);
+      }
+      if (strpos($buffer,"$$")!==false)
+      {
+        $buffer="error: unassigned $ template found: ".htmlspecialchars($buffer);
+      }
+      if (strpos($buffer,"@@")!==false)
+      {
+        $buffer="error: unassigned @ template found: ".htmlspecialchars($buffer);
+      }
+      if ((isset($settings["unauthenticated_content"])==false) and (isset($settings["user_record"])==false))
+      {
+        $buffer="error: authentication failure";
+      }
     }
   }
   else

@@ -57,6 +57,7 @@ $settings["database_webdb"]="webdb";
 $settings["database_app"]="";
 
 $settings["check_ua"]=true;
+$settings["check_templates"]=true;
 
 $settings["gd_ttf"]="/usr/share/fonts/truetype/msttcorefonts/arial.ttf";
 
