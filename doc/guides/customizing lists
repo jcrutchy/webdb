@@ -100,3 +100,5 @@ $form_config["event_handlers"]["on_edit"]
   $event_params["custom_content"]=false;
   $event_params["content"]="";
   $event_params["form_config"]=$form_config;
+  $event_params["id"]=$id;
+  $event_params["record"]=$record;

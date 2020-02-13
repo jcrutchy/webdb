@@ -2011,6 +2011,8 @@ function edit_form($form_config,$id)
   $event_params["custom_content"]=false;
   $event_params["content"]="";
   $event_params["form_config"]=$form_config;
+  $event_params["id"]=$id;
+  $event_params["record"]=$record;
   if (isset($form_config["event_handlers"]["on_edit"])==true)
   {
     $func_name=$form_config["event_handlers"]["on_edit"];
