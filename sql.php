@@ -429,19 +429,27 @@ function fetch_prepare($sql,$params=array(),$filename="",$is_admin=false,$table=
 
 function fetch_all_records($table,$database,$sort_field="",$sort_dir="",$is_admin=false)
 {
-  $sql="SELECT * FROM ".$database.".".$table;
+  $sql_params=array();
+  $sql_params["sort_sql"]="";
   if ($sort_field<>"")
   {
-    $sql.=" ORDER BY ".$sort_field;
+    $sql_params["sort_sql"]=$sort_field;
     if ($sort_dir<>"")
     {
-      $sql.=" ".$sort_dir;
+      $sql_params["sort_sql"].=" ".$sort_dir;
     }
     else
     {
-      $sql.=" ASC";
+      $sql_params["sort_sql"].=" ASC";
     }
   }
+  $sort_sql=\webdb\utils\sql_fill("sort_clause",$sql_params);
+  $sql_params=array();
+  $sql_params["database"]=$database;
+  $sql_params["table"]=$table;
+  $sql_params["selected_filter_sql"]="";
+  $sql_params["sort_sql"]=$sort_sql;
+  $sql=\webdb\utils\sql_fill("form_list_fetch_all",$sql_params);
   return \webdb\sql\fetch_prepare($sql,array(),"",$is_admin,$table,$database);
 }
 
