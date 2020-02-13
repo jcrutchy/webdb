@@ -539,7 +539,7 @@ function sql_change($old_records,$sql,$where_items,$value_items,$table,$database
   $items["value_items"]=json_encode($value_items);
   $items["old_records"]=json_encode($old_records);
   $settings["sql_check_post_params_override"]=true;
-  \webdb\sql\sql_insert($items,"sql_changes","webdb",true);
+  \webdb\sql\sql_insert($items,"sql_changes",$settings["database_webdb"],true);
 }
 
 #####################################################################################################

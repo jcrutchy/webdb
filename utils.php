@@ -685,10 +685,19 @@ function template_fill($template_key,$params=false,$tracking=array(),$custom_tem
   $tracking[]=$template_key;
   $result=$template_array[$template_key];
   $constants=get_defined_constants(true);
+  $core_constants=$constants["Core"];
+  foreach ($core_constants as $name => $value)
+  {
+    if (strpos($result,"??".$name."??")===false)
+    {
+      continue;
+    }
+    $result=str_replace("??".$name."??",$value,$result);
+  }
   if (isset($constants["user"])==true)
   {
-    $constants=$constants["user"];
-    foreach ($constants as $name => $value)
+    $user_constants=$constants["user"];
+    foreach ($user_constants as $name => $value)
     {
       if (strpos($result,"??".$name."??")===false)
       {
