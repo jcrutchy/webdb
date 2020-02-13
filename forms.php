@@ -2006,7 +2006,28 @@ function edit_form($form_config,$id)
   $edit_page_params["command_caption_noun"]=$form_config["command_caption_noun"];
   $edit_page_params["page_id"]=$form_config["page_id"];
   $edit_page_params["edit_cmd_page_id"]=$form_config["edit_cmd_page_id"];
-  $content=\webdb\forms\form_template_fill("edit_page",$edit_page_params);
+  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  $event_params=array();
+  $event_params["custom_content"]=false;
+  $event_params["content"]="";
+  $event_params["form_config"]=$form_config;
+  if (isset($form_config["event_handlers"]["on_edit"])==true)
+  {
+    $func_name=$form_config["event_handlers"]["on_edit"];
+    if (function_exists($func_name)==true)
+    {
+      $event_params=call_user_func($func_name,$event_params);
+    }
+  }
+  if ($event_params["custom_content"]==false)
+  {
+    $content=\webdb\forms\form_template_fill("edit_page",$edit_page_params);
+  }
+  else
+  {
+    $content=$event_params["content"];
+  }
+  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   $result=array();
   $result["title"]=$data["title"];
   $result["content"]=$content;

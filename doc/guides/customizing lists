@@ -74,3 +74,22 @@ function output_some_page($form_config)
 {
   return "test";
 }
+
+
+
+
+
+$subform_config["event_handlers"]["on_list"]
+  $event_params["custom_list_content"]=false;
+  $event_params["content"]="";
+  $event_params["parent_form_config"]=$parent_form_config;
+  $event_params["subform_config"]=$subform_config;
+  $event_params["parent_id"]=$id;
+
+
+
+
+$form_config["event_handlers"]["on_edit"]
+  $event_params["custom_content"]=false;
+  $event_params["content"]="";
+  $event_params["form_config"]=$form_config;
