@@ -405,10 +405,10 @@ function insert_user_stub($form_config,$value_items)
 
 #####################################################################################################
 
-function update_user_stub($form_config,$id,$where_items,$value_items)
+function update_user_stub($event_params)
 {
-  $value_items["username"]=trim(strtolower($value_items["username"]));
-  return false;
+  $event_params["value_items"]["username"]=trim(strtolower($event_params["value_items"]["username"]));
+  return $event_params;
 }
 
 #####################################################################################################

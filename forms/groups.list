@@ -58,7 +58,7 @@
     "advanced_search": false,
     "sort_field_select": true,
     "allow_field_sort": true,
-    "database": "webdb",
+    "database": "$$database_webdb$$",
     "table": "groups",
     "sort_sql": "group_name asc",
     "records_sql": "",

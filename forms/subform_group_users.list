@@ -32,13 +32,13 @@
     "control_styles": [],
     "lookups": {
         "user_id": {
-            "database": "webdb",
+            "database": "$$database_webdb$$",
             "table": "users",
             "key_field": "user_id",
             "display_field": "username"
         },
         "group_id": {
-            "database": "webdb",
+            "database": "$$database_webdb$$",
             "table": "groups",
             "key_field": "group_id",
             "display_field": "group_name"
@@ -65,7 +65,7 @@
     "advanced_search": false,
     "sort_field_select": true,
     "allow_field_sort": true,
-    "database": "webdb",
+    "database": "$$database_webdb$$",
     "table": "user_group_links",
     "sort_sql": "user_id asc,group_id asc",
     "records_sql": "",
