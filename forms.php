@@ -1998,14 +1998,6 @@ function edit_form($form_config,$id)
     $subforms.=\webdb\forms\get_subform_content($subform_config,$subform_link_field,$id,false,$form_config);
   }
   $data=\webdb\forms\output_editor($form_config,$record,"Edit","Update",$id);
-  $edit_page_params=array();
-  $edit_page_params["record_edit_form"]=$data["content"];
-  $edit_page_params["subforms"]=$subforms;
-  $edit_page_params["form_script_modified"]=\webdb\utils\resource_modified_timestamp("list.js");
-  $edit_page_params["form_styles_modified"]=\webdb\utils\resource_modified_timestamp("list.css");
-  $edit_page_params["command_caption_noun"]=$form_config["command_caption_noun"];
-  $edit_page_params["page_id"]=$form_config["page_id"];
-  $edit_page_params["edit_cmd_page_id"]=$form_config["edit_cmd_page_id"];
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   $event_params=array();
   $event_params["custom_content"]=false;
@@ -2023,13 +2015,22 @@ function edit_form($form_config,$id)
   }
   if ($event_params["custom_content"]==false)
   {
-    $content=\webdb\forms\form_template_fill("edit_page",$edit_page_params);
+    $content=$data["content"];
   }
   else
   {
     $content=$event_params["content"];
   }
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  $edit_page_params=array();
+  $edit_page_params["record_edit_form"]=$content;
+  $edit_page_params["subforms"]=$subforms;
+  $edit_page_params["form_script_modified"]=\webdb\utils\resource_modified_timestamp("list.js");
+  $edit_page_params["form_styles_modified"]=\webdb\utils\resource_modified_timestamp("list.css");
+  $edit_page_params["command_caption_noun"]=$form_config["command_caption_noun"];
+  $edit_page_params["page_id"]=$form_config["page_id"];
+  $edit_page_params["edit_cmd_page_id"]=$form_config["edit_cmd_page_id"];
+  $content=\webdb\forms\form_template_fill("edit_page",$edit_page_params);
   $result=array();
   $result["title"]=$data["title"];
   $result["content"]=$content;
