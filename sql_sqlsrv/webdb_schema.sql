@@ -1,5 +1,5 @@
 
-USE <mydb>;
+USE [$$database_webdb$$];
 
 DROP TABLE IF EXISTS [user_group_links] ;
 DROP TABLE IF EXISTS [groups];

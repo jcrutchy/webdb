@@ -75,7 +75,7 @@ function cli_dispatch()
       \webdb\test\run_tests();
       die;
     case "init_webdb_schema":
-      \webdb\sql\file_execute_prepare("webdb_schema",array(),true);
+      \webdb\utils\init_webdb_schema();
       \webdb\utils\system_message("webdb schema initialised");
     case "validate_json":
       \webdb\cli\term_echo("validating forms...");
@@ -113,16 +113,13 @@ function cli_dispatch()
       }
       die;
     case "init_app_schema":
-      $filename=$settings["app_sql_path"]."schema.sql";
-      if (file_exists($filename)==true)
+      if (\webdb\utils\init_app_schema()==true)
       {
-        $sql=trim(file_get_contents($filename));
-        \webdb\sql\execute_prepare($sql,array(),"",true);
         \webdb\utils\system_message("app schema initialised");
       }
       else
       {
-        \webdb\utils\system_message("error: schema file not found: ".$filename);
+        \webdb\utils\system_message("error: app schema file not found");
       }
     case "unused_fields":
       if (isset($argv[2])==false)

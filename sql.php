@@ -539,7 +539,11 @@ function sql_change($old_records,$sql,$where_items,$value_items,$table,$database
   $user_id=\webdb\sql\null_user_check($sql,$where_items,$table,$database);
   $items=array();
   $items["user_id"]=$user_id;
+  $tmp_sql=array("temp_sql"=>$sql);
+  $sql=\webdb\utils\template_fill("temp_sql",false,array(),$tmp_sql);
   $items["sql_statement"]=$sql;
+  $tmp_sql=array("temp_sql"=>$database);
+  $database=\webdb\utils\template_fill("temp_sql",false,array(),$tmp_sql);
   $items["change_database"]=$database;
   $items["change_table"]=$table;
   $items["change_type"]=\webdb\sql\get_statement_type($sql);

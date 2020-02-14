@@ -924,6 +924,31 @@ function save_logs()
 
 #####################################################################################################
 
+function init_webdb_schema()
+{
+  \webdb\sql\file_execute_prepare("webdb_schema",array(),true);
+}
+
+#####################################################################################################
+
+function init_app_schema()
+{
+  global $settings;
+  $filename=$settings["app_sql_path"]."schema.sql";
+  if (file_exists($filename)==true)
+  {
+    $sql=trim(file_get_contents($filename));
+    \webdb\sql\execute_prepare($sql,array(),"",true);
+    return true;
+  }
+  else
+  {
+    return false;
+  }
+}
+
+#####################################################################################################
+
 function is_row_locked($schema,$table,$key_field,$key_value)
 {
   global $settings;
