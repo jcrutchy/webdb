@@ -1283,6 +1283,7 @@ function get_column_format_data($form_config)
     for ($i=0;$i<count($lines);$i++)
     {
       $line=htmlspecialchars_decode($lines[$i]);
+      $line=html_entity_decode($line);
       $box=\imagettfbbox(10,0,$settings["gd_ttf"],$line); # requires php-gd package
       $width=abs($box[4]-$box[0]);
       if ($width>$data["max_field_name_width"])
