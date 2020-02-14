@@ -166,7 +166,7 @@ function list_insert_row_click(form,page_id)
     data.push(encoded_form_field(form,field_names[i]));
   }
   var body=data.join("&");
-  var url_prefix=form.elements.namedItem("insert_page:"+page_id).value;
+  var url_prefix=form.elements.namedItem("row_insert_page:"+page_id).value;
   var parent=document.getElementById("top_level_page_id");
   var url=url_prefix+"&ajax";
   if (parent!==null)

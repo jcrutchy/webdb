@@ -166,7 +166,6 @@ function initialize_test_app_schema()
   {
     \webdb\test\utils\apply_test_app_settings();
   }
-  $result=shell_exec("php ".$settings["app_root_path"]."index.php init_app_schema");
   if (\webdb\utils\init_app_schema()==false)
   {
     \webdb\test\utils\test_error_message("error: app schema file not found");
