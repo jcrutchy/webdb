@@ -106,6 +106,7 @@ function check_app_settings()
     "list_border_width",
     "list_group_border_color",
     "list_group_border_width",
+    "header_template",
     "links_template",
     "footer_template",
     "server_email_from",

@@ -130,7 +130,7 @@ function webdb_setcookie($setting_key,$value,$max_age=false)
 function webdb_unsetcookie($setting_key)
 {
   global $settings;
-  setcookie($settings[$setting_key],null,-1,"/");
+  setcookie($settings[$setting_key],"",1,"/",$_SERVER["HTTP_HOST"],false,true);
 }
 
 #####################################################################################################
@@ -142,6 +142,11 @@ function output_page($content,$title)
   $page_params["page_title"]=$title;
   $page_params["global_styles_modified"]=\webdb\utils\resource_modified_timestamp("global.css");
   $page_params["global_script_modified"]=\webdb\utils\resource_modified_timestamp("global.js");
+  $page_params["header"]="";
+  if ($settings["header_template"]<>"")
+  {
+    $page_params["header"]=\webdb\utils\template_fill($settings["header_template"]);
+  }
   $page_params["body_text"]=$content;
   if (isset($settings["user_record"])==true)
   {
@@ -264,7 +269,7 @@ function ob_postprocess($buffer)
     $settings["logs"]["auth"][]=$msg;
     $settings["logs"]["sql"][]=$msg;
   }
-  #\webdb\utils\save_logs();
+  \webdb\utils\save_logs();
   return $buffer;
 }
 
@@ -895,6 +900,7 @@ function wildcard_compare($compare_value,$wildcard_value)
 function save_log($key)
 {
   global $settings;
+  return; # TODO: DOESN'T WORK FOR WINDOWS
   $lines=$settings["logs"][$key];
   $fn=$settings[$key."_log_path"].$key."_".date("Ymd").".log";
   $fp=fopen($fn,"a");

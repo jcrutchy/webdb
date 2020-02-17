@@ -216,8 +216,14 @@ function list_edit($id,$form_config)
       $value_items=\webdb\forms\process_form_data_fields($subform_form_config,$post_fields);
       \webdb\forms\check_required_values($subform_form_config,$value_items);
       $where_items=\webdb\forms\config_id_conditions($subform_form_config,$id,"primary_key");
-      $handled=\webdb\forms\handle_update_record_event($subform_form_config,$id,$where_items,$value_items);
-      if ($handled==false)
+      $event_params=array();
+      $event_params["handled"]=false;
+      $event_params["form_config"]=$subform_form_config;
+      $event_params["id"]=$id;
+      $event_params["where_items"]=$where_items;
+      $event_params["value_items"]=$value_items;
+      $event_params=\webdb\forms\handle_update_record_event($event_params);
+      if ($event_params["handled"]==false)
       {
         \webdb\sql\sql_update($value_items,$where_items,$subform_form_config["table"],$subform_form_config["database"],false,$subform_form_config);
       }
@@ -231,8 +237,14 @@ function list_edit($id,$form_config)
       $value_items=\webdb\forms\process_form_data_fields($form_config,$post_fields);
       \webdb\forms\check_required_values($form_config,$value_items);
       $where_items=\webdb\forms\config_id_conditions($form_config,$id,"primary_key");
-      $handled=\webdb\forms\handle_update_record_event($form_config,$id,$where_items,$value_items);
-      if ($handled==false)
+      $event_params=array();
+      $event_params["handled"]=false;
+      $event_params["form_config"]=$form_config;
+      $event_params["id"]=$id;
+      $event_params["where_items"]=$where_items;
+      $event_params["value_items"]=$value_items;
+      $event_params=\webdb\forms\handle_update_record_event($event_params);
+      if ($event_params["handled"]==false)
       {
         \webdb\sql\sql_update($value_items,$where_items,$form_config["table"],$form_config["database"],false,$form_config);
       }

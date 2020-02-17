@@ -29,6 +29,7 @@ $settings["max_csrf_token_age"]=60*60*24;
 
 $settings["app_test_include"]=$settings["app_root_path"]."test".DIRECTORY_SEPARATOR."test.php";
 
+$settings["header_template"]="";
 $settings["links_template"]="";
 $settings["footer_template"]="";
 
