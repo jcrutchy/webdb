@@ -6,7 +6,7 @@ Based on this framework, you can create a complete web-based database applicatio
 
 [setup guide](doc/guides/setup)
 
-[sample application directory](doc/test_app/)
+[sample application directory](doc/test/test_app/)
 
 [various other guides](doc/guides/)
 
