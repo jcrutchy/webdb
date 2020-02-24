@@ -6,6 +6,30 @@ function page_load()
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
+function get_cookie(name)
+{
+  var cookies=decodeURIComponent(document.cookie);
+  var cookies=cookies.split(";");
+  for (var i=0;i<cookies.length;i++)
+  {
+    var cookie=cookies[i].trim();
+    var j=cookie.indexOf("=");
+    if (j>0)
+    {
+      var test_name=cookie.substring(0,j).trim();
+      if (test_name==name)
+      {
+        var cookie_value=cookie.substring(j+1).trim();
+        cookie_value=cookie_value.replace(/\+/g," ");
+        return cookie_value;
+      }
+    }
+  }
+  return "";
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
 function custom_alert(message)
 {
   document.getElementById("custom_alert_message").innerHTML=message;

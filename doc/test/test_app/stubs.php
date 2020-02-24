@@ -4,14 +4,16 @@ namespace test_app\stubs;
 
 #####################################################################################################
 
-function output_item_filter_select($form_config,$form_params)
+function output_item_filter_select($form_config,$event_params,$event_name)
 {
+  $event_params["handled"]=true;
   $filter_select_template="item_filter_select";
   $blank_option="show_all_class";
   $active_template="item_filter_active";
   $select_all_template="show_all_selected";
   $deselect_all_template="show_all_deselected";
-  return \webdb\stubs\output_filter_select($form_config,$filter_select_template,$blank_option,$active_template,$select_all_template,$deselect_all_template);
+  $event_params["content"]=\webdb\stubs\output_filter_select($form_config,$filter_select_template,$blank_option,$active_template,$select_all_template,$deselect_all_template);
+  return $event_params;
 }
 
 #####################################################################################################

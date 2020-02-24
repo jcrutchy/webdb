@@ -3,22 +3,26 @@
 
 function list_page_load()
 {
-  var url=window.location.href;
-  var url_obj=new URL(url);
-  var update_page=url_obj.searchParams.get("update");
-  //custom_alert(url);
-  //return;
-  if (update_page!=null)
+  confirm_status_id="";
+  var page_id=document.getElementById("top_level_page_id");
+  if (page_id)
   {
-    url=remove_url_param("update",url);
-    var current_state=history.state;
-    history.replaceState(current_state,document.title,url);
-    update_status_fade_id="update_status:"+update_page;
-    update_status_fade_alpha=1.0;
-    var update_status=document.getElementById(update_status_fade_id);
-    update_status.style.color="rgba(153,51,0,"+update_status_fade_alpha+")";
-    update_status.style.display="inline";
-    setTimeout(update_status_fadeout,2000); // 2 sec
+    if (page_id.innerHTML!="")
+    {
+      confirm_status_id="confirm_status:"+page_id.innerHTML;
+      var confirm_status=document.getElementById(confirm_status_id);
+      var cookie_name="confirm_status_"+page_id.innerHTML;
+      var confirm_status_message=get_cookie(cookie_name);
+      if ((confirm_status) && (confirm_status_message!=""))
+      {
+        confirm_status.innerHTML=confirm_status_message;
+        document.cookie=cookie_name+"=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+        confirm_status_fade_alpha=1.0;
+        confirm_status.style.color="rgba(153,51,0,"+confirm_status_fade_alpha+")";
+        confirm_status.style.display="inline";
+        setTimeout(confirm_status_fadeout,2000); // 2 sec
+      }
+    }
   }
 }
 
@@ -53,25 +57,22 @@ function list_body_click(event)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-var update_status_fade_alpha=1.0;
-var update_status_fade_id="";
+var confirm_status_fade_alpha=1.0;
+var confirm_status_id="";
 
-function update_status_fadeout()
+function confirm_status_fadeout()
 {
-  var update_status=document.getElementById(update_status_fade_id);
-  update_status_fade_alpha=update_status_fade_alpha-0.05;
-  if (update_status)
+  confirm_status_fade_alpha=confirm_status_fade_alpha-0.05;
+  var confirm_status=document.getElementById(confirm_status_id);
+  confirm_status.style.color="rgba(153,51,0,"+confirm_status_fade_alpha+")";
+  if (confirm_status_fade_alpha>0.0)
   {
-    update_status.style.color="rgba(153,51,0,"+update_status_fade_alpha+")";
-    if (update_status_fade_alpha>0.0)
-    {
-      setTimeout(update_status_fadeout,200); // 0.2 sec
-    }
-    else
-    {
-      update_status_fade_alpha=1.0;
-      update_status.style.display="none";
-    }
+    setTimeout(confirm_status_fadeout,200); // 0.2 sec
+  }
+  else
+  {
+    confirm_status_fade_alpha=1.0;
+    confirm_status.style.display="none";
   }
 }
 

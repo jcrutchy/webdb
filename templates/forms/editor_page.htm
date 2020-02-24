@@ -14,7 +14,7 @@ var waiting_edit_row_element=null;
 
 <div id="global_page_header">
 <div id="global_page_header_content">
-<div id="header_title">Edit %%command_caption_noun%%</div>
+<div id="header_title">%%command%% %%command_caption_noun%%</div>
 <div id="header_links_bar">@@$$links_template$$@@</div>
 <a href="$$app_web_index$$"><img id="company_logo" src="$$app_web_resources$$$$app_logo_filename$$" alt=""></a>
 </div>
@@ -24,13 +24,33 @@ var waiting_edit_row_element=null;
 <div id="global_page_body_inner">
 <div id="global_page_body_content">
 
-<div id="edit_form">
-%%record_edit_form%%
+<form id="%%page_id%%" class="%%page_id%%" action="$$app_web_index$$?page=%%page_id%%&cmd=%%cmd%%%%id_url_param%%" method="post" enctype="multipart/form-data">
+
+<input type="hidden" name="csrf_token" value="%%csrf_token%%">
+<input type="hidden" name="MAX_FILE_SIZE" value="41943040"> <!-- 40 Mb -->
+
+<div style="display: none;">
+%%hidden_fields%%
 </div>
 
-<div id="edit_subforms" class="edit_subforms">
+%%custom_form_above%%
+
+<div class="edit_form_controls">
+  <input type="submit" name="form_cmd[%%cmd%%_confirm]%%id_cmd_name%%" value="%%confirm_caption%%">
+  <span class="confirm_status" id="confirm_status:%%page_id%%"></span>
+</div>
+
+<div id="field_table">
+%%field_table%%
+</div>
+
+<div id="subforms" class="subforms">
 %%subforms%%
 </div>
+
+%%custom_form_below%%
+
+</form>
 
 </div>
 </div>

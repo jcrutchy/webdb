@@ -114,6 +114,13 @@ function webdb_setcookie($setting_key,$value,$max_age=false)
   {
     $max_age=$settings["max_cookie_age"];
   }
+  \webdb\utils\webdb_setcookie_raw($settings[$setting_key],$value,$max_age);
+}
+
+#####################################################################################################
+
+function webdb_setcookie_raw($name,$value,$max_age=0,$http_only=true)
+{
   if ($max_age>0)
   {
     $expiry=time()+$max_age;
@@ -122,15 +129,15 @@ function webdb_setcookie($setting_key,$value,$max_age=false)
   {
     $expiry=0;
   }
-  setcookie($settings[$setting_key],$value,$expiry,"/",$_SERVER["HTTP_HOST"],false,true);
+  setcookie($name,$value,$expiry,"/",$_SERVER["HTTP_HOST"],false,$http_only);
 }
 
 #####################################################################################################
 
-function webdb_unsetcookie($setting_key)
+function webdb_unsetcookie($setting_key,$http_only=true)
 {
   global $settings;
-  setcookie($settings[$setting_key],"",1,"/",$_SERVER["HTTP_HOST"],false,true);
+  setcookie($settings[$setting_key],"",1,"/",$_SERVER["HTTP_HOST"],false,$http_only);
 }
 
 #####################################################################################################

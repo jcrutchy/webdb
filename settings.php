@@ -35,6 +35,7 @@ $settings["footer_template"]="";
 
 $settings["login_cookie"]="webdb_login";
 $settings["username_cookie"]="webdb_username";
+$settings["confirm_status_cookie"]="webdb_confirm_status"; # don't change - used in list.js
 
 $settings["max_cookie_age"]=60*60*24*365;
 

@@ -184,7 +184,7 @@ function list_edit($id,$form_config)
   $data["page_id"]=$form_config["page_id"];
   $column_format=\webdb\forms\get_column_format_data($form_config);
   $record=\webdb\forms\get_record_by_id($form_config,$id,"primary_key");
-  \webdb\forms\process_computed_fields($form_config,$record);
+  $record=\webdb\forms\process_computed_fields($form_config,$record);
   if (count($_POST)>0)
   {
     $post_fields=array();

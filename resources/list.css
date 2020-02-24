@@ -193,7 +193,7 @@ th.list_controls_head
     text-shadow: 0 0 4px #999999;
   }
 
-.update_status
+.confirm_status
   {
     font-weight: bold;
     padding-left: 10px;
@@ -292,17 +292,17 @@ th.list_controls_head
     margin-top: 5px;
   }
 
-#edit_form
+#field_table
   {
     float: left;
     padding-bottom: 10px;
     width: 39%;
   }
 
-#edit_subforms
+#subforms
   {
     margin-left: 40%;
-    margin-top: 31px;
+    margin-top: 11px;
     padding-bottom: 10px;
   }
 
