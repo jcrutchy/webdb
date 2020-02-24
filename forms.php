@@ -2039,7 +2039,14 @@ function output_editor($form_config,$record,$command,$verb,$id=false)
     $rows=array();
     foreach ($form_config["control_types"] as $field_name => $control_type)
     {
-      if ($form_config["editor_visible"]==true)
+      if ($form_config["editor_visible"]!==false)
+      {
+        if ($form_config["editor_visible"][$field_name]==false)
+        {
+          continue;
+        }
+      }
+      else
       {
         if ($form_config["visible"][$field_name]==false)
         {
@@ -2268,10 +2275,6 @@ function process_form_data_fields($form_config,$post_override=false)
   }
   foreach ($form_config["control_types"] as $field_name => $control_type)
   {
-    if ($form_config["visible"][$field_name]==false)
-    {
-      continue;
-    }
     switch ($control_type)
     {
       case "lookup":

@@ -1,0 +1,2 @@
+if editor_visible is set to false (default), the list field visibility settings are used
+if editor_visible is an array similar to the list visibility settings, they will be used for the edit page instead
