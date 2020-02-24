@@ -2039,14 +2039,14 @@ function output_editor($form_config,$record,$command,$verb,$id=false)
     $rows=array();
     foreach ($form_config["control_types"] as $field_name => $control_type)
     {
-      if ($form_config["editor_visible"]!==false)
+      if (isset($form_config["editor_visible"][$field_name])==true)
       {
         if ($form_config["editor_visible"][$field_name]==false)
         {
           continue;
         }
       }
-      else
+      elseif ($form_config["editor_visible"]===true)
       {
         if ($form_config["visible"][$field_name]==false)
         {

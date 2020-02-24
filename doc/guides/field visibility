@@ -1,2 +1,3 @@
-if editor_visible is set to false (default), the list field visibility settings are used
+if editor_visible is set to false (default), all fields are shown in the edit page
+if editor_visible is set to true, the list field visibility settings are used (the "visibility" element in the form list file)
 if editor_visible is an array similar to the list visibility settings, they will be used for the edit page instead
