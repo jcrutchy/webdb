@@ -2100,7 +2100,7 @@ function output_editor($form_config,$record,$command,$verb,$id=false)
     }
     else
     {
-      $form_params["field_table"]=\webdb\utils\template_fill($form_config["custom_".$cmd."_template"],$form_params);
+      $form_params["field_table"]=\webdb\utils\template_fill($form_config["custom_".$cmd."_template"],$rows);
     }
   }
   $form_params["hidden_fields"]=$hidden_fields;
