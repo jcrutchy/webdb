@@ -2023,12 +2023,9 @@ function output_editor($form_config,$record,$command,$verb,$id=false)
     $event_params["id"]=$id;
   }
   $event_params=\webdb\forms\handle_form_config_event($form_config,$event_params,"on_".$cmd);
+  $record=$event_params["record"];
+  $hidden_fields=$event_params["hidden_fields"];
   if ($event_params["handled"]==true)
-  {
-    $record=$event_params["record"];
-    $hidden_fields=$event_params["hidden_fields"];
-  }
-  if (($event_params["handled"]==true) and ($event_params["custom_content"]==true))
   {
     $form_params["field_table"]=$event_params["content"];
   }

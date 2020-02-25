@@ -55,7 +55,6 @@ following are event-specific $event_params elements, with an indication of initi
 
 "on_edit":
   $event_params["form_config"]=array();
-  $event_params["custom_content"]=false; # allows overriding of default content output
   $event_params["content"]=""; # assign custom content here
   $event_params["record_id"]=0; # read this to get id passed from url
   $event_params["record"]=array(); # handling allows overriding of record values before default content output
