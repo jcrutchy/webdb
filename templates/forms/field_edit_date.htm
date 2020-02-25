@@ -1,2 +1,2 @@
-<input style="%%control_style%%" type="text" id="date_field__%%field_name%%" name="%%field_name%%" value="%%field_value%%" onclick="show_calendar(event,this); return false;" readonly %%disabled%% %%js_events%%> <!-- JC, 6-Nov-19: removed focus event due to repeated triggering in Chrome if a debug alert is shown -->
-<input type="hidden" id="iso_date_field__%%field_name%%" name="iso_%%field_name%%" value="%%iso_field_value%%">
+<input style="%%control_style%%" type="text" id="date_field__%%field_name%%" name="%%page_id%%:%%field_name%%" value="%%field_value%%" onclick="show_calendar(event,this); return false;" readonly %%disabled%% %%js_events%%> <!-- JC, 6-Nov-19: removed focus event due to repeated triggering in Chrome if a debug alert is shown -->
+<input type="hidden" id="iso_date_field__%%field_name%%" name="%%page_id%%:iso_%%field_name%%" value="%%iso_field_value%%">

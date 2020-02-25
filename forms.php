@@ -2273,6 +2273,7 @@ function process_form_data_fields($form_config,$post_override=false)
   {
     $post_fields=$post_override;
   }
+  $page_id=$form_config["page_id"];
   foreach ($form_config["control_types"] as $field_name => $control_type)
   {
     switch ($control_type)
@@ -2281,13 +2282,13 @@ function process_form_data_fields($form_config,$post_override=false)
       case "span":
         continue 2;
     }
-    $value_items[$field_name]=null;
+    $post_name=$page_id.":".$field_name;
     switch ($control_type)
     {
       case "checkbox":
-        if (isset($post_fields[$field_name])==true)
+        if (isset($post_fields[$post_name])==true)
         {
-          if ($post_fields[$field_name]=="false")
+          if ($post_fields[$post_name]=="false")
           {
             $value_items[$field_name]=0;
           }
@@ -2302,17 +2303,21 @@ function process_form_data_fields($form_config,$post_override=false)
         }
         break;
       case "date":
-        $value_items[$field_name]=null;
-        if (isset($post_fields["iso_".$field_name])==true)
+        $iso_post_name=$page_id.":iso_".$field_name;
+        if (isset($post_fields[$iso_post_name])==true)
         {
-          if ($post_fields["iso_".$field_name]<>"")
+          if ($post_fields[$iso_post_name]<>"")
           {
-            $value_items[$field_name]=$post_fields["iso_".$field_name];
+            $value_items[$field_name]=$post_fields[$iso_post_name];
+          }
+          else
+          {
+            $value_items[$field_name]=null;
           }
         }
         break;
     }
-    if (isset($post_fields[$field_name])==false)
+    if (isset($post_fields[$post_name])==false)
     {
       continue;
     }
@@ -2320,18 +2325,18 @@ function process_form_data_fields($form_config,$post_override=false)
     {
       case "text":
       case "hidden":
-        $value_items[$field_name]=$post_fields[$field_name];
+        $value_items[$field_name]=$post_fields[$post_name];
         break;
       case "combobox":
       case "listbox":
       case "radiogroup":
-        if ($post_fields[$field_name]<>"")
+        if ($post_fields[$post_name]<>"")
         {
-          $value_items[$field_name]=$post_fields[$field_name];
+          $value_items[$field_name]=$post_fields[$post_name];
         }
         break;
       case "memo":
-        $value_items[$field_name]=str_replace(PHP_EOL,\webdb\index\LINEBREAK_DB_DELIM,$post_fields[$field_name]);
+        $value_items[$field_name]=str_replace(PHP_EOL,\webdb\index\LINEBREAK_DB_DELIM,$post_fields[$post_name]);
         break;
     }
   }
@@ -2410,16 +2415,22 @@ function handle_form_config_event($form_config,$event_params,$event_name)
 
 #####################################################################################################
 
-function update_record($form_config,$id)
+function update_record($form_config,$id,$value_items=false,$where_items=false,$return=false)
 {
   global $settings;
   if (\webdb\utils\check_user_form_permission($form_config["page_id"],"u")==false)
   {
     \webdb\utils\error_message("error: record update permission denied form form '".$page_id."'");
   }
-  $value_items=\webdb\forms\process_form_data_fields($form_config);
+  if ($value_items===false)
+  {
+    $value_items=\webdb\forms\process_form_data_fields($form_config);
+  }
   \webdb\forms\check_required_values($form_config,$value_items);
-  $where_items=\webdb\forms\config_id_conditions($form_config,$id,"edit_cmd_id");
+  if ($where_items===false)
+  {
+    $where_items=\webdb\forms\config_id_conditions($form_config,$id,"edit_cmd_id");
+  }
   $event_params=array();
   $event_params["handled"]=false;
   $event_params["form_config"]=$form_config;
@@ -2435,6 +2446,10 @@ function update_record($form_config,$id)
     \webdb\sql\sql_update($value_items,$where_items,$form_config["table"],$form_config["database"],false,$form_config);
     $params=array();
     $params["update"]=$form_config["page_id"];
+  }
+  if ($return==true)
+  {
+    return;
   }
   \webdb\forms\set_confirm_status_cookie($form_config,"RECORD UPDATED SUCCESSFULLY");
   if ($form_config["edit_cmd_page_id"]<>"")

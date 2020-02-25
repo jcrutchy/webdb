@@ -207,7 +207,7 @@ function make_calendar(date_in_input,year,month,day)
         {
           td_id=" id='calendar_selected'";
         }
-        tbody+="<td"+td_id+"><a href='javascript:calendar_select_date(\""+year+"\",\""+mon+"\",\""+w+"\");'>"+w+"</a></td>";
+        tbody+="<td"+td_id+" onclick='calendar_select_date(\""+year+"\",\""+mon+"\",\""+w+"\");' style='cursor: pointer;'>"+w+"</td>";
         d++;
       }
       else

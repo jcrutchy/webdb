@@ -142,12 +142,13 @@ function list_edit_row_reset_timeout()
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function encoded_form_field(form,field_name)
+function encoded_form_field(page_id,form,field_name)
 {
   if (field_name.startsWith("date_field__")==true)
   {
     field_name="iso_"+field_name;
   }
+  field_name=page_id+":"+field_name;
   var field_value=form.elements.namedItem(field_name).value;
   if (form.elements.namedItem(field_name).type=="checkbox")
   {
@@ -164,7 +165,7 @@ function list_insert_row_click(form,page_id)
   var field_names=insert_row_controls[page_id];
   for (var i=0;i<field_names.length;i++)
   {
-    data.push(encoded_form_field(form,field_names[i]));
+    data.push(encoded_form_field(page_id,form,field_names[i]));
   }
   var body=data.join("&");
   var url_prefix=form.elements.namedItem("row_insert_page:"+page_id).value;
@@ -315,7 +316,7 @@ function list_edit_row_update(form,page_id)
   var data=new Array();
   for (var i=0;i<edit_row_controls.length;i++)
   {
-    data.push(encoded_form_field(form,edit_row_controls[i]));
+    data.push(encoded_form_field(page_id,form,edit_row_controls[i]));
   }
   var body=data.join("&");
   var url_prefix=form.elements.namedItem("ajax_edit_page:"+page_id).value;
@@ -346,6 +347,11 @@ function list_edit_row_update_load()
   if (data.hasOwnProperty("error")==true)
   {
     custom_alert(data.error);
+    return;
+  }
+  if (data.hasOwnProperty("html")==true)
+  {
+    // TODO: data.html
     return;
   }
   location.reload();

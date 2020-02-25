@@ -195,59 +195,27 @@ function list_edit($id,$form_config)
       {
         continue;
       }
+      $page_id=$parts[0];
       $field_name=$parts[3];
-      $post_fields[$field_name]=$value;
-      if ($parts[0]=="iso_edit_control")
+      if ($parts[1]=="iso_edit_control")
       {
         $field_name="iso_".$field_name;
-        $post_fields[$field_name]=$value;
       }
+      $post_fields[$page_id.":".$field_name]=$value;
     }
     if (isset($_GET["parent_form"])==true)
     {
-      $parent_page_id=$_GET["parent_form"];
-      $parent_form_config=\webdb\forms\get_form_config($parent_page_id);
       $subform_page_id=$_GET["subform"];
-      if (\webdb\utils\check_user_form_permission($subform_page_id,"u")==false)
-      {
-        \webdb\utils\error_message("error: record update permission denied for subform '".$subform_page_id."'");
-      }
       $subform_form_config=\webdb\forms\get_form_config($subform_page_id);
       $value_items=\webdb\forms\process_form_data_fields($subform_form_config,$post_fields);
-      \webdb\forms\check_required_values($subform_form_config,$value_items);
       $where_items=\webdb\forms\config_id_conditions($subform_form_config,$id,"primary_key");
-      $event_params=array();
-      $event_params["handled"]=false;
-      $event_params["form_config"]=$subform_form_config;
-      $event_params["id"]=$id;
-      $event_params["where_items"]=$where_items;
-      $event_params["value_items"]=$value_items;
-      $event_params=\webdb\forms\handle_update_record_event($event_params);
-      if ($event_params["handled"]==false)
-      {
-        \webdb\sql\sql_update($value_items,$where_items,$subform_form_config["table"],$subform_form_config["database"],false,$subform_form_config);
-      }
+      \webdb\forms\update_record($subform_form_config,$id,$value_items,$where_items,true);
     }
     else
     {
-      if (\webdb\utils\check_user_form_permission($form_config["page_id"],"u")==false)
-      {
-        \webdb\utils\error_message("error: record update permission denied for form '".$page_id."'");
-      }
       $value_items=\webdb\forms\process_form_data_fields($form_config,$post_fields);
-      \webdb\forms\check_required_values($form_config,$value_items);
       $where_items=\webdb\forms\config_id_conditions($form_config,$id,"primary_key");
-      $event_params=array();
-      $event_params["handled"]=false;
-      $event_params["form_config"]=$form_config;
-      $event_params["id"]=$id;
-      $event_params["where_items"]=$where_items;
-      $event_params["value_items"]=$value_items;
-      $event_params=\webdb\forms\handle_update_record_event($event_params);
-      if ($event_params["handled"]==false)
-      {
-        \webdb\sql\sql_update($value_items,$where_items,$form_config["table"],$form_config["database"],false,$form_config);
-      }
+      \webdb\forms\update_record($form_config,$id,$value_items,$where_items,true);
     }
     $data=json_encode($data);
     die($data);
@@ -264,7 +232,7 @@ function list_edit($id,$form_config)
     die($data);
   }
   $edit_fields=array();
-  $field_name_prefix="edit_control:".$form_config["page_id"].":".$id.":";
+  $field_name_prefix="edit_control:".$id.":";
   $data["html"]=\webdb\forms\list_row_controls($form_config,$edit_fields,"edit",$column_format,$record,$field_name_prefix);
   $data["primary_key"]=$id;
   for ($i=0;$i<count($settings["calendar_fields"]);$i++)
