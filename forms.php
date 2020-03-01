@@ -692,6 +692,7 @@ function list_row($form_config,$record,$column_format,$row_spans,$lookup_records
     }
   }
   $fields="";
+  $empty_cell=\webdb\utils\template_fill("empty_cell");
   foreach ($form_config["control_types"] as $field_name => $control_type)
   {
     if ($form_config["visible"][$field_name]==false)
@@ -720,13 +721,13 @@ function list_row($form_config,$record,$column_format,$row_spans,$lookup_records
     }
     if ($control_type=="lookup")
     {
-      $field_params["value"]=\webdb\utils\template_fill("empty_cell");
+      $field_params["value"]=$empty_cell;
     }
     else
     {
       if ($display_record[$field_name]==="")
       {
-        $field_params["value"]=\webdb\utils\template_fill("empty_cell");
+        $field_params["value"]=$empty_cell;
       }
       else
       {

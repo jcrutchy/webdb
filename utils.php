@@ -106,6 +106,56 @@ function debug_var_dump($data,$backtrace=false)
 
 #####################################################################################################
 
+function build_settings_cache()
+{
+  global $settings;
+  $settings["links_css"]=array();
+  $settings["links_js"]=array();
+  $settings["logs"]=array();
+  $settings["logs"]["sql"]=array();
+  $settings["logs"]["auth"]=array();
+  $settings["login_cookie_unset"]=false;
+  $settings["sql_check_post_params_override"]=false;
+  $settings["sql_database_change"]=false;
+  $settings["calendar_fields"]=array();
+  $settings["permissions"]=array();
+  $settings["parent_path"]=dirname(__DIR__).DIRECTORY_SEPARATOR;
+  $settings["webdb_root_path"]=__DIR__.DIRECTORY_SEPARATOR;
+  $settings["webdb_directory_name"]=basename($settings["webdb_root_path"]);
+  $settings["app_directory_name"]=basename($settings["app_root_path"]);
+  # load webdb settings
+  $webdb_settings_filename=$settings["webdb_root_path"]."settings.php";
+  if (file_exists($webdb_settings_filename)==true)
+  {
+    require_once($webdb_settings_filename);
+  }
+  else
+  {
+    \webdb\utils\system_message("error: webdb settings file not found");
+  }
+  # load application settings
+  $settings_filename=$settings["app_root_path"]."settings.php";
+  if (file_exists($settings_filename)==false)
+  {
+    \webdb\utils\system_message("error: settings file not found: ".$settings_filename);
+  }
+  require_once($settings_filename);
+  $settings["templates"]=\webdb\utils\load_files($settings["webdb_templates_path"],"","htm",true);
+  $settings["webdb_templates"]=$settings["templates"];
+  $settings["sql"]=\webdb\utils\load_files($settings["webdb_sql_path"],"","sql",true);
+  $settings["webdb_sql"]=$settings["sql"];
+  \webdb\utils\load_db_credentials("admin");
+  \webdb\utils\load_db_credentials("user");
+  $settings["app_templates"]=\webdb\utils\load_files($settings["app_templates_path"],"","htm",true);
+  $settings["templates"]=array_merge($settings["webdb_templates"],$settings["app_templates"]);
+  $settings["app_sql"]=\webdb\utils\load_files($settings["app_sql_path"],"","sql",true);
+  $settings["sql"]=array_merge($settings["webdb_sql"],$settings["app_sql"]);
+  $settings["forms"]=array();
+  \webdb\forms\load_form_defs();
+}
+
+#####################################################################################################
+
 function webdb_setcookie($setting_key,$value,$max_age=false)
 {
   global $settings;
@@ -260,8 +310,10 @@ function ob_postprocess($buffer)
     $buffer=$settings["system_message"];
   }
   # TODO: CALL AUTOMATED W3C VALIDATION HERE
-  #global $t;
-  #return (microtime(true)-$t);
+  global $start_time; # debug
+  global $stop_time; # debug
+  #$stop_time=microtime(true); # debug
+  #return round($stop_time-$start_time,5); # debug
   if (isset($_SERVER["HTTP_ACCEPT_ENCODING"])==true)
   {
     if (strpos($_SERVER["HTTP_ACCEPT_ENCODING"],"gzip")!==false)
@@ -557,6 +609,7 @@ function group_by_fields($form_config,$record)
 function link_app_resource($name,$type)
 {
   global $settings;
+  #return false; # TODO: pre-load file modified times into $settings
   $filename=$settings["app_resources_path"].$name.".".$type;
   if (file_exists($filename)==true)
   {
@@ -699,31 +752,36 @@ function template_fill($template_key,$params=false,$tracking=array(),$custom_tem
   }
   $tracking[]=$template_key;
   $result=$template_array[$template_key];
-  $constants=get_defined_constants(false);
-  foreach ($constants as $name => $value)
+  foreach ($settings["constants"] as $key => $value)
   {
-    if (strpos($result,"??".$name."??")===false)
+    $placeholder='??'.$key.'??';
+    if (strpos($result,$placeholder)===false)
     {
       continue;
     }
-    $result=str_replace("??".$name."??",$value,$result);
+    $result=str_replace($placeholder,$value,$result);
   }
   foreach ($settings as $key => $value)
   {
-    $setting_template='$$'.$key.'$$';
-    if (strpos($result,$setting_template)===false)
+    $placeholder='$$'.$key.'$$';
+    if (strpos($result,$placeholder)===false)
     {
       continue;
     }
-    $result=str_replace($setting_template,$value,$result);
+    $result=str_replace($placeholder,$value,$result);
   }
   if ($params!==false)
   {
     foreach ($params as $key => $value)
     {
+      $placeholder='%%'.$key.'%%';
+      if (strpos($result,$placeholder)===false)
+      {
+        continue;
+      }
       if (is_array($value)==false)
       {
-        $result=str_replace("%%".$key."%%",$value,$result);
+        $result=str_replace($placeholder,$value,$result);
       }
     }
   }
@@ -733,12 +791,13 @@ function template_fill($template_key,$params=false,$tracking=array(),$custom_tem
   }
   foreach ($template_array as $key => $value)
   {
-    if (strpos($result,"@@".$key."@@")===false)
+    $placeholder='@@'.$key.'@@';
+    if (strpos($result,$placeholder)===false)
     {
       continue;
     }
     $value=\webdb\utils\template_fill($key,$params,$tracking,$custom_templates);
-    $result=str_replace("@@".$key."@@",$value,$result);
+    $result=str_replace($placeholder,$value,$result);
   }
   return $result;
 }
@@ -827,6 +886,7 @@ function is_app_mode()
 function resource_modified_timestamp($resource_file,$source="webdb")
 {
   global $settings;
+  #return "error"; # TODO: pre-load into $settings
   $filename=$settings[$source."_resources_path"].$resource_file;
   if (file_exists($filename)==true)
   {
@@ -907,9 +967,13 @@ function wildcard_compare($compare_value,$wildcard_value)
 function save_log($key)
 {
   global $settings;
-  return; # TODO: DOESN'T WORK FOR WINDOWS
   $lines=$settings["logs"][$key];
-  $fn=$settings[$key."_log_path"].$key."_".date("Ymd").".log";
+  $path=$settings[$key."_log_path"];
+  if ((file_exists($path)==false) or (is_dir($path)==false))
+  {
+    return;
+  }
+  $fn=$path.$key."_".date("Ymd").".log";
   $fp=fopen($fn,"a");
   stream_set_blocking($fp,false);
   if (flock($fp,LOCK_EX)==true)

@@ -131,8 +131,8 @@ download http://browscap.org/stream?q=Lite_PHP_BrowsCapINI and save somewhere on
 # nano /etc/php/7.0/apache2/php.ini
 - change filename to suit php version, or whatever loaded configuration file is indicated by phpinfo()
 
-post_max_size = 40M
-upload_max_filesize = 40M
+post_max_size = 8M
+upload_max_filesize = 8M
 allow_url_fopen = Off
 
 [mail function]

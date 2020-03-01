@@ -2,7 +2,8 @@
 
 namespace webdb\index;
 
-#$t=microtime(true);
+$start_time=microtime(true); # debug
+$stop_time=microtime(true); # debug
 
 #####################################################################################################
 
@@ -37,55 +38,30 @@ if (\webdb\cli\is_cli_mode()==false)
 
 $settings=array();
 
-$settings["links_css"]=array();
-$settings["links_js"]=array();
-
-$settings["logs"]=array();
-$settings["logs"]["sql"]=array();
-$settings["logs"]["auth"]=array();
-
-$settings["login_cookie_unset"]=false;
-
-$settings["sql_check_post_params_override"]=false;
-$settings["sql_database_change"]=false;
-$settings["calendar_fields"]=array();
-$settings["permissions"]=array();
-
-$settings["parent_path"]=dirname(__DIR__).DIRECTORY_SEPARATOR;
-$settings["webdb_root_path"]=__DIR__.DIRECTORY_SEPARATOR;
-
 $includes=get_included_files();
 $settings["app_root_path"]=dirname($includes[0]).DIRECTORY_SEPARATOR;
 
-$settings["webdb_directory_name"]=basename($settings["webdb_root_path"]);
-$settings["app_directory_name"]=basename($settings["app_root_path"]);
+\webdb\utils\build_settings_cache();
 
-# load webdb settings
-$webdb_settings_filename=$settings["webdb_root_path"]."settings.php";
-if (file_exists($webdb_settings_filename)==true)
+/*$settings_cache_filename=$settings["app_root_path"]."settings.cache";
+
+if (file_exists($settings_cache_filename)==false)
 {
-  require_once($webdb_settings_filename);
+  \webdb\utils\build_settings_cache();
+  $settings_cache_data=json_encode($settings,JSON_PRETTY_PRINT);
+  file_put_contents($settings_cache_filename,$settings_cache_data);
 }
 else
 {
-  \webdb\utils\system_message("error: webdb settings file not found");
-}
+  $settings_cache_data=file_get_contents($settings_cache_filename);
+  $settings=json_decode($settings_cache_data,true);
+}*/
 
-# load application settings
-$settings_filename=$settings["app_root_path"]."settings.php";
-if (file_exists($settings_filename)==false)
-{
-  \webdb\utils\system_message("error: settings file not found: ".$settings_filename);
-}
-require_once($settings_filename);
+#$settings["constants"]=get_defined_constants(false); # BAD FOR PERFORMANCE OF TEMPLATE_FILL FUNCTION
+$settings["constants"]=array();
+$settings["constants"]["DIRECTORY_SEPARATOR"]=DIRECTORY_SEPARATOR;
 
 \webdb\utils\load_test_settings();
-
-$settings["templates"]=\webdb\utils\load_files($settings["webdb_templates_path"],"","htm",true);
-$settings["webdb_templates"]=$settings["templates"];
-
-$settings["sql"]=\webdb\utils\load_files($settings["webdb_sql_path"],"","sql",true);
-$settings["webdb_sql"]=$settings["sql"];
 
 if (\webdb\cli\is_cli_mode()==false)
 {
@@ -116,15 +92,6 @@ if (\webdb\cli\is_cli_mode()==false)
   }
 }
 
-\webdb\utils\load_db_credentials("admin");
-\webdb\utils\load_db_credentials("user");
-
-$settings["app_templates"]=\webdb\utils\load_files($settings["app_templates_path"],"","htm",true);
-$settings["templates"]=array_merge($settings["webdb_templates"],$settings["app_templates"]);
-
-$settings["app_sql"]=\webdb\utils\load_files($settings["app_sql_path"],"","sql",true);
-$settings["sql"]=array_merge($settings["webdb_sql"],$settings["app_sql"]);
-
 $db_database="";
 if ($settings["db_database"]<>"")
 {
@@ -146,9 +113,6 @@ if (\webdb\cli\is_cli_mode()==true)
 {
   \webdb\cli\cli_dispatch();
 }
-
-$settings["forms"]=array();
-\webdb\forms\load_form_defs();
 
 $settings["user_agent"]="";
 if (isset($_SERVER["HTTP_USER_AGENT"])==true)
@@ -199,6 +163,28 @@ if (isset($settings["controller_dispatch"])==true)
     die;
   }
 }
+
+# 11.36 sec to load page
+# 19953 calls to template_fill
+/*$field_params=array();
+$field_params["primary_key"]="104";
+$field_params["page_id"]="test_page";
+$field_params["border_color"]="888";
+$field_params["border_width"]=1;
+$field_params["value"]="1";
+$field_params["field_name"]="test_field";
+$field_params["group_span"]="";
+$field_params["handlers"]="";
+$field_params["table_cell_style"]="";
+$field_params["edit_cmd_id"]="104";
+$start_time=microtime(true); # debug
+for ($i=1;$i<=19953;$i++)
+{
+  $test=\webdb\forms\form_template_fill("list_field_handlers",$field_params);
+}
+$stop_time=microtime(true); # debug
+# 11.13 sec to run test
+die;*/
 
 if (isset($_GET["page"])==true)
 {
