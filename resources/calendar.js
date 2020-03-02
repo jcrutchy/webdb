@@ -159,10 +159,6 @@ function make_calendar(date_in_input,year,month,day)
   var tbody="";
   for (var i=0;i<=5;i++)
   {
-    if (w>=days_in_this_month)
-    {
-      break;
-    }
     tbody+="<tr>";
     for (var j=0;j<7;j++)
     {

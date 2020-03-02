@@ -11,7 +11,7 @@
     -moz-box-shadow: 10px 10px 33px 1px rgba(0,0,0,0.67);
     box-shadow: 10px 10px 33px 1px rgba(0,0,0,0.67);
     width: 296px;
-    height: 275px;
+    height: 315px;
     color: #660066;
   }
 
@@ -37,8 +37,8 @@
 
 #calendar_div thead input
   {
-    width: 25px;
-    height: 22px;
+    width: 35px;
+    height: 25px;
   }
 
 #calendar_div thead select

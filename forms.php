@@ -1981,7 +1981,7 @@ function edit_form($form_config,$id)
     $value=$record[$title_field_name];
     if ($value<>"")
     {
-      $title.=" ".$value;
+      $data["title"].=" ".$value;
     }
   }
   return $data;
