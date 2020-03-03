@@ -339,7 +339,7 @@ function output_resource_includes($form_config,$type)
 
 function form_template_fill($name,$params=false)
 {
-  return \webdb\utils\template_fill("forms".DIRECTORY_SEPARATOR.$name,$params);
+  return \webdb\utils\template_fill("forms/".$name,$params);
 }
 
 #####################################################################################################
