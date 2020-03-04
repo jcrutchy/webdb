@@ -14,7 +14,7 @@ $settings["server_email_from"]="User <user@example.com>";
 $settings["server_email_reply_to"]="User <user@example.com>";
 $settings["server_email_bounce_to"]="user@example.com";
 
-$settings["admin_remote_address_whitelist"][]="192.168.0.50"; # add as required
+$settings["admin_remote_address_whitelist"][]="192.168.43.210"; # add as required
 
 $settings["test_settings_file"]="/home/jared/".$settings["test_settings_file"];
 

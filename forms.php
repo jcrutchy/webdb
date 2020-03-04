@@ -1193,7 +1193,7 @@ function output_editable_field(&$field_params,$record,$field_name,$control_type,
       {
         $loop_record=$records[$i];
         $option_params=array();
-        $option_params["name"]=$field_name;
+        $option_params["name"]=$form_config["page_id"].":".$field_name;
         $option_params["value"]=htmlspecialchars($loop_record[$lookup_config["key_field"]]);
         $display_value=\webdb\forms\lookup_field_display_value($lookup_config,$loop_record);
         $option_params["caption"]=htmlspecialchars($display_value);

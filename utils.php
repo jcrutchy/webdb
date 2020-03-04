@@ -106,7 +106,7 @@ function debug_var_dump($data,$backtrace=false)
 
 #####################################################################################################
 
-function build_settings_cache()
+function build_settings()
 {
   global $settings;
   $settings["links_css"]=array();
@@ -837,6 +837,10 @@ function load_db_credentials($type)
 {
   global $settings;
   $filename=$settings["db_".$type."_file"];
+  if (file_exists($filename)==false)
+  {
+    return;
+  }
   $data=file_get_contents($filename);
   if ($data===false)
   {

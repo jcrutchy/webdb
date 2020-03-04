@@ -41,13 +41,13 @@ $settings=array();
 $includes=get_included_files();
 $settings["app_root_path"]=dirname($includes[0]).DIRECTORY_SEPARATOR;
 
-\webdb\utils\build_settings_cache();
+\webdb\utils\build_settings();
 
 /*$settings_cache_filename=$settings["app_root_path"]."settings.cache";
 
 if (file_exists($settings_cache_filename)==false)
 {
-  \webdb\utils\build_settings_cache();
+  \webdb\utils\build_settings();
   $settings_cache_data=json_encode($settings,JSON_PRETTY_PRINT);
   file_put_contents($settings_cache_filename,$settings_cache_data);
 }
