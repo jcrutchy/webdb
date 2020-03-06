@@ -1171,6 +1171,7 @@ function output_editable_field(&$field_params,$record,$field_name,$control_type,
       {
         $option_template="radio";
       }
+      $lookup_config=$form_config["lookups"][$field_name];
       $option_params=array();
       $option_params["name"]=$field_params["field_name"];
       $option_params["value"]="";
@@ -1178,8 +1179,14 @@ function output_editable_field(&$field_params,$record,$field_name,$control_type,
       $option_params["disabled"]=\webdb\forms\field_disabled($form_config,$field_name);
       $option_params["js_events"]=\webdb\forms\field_js_events($form_config,$field_name,$record);
       $options=\webdb\utils\template_fill($option_template."_option",$option_params);
+      if (isset($lookup_config["exclude_null"])==true)
+      {
+        if ($lookup_config["exclude_null"]==true)
+        {
+          $options="";
+        }
+      }
       $records=\webdb\forms\lookup_field_data($form_config,$field_name);
-      $lookup_config=$form_config["lookups"][$field_name];
       $parent_list=false;
       if ((isset($lookup_config["database"])==true) and (isset($lookup_config["table"])==true))
       {
