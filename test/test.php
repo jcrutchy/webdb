@@ -131,7 +131,8 @@ function check_app_settings()
     "check_ua",
     "check_templates",
     "database_webdb",
-    "database_app");
+    "database_app",
+    "app_group_access");
   for ($i=0;$i<count($required_settings);$i++)
   {
     \webdb\test\utils\check_required_setting_exists($required_settings[$i]);

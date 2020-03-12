@@ -71,6 +71,8 @@ $settings["favicon_source"]=$settings["webdb_web_resources"]."favicon.png";
 
 $settings["format_tag_templates_subdirectory"]="format_tags";
 
+$settings["app_group_access"]="*"; # * => all groups
+
 #########################################################
 
 $settings["server_email_from"]="";

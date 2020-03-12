@@ -152,6 +152,7 @@ function build_settings()
   $settings["sql"]=array_merge($settings["webdb_sql"],$settings["app_sql"]);
   $settings["forms"]=array();
   \webdb\forms\load_form_defs();
+  $settings["app_group_access"]=explode(",",$settings["app_group_access"]);
 }
 
 #####################################################################################################
@@ -637,6 +638,31 @@ function resource_links($template_key)
   {
     $settings["links_js"][$template_key]=$link;
   }
+}
+
+#####################################################################################################
+
+function check_user_app_permission()
+{
+  global $settings;
+  $user_groups=$settings["logged_in_user_groups"];
+  for ($i=0;$i<count($settings["app_group_access"]);$i++)
+  {
+    $allowed_group_name=$settings["app_group_access"][$i];
+    if ($allowed_group_name==="*")
+    {
+      return;
+    }
+    for ($j=0;$j<count($user_groups);$j++)
+    {
+      $user_group=$user_groups[$j]["group_name"];
+      if ($user_group==$allowed_group_name)
+      {
+        return;
+      }
+    }
+  }
+  \webdb\utils\error_message("You do not have required permission to access this application.");
 }
 
 #####################################################################################################

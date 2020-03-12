@@ -22,6 +22,8 @@ require_once("forms.php");
 require_once("sql.php");
 require_once("stubs.php");
 require_once("cli.php");
+require_once("tools".DIRECTORY_SEPARATOR."dxf.php");
+require_once("tools".DIRECTORY_SEPARATOR."graphics.php");
 
 set_error_handler("\\webdb\\utils\\error_handler",E_ALL);
 set_exception_handler("\\webdb\\utils\\exception_handler");
@@ -154,6 +156,8 @@ if ($settings["check_ua"]==true)
 \webdb\csrf\check_unauthenticated_csrf_token();
 \webdb\users\auth_dispatch();
 \webdb\csrf\check_authenticated_csrf_token();
+
+\webdb\utils\check_user_app_permission();
 
 if (isset($settings["controller_dispatch"])==true)
 {
