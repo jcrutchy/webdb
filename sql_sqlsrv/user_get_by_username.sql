@@ -1,1 +1,1 @@
-SELECT * FROM [$$database_webdb$$].[users] WHERE (([username]=:username) AND ([enabled]=1))
+SELECT * FROM $$database_webdb$$.[users] WHERE (([username]=:username) AND ([enabled]=1))

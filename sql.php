@@ -138,7 +138,7 @@ function sql_insert($items,$table,$database,$is_admin=false,$form_config=false)
   $sql="INSERT INTO `".$database."`.`".$table."` (".implode(",",$fieldnames).") VALUES (".implode(",",$placeholders).")";
   if ($settings["db_engine"]=="sqlsrv")
   {
-    $sql="INSERT INTO [".$database."].[".$table."] (".implode(",",$fieldnames).") VALUES (".implode(",",$placeholders).")";
+    $sql="INSERT INTO ".$database.".[".$table."] (".implode(",",$fieldnames).") VALUES (".implode(",",$placeholders).")";
   }
   $settings["sql_database_change"]=true;
   $result=\webdb\sql\execute_prepare($sql,$items,"",$is_admin,$table,$database,$form_config);
@@ -158,7 +158,7 @@ function sql_delete($items,$table,$database,$is_admin=false,$form_config=false)
   $sql="DELETE FROM `".$database."`.`".$table."` WHERE (".$where_clause.")";
   if ($settings["db_engine"]=="sqlsrv")
   {
-    $sql="DELETE FROM [".$database."].[".$table."] WHERE (".$where_clause.")";
+    $sql="DELETE FROM ".$database.".[".$table."] WHERE (".$where_clause.")";
   }
   $old_records=\webdb\sql\get_exist_records($database,$table,$items,$is_admin);
   $settings["sql_database_change"]=true;
@@ -212,7 +212,7 @@ function sql_update($value_items,$where_items,$table,$database,$is_admin=false,$
   $sql="UPDATE `".$database."`.`".$table."` SET ".$values_string." WHERE (".$where_clause.")";
   if ($settings["db_engine"]=="sqlsrv")
   {
-    $sql="UPDATE [".$database."].[".$table."] SET ".$values_string." WHERE (".$where_clause.")";
+    $sql="UPDATE ".$database.".[".$table."] SET ".$values_string." WHERE (".$where_clause.")";
   }
   $old_records=\webdb\sql\get_exist_records($database,$table,$where_items,$is_admin);
   $settings["sql_database_change"]=true;

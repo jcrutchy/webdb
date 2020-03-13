@@ -35,15 +35,20 @@ var waiting_edit_row_element=null;
 
 %%custom_form_above%%
 
+<div id="flex_columns">
+
+<div id="editor_pane">
 <div class="edit_form_controls">
   <input type="submit" name="form_cmd[%%cmd%%_confirm]%%id_cmd_name%%" value="%%confirm_caption%%">
   <span class="confirm_status" id="confirm_status:%%page_id%%"></span>
 </div>
-
 %%field_table%%
+</div>
 
 <div id="subforms" class="subforms">
 %%subforms%%
+</div>
+
 </div>
 
 %%custom_form_below%%

@@ -298,11 +298,18 @@ th.list_controls_head
     padding-bottom: 10px;
   }
 
+#flex_columns
+  {
+    display: flex;
+  }
+
+#editor_pane
+  {
+  }
+
 #subforms
   {
-    margin-left: 40%;
-    margin-top: 11px;
-    padding-bottom: 10px;
+    flex-grow: 1;
   }
 
 .subform_outer

@@ -1,1 +1,1 @@
-SELECT * FROM [$$database_webdb$$].[users] WHERE ([enabled]=1)
+SELECT * FROM $$database_webdb$$.[users] WHERE ([enabled]=1)

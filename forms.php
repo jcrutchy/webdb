@@ -1231,7 +1231,7 @@ function output_editable_field(&$field_params,$record,$field_name,$control_type,
         {
           if ($lookup_config["exclude_parent"]==true)
           {
-            if ($record[$lookup_config["key_field"]]==$option_params["value"])
+            if ($option_params["value"]==$form_config["parent_form_id"])
             {
               $excluded_parent=true;
             }

@@ -16,7 +16,7 @@ function list_page_load()
       if ((confirm_status) && (confirm_status_message!=""))
       {
         confirm_status.innerHTML=confirm_status_message;
-        document.cookie=cookie_name+"=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+        document.cookie=cookie_name+"=; Domain="+window.location.hostname+"; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
         confirm_status_fade_alpha=1.0;
         confirm_status.style.color="rgba(153,51,0,"+confirm_status_fade_alpha+")";
         confirm_status.style.display="inline";
