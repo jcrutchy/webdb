@@ -246,7 +246,13 @@ function list_record_cell_click(element,page_id,id,field_name,edit_cmd_id)
   var row_edit_mode=document.getElementById("row_edit_mode:"+page_id).innerHTML;
   if (row_edit_mode=="row")
   {
-    window.location=document.getElementById("edit_page:"+page_id).value+edit_cmd_id;
+    let url = document.getElementById("edit_page:"+page_id).value+edit_cmd_id;
+    if (page_id === "hazard_summary") {
+      url = url.split("hazard_log");
+      url = url[0] + "insert_hazard_p1" + url[1];
+      console.log(url);
+    }
+    window.location=url;
     return;
   }
   if (row_edit_mode=="inline")
