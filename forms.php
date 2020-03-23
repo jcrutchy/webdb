@@ -861,7 +861,7 @@ function lookup_field_display_value($lookup_config,$lookup_record)
   for ($i=0;$i<count($display_field_names);$i++)
   {
     $display_field_name=$display_field_names[$i];
-    if (isset($lookup_record[$display_field_name])==false)
+    if (array_key_exists($display_field_name,$lookup_record)==false)
     {
       \webdb\utils\error_message("error: lookup display field not found: ".$display_field_name);
     }
