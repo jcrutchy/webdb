@@ -109,6 +109,7 @@ function check_app_settings()
     "header_template",
     "links_template",
     "footer_template",
+    "login_notice_template",
     "server_email_from",
     "server_email_reply_to",
     "server_email_bounce_to",

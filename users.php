@@ -214,6 +214,11 @@ function login()
 {
   global $settings;
   $login_form_params=array();
+  $login_form_params["login_notice"]="";
+  if ($settings["login_notice_template"]<>"")
+  {
+    $login_form_params["login_notice"]=\webdb\utils\template_fill($settings["login_notice_template"]);
+  }
   $login_form_params["welcome_tip"]="";
   $login_form_params["default_username"]="";
   if (isset($_COOKIE[$settings["username_cookie"]])==true)

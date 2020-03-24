@@ -32,6 +32,7 @@ $settings["app_test_include"]=$settings["app_root_path"]."test".DIRECTORY_SEPARA
 $settings["header_template"]="";
 $settings["links_template"]="";
 $settings["footer_template"]="";
+$settings["login_notice_template"]="";
 
 $settings["login_cookie"]="webdb_login";
 $settings["username_cookie"]="webdb_username";
