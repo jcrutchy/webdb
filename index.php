@@ -40,81 +40,40 @@ if (\webdb\cli\is_cli_mode()==false)
 
 $settings=array();
 
-$includes=get_included_files();
-$settings["app_root_path"]=dirname($includes[0]).DIRECTORY_SEPARATOR;
-
-\webdb\utils\build_settings();
-
-/*$settings_cache_filename=$settings["app_root_path"]."settings.cache";
-
-if (file_exists($settings_cache_filename)==false)
-{
-  \webdb\utils\build_settings();
-  $settings_cache_data=json_encode($settings,JSON_PRETTY_PRINT);
-  file_put_contents($settings_cache_filename,$settings_cache_data);
-}
-else
-{
-  $settings_cache_data=file_get_contents($settings_cache_filename);
-  $settings=json_decode($settings_cache_data,true);
-}*/
-
-#$settings["constants"]=get_defined_constants(false); # BAD FOR PERFORMANCE OF TEMPLATE_FILL FUNCTION
-$settings["constants"]=array();
-$settings["constants"]["DIRECTORY_SEPARATOR"]=DIRECTORY_SEPARATOR;
-
-\webdb\utils\load_test_settings();
-
-if (\webdb\cli\is_cli_mode()==false)
-{
-  $msg="REQUEST_RECEIVED: ".\webdb\utils\get_url();
-  $settings["logs"]["auth"][]=$msg;
-  $settings["logs"]["sql"][]=$msg;
-  header("Cache-Control: no-cache");
-  header("Expires: -1");
-  header("Pragma: no-cache");
-  if ($settings["ip_blacklist_enabled"]==true)
-  {
-    if (\webdb\users\remote_address_listed($_SERVER["REMOTE_ADDR"],"black")==true)
-    {
-      \webdb\utils\system_message("ip blacklisted: ".htmlspecialchars($_SERVER["REMOTE_ADDR"]));
-    }
-  }
-  if ($settings["ip_whitelist_enabled"]==true)
-  {
-    if (\webdb\users\remote_address_listed($_SERVER["REMOTE_ADDR"],"white")==false)
-    {
-      \webdb\utils\system_message("ip not whitelisted: ".htmlspecialchars($_SERVER["REMOTE_ADDR"]));
-    }
-  }
-  if (\webdb\utils\is_app_mode()==false)
-  {
-    $settings["unauthenticated_content"]=true;
-    \webdb\utils\static_page("home","WebDB");
-  }
-}
-
-$db_database="";
-if ($settings["db_database"]<>"")
-{
-  $db_database=";".$settings["db_database"];
-}
-
-$settings["pdo_admin"]=new \PDO($settings["db_engine"].":".$settings["db_host"].$db_database,$settings["db_admin_username"],$settings["db_admin_password"]);
-if ($settings["pdo_admin"]===false)
-{
-  \webdb\utils\system_message("error: unable to connect to sql server as admin");
-}
-$settings["pdo_user"]=new \PDO($settings["db_engine"].":".$settings["db_host"].$db_database,$settings["db_user_username"],$settings["db_user_password"]);
-if ($settings["pdo_user"]===false)
-{
-  \webdb\utils\system_message("error: unable to connect to sql server as user");
-}
-
 if (\webdb\cli\is_cli_mode()==true)
 {
   \webdb\cli\cli_dispatch();
 }
+
+\webdb\utils\load_settings();
+
+$msg="REQUEST_RECEIVED: ".\webdb\utils\get_url();
+$settings["logs"]["auth"][]=$msg;
+$settings["logs"]["sql"][]=$msg;
+header("Cache-Control: no-cache");
+header("Expires: -1");
+header("Pragma: no-cache");
+if ($settings["ip_blacklist_enabled"]==true)
+{
+  if (\webdb\users\remote_address_listed($_SERVER["REMOTE_ADDR"],"black")==true)
+  {
+    \webdb\utils\system_message("ip blacklisted: ".htmlspecialchars($_SERVER["REMOTE_ADDR"]));
+  }
+}
+if ($settings["ip_whitelist_enabled"]==true)
+{
+  if (\webdb\users\remote_address_listed($_SERVER["REMOTE_ADDR"],"white")==false)
+  {
+    \webdb\utils\system_message("ip not whitelisted: ".htmlspecialchars($_SERVER["REMOTE_ADDR"]));
+  }
+}
+if (\webdb\utils\is_app_mode()==false)
+{
+  $settings["unauthenticated_content"]=true;
+  \webdb\utils\static_page("home","WebDB");
+}
+
+\webdb\utils\database_connect();
 
 $settings["user_agent"]="";
 if (isset($_SERVER["HTTP_USER_AGENT"])==true)

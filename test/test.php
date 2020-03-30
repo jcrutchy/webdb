@@ -221,6 +221,12 @@ function test_utils()
   $test_success=\webdb\utils\wildcard_compare($compare_value,$wildcard_value);
   $test_case_msg="\\webdb\\utils\\wildcard_compare";
   \webdb\test\utils\test_result_message($test_case_msg,$test_success);
+  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  $response=file_get_contents(__DIR__.DIRECTORY_SEPARATOR."template_compare_test_input");
+  $template="login_form";
+  $test_success=\webdb\test\utils\compare_template($template,$response);
+  $test_case_msg="\\webdb\\test\\utils\\compare_form_template";
+  \webdb\test\utils\test_result_message($test_case_msg,$test_success);
 }
 
 #####################################################################################################

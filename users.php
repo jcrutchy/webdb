@@ -20,10 +20,7 @@ function auth_dispatch()
     \webdb\users\reset_password();
   }
   \webdb\users\login();
-  $settings["logged_in_username"]=$settings["user_record"]["username"];
-  $settings["logged_in_user_id"]=$settings["user_record"]["user_id"];
-  $user_id=$settings["user_record"]["user_id"];
-  $settings["logged_in_user_groups"]=\webdb\users\get_user_groups($user_id);
+  \webdb\users\user_login_settings_set($settings["user_record"]);
   if (isset($_GET["change_password"])==true)
   {
     \webdb\users\change_password();
@@ -334,6 +331,29 @@ function login()
   $settings["unauthenticated_content"]=true;
   \webdb\users\auth_log(false,"LOGIN_FORM","");
   \webdb\utils\output_page($content,"Login");
+}
+
+#####################################################################################################
+
+function user_login_settings_set($user_record)
+{
+  global $settings;
+  $settings["user_record"]=$user_record;
+  $settings["logged_in_username"]=$settings["user_record"]["username"];
+  $settings["logged_in_user_id"]=$settings["user_record"]["user_id"];
+  $user_id=$settings["user_record"]["user_id"];
+  $settings["logged_in_user_groups"]=\webdb\users\get_user_groups($user_id);
+}
+
+#####################################################################################################
+
+function user_login_settings_unset() # used for testing
+{
+  global $settings;
+  unset($settings["user_record"]);
+  unset($settings["logged_in_username"]);
+  unset($settings["logged_in_user_id"]);
+  unset($settings["logged_in_user_groups"]);
 }
 
 #####################################################################################################

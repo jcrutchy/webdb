@@ -71,14 +71,21 @@ function cli_dispatch()
   switch ($argv[1])
   {
     case "run_tests":
+      \webdb\utils\load_settings();
+      \webdb\utils\database_connect();
       require_once("test".DIRECTORY_SEPARATOR."test.php");
       \webdb\test\run_tests();
       die;
     case "init_webdb_schema":
+      \webdb\utils\load_settings();
+      \webdb\utils\database_connect();
       \webdb\utils\init_webdb_schema();
       \webdb\utils\system_message("webdb schema initialised");
     case "validate_json":
       \webdb\cli\term_echo("validating forms...");
+      \webdb\utils\initialize_settings();
+      \webdb\utils\load_webdb_settings();
+      \webdb\utils\load_application_settings();
       $app_files=\webdb\utils\load_files($settings["app_forms_path"],"","",false);
       $app_file_list=array_keys($app_files);
       for ($i=0;$i<count($app_file_list);$i++)
@@ -113,6 +120,8 @@ function cli_dispatch()
       }
       die;
     case "init_app_schema":
+      \webdb\utils\load_settings();
+      \webdb\utils\database_connect();
       if (\webdb\utils\init_app_schema()==true)
       {
         \webdb\utils\system_message("app schema initialised");
@@ -122,12 +131,16 @@ function cli_dispatch()
         \webdb\utils\system_message("error: app schema file not found");
       }
     case "unused_fields":
+      \webdb\utils\load_settings();
+      \webdb\utils\database_connect();
       if (isset($argv[2])==false)
       {
         \webdb\utils\system_message("database name not specified");
       }
       \webdb\cli\unused_fields($argv[2]);
     case "generate_form":
+      \webdb\utils\load_settings();
+      \webdb\utils\database_connect();
       if (isset($argv[2])==false)
       {
         \webdb\utils\system_message("database name not specified");

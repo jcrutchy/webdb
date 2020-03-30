@@ -246,6 +246,8 @@ textarea
     overflow: auto;
     padding: 5px;
     border: 1px solid #999;
+    white-space: pre;
+    font-family: "Courier New", Courier, monospace;
   }
 
 #custom_alert_message_box

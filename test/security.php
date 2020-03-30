@@ -272,16 +272,20 @@ function test_login_csrf_token()
   }
   $params=array();
   $params["form_cmd[insert_confirm]"]="Insert User";
-  $params["enabled"]="checked";
-  $params["username"]="test_user2";
-  $params["fullname"]="test_user2";
-  $params["email"]="test_user2@localhost.local";
+  $params["users:enabled"]="checked";
+  $params["users:username"]="test_user2";
+  $params["users:fullname"]="test_user2";
+  $params["users:email"]="test_user2@localhost.local";
   $params["csrf_token"]=\webdb\test\security\utils\get_csrf_token();
-  $response=\webdb\test\utils\wpost($settings["app_web_root"]."?page=users&cmd=edit",$params);
-  if (\webdb\test\utils\compare_form_template("list",$response)==false)
+  $response=\webdb\test\utils\wpost($settings["app_web_root"]."?page=users&cmd=insert",$params);
+  $field_values=\webdb\test\security\utils\output_user_field_values("admin",1,"",0,false);
+  $user_record=\webdb\test\security\utils\get_test_user($field_values);
+  \webdb\users\user_login_settings_set($user_record);
+  if (\webdb\test\utils\compare_form_template("editor_page",$response)==false)
   {
     $test_success=false;
   }
+  \webdb\users\user_login_settings_unset();
   if (\webdb\test\security\utils\check_csrf_error($response)==true)
   {
     $test_success=false;

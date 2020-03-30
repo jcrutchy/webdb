@@ -106,9 +106,55 @@ function debug_var_dump($data,$backtrace=false)
 
 #####################################################################################################
 
+function load_settings()
+{
+  global $settings;
+  \webdb\utils\build_settings();
+  /*$settings_cache_filename=$settings["app_root_path"]."settings.cache";
+  if (file_exists($settings_cache_filename)==false)
+  {
+    \webdb\utils\build_settings();
+    $settings_cache_data=json_encode($settings,JSON_PRETTY_PRINT);
+    file_put_contents($settings_cache_filename,$settings_cache_data);
+  }
+  else
+  {
+    $settings_cache_data=file_get_contents($settings_cache_filename);
+    $settings=json_decode($settings_cache_data,true);
+  }*/
+  \webdb\utils\load_test_settings();
+}
+
+#####################################################################################################
+
 function build_settings()
 {
   global $settings;
+  \webdb\utils\initialize_settings();
+  \webdb\utils\load_webdb_settings();
+  \webdb\utils\load_application_settings();
+  $settings["templates"]=\webdb\utils\load_files($settings["webdb_templates_path"],"","htm",true);
+  $settings["webdb_templates"]=$settings["templates"];
+  $settings["sql"]=\webdb\utils\load_files($settings["webdb_sql_path"],"","sql",true);
+  $settings["webdb_sql"]=$settings["sql"];
+  \webdb\utils\load_db_credentials("admin");
+  \webdb\utils\load_db_credentials("user");
+  $settings["app_templates"]=\webdb\utils\load_files($settings["app_templates_path"],"","htm",true);
+  $settings["templates"]=array_merge($settings["webdb_templates"],$settings["app_templates"]);
+  $settings["app_sql"]=\webdb\utils\load_files($settings["app_sql_path"],"","sql",true);
+  $settings["sql"]=array_merge($settings["webdb_sql"],$settings["app_sql"]);
+  $settings["forms"]=array();
+  \webdb\forms\load_form_defs();
+  $settings["app_group_access"]=explode(",",$settings["app_group_access"]);
+}
+
+#####################################################################################################
+
+function initialize_settings()
+{
+  global $settings;
+  $includes=get_included_files();
+  $settings["app_root_path"]=dirname($includes[0]).DIRECTORY_SEPARATOR;
   $settings["links_css"]=array();
   $settings["links_js"]=array();
   $settings["logs"]=array();
@@ -123,7 +169,16 @@ function build_settings()
   $settings["webdb_root_path"]=__DIR__.DIRECTORY_SEPARATOR;
   $settings["webdb_directory_name"]=basename($settings["webdb_root_path"]);
   $settings["app_directory_name"]=basename($settings["app_root_path"]);
-  # load webdb settings
+  #$settings["constants"]=get_defined_constants(false); # BAD FOR PERFORMANCE OF TEMPLATE_FILL FUNCTION
+  $settings["constants"]=array();
+  $settings["constants"]["DIRECTORY_SEPARATOR"]=DIRECTORY_SEPARATOR;
+}
+
+#####################################################################################################
+
+function load_webdb_settings()
+{
+  global $settings;
   $webdb_settings_filename=$settings["webdb_root_path"]."settings.php";
   if (file_exists($webdb_settings_filename)==true)
   {
@@ -133,26 +188,41 @@ function build_settings()
   {
     \webdb\utils\system_message("error: webdb settings file not found");
   }
-  # load application settings
+}
+
+#####################################################################################################
+
+function load_application_settings()
+{
+  global $settings;
   $settings_filename=$settings["app_root_path"]."settings.php";
   if (file_exists($settings_filename)==false)
   {
     \webdb\utils\system_message("error: settings file not found: ".$settings_filename);
   }
   require_once($settings_filename);
-  $settings["templates"]=\webdb\utils\load_files($settings["webdb_templates_path"],"","htm",true);
-  $settings["webdb_templates"]=$settings["templates"];
-  $settings["sql"]=\webdb\utils\load_files($settings["webdb_sql_path"],"","sql",true);
-  $settings["webdb_sql"]=$settings["sql"];
-  \webdb\utils\load_db_credentials("admin");
-  \webdb\utils\load_db_credentials("user");
-  $settings["app_templates"]=\webdb\utils\load_files($settings["app_templates_path"],"","htm",true);
-  $settings["templates"]=array_merge($settings["webdb_templates"],$settings["app_templates"]);
-  $settings["app_sql"]=\webdb\utils\load_files($settings["app_sql_path"],"","sql",true);
-  $settings["sql"]=array_merge($settings["webdb_sql"],$settings["app_sql"]);
-  $settings["forms"]=array();
-  \webdb\forms\load_form_defs();
-  $settings["app_group_access"]=explode(",",$settings["app_group_access"]);
+}
+
+#####################################################################################################
+
+function database_connect()
+{
+  global $settings;
+  $db_database="";
+  if ($settings["db_database"]<>"")
+  {
+    $db_database=";".$settings["db_database"];
+  }
+  $settings["pdo_admin"]=new \PDO($settings["db_engine"].":".$settings["db_host"].$db_database,$settings["db_admin_username"],$settings["db_admin_password"]);
+  if ($settings["pdo_admin"]===false)
+  {
+    \webdb\utils\system_message("error: unable to connect to sql server as admin");
+  }
+  $settings["pdo_user"]=new \PDO($settings["db_engine"].":".$settings["db_host"].$db_database,$settings["db_user_username"],$settings["db_user_password"]);
+  if ($settings["pdo_user"]===false)
+  {
+    \webdb\utils\system_message("error: unable to connect to sql server as user");
+  }
 }
 
 #####################################################################################################
@@ -687,6 +757,14 @@ function check_user_form_permission($page_id,$permission)
   {
     return false;
   }
+  if (isset($settings["permissions"]["*"]["forms"][$page_id])==true)
+  {
+    $permissions=$settings["permissions"]["*"]["forms"][$page_id];
+    if (strpos($permissions,$permission)!==false)
+    {
+      return true;
+    }
+  }
   $user_groups=$settings["logged_in_user_groups"];
   for ($i=0;$i<count($user_groups);$i++)
   {
@@ -697,10 +775,6 @@ function check_user_form_permission($page_id,$permission)
       if (strpos($permissions,$permission)!==false)
       {
         return true;
-      }
-      else
-      {
-        return false;
       }
     }
   }
@@ -728,6 +802,15 @@ function check_user_template_permission($template_name)
   if (isset($settings["logged_in_user_groups"])==false)
   {
     return false;
+  }
+  if (isset($settings["permissions"]["*"]["templates"][$template_name])==true)
+  {
+    $substitute_template=$settings["permissions"]["*"]["templates"][$template_name];
+    if ($substitute_template=="")
+    {
+      return $template_name;
+    }
+    return $substitute_template;
   }
   $user_groups=$settings["logged_in_user_groups"];
   for ($i=0;$i<count($user_groups);$i++)

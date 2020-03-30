@@ -880,6 +880,48 @@ function lookup_field_display_value($lookup_config,$lookup_record)
 
 #####################################################################################################
 
+function get_lookup_field_value($field_name,$form_config,$lookup_records,$display_record,$link_record=false)
+{
+  $result="";
+  $lookup_config=$form_config["lookups"][$field_name];
+  $key_field_name=$lookup_config["key_field"];
+  $sibling_field_name=$lookup_config["sibling_field"];
+  if (($form_config["checklist"]==false) or (array_key_exists($sibling_field_name,$display_record)==true))
+  {
+    for ($i=0;$i<count($lookup_records[$field_name]);$i++)
+    {
+      $lookup_record=$lookup_records[$field_name][$i];
+      $key_value=$lookup_record[$key_field_name];
+      if ($display_record[$sibling_field_name]==$key_value)
+      {
+        $result=\webdb\forms\lookup_field_display_value($lookup_config,$lookup_record);
+        break;
+      }
+    }
+  }
+  else
+  {
+    if ($link_record!==false)
+    {
+      $key_value=$link_record[$key_field_name];
+      $sibling_value=$display_record[$sibling_field_name];
+      for ($i=0;$i<count($lookup_records[$field_name]);$i++)
+      {
+        $lookup_record=$lookup_records[$field_name][$i];
+        if (($lookup_record[$key_field_name]==$key_value) and ($lookup_record[$sibling_field_name]==$sibling_value))
+        {
+          $result=\webdb\forms\lookup_field_display_value($lookup_config,$lookup_record);
+          break;
+        }
+      }
+    }
+  }
+  $result=htmlspecialchars(str_replace(\webdb\index\LINEBREAK_DB_DELIM,\webdb\index\LINEBREAK_PLACEHOLDER,$result));
+  return str_replace(\webdb\index\LINEBREAK_PLACEHOLDER,\webdb\utils\template_fill("break"),$result);
+}
+
+#####################################################################################################
+
 function output_readonly_field($field_params,$control_type,$form_config,$field_name,$lookup_records,$display_record,$link_record=false)
 {
   global $settings;
@@ -888,42 +930,7 @@ function output_readonly_field($field_params,$control_type,$form_config,$field_n
     case "hidden":
       return "";
     case "lookup":
-      $field_params["value"]="";
-      $lookup_config=$form_config["lookups"][$field_name];
-      $key_field_name=$lookup_config["key_field"];
-      $sibling_field_name=$lookup_config["sibling_field"];
-      if (($form_config["checklist"]==false) or (array_key_exists($sibling_field_name,$display_record)==true))
-      {
-        for ($i=0;$i<count($lookup_records[$field_name]);$i++)
-        {
-          $lookup_record=$lookup_records[$field_name][$i];
-          $key_value=$lookup_record[$key_field_name];
-          if ($display_record[$sibling_field_name]==$key_value)
-          {
-            $field_params["value"]=\webdb\forms\lookup_field_display_value($lookup_config,$lookup_record);
-            break;
-          }
-        }
-      }
-      else
-      {
-        if ($link_record!==false)
-        {
-          $key_value=$link_record[$key_field_name];
-          $sibling_value=$display_record[$sibling_field_name];
-          for ($i=0;$i<count($lookup_records[$field_name]);$i++)
-          {
-            $lookup_record=$lookup_records[$field_name][$i];
-            if (($lookup_record[$key_field_name]==$key_value) and ($lookup_record[$sibling_field_name]==$sibling_value))
-            {
-              $field_params["value"]=\webdb\forms\lookup_field_display_value($lookup_config,$lookup_record);
-              break;
-            }
-          }
-        }
-      }
-      $field_params["value"]=htmlspecialchars(str_replace(\webdb\index\LINEBREAK_DB_DELIM,\webdb\index\LINEBREAK_PLACEHOLDER,$field_params["value"]));
-      $field_params["value"]=str_replace(\webdb\index\LINEBREAK_PLACEHOLDER,\webdb\utils\template_fill("break"),$field_params["value"]);
+      $field_params["value"]=\webdb\forms\get_lookup_field_value($field_name,$form_config,$lookup_records,$display_record,$link_record);
       return \webdb\forms\form_template_fill("list_field",$field_params);
     case "memo":
       $field_params["value"]=htmlspecialchars(str_replace(\webdb\index\LINEBREAK_DB_DELIM,\webdb\index\LINEBREAK_PLACEHOLDER,$display_record[$field_name]));
@@ -1057,7 +1064,7 @@ function list_row_controls($form_config,&$submit_fields,$operation,$column_forma
   $row_params["primary_key"]=\webdb\forms\config_id_url_value($form_config,$record,"primary_key");
   $row_params["page_id"]=$form_config["page_id"];
   $row_params["check"]=\webdb\forms\check_column($form_config,"list_check_insert");
-  $lookup_records=lookup_records($form_config,false);
+  $lookup_records=lookup_records($form_config,true);
   $fields="";
   $hidden_fields="";
   foreach ($form_config["control_types"] as $field_name => $control_type)
@@ -1091,11 +1098,11 @@ function list_row_controls($form_config,&$submit_fields,$operation,$column_forma
     }
     if ($control_type<>"lookup")
     {
-      $field_params["value"]=output_editable_field($field_params,$record,$field_name,$control_type,$form_config,$lookup_records,$submit_fields);
+      $field_params["value"]=\webdb\forms\output_editable_field($field_params,$record,$field_name,$control_type,$form_config,$lookup_records,$submit_fields);
     }
     else
     {
-      $field_params["value"]=$form_config["default_values"][$field_name];
+      $field_params["value"]=\webdb\forms\get_lookup_field_value($field_name,$form_config,$lookup_records,$record);
     }
     if ($control_type<>"hidden")
     {
@@ -1148,7 +1155,7 @@ function output_editable_field(&$field_params,$record,$field_name,$control_type,
       {
         $field_params["field_key"]=$record[$field_name];
       }
-      $field_params["field_value"]="";
+      /*$field_params["field_value"]="";
       $lookup_config=$form_config["lookups"][$field_name];
       $key_field_name=$lookup_config["key_field"];
       $sibling_field_name=$lookup_config["sibling_field"];
@@ -1164,7 +1171,8 @@ function output_editable_field(&$field_params,$record,$field_name,$control_type,
         }
       }
       $field_params["field_value"]=htmlspecialchars(str_replace(\webdb\index\LINEBREAK_DB_DELIM,\webdb\index\LINEBREAK_PLACEHOLDER,$field_params["field_value"]));
-      $field_params["field_value"]=str_replace(\webdb\index\LINEBREAK_PLACEHOLDER,\webdb\utils\template_fill("break"),$field_params["field_value"]);
+      $field_params["field_value"]=str_replace(\webdb\index\LINEBREAK_PLACEHOLDER,\webdb\utils\template_fill("break"),$field_params["field_value"]);*/
+      $field_params["value"]=\webdb\forms\get_lookup_field_value($field_name,$form_config,$lookup_records,$record);
       break;
     case "span":
       break;
@@ -1231,9 +1239,22 @@ function output_editable_field(&$field_params,$record,$field_name,$control_type,
         {
           if ($lookup_config["exclude_parent"]==true)
           {
-            if ($option_params["value"]==$form_config["parent_form_id"])
+            if (isset($form_config["parent_form_id"])==true)
             {
-              $excluded_parent=true;
+              # editor subform
+              if ($option_params["value"]==$form_config["parent_form_id"])
+              {
+                $excluded_parent=true;
+              }
+            }
+            else
+            {
+              # list/editor form
+              $primary_key=\webdb\forms\config_id_url_value($form_config,$record,"primary_key");
+              if ($option_params["value"]==$primary_key)
+              {
+                $excluded_parent=true;
+              }
             }
           }
         }
@@ -2342,7 +2363,7 @@ function process_form_data_fields($form_config,$post_override=false)
         }
         break;
     }
-    if (isset($post_fields[$post_name])==false)
+    if (array_key_exists($post_name,$post_fields)==false)
     {
       continue;
     }

@@ -44,18 +44,9 @@ function apply_test_app_settings()
     $settings["app_web_index"]=$settings["app_web_root"]."index.php";
     $settings["app_root_namespace"]="\\".$settings["app_directory_name"]."\\";
     $settings["app_templates_path"]=$settings["app_root_path"]."templates".DIRECTORY_SEPARATOR;
-    $settings["app_sql_path"]=$settings["app_root_path"]."sql".DIRECTORY_SEPARATOR;
+    $settings["app_sql_path"]=$settings["app_root_path"]."sql_".$settings["db_engine"].DIRECTORY_SEPARATOR;
     $settings["app_resources_path"]=$settings["app_root_path"]."resources".DIRECTORY_SEPARATOR;
     $settings["app_forms_path"]=$settings["app_root_path"]."forms".DIRECTORY_SEPARATOR;
-    $common_settings_filename=$settings["app_parent_path"]."webdb_common_settings.php";
-    if (file_exists($common_settings_filename)==true)
-    {
-      require_once($common_settings_filename);
-    }
-    else
-    {
-      \webdb\test\utils\test_error_message("error: webdb common settings file not found: ".$common_settings_filename);
-    }
     $settings_filename=$settings["app_root_path"]."settings.php";
     if (file_exists($settings_filename)==false)
     {
@@ -318,9 +309,9 @@ function strip_http_headers($response)
 {
   $delim="\r\n\r\n";
   $i=strpos($response,$delim);
-  if ($i===False)
+  if ($i===false)
   {
-    return False;
+    return $response;
   }
   return trim(substr($response,$i+strlen($delim)));
 }
@@ -575,6 +566,7 @@ function extract_text($text,$delim1,$delim2)
 
 function compare_template($template,$response)
 {
+  $response=\webdb\test\utils\strip_http_headers($response);
   if ($response=="")
   {
     return false;
@@ -583,7 +575,7 @@ function compare_template($template,$response)
   {
     return true;
   }
-  $template_content=\webdb\utils\template_fill($template);
+  $template_content=trim(\webdb\utils\template_fill($template));
   $parts=explode("%%",$template_content);
   $excluded=array();
   for ($i=0;$i<count($parts);$i++)
@@ -600,10 +592,12 @@ function compare_template($template,$response)
     {
       continue;
     }
-    if (strpos($response,$needle)===false)
+    $k=strpos($response,$needle);
+    if ($k===false)
     {
       return false;
     }
+    $response=substr($response,$k+strlen($needle));
   }
   return true;
 }
@@ -612,7 +606,7 @@ function compare_template($template,$response)
 
 function compare_form_template($template,$response)
 {
-  return \webdb\test\utils\compare_template("forms".DIRECTORY_SEPARATOR.$template,$response);
+  return \webdb\test\utils\compare_template("forms/".$template,$response);
 }
 
 #####################################################################################################

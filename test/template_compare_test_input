@@ -1,0 +1,184 @@
+HTTP/1.1 200 OK
+Date: Thu, 26 Mar 2020 23:39:49 GMT
+Server: Apache/2.4.25 (Debian)
+Cache-Control: no-cache
+Expires: -1
+Pragma: no-cache
+Set-Cookie: webdb_csrf_auth=deleted; expires=Thu, 01-Jan-1970 00:00:01 GMT; Max-Age=0; path=/; domain=localhost; HttpOnly
+Set-Cookie: webdb_login=deleted; expires=Thu, 01-Jan-1970 00:00:01 GMT; Max-Age=0; path=/; domain=localhost; HttpOnly
+Set-Cookie: webdb_csrf_unauth=7%2BRzKQAjTj5C2v1qai5P%2FZL4a%2BN1gHWInWu8G8TU; path=/; domain=localhost; HttpOnly
+Set-Cookie: webdb_csrf_auth=deleted; expires=Thu, 01-Jan-1970 00:00:01 GMT; Max-Age=0; path=/; domain=localhost; HttpOnly
+Vary: Accept-Encoding
+Content-Length: 6088
+Connection: close
+Content-Type: text/html; charset=UTF-8
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Login</title>
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+  <link rel="shortcut icon" href="/mdo_risks/resources/jet-icon.png">
+  <link rel="stylesheet" type="text/css" href="/webdb/resources/global.css?mod=1582580644">
+</head>
+<body>
+
+<div class="test_data_warning">
+DATA IS FOR TEST PURPOSES ONLY -- NOT FOR PRODUCTION USE -- DATA MAY BE CORRUPTED OR RESET AT ANY TIME WITHOUT NOTICE
+</div>
+
+<script type="text/javascript">
+var initial_calendar_inputs=[];
+var calendar_inputs=[];
+</script>
+
+<link rel="stylesheet" property="stylesheet" href="/webdb/resources/calendar.css?mod=1583183459">
+<script type="text/javascript" src="/webdb/resources/calendar.js?mod=1583183187"></script>
+
+<div id="app_date_format" style="display: none;">j-M-y</div>
+
+<div id="calendar_div">
+  <table>
+    <thead>
+    <tr>
+      <td><input type="button" value="&#9664;" id="calendar_previous_month_link" onclick="" title=""></td>
+      <td colspan="5">
+        <select id="calendar_month_select" onchange="">
+          <option value="0">January</option>
+          <option value="1">February</option>
+          <option value="2">March</option>
+          <option value="3">April</option>
+          <option value="4">May</option>
+          <option value="5">June</option>
+          <option value="6">July</option>
+          <option value="7">August</option>
+          <option value="8">September</option>
+          <option value="9">October</option>
+          <option value="10">November</option>
+          <option value="11">December</option>
+        </select>
+        <select id="calendar_year_select" onchange=""></select>
+      </td>
+      <td><input type="button" value="&#9654;" id="calendar_next_month_link" onclick="" title=""></td>
+    </tr>
+    <tr>
+      <td class="dayheading">Sun</td>
+      <td class="dayheading">Mon</td>
+      <td class="dayheading">Tue</td>
+      <td class="dayheading">Wed</td>
+      <td class="dayheading">Thu</td>
+      <td class="dayheading">Fri</td>
+      <td class="dayheading">Sat</td>
+    </tr>
+    </thead>
+    <tbody>
+
+    </tbody>
+    <tfoot>
+    <!-- following empty row is a chrome colspan bug workaround -->
+    <tr>
+      <td class="workaround"></td>
+      <td class="workaround"></td>
+      <td class="workaround"></td>
+      <td class="workaround"></td>
+      <td class="workaround"></td>
+      <td class="workaround"></td>
+      <td class="workaround"></td>
+    </tr>
+    <tr>
+      <td colspan="2"><input type="button" value="Clear" onclick="calendar_clear_input();"></td>
+      <td colspan="3"><input type="button" value="Today" onclick="calendar_select_today();"></td>
+      <td colspan="2"><input type="button" value="Cancel" onclick="hide_calendar();"></td>
+    </tr>
+    </tfoot>
+  </table>
+</div> <!-- calendar_div -->
+
+<div id="csrf_token" style="display: none;">$2y$11$Q4z7vavVdS0myo8QODgV/OjyHbDbXhsRkSCCdRyL.fcRSVTElnf5i</div>
+
+<div id="custom_alert_background">
+  <div class="custom_alert_outside">
+    <div class="custom_alert_inside">
+      <div class="custom_alert">
+        <div id="custom_alert_message"></div>
+        <div class="custom_alert_controls_div">
+          <input type="button" value="OK" onclick="custom_alert_close(); return false;">
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- not authenticated -->
+
+<script type="text/javascript" src="/webdb/resources/login.js?mod=1582580644"></script>
+<link rel="stylesheet" property="stylesheet" href="/webdb/resources/login.css?mod=1582580644">
+
+
+
+<div id="login_notice">
+DEFAULT LOGIN CREDENTIALS<br>
+username: <span class="login_notice_credential">&lt;firstname&gt;.&lt;surname&gt;</span><br>
+password: <span class="login_notice_credential">password</span><br>
+<br>
+If logging in for the first time you will be prompted to change your password.<br>
+<br>
+If you change your password and it doesn't work, the database may have been reset. Try again with default credentials per above.
+</div>
+
+<div id="login_dialog">
+<div id="login_content">
+
+<p class="login_title">B300 MDO HAZARD TRACKING SYSTEM</p>
+
+
+<form action="/mdo_risks/index.php" method="post">
+
+<input type="hidden" name="csrf_token" value="$2y$11$Q4z7vavVdS0myo8QODgV/OjyHbDbXhsRkSCCdRyL.fcRSVTElnf5i">
+
+<input type="hidden" name="target_url" value="http://localhost/mdo_risks/index.php">
+
+<p>Username<br><input type="text" name="login_username" value="test_user"></p>
+<p>Password<br><input type="password" id="login_password" name="login_password" value="" onkeypress="return login_password_keypress(event);"></p>
+
+
+<p><span style="color: red; font-weight: bold; visibility: hidden;" id="caps_lock_warning">CAPS LOCK IS ON</span></p>
+
+
+<p><input id="login_submit" style="font-weight: bold;" type="submit" value="LOGIN"></p>
+<p><input style="font-size: 9pt;" type="submit" name="send_reset_password" value="Reset Password" disabled></p>
+<!-- PASSWORD RESET BUTTON DISABLED TILL EMAIL FUNCTIONALITY INCORPORATED -->
+
+<p><input type="checkbox" id="show_password_check" onclick="login_show_password(); return true;"> show password</p>
+
+</form>
+
+</div>
+</div>
+
+<script type="text/javascript" src="/webdb/resources/global.js?mod=1582580644"></script>
+<link rel="stylesheet" property="stylesheet" href="/mdo_risks/resources/login_notice.css?mod=1585025984">
+<link rel="stylesheet" property="stylesheet" href="/mdo_risks/resources/header.css?mod=1585094003">
+<link rel="stylesheet" property="stylesheet" href="/mdo_risks/resources/page.css?mod=1582580622">
+
+</body>
+</html>
+<!--
+                              _ _ _ _
+                            /        /
+                           /  Duck  /
+                          /_ _ _ _ /
+                        /\
+                       |ee|
+                       |{}|
+        _______________/^^\________________
+       /               |  |                \
+      /========--------.  .---------========\
+                       ||||
+                        ||
+                        ||
+                        ||
+                        ||
+                    ,---||---,
+                    '---<>---'
+       -->

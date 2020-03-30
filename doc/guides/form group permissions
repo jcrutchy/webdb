@@ -6,7 +6,7 @@ however, any form without permissions is assumed to be accessible for reading, u
 
 in the any of the settings php files (webdb/common/application), add group permissions to specific forms using the following convention:
 
-$settings["permissions"]["group_name"]["forms"]["page_id"]="riud";
+$settings["permissions"]["group_name"]["forms"]["<page_id>"]="riud";
 
 the permission value consists of a string containing any mixture of "r", "i", "u" and "d"
 
@@ -18,3 +18,8 @@ the permission value consists of a string containing any mixture of "r", "i", "u
 if a user attempts an action on one or more records associated with a form and isn't a member of a group with permission to perform that action, an error message will be shown
 
 if a permission is set more than once, the last setting will be used
+
+
+
+
+$settings["permissions"]["*"]["forms"]["<page_id>"]="r";
