@@ -8,7 +8,7 @@ function parse_dxf($data)
 {
   $result=array();
   $entity_types=array("LINE","CIRCLE");
-  $dxf_lines=explode(PHP_EOL,$data);
+  $dxf_lines=explode("\n",$data);
   $line_count=count($dxf_lines);
   $group_code="";
   $entity_data=false;

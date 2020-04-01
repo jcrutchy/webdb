@@ -11,6 +11,7 @@ function auth_dispatch()
   {
     \webdb\users\logout();
   }
+  \webdb\csrf\check_unauthenticated_csrf_token();
   if (isset($_POST["send_reset_password"])==true) # user clicked reset password button on login form (unauthenticated)
   {
     \webdb\users\send_reset_password_message();
@@ -21,6 +22,8 @@ function auth_dispatch()
   }
   \webdb\users\login();
   \webdb\users\user_login_settings_set($settings["user_record"]);
+  \webdb\csrf\check_authenticated_csrf_token();
+  \webdb\utils\check_user_app_permission();
   if (isset($_GET["change_password"])==true)
   {
     \webdb\users\change_password();

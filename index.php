@@ -112,11 +112,7 @@ if ($settings["check_ua"]==true)
   }
 }
 
-\webdb\csrf\check_unauthenticated_csrf_token();
 \webdb\users\auth_dispatch();
-\webdb\csrf\check_authenticated_csrf_token();
-
-\webdb\utils\check_user_app_permission();
 
 if (isset($settings["controller_dispatch"])==true)
 {

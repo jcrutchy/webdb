@@ -535,7 +535,11 @@ function sql_change($old_records,$sql,$where_items,$value_items,$table,$database
         return;
     }
   }
-  \webdb\users\obfuscate_hashes($params);
+  \webdb\users\obfuscate_hashes($value_items);
+  for ($i=0;$i<count($old_records);$i++)
+  {
+    \webdb\users\obfuscate_hashes($old_records[$i]);
+  }
   $user_id=\webdb\sql\null_user_check($sql,$where_items,$table,$database);
   $items=array();
   $items["user_id"]=$user_id;
