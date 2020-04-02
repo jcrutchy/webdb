@@ -229,6 +229,7 @@ function sql_update($value_items,$where_items,$table,$database,$is_admin=false,$
 function get_foreign_key_defs($database,$table)
 {
   $sql_params=array();
+  $database=\webdb\utils\string_template_fill($database);
   $sql_params["database"]=$database;
   $sql_params["table"]=$table;
   return \webdb\sql\file_fetch_prepare("foreign_keys",$sql_params,$table,$database);
@@ -324,8 +325,7 @@ function execute_return($sql,$params=array(),$filename="",$is_admin=false,$table
 {
   global $settings;
   $pdo=\webdb\sql\get_pdo_object($is_admin);
-  $tmp_sql=array("temp_sql"=>$sql);
-  $sql=\webdb\utils\template_fill("temp_sql",false,array(),$tmp_sql);
+  $sql=\webdb\utils\string_template_fill($sql);
   $statement=$pdo->prepare($sql);
   if ($statement===false)
   {

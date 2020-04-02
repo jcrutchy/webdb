@@ -831,6 +831,14 @@ function check_user_template_permission($template_name)
 
 #####################################################################################################
 
+function string_template_fill($input)
+{
+  $tmp=array("tmp"=>$input);
+  return \webdb\utils\template_fill("tmp",false,array(),$tmp);
+}
+
+#####################################################################################################
+
 function template_fill($template_key,$params=false,$tracking=array(),$custom_templates=false) # tracking array is used internally to limit recursion and should not be manually passed
 {
   global $settings;
