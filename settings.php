@@ -58,6 +58,7 @@ $settings["db_database"]="";
 
 $settings["database_webdb"]="webdb";
 $settings["database_app"]="";
+$settings["database_catalog"]=""; # setting specific to MS SQL Server (used to query INFORMATION_SCHEMA)
 
 $settings["check_ua"]=true;
 $settings["check_templates"]=true;
