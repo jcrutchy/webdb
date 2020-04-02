@@ -123,6 +123,13 @@ function form_dispatch($page_id)
               $id=\webdb\utils\get_child_array_key($_POST["form_cmd"],"delete_confirm");
               \webdb\forms\delete_record($form_config,$id);
             case "delete_selected":
+              $cmd_page_id=\webdb\utils\get_child_array_key($_POST["form_cmd"],"delete_selected");
+              $subform_list=array_keys($form_config["edit_subforms"]);
+              if (in_array($cmd_page_id,$subform_list)==true)
+              {
+                $_GET["redirect"]=\webdb\utils\get_url();
+                $form_config=\webdb\forms\get_form_config($cmd_page_id,false);
+              }
               \webdb\forms\delete_selected_confirmation($form_config);
             case "delete_selected_confirm":
               \webdb\forms\delete_selected_records($form_config);
@@ -2712,16 +2719,18 @@ function delete_record($form_config,$id)
 function delete_selected_confirmation($form_config)
 {
   global $settings;
-  if (isset($_POST["list_select"])==false)
+  $list_select_name=$form_config["page_id"].":list_select";
+  if (isset($_POST[$list_select_name])==false)
   {
     \webdb\utils\error_message("No records selected.");
   }
+  $list_select_array=$_POST[$list_select_name];
   $foreign_key_defs=\webdb\sql\get_foreign_key_defs($form_config["database"],$form_config["table"]);
   $form_params=array();
   $records=array();
   $hidden_id_fields="";
   $foreign_key_used=false;
-  foreach ($_POST["list_select"] as $id => $value)
+  foreach ($list_select_array as $id => $value)
   {
     $record=\webdb\forms\get_record_by_id($form_config,$id,"primary_key");
     $record["fk_table_list"]="NONE";
