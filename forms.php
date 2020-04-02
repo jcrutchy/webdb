@@ -792,6 +792,10 @@ function list_row($form_config,$record,$column_format,$row_spans,$lookup_records
     {
       $field_params["table_cell_style"].=\webdb\forms\form_template_fill("checklist_row_linked_style");
     }
+    if ($form_config["edit_cmd"]=="inline")
+    {
+      $field_params["table_cell_style"].=\webdb\forms\form_template_fill("inline_edit_cell_style");
+    }
     if (($form_config["edit_cmd"]=="row") or ($form_config["edit_cmd"]=="inline"))
     {
       $field_params["edit_cmd_id"]=$row_params["edit_cmd_id"];
