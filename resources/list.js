@@ -19,7 +19,7 @@ function list_page_load()
         document.cookie=cookie_name+"=; Domain="+window.location.hostname+"; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
         confirm_status_fade_alpha=1.0;
         confirm_status.style.color="rgba(153,51,0,"+confirm_status_fade_alpha+")";
-        confirm_status.style.display="inline";
+        confirm_status.style.visibility="visible";
         setTimeout(confirm_status_fadeout,2000); // 2 sec
       }
     }
@@ -72,7 +72,7 @@ function confirm_status_fadeout()
   else
   {
     confirm_status_fade_alpha=1.0;
-    confirm_status.style.display="none";
+    confirm_status.style.visibility="hidden";
   }
 }
 

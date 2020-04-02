@@ -196,8 +196,8 @@ th.list_controls_head
 .confirm_status
   {
     font-weight: bold;
-    padding-left: 10px;
-    display: none;
+    visibility: hidden;
+    padding-top: 5px;
   }
 
 #header_links_bar

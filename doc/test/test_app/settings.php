@@ -4,8 +4,8 @@ $settings["db_pwd_path"]="/home/jared/dev/pwd/";
 $settings["db_admin_file"]=$settings["db_pwd_path"]."sql_admin";
 $settings["db_user_file"]=$settings["db_pwd_path"]."sql_user";
 
-$settings["ip_blacklist_file"]="/home/jared/dev/public/ip_blacklist.txt";
-$settings["ip_whitelist_file"]="/home/jared/dev/public/ip_whitelist.txt";
+$settings["ip_blacklist_file"]=dirname(__DIR__).DIRECTORY_SEPARATOR."ip_blacklist.txt";
+$settings["ip_whitelist_file"]=dirname(__DIR__).DIRECTORY_SEPARATOR."ip_whitelist.txt";
 
 $settings["sql_log_path"]="/home/jared/dev/log/";
 $settings["auth_log_path"]="/home/jared/dev/log/";

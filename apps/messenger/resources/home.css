@@ -1,0 +1,287 @@
+html
+  {
+    font-size: 13px;
+    font-family: sans-serif;
+    background-color: #fdede8;
+    border: none; /* get rid of quirks mode border in IE */
+    margin: 0;
+    padding: 0;
+  }
+
+body
+  {
+    font-size: 13px;
+    border: none; /* get rid of quirks mode border in IE */
+    padding: 0;
+    margin: 0;
+    color: #0a4b5c;
+    font-family: "Courier New", Courier, monospace;
+  }
+
+table
+  {
+    empty-cells: show;
+    border-collapse: collapse;
+    width: 100%;
+  }
+
+th
+  {
+    font-size: 10pt;
+    font-weight: bold;
+    border: none;
+    height: 10px;
+    padding: 2px;
+  }
+
+td
+  {
+    font-size: 10pt;
+    border: none;
+    height: 10px;
+    padding: 2px;
+    vertical-align: top;
+  }
+
+form
+  {
+    display: inline;
+  }
+
+img
+  {
+    border: 0;
+  }
+
+/************************************************************************/
+
+#left_panel
+  {
+    overflow: hidden;
+    padding: 0;
+    margin: 0;
+    border: 0;
+    position: absolute;
+    left: 5px;
+    bottom: 5px;
+    top: 5px;
+    width: 200px;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: stretch;
+    align-content: space-between;
+  }
+
+#center_panel
+  {
+    overflow: hidden;
+    padding: 1px;
+    margin: 0;
+    border: 0;
+    position: absolute;
+    top: 5px;
+    bottom: 5px;
+    left: 210px;
+    right: 210px;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: stretch;
+    align-content: space-between;
+  }
+
+#right_panel
+  {
+    overflow: hidden;
+    padding: 0;
+    margin: 0;
+    border: 0;
+    position: absolute;
+    right: 5px;
+    bottom: 5px;
+    top: 5px;
+    width: 200px;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: stretch;
+    align-content: space-between;
+  }
+
+/************************************************************************/
+
+#splitter_left
+  {
+    position: fixed;
+    left: 206px;
+    width: 3px;
+    top: 5px;
+    bottom: 5px;
+    cursor: col-resize;
+    padding: 0;
+    margin: 0;
+    border: 0;
+  }
+
+#splitter_right
+  {
+    position: fixed;
+    right: 206px;
+    width: 3px;
+    top: 5px;
+    bottom: 5px;
+    cursor: col-resize;
+    padding: 0;
+    margin: 0;
+    border: 0;
+  }
+
+.splitter_highlight
+  {
+    position: absolute;
+    left: 1px;
+    width: 0px;
+    height: 100%;
+    cursor: col-resize;
+    border: 0;
+    border-left: 1px dotted #AAAAAA;
+    margin: 0;
+    padding: 0;
+  }
+
+/************************************************************************/
+
+.logo_outer
+  {
+    padding: 5px;
+  }
+
+.logo_img
+  {
+    width: 100%;
+  }
+
+/************************************************************************/
+
+#channel_info
+  {
+    height: 100px;
+  }
+
+/************************************************************************/
+
+#messages_scroll
+  {
+    flex-grow: 1;
+    overflow-x: auto;
+    overflow-y: scroll;
+    font-size: 13px;
+    padding: 0;
+    background-color: #fdf6e3;
+    border: 1px solid #586e75;
+  }
+
+#messages_content
+  {
+    overflow-anchor: none; /* need at least Firefox 66 or Chrome 51 */
+  }
+
+#messages_anchor
+  {
+    overflow-anchor: auto; /* need at least Firefox 66 or Chrome 51 */
+    height: 1px;
+  }
+
+/************************************************************************/
+
+#message_inputs
+  {
+    height: 25px;
+    padding: 0;
+    padding-top: 4px;
+    border: 0;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: stretch;
+    align-content: space-between;
+  }
+
+#message_inputs div
+  {
+    flex-grow: 1;
+  }
+
+/************************************************************************/
+
+.list_label
+  {
+    height: 20px;
+    border: none;
+    border-bottom: 1px solid #586e75;
+    overflow: hidden;
+    color: #073642;
+    font-weight: bold;
+    line-height: 20px;
+    text-align: center;
+    font-size: 13px;
+    background-color: #93a1a1;
+  }
+
+/************************************************************************/
+
+.list_scroll
+  {
+    flex-grow: 1;
+    overflow-x: auto;
+    overflow-y: scroll;
+    border: none;
+  }
+
+.list_content
+  {
+    background-color: #fafafd;
+    color: #073642;
+    line-height: 20px;
+    text-align: center;
+    font-size: 13px;
+  }
+
+/************************************************************************/
+
+#joined_channels
+  {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: stretch;
+    align-content: space-between;
+    overflow: hidden;
+    padding: 0;
+    background-color: #fdf6e3;
+    border: 1px solid #586e75;
+  }
+
+#channel_users
+  {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: stretch;
+    align-content: space-between;
+    overflow: hidden;
+    padding: 0;
+    background-color: #fdf6e3;
+    border: 1px solid #586e75;
+  }
+
+/************************************************************************/

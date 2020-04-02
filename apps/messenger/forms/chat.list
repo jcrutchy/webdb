@@ -1,0 +1,48 @@
+{
+    "form_version": "20190829.1",
+    "form_type": "list",
+    "enabled": true,
+    "title": "Messenger",
+    "page_id": "chat",
+    "js_events": {
+        "users": {
+            "update": {
+                "handler": "",
+                "params": "",
+                "return": "",
+                "ajax_stub": "\\messenger\\stubs\\users_update"
+            }
+        },
+        "channels": {
+            "update": {
+                "handler": "",
+                "params": "",
+                "return": "",
+                "ajax_stub": "\\messenger\\stubs\\channels_update"
+            }
+        },
+        "messages": {
+            "update": {
+                "handler": "",
+                "params": "",
+                "return": "",
+                "ajax_stub": "\\messenger\\stubs\\messages_update"
+            }
+        },
+        "message": {
+            "send": {
+                "handler": "",
+                "params": "",
+                "return": "",
+                "ajax_stub": "\\messenger\\stubs\\message_send"
+            }
+        }
+    },
+    "multi_row_delete": false,
+    "individual_delete": false,
+    "insert_new": false,
+    "insert_row": false,
+    "advanced_search": false,
+    "sort_field_select": false,
+    "allow_field_sort": false
+}

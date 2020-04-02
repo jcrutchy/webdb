@@ -1,0 +1,45 @@
+<div id="ajax_url_update" style="display: none;">$$app_web_index$$?cmd=update</div>
+
+<div id="left_panel">
+  <div class="logo_outer"><a href="$$app_web_index$$"><img class="logo_img" src="/logo.png" alt=""></a></div>
+  <div id="joined_channels">
+    <div class="list_label">JOINED CHANNELS</div>
+    <div class="list_scroll">
+      <div class="list_content">
+        <table>%%joined_channels_rows%%</table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="splitter_left" onmousedown="splitter_left_mousedown(event); return false;"><div class="splitter_highlight"></div></div>
+
+<div id="center_panel">
+  <div id="channel_info">
+  </div>
+  <div id="messages_scroll">
+    <div id="messages_content">
+      <table id="messages_table">
+        %%messages_rows%%
+      </table>
+    </div>
+    <div id="messages_anchor"></div>
+  </div>
+  <div id="message_inputs">
+    <input id="message_input" type="text" value="">
+    <input type="button" value="send" onclick="message_send(); return false;">
+  </div>
+</div>
+
+<div id="splitter_right" onmousedown="splitter_right_mousedown(event); return false;"><div class="splitter_highlight"></div></div>
+
+<div id="right_panel">
+  <div id="channel_users">
+    <div class="list_label">CHANNEL USERS</div>
+    <div class="list_scroll">
+      <div class="list_content">
+        <table>%%channel_users_rows%%</table>
+      </div>
+    </div>
+  </div>
+</div>

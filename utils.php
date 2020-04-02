@@ -351,7 +351,6 @@ function output_resource_links($buffer,$type)
 function ob_postprocess($buffer)
 {
   global $settings;
-  #return $settings["csrf_token"];
   $buffer=\webdb\csrf\fill_csrf_token($buffer);
   $buffer=\webdb\utils\output_resource_links($buffer,"css");
   $buffer=\webdb\utils\output_resource_links($buffer,"js");

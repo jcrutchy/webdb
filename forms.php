@@ -108,7 +108,14 @@ function form_dispatch($page_id)
               }
               \webdb\forms\update_record($form_config,$id);
             case "delete":
-              $id=\webdb\utils\get_child_array_key($_POST["form_cmd"],"delete");
+              $cmd_page_id=\webdb\utils\get_child_array_key($_POST["form_cmd"],"delete");
+              $subform_list=array_keys($form_config["edit_subforms"]);
+              if (in_array($cmd_page_id,$subform_list)==true)
+              {
+                $_GET["redirect"]=\webdb\utils\get_url();
+                $form_config=\webdb\forms\get_form_config($cmd_page_id,false);
+              }
+              $id=\webdb\utils\get_child_array_key($_POST["form_cmd"]["delete"],$cmd_page_id);
               $data=\webdb\forms\delete_confirmation($form_config,$id);
               $data["content"].=\webdb\forms\output_html_includes($form_config);
               \webdb\utils\output_page($data["content"],$data["title"]);
@@ -837,6 +844,7 @@ function list_row($form_config,$record,$column_format,$row_spans,$lookup_records
     }
     if (($form_config["delete_cmd"]==true) and ($form_config["records_sql"]==""))
     {
+      $row_params["delete_button_caption"]=$form_config["delete_button_caption"];
       $row_params["controls"].=\webdb\forms\form_template_fill("list_row_del",$row_params);
     }
     $row_params["controls_min_width"]=$column_format["controls_min_width"];
@@ -1735,7 +1743,7 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
     }
     if ($form_config["multi_row_delete"]==true)
     {
-      $form_params["delete_selected_control"]=\webdb\forms\form_template_fill("list_del_selected");
+      $form_params["delete_selected_control"]=\webdb\forms\form_template_fill("list_del_selected",$form_config);
     }
   }
   $form_params["row_edit_mode"]=$form_config["edit_cmd"];
@@ -2654,7 +2662,9 @@ function page_redirect($form_config=false,$params=false,$append="")
   }
   else
   {
-    $url=\webdb\forms\form_url($form_config);
+    $url_params=array();
+    $url_params["page_id"]=$form_config["page_id"];
+    $url=\webdb\forms\form_template_fill("form_url",$url_params);
   }
   if ($params!==false)
   {
@@ -2685,22 +2695,12 @@ function page_redirect($form_config=false,$params=false,$append="")
 
 #####################################################################################################
 
-function form_url($form_config)
-{
-  global $settings;
-  $url_params=array();
-  $url_params["page_id"]=$form_config["page_id"];
-  return \webdb\forms\form_template_fill("form_url",$url_params);
-}
-
-#####################################################################################################
-
 function delete_record($form_config,$id)
 {
   global $settings;
   if (\webdb\utils\check_user_form_permission($form_config["page_id"],"d")==false)
   {
-    \webdb\utils\error_message("error: record delete permission denied for form '".$page_id."'");
+    \webdb\utils\error_message("error: record delete permission denied for form '".$form_config["page_id"]."'");
   }
   $where_items=\webdb\forms\config_id_conditions($form_config,$id,"primary_key");
   \webdb\sql\sql_delete($where_items,$form_config["table"],$form_config["database"],false,$form_config);
