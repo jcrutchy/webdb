@@ -228,11 +228,24 @@ function sql_update($value_items,$where_items,$table,$database,$is_admin=false,$
 
 function get_foreign_key_defs($database,$table)
 {
+  global $settings;
   $sql_params=array();
-  $database=\webdb\utils\string_template_fill($database);
-  $sql_params["database"]=$database;
+  if ($settings["db_engine"]<>"sqlsrv")
+  {
+    $database=\webdb\utils\string_template_fill($database);
+    $sql_params["database"]=$database;
+  }
   $sql_params["table"]=$table;
-  return \webdb\sql\file_fetch_prepare("foreign_keys",$sql_params,$table,$database);
+  $records=\webdb\sql\file_fetch_prepare("foreign_keys",$sql_params,$table,$database);
+  if ($settings["db_engine"]=="sqlsrv")
+  {
+    for ($i=0;$i<count($records);$i++)
+    {
+      $records[$i]["TABLE_SCHEMA"]=$settings["database_app"];
+      $records[$i]["REFERENCED_TABLE_SCHEMA"]=$settings["database_app"];
+    }
+  }
+  return $records;
 }
 
 #####################################################################################################

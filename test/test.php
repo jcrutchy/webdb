@@ -133,7 +133,8 @@ function check_app_settings()
     "check_templates",
     "database_webdb",
     "database_app",
-    "database_catalog",
+    "sqlsrv_catalog",
+    "sqlsrv_schema",
     "app_group_access");
   for ($i=0;$i<count($required_settings);$i++)
   {
