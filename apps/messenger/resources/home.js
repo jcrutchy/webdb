@@ -4,14 +4,19 @@
 function page_load()
 {
   ajax_url_update=document.getElementById("ajax_url_update").innerHTML;
-  set_update_timeout();
+  ajax_url_register_channel=document.getElementById("ajax_url_register_channel").innerHTML;
+  update_interval_seconds=document.getElementById("update_interval_seconds").innerHTML;
+  message_update(true);
+  document.getElementById("message_input").disabled=false;
+  document.getElementById("message_input_button").disabled=false;
+  document.getElementById("message_input").focus();
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function set_update_timeout()
 {
-  update_timeout=setTimeout(message_update,5000); // 5 sec
+  update_timeout=setTimeout(message_update,update_interval_seconds*1000);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -24,17 +29,139 @@ function message_send()
   {
     return;
   }
-  message_input.value="";
+  clearTimeout(update_message_scroll);
+  clearTimeout(update_timeout);
   var body="message="+encodeURIComponent(message);
+  show_update_status();
   ajax(ajax_url_update,"post",message_update_load,message_update_error,message_update_timeout,body);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function message_update()
+function show_update_status()
 {
-  var url=document.getElementById("ajax_url_update").innerHTML;
-  ajax(ajax_url_update,"get",message_update_load,message_update_error,message_update_timeout);
+  document.getElementById("update_status").style.visibility="visible";
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function show_help_dialog()
+{
+  document.getElementById("help_dialog_background").style.display="block";
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function hide_help_dialog()
+{
+  document.getElementById("help_dialog_background").style.display="none";
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function show_new_channel_dialog()
+{
+  document.getElementById("new_channel_dialog_background").style.display="block";
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function hide_new_channel_dialog()
+{
+  document.getElementById("new_channel_dialog_background").style.display="none";
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function new_channel()
+{
+  document.getElementById("new_channel_dialog_background").style.display="none";
+  var new_channel_name_input=document.getElementById("new_channel_name_input");
+  if (new_channel_name_input.value=="")
+  {
+    return;
+  }
+  var new_channel_topic_input=document.getElementById("new_channel_topic_input");
+  register_channel(new_channel_name_input.value,new_channel_topic_input.value);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function register_channel(channel_name,channel_topic)
+{
+  clearTimeout(update_message_scroll);
+  clearTimeout(update_timeout);
+  var body="channel_name="+encodeURIComponent(channel_name);
+  body+="&channel_topic="+encodeURIComponent(channel_topic);
+  show_update_status();
+  ajax(ajax_url_register_channel,"post",register_channel_load,register_channel_error,register_channel_timeout,body);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function register_channel_load()
+{
+  try
+  {
+    data=JSON.parse(this.responseText);
+  }
+  catch (e)
+  {
+    custom_alert(this.responseText);
+    return;
+  }
+  if (data.hasOwnProperty("redirect_url")==true)
+  {
+    window.location=data.redirect_url;
+  }
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function register_channel_error()
+{
+  custom_alert("register_channel_error");
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function register_channel_timeout()
+{
+  custom_alert("register_channel_timeout");
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function join_channel(channel_name)
+{
+  var url=document.getElementById("url_channel").innerHTML;
+  url+=encodeURIComponent(channel_name);
+  window.location=url;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function localize_server_timestamps()
+{
+  var items=document.querySelectorAll("span.server_timestamp");
+  for (var i=0;i<items.length;i++)
+  {
+    var item=items[i];
+    item.outerHTML=iso_to_formatted_date(item.innerHTML);
+  }
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function message_update(init=false)
+{
+  show_update_status();
+  var url=ajax_url_update;
+  if (init==true)
+  {
+    url+="&break";
+  }
+  ajax(url,"get",message_update_load,message_update_error,message_update_timeout);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -55,25 +182,62 @@ function message_update_load()
     custom_alert(data.error);
     return;
   }
+  if (data.hasOwnProperty("redirect_url")==true)
+  {
+    window.location=data.redirect_url;
+  }
+  if (data.hasOwnProperty("clear_input")==true)
+  {
+    var message_input=document.getElementById("message_input");
+    if (message_input.value!="")
+    {
+      message_input.value="";
+      message_input.focus();
+    }
+  }
+  if (data.hasOwnProperty("channel_name")==true)
+  {
+    document.getElementById("channel_name").innerHTML=data.channel_name;
+  }
+  if (data.hasOwnProperty("channel_topic")==true)
+  {
+    document.getElementById("channel_topic").innerHTML=data.channel_topic;
+  }
+  if (data.hasOwnProperty("channels")==true)
+  {
+    document.getElementById("channels_div").innerHTML=data.channels;
+  }
+  if (data.hasOwnProperty("users")==true)
+  {
+    document.getElementById("users_div").innerHTML=data.users;
+  }
+  if (data.hasOwnProperty("nicks")==true)
+  {
+    user_nicks=data.nicks;
+  }
   if (data.hasOwnProperty("message_delta")==true)
   {
     if (data.message_delta.length>0)
     {
-      var messages_table=document.getElementById("messages_table");
-      messages_table.insertAdjacentHTML("beforeend",data.message_delta);
+      document.getElementById("messages_table").insertAdjacentHTML("beforeend",data.message_delta);
+      localize_server_timestamps();
     }
-    var messages_scroll=document.getElementById("messages_scroll");
-    if ((messages_scroll.scrollHeight>messages_scroll.clientHeight) && (scroll_anchored==false))
-    {
-      setTimeout(update_message_scroll,50);
-    }
-    else
-    {
-      set_update_timeout();
-    }
-    return;
   }
-  message_update_error();
+  var messages_scroll=document.getElementById("messages_scroll");
+  if ((messages_scroll.scrollHeight>messages_scroll.clientHeight) && (scroll_anchored==false))
+  {
+    setTimeout(update_message_scroll,50);
+  }
+  else
+  {
+    set_update_timeout();
+  }
+  document.getElementById("update_status").style.visibility="hidden";
+  if (data.hasOwnProperty("ding_file")==true)
+  {
+    var audio=new Audio(data.ding_file);
+    audio.play();
+  }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -87,7 +251,7 @@ function message_update_error()
 
 function message_update_timeout()
 {
-  message_update_error();
+  custom_alert("message_update_timeout");
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -273,11 +437,56 @@ function cancel_event(event)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
+function message_input_keydown(event)
+{
+  last_key_code=event.keyCode;
+  if (event.keyCode==9)
+  {
+    event.preventDefault();
+    var message_input=document.getElementById("message_input");
+    var message=message_input.value;
+    if (message=="")
+    {
+      return false;
+    }
+    var parts=message.split(" ");
+    var part=parts.pop();
+    for (var i=0;i<user_nicks.length;i++)
+    {
+      var user_nick=user_nicks[i];
+      if (user_nick.startsWith(part)==true)
+      {
+        message_input.value=parts.join(" ");
+        if (message_input.value.length>0)
+        {
+          message_input.value+=" ";
+        }
+        message_input.value+=user_nick;
+        message_input.selectionStart=message_input.value.length;
+        message_input.selectionEnd=message_input.value.length;
+      }
+    }
+    return false;
+  }
+  if (event.keyCode==13)
+  {
+    message_send();
+    return false;
+  }
+  return true;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
 var update_timeout=false;
+var update_interval_seconds=20;
 var scroll_anchored=false;
 var ajax_url_update=false;
+var ajax_url_register_channel=false;
 var splitter_element=false;
 var mousedown_left=false;
+var last_key_code=false;
+var user_nicks=[];
 
 if (window.addEventListener)
 {

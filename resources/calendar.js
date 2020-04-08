@@ -320,6 +320,21 @@ function format_date(date,format)
 {
   // applies PHP date format to a javascript date object
   // outputs a string
+  var H=date.getHours();
+  if (H<10)
+  {
+    H="0"+H;
+  }
+  var i=date.getMinutes();
+  if (i<10)
+  {
+    i="0"+i;
+  }
+  var s=date.getSeconds();
+  if (s<10)
+  {
+    s="0"+s;
+  }
   var j=date.getDate();
   var n=date.getMonth()+1;
   var Y=date.getFullYear();
@@ -349,6 +364,9 @@ function format_date(date,format)
   format=format.replace("y",y);
   format=format.replace("F",F);
   format=format.replace("M",M);
+  format=format.replace("H",H);
+  format=format.replace("i",i);
+  format=format.replace("s",s);
   return format;
 }
 

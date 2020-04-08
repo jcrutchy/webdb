@@ -316,9 +316,7 @@ function checklist_update($form_config,$parent_id)
       }
     }
   }
-  $params=array();
-  $params["update"]=$form_config["page_id"];
-  \webdb\forms\page_redirect(false,$params);
+  \webdb\forms\page_redirect(false);
 }
 
 #####################################################################################################
@@ -2532,7 +2530,8 @@ function update_record($form_config,$id,$value_items=false,$where_items=false,$r
 function set_confirm_status_cookie($form_config,$status_message)
 {
   $cookie_name="confirm_status_".$form_config["page_id"];
-  \webdb\utils\webdb_setcookie_raw($cookie_name,urlencode($status_message),0,false);
+  #\webdb\utils\webdb_setcookie_raw($cookie_name,urlencode($status_message),0,false);
+  setcookie($cookie_name,$status_message,0,"/",$_SERVER["HTTP_HOST"],false,false);
 }
 
 #####################################################################################################

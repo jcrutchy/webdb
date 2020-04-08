@@ -4,22 +4,55 @@ namespace messenger\utils;
 
 #####################################################################################################
 
-function get_user_record()
+function sql_to_iso_timestamp($timestamp)
+{
+  $timestamp=strtotime($timestamp);
+  return date("c",$timestamp);
+}
+
+#####################################################################################################
+
+function get_logged_in_user_record()
 {
   global $settings;
   $user_record=get_user_record_by_id($settings["user_record"]["user_id"]);
   if ($user_record===false)
   {
-    $value_items=array();
-    $value_items["user_id"]=$settings["user_record"]["user_id"];
-    $value_items["nick"]=$settings["user_record"]["username"];
-    $channel_record=\messenger\utils\get_channel_record_by_name($settings["initial_channel_name"],$settings["initial_channel_topic"]);
-    $value_items["selected_channel_id"]=$channel_record["channel_id"];
-    $settings["sql_check_post_params_override"]=true;
-    \webdb\sql\sql_insert($value_items,"users","messenger");
-    \webdb\utils\redirect($settings["app_web_index"]."?channel=".$settings["initial_channel_name"]);
+    $channel_record=\messenger\utils\get_channel_by_name($settings["initial_channel_name"]);
+    \messenger\utils\register_user($settings["user_record"]["user_id"],$settings["user_record"]["username"],$channel_record["channel_id"]);
+    $user_record=get_user_record_by_id($settings["user_record"]["user_id"]);
+    \messenger\utils\join_channel($channel_record["channel_id"],$user_record["user_id"]);
   }
   return $user_record;
+}
+
+#####################################################################################################
+
+function register_user($user_id,$nick,$selected_channel_id)
+{
+  global $settings;
+  $value_items=array();
+  $value_items["user_id"]=$user_id;
+  $value_items["nick"]=$nick;
+  $value_items["selected_channel_id"]=$selected_channel_id;
+  $settings["sql_check_post_params_override"]=true;
+  \webdb\sql\sql_insert($value_items,"users","messenger");
+}
+
+#####################################################################################################
+
+function update_user($user_record)
+{
+  global $settings;
+  $where_items=array();
+  $where_items["user_id"]=$user_record["user_id"];
+  $value_items=array();
+  $value_items["enabled"]=$user_record["enabled"];
+  $value_items["nick"]=$user_record["nick"];
+  $value_items["selected_channel_id"]=$user_record["selected_channel_id"];
+  $value_items["last_online"]=\webdb\sql\current_sql_timestamp();
+  $settings["sql_check_post_params_override"]=true;
+  \webdb\sql\sql_update($value_items,$where_items,"users","messenger");
 }
 
 #####################################################################################################
@@ -38,21 +71,78 @@ function get_user_record_by_id($user_id)
 
 #####################################################################################################
 
-function get_channel_record_by_name($channel_name,$topic)
+function update_channel($channel_record)
 {
   global $settings;
   $where_items=array();
+  $where_items["channel_id"]=$channel_record["channel_id"];
+  $value_items=array();
+  $value_items["enabled"]=$channel_record["enabled"];
+  $value_items["channel_name"]=$channel_record["channel_name"];
+  $value_items["topic"]=$channel_record["topic"];
+  $settings["sql_check_post_params_override"]=true;
+  \webdb\sql\sql_update($value_items,$where_items,"channels","messenger");
+}
+
+#####################################################################################################
+
+function get_channel_by_name($channel_name)
+{
+  $channel_name=\messenger\utils\strip_text($channel_name," _#.*@[](){}");
+  $where_items=array();
   $where_items["channel_name"]=$channel_name;
   $records=\webdb\sql\file_fetch_prepare("get_channel_record_by_name",$where_items);
-  if (count($records)<>1)
+  if (count($records)==0)
   {
-    $value_items=$where_items;
-    $value_items["topic"]=$topic;
-    $settings["sql_check_post_params_override"]=true;
-    \webdb\sql\sql_insert($value_items,"channels","messenger");
+    \messenger\utils\register_channel($channel_name);
     $records=\webdb\sql\file_fetch_prepare("get_channel_record_by_name",$where_items);
   }
   return $records[0];
+}
+
+#####################################################################################################
+
+function strip_text($value,$additional_valid_chars="")
+{
+  $valid_chars="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".$additional_valid_chars;
+  $result="";
+  for ($i=0;$i<strlen($value);$i++)
+  {
+    if (strpos($valid_chars,$value[$i])!==false)
+    {
+      $result=$result.$value[$i];
+    }
+  }
+  return $result;
+}
+
+#####################################################################################################
+
+function register_channel($channel_name,$topic="")
+{
+  global $settings;
+  $channel_name=\messenger\utils\strip_text($channel_name,"_#.*@[](){}");
+  $value_items=array();
+  $value_items["channel_name"]=$channel_name;
+  $records=\webdb\sql\file_fetch_prepare("get_channel_record_by_name",$value_items);
+  if (count($records)>0)
+  {
+    return;
+  }
+  $value_items["topic"]=$topic;
+  if ($channel_name==$settings["initial_channel_name"])
+  {
+    $value_items["topic"]=$settings["initial_channel_topic"];
+  }
+  $settings["sql_check_post_params_override"]=true;
+  \webdb\sql\sql_insert($value_items,"channels","messenger");
+}
+
+#####################################################################################################
+
+function purge_unused_channels()
+{
+
 }
 
 #####################################################################################################
@@ -67,12 +157,68 @@ function get_channel_record_by_id($channel_id)
 
 #####################################################################################################
 
-function get_new_message_records()
+function join_channel($channel_id,$user_id)
+{
+  global $settings;
+  $value_items=array();
+  $value_items["channel_id"]=$channel_id;
+  $value_items["user_id"]=$user_id;
+  $records=\webdb\sql\file_fetch_prepare("get_joined_channel",$value_items);
+  if (count($records)>0)
+  {
+    return;
+  }
+  $settings["sql_check_post_params_override"]=true;
+  \webdb\sql\sql_insert($value_items,"channel_users","messenger");
+}
+
+#####################################################################################################
+
+function get_new_message_records($user_record,$channel_record)
+{
+  $where_items=array();
+  $where_items["user_id"]=$user_record["user_id"];
+  $where_items["channel_id"]=$channel_record["channel_id"];
+  return \webdb\sql\file_fetch_prepare("get_new_message_records",$where_items);
+}
+
+#####################################################################################################
+
+function get_users()
+{
+  return \webdb\sql\file_fetch_prepare("get_users");
+}
+
+#####################################################################################################
+
+function get_channels()
+{
+  return \webdb\sql\file_fetch_prepare("get_channels");
+}
+
+#####################################################################################################
+
+function update_last_read_message($user_record,$channel_record,$max_message_id=0)
 {
   global $settings;
   $where_items=array();
-  $where_items["user_id"]=$settings["user_record"]["user_id"];
-  return \webdb\sql\file_fetch_prepare("get_new_message_records",$where_items);
+  $where_items["channel_id"]=$channel_record["channel_id"];
+  $where_items["user_id"]=$user_record["user_id"];
+  $value_items=array();
+  $value_items["last_read_message_id"]=$max_message_id;
+  $settings["sql_check_post_params_override"]=true;
+  \webdb\sql\sql_update($value_items,$where_items,"channel_users","messenger");
+}
+
+#####################################################################################################
+
+function save_message($user_record,$channel_record,$message)
+{
+  $value_items=array();
+  $value_items["user_id"]=$user_record["user_id"];
+  $value_items["channel_id"]=$channel_record["channel_id"];
+  $value_items["message"]=$message;
+  \webdb\sql\sql_insert($value_items,"messages","messenger");
 }
 
 #####################################################################################################

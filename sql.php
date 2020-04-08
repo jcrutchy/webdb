@@ -283,7 +283,7 @@ function foreign_key_used($database,$table,$record,$foreign_key_defs=false)
 
 function current_sql_timestamp()
 {
-  return date("Y-m-d H:i:s");
+  return gmdate("Y-m-d H:i:s");
 }
 
 #####################################################################################################
@@ -384,7 +384,7 @@ function execute_return($sql,$params=array(),$filename="",$is_admin=false,$table
 
 #####################################################################################################
 
-function file_execute_prepare($filename,$params,$is_admin=false,$table="",$database="",$form_config=false)
+function file_execute_prepare($filename,$params=array(),$is_admin=false,$table="",$database="",$form_config=false)
 {
   $sql=\webdb\sql\get_sql_file($filename);
   return \webdb\sql\execute_prepare($sql,$params,$filename,$is_admin,$table,$database,$form_config);
