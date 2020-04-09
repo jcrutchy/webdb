@@ -38,8 +38,8 @@
     },
     "lookups": {
         "item_type_id": {
-            "database": "test_app",
-            "table": "item_types",
+            "database": "$$database_app$$",
+            "table": "test_app_item_types",
             "sibling_field": "item_type_id",
             "key_field": "item_type_id",
             "display_field": "description"
@@ -64,15 +64,15 @@
     "advanced_search": true,
     "sort_field_select": true,
     "allow_field_sort": true,
-    "database": "test_app",
-    "table": "items",
+    "database": "$$database_app$$",
+    "table": "test_app_items",
     "sort_sql": "item_name asc",
     "checklist": true,
     "checklist_sort": "none",
     "parent_key": "location_id",
     "link_key": "item_id",
-    "link_database": "test_app",
-    "link_table": "item_location_links",
+    "link_database": "$$database_app$$",
+    "link_table": "test_app_item_location_links",
     "link_fields": [
         "location_id",
         "quantity",

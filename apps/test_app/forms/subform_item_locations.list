@@ -30,15 +30,15 @@
     },
     "lookups": {
         "item_id": {
-            "database": "test_app",
-            "table": "items",
+            "database": "$$database_app$$",
+            "table": "test_app_items",
             "sibling_field": "item_id",
             "key_field": "item_id",
             "display_field": "item_name"
         },
         "location_id": {
-            "database": "test_app",
-            "table": "locations",
+            "database": "$$database_app$$",
+            "table": "test_app_locations",
             "sibling_field": "location_id",
             "key_field": "location_id",
             "display_field": "location_name"
@@ -58,6 +58,6 @@
     "edit_cmd_id": "location_id",
     "insert_new": false,
     "insert_row": true,
-    "database": "test_app",
-    "table": "item_location_links"
+    "database": "$$database_app$$",
+    "table": "test_app_item_location_links"
 }
