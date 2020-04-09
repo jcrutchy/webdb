@@ -1,8 +1,12 @@
 
 USE $$sqlsrv_catalog$$;
 
-DROP TABLE IF EXISTS [messenger`.`channels];
-CREATE TABLE messenger.channels (
+DROP TABLE IF EXISTS [messenger_channel_users];
+DROP TABLE IF EXISTS [messenger_messages];
+DROP TABLE IF EXISTS [messenger_users];
+DROP TABLE IF EXISTS [messenger_channels];
+
+CREATE TABLE messenger_channels (
   [channel_id] INT CHECK ([channel_id] > 0) NOT NULL IDENTITY,
   [created_timestamp] DATETIME2(0) NOT NULL DEFAULT GETDATE(),
   [channel_name] varchar(255) NOT NULL,
@@ -12,8 +16,7 @@ CREATE TABLE messenger.channels (
   CONSTRAINT [channel_name] UNIQUE  ([channel_name] ASC))
 ;
 
-DROP TABLE IF EXISTS [messenger`.`users];
-CREATE TABLE messenger.users (
+CREATE TABLE messenger_users (
   [user_id] INT CHECK ([user_id] > 0) NOT NULL,
   [created_timestamp] DATETIME2(0) NOT NULL DEFAULT GETDATE(),
   [enabled] SMALLINT NOT NULL DEFAULT 1,
@@ -24,18 +27,17 @@ CREATE TABLE messenger.users (
   CONSTRAINT [nick] UNIQUE  ([nick] ASC),
   CONSTRAINT [fk_users_users1]
     FOREIGN KEY ([user_id])
-    REFERENCES webdb.users ([user_id])
+    REFERENCES users ([user_id])
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT [fk_users_channels1]
     FOREIGN KEY ([selected_channel_id])
-    REFERENCES messenger.channels ([channel_id])
+    REFERENCES messenger_channels ([channel_id])
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ;
 
-DROP TABLE IF EXISTS [messenger`.`messages];
-CREATE TABLE messenger.messages (
+CREATE TABLE messenger_messages (
   [message_id] INT CHECK ([message_id] > 0) NOT NULL IDENTITY,
   [created_timestamp] DATETIME2(0) NOT NULL DEFAULT GETDATE(),
   [user_id] integer check ([user_id] > 0) NOT NULL,
@@ -45,33 +47,32 @@ CREATE TABLE messenger.messages (
  ,
   CONSTRAINT [fk_messages_users1]
     FOREIGN KEY ([user_id])
-    REFERENCES messenger.users ([user_id])
+    REFERENCES messenger_users ([user_id])
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT [fk_messages_channels1]
     FOREIGN KEY ([channel_id])
-    REFERENCES messenger.channels ([channel_id])
+    REFERENCES messenger_channels ([channel_id])
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ;
 
-CREATE INDEX [user_id] ON messenger.messages ([user_id] ASC);
-CREATE INDEX [channel_id] ON messenger.messages ([channel_id] ASC);
+CREATE INDEX [user_id] ON messenger_messages ([user_id] ASC);
+CREATE INDEX [channel_id] ON messenger_messages ([channel_id] ASC);
 
-DROP TABLE IF EXISTS [messenger`.`channel_users] ;
-CREATE TABLE messenger.channel_users (
+CREATE TABLE messenger_channel_users (
   [channel_id] INT CHECK ([channel_id] > 0) NOT NULL,
   [user_id] INT CHECK ([user_id] > 0) NOT NULL,
   [last_read_message_id] INT CHECK ([last_read_message_id] > 0) DEFAULT 0,
   PRIMARY KEY ([channel_id], [user_id]),
   CONSTRAINT [fk_channel_users_channels1]
     FOREIGN KEY ([channel_id])
-    REFERENCES messenger.channels ([channel_id])
+    REFERENCES messenger_channels ([channel_id])
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT [fk_channel_users_users1]
     FOREIGN KEY ([user_id])
-    REFERENCES messenger.users ([user_id])
+    REFERENCES messenger_users ([user_id])
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ;

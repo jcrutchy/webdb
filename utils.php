@@ -964,7 +964,7 @@ function load_db_credentials($type)
     \webdb\utils\system_message("error: unable to read database credentials file: ".$filename);
   }
   $data=trim($data);
-  $data=explode(PHP_EOL,$data);
+  $data=explode("\n",$data);
   if (count($data)<>2)
   {
     \webdb\utils\system_message("error: invalid database credentials file: ".$filename);

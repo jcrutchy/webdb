@@ -31,7 +31,7 @@ $settings["permissions"]["test_group"]["forms"]["locations"]="riud";
 
 $settings["permissions"]["*"]["forms"]["locations"]="r";
 
-$settings["app_web_root"]="/webdb/doc/test/".$settings["app_directory_name"]."/";
+$settings["app_web_root"]="/webdb/apps/".$settings["app_directory_name"]."/";
 $settings["app_web_resources"]=$settings["app_web_root"]."resources/";
 $settings["app_web_index"]=$settings["app_web_root"]."index.php";
 
@@ -39,9 +39,11 @@ $settings["favicon_source"]=$settings["app_web_resources"]."favicon.png";
 
 $settings["app_logo_filename"]="favicon.png";
 
+$settings["database_app"]="test_app";
+
 $settings["csrf_hash_prefix"]="g7qbz62.Og";
 
 #################################################################################
 
-$fn=dirname(dirname(dirname(dirname(__DIR__)))).DIRECTORY_SEPARATOR."environment_specific_settings.php";
+$fn=dirname(dirname(dirname(__DIR__))).DIRECTORY_SEPARATOR."environment_specific_settings.php";
 require_once($fn);

@@ -36,7 +36,7 @@ function register_user($user_id,$nick,$selected_channel_id)
   $value_items["nick"]=$nick;
   $value_items["selected_channel_id"]=$selected_channel_id;
   $settings["sql_check_post_params_override"]=true;
-  \webdb\sql\sql_insert($value_items,"users","messenger");
+  \webdb\sql\sql_insert($value_items,"messenger_users",$settings["database_app"]);
 }
 
 #####################################################################################################
@@ -52,7 +52,7 @@ function update_user($user_record)
   $value_items["selected_channel_id"]=$user_record["selected_channel_id"];
   $value_items["last_online"]=\webdb\sql\current_sql_timestamp();
   $settings["sql_check_post_params_override"]=true;
-  \webdb\sql\sql_update($value_items,$where_items,"users","messenger");
+  \webdb\sql\sql_update($value_items,$where_items,"messenger_users",$settings["database_app"]);
 }
 
 #####################################################################################################
@@ -81,7 +81,7 @@ function update_channel($channel_record)
   $value_items["channel_name"]=$channel_record["channel_name"];
   $value_items["topic"]=$channel_record["topic"];
   $settings["sql_check_post_params_override"]=true;
-  \webdb\sql\sql_update($value_items,$where_items,"channels","messenger");
+  \webdb\sql\sql_update($value_items,$where_items,"messenger_channels",$settings["database_app"]);
 }
 
 #####################################################################################################
@@ -135,7 +135,7 @@ function register_channel($channel_name,$topic="")
     $value_items["topic"]=$settings["initial_channel_topic"];
   }
   $settings["sql_check_post_params_override"]=true;
-  \webdb\sql\sql_insert($value_items,"channels","messenger");
+  \webdb\sql\sql_insert($value_items,"messenger_channels",$settings["database_app"]);
 }
 
 #####################################################################################################
@@ -169,7 +169,7 @@ function join_channel($channel_id,$user_id)
     return;
   }
   $settings["sql_check_post_params_override"]=true;
-  \webdb\sql\sql_insert($value_items,"channel_users","messenger");
+  \webdb\sql\sql_insert($value_items,"messenger_channel_users",$settings["database_app"]);
 }
 
 #####################################################################################################
@@ -207,7 +207,7 @@ function update_last_read_message($user_record,$channel_record,$max_message_id=0
   $value_items=array();
   $value_items["last_read_message_id"]=$max_message_id;
   $settings["sql_check_post_params_override"]=true;
-  \webdb\sql\sql_update($value_items,$where_items,"channel_users","messenger");
+  \webdb\sql\sql_update($value_items,$where_items,"messenger_channel_users",$settings["database_app"]);
 }
 
 #####################################################################################################
@@ -218,7 +218,7 @@ function save_message($user_record,$channel_record,$message)
   $value_items["user_id"]=$user_record["user_id"];
   $value_items["channel_id"]=$channel_record["channel_id"];
   $value_items["message"]=$message;
-  \webdb\sql\sql_insert($value_items,"messages","messenger");
+  \webdb\sql\sql_insert($value_items,"messenger_messages",$settings["database_app"]);
 }
 
 #####################################################################################################
