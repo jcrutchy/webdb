@@ -255,12 +255,14 @@ function list_edit($id,$form_config)
       $sql_params["where_conditions"]=\webdb\sql\build_prepared_where($conditions);
       $sql=\webdb\utils\sql_fill("form_list_fetch_by_id",$sql_params);
       $records=\webdb\sql\fetch_prepare($sql,$conditions,"form_list_fetch_by_id",false,$sql_params["table"],$sql_params["database"],$subform_form_config);
+
       $link_record=$records[0];
 
       $row_spans=array();
       $lookup_records=\webdb\forms\lookup_records($form_config);
       $data["html"]=\webdb\forms\list_row($form_config,$record,$column_format,$row_spans,$lookup_records,0,$link_record);
 
+      die("todo");
     }
   }
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

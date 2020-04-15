@@ -427,11 +427,11 @@ function get_subform_content($subform_config,$subform_link_field,$id,$list_only=
     $sql_params["parent_key"]=$id;
     $link_records=\webdb\sql\fetch_prepare($sql,$sql_params,"link_records",false,"","",$subform_config);
   }
+  $subform_config["insert_new"]=false;
   if ($subform_config["checklist"]==true)
   {
     $subform_config["multi_row_delete"]=false;
     $subform_config["delete_cmd"]=false;
-    $subform_config["insert_new"]=false;
     $subform_config["insert_row"]=false;
     $subform_config["edit_cmd"]="inline";
     if ($subform_config["records_sql"]=="")
@@ -815,12 +815,18 @@ function list_row($form_config,$record,$column_format,$row_spans,$lookup_records
     }
     if ($form_config["edit_cmd"]=="inline")
     {
-      $field_params["table_cell_style"].=\webdb\forms\form_template_fill("inline_edit_cell_style");
+      if (($form_config["checklist"]==false) or ($checklist_row_linked==true))
+      {
+        $field_params["table_cell_style"].=\webdb\forms\form_template_fill("inline_edit_cell_style");
+      }
     }
     if (($form_config["edit_cmd"]=="row") or ($form_config["edit_cmd"]=="inline"))
     {
       $field_params["edit_cmd_id"]=$row_params["edit_cmd_id"];
-      $field_params["handlers"]=\webdb\forms\form_template_fill("list_field_handlers",$field_params);
+      if (($form_config["checklist"]==false) or ($checklist_row_linked==true))
+      {
+        $field_params["handlers"]=\webdb\forms\form_template_fill("list_field_handlers",$field_params);
+      }
     }
     $skip_field=false;
     if (in_array($field_name,$form_config["group_by"])==true)
@@ -1479,6 +1485,10 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
     $sql=\webdb\utils\sql_fill($form_config["records_sql"]);
     $records=\webdb\sql\fetch_prepare($sql,array(),$form_config["records_sql"],false,"","",$form_config);
   }
+  if ($link_records===false)
+  {
+    $form_config["checklist"]=false;
+  }
   $form_params=array();
   $form_params["page_id"]=$form_config["page_id"];
   $form_params["edit_cmd_page_id"]=$form_config["edit_cmd_page_id"];
@@ -1647,7 +1657,7 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
     $records=\webdb\sql\fetch_prepare($sql,array(),"form_list_fetch_all",false,"","",$form_config);
   }
   $form_params["selected_filter_input"]="";
-  if (isset($form_config["selected_filter"])==true)
+  if (count($form_config["filter_options"])>0)
   {
     $form_config["insert_row"]=false;
     $form_params["filter_cookie_value"]=0;

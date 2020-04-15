@@ -1,3 +1,14 @@
+checklists are only applicable for link records
+link records are only queried for subforms, so checklists are only applicable for subforms
+
+link_* config settings are only applicable to checklists
+
+there are two different types of link records (causing the confusion)
+there are link tables, like hazard_control_links
+then there are checklist link records, derived from the link_* settings in the form config
+link_* records are typically derived from link tables, but they correspond to checklist selections
+
+
 assume for example you have three tables:
 - locations
 - widgets
