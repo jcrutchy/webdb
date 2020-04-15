@@ -214,6 +214,7 @@ function update_last_read_message($user_record,$channel_record,$max_message_id=0
 
 function save_message($user_record,$channel_record,$message)
 {
+  global $settings;
   $value_items=array();
   $value_items["user_id"]=$user_record["user_id"];
   $value_items["channel_id"]=$channel_record["channel_id"];

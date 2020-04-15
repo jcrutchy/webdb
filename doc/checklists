@@ -27,6 +27,7 @@ in subform_location_widgets.list:
     "link_fields": [], # <== can optionally use to include controls for fields within the link table
 
     "default_filter": "my_filter", # <== filtering is optional
+    "filter_cookie": false,
     "filter_options": {
         "my_filter": "(some_field='some_value')"
     }

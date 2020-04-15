@@ -63,7 +63,7 @@ CREATE INDEX [channel_id] ON messenger_messages ([channel_id] ASC);
 CREATE TABLE messenger_channel_users (
   [channel_id] INT CHECK ([channel_id] > 0) NOT NULL,
   [user_id] INT CHECK ([user_id] > 0) NOT NULL,
-  [last_read_message_id] INT CHECK ([last_read_message_id] > 0) DEFAULT 0,
+  [last_read_message_id] INT DEFAULT 0,
   PRIMARY KEY ([channel_id], [user_id]),
   CONSTRAINT [fk_channel_users_channels1]
     FOREIGN KEY ([channel_id])

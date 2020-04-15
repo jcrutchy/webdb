@@ -2,10 +2,8 @@
 
 function item_filter_select_click(value,subform)
 {
-  var url=window.location.href;
-  var url_obj=new URL(url);
-  var filters=url_obj.searchParams.get("filters");
-  if (filters==null)
+  var filters=get_cookie("filters");
+  if (!filters)
   {
     filters={};
   }
@@ -14,11 +12,8 @@ function item_filter_select_click(value,subform)
     filters=JSON.parse(filters);
   }
   filters[subform]=value;
-  var url_append="&filters="+JSON.stringify(filters);
-  url=remove_url_param("filters",url);
-  var current_state=history.state;
-  history.replaceState(current_state,document.title,url+url_append);
-  var url=url+"&ajax=item_filter_select&field_name=item_link&new_filter="+value+"&subform="+subform+"&redirect="+encodeURIComponent(url+url_append);
+  set_session_cookie("filters",JSON.stringify(filters));
+  var url=window.location.href+"&ajax=item_filter_select&field_name=item_link&new_filter="+value+"&subform="+subform;
   ajax(url,"get",item_filter_select_load,item_filter_select_error,item_filter_select_timeout);
 }
 
@@ -52,14 +47,14 @@ function item_filter_select_load()
 
 function item_filter_select_error()
 {
-  custom_alert("error");
+  custom_alert("item_filter_select_error");
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function item_filter_select_timeout()
 {
-  item_filter_select_error();
+  custom_alert("item_filter_select_timeout");
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -1,8 +1,8 @@
-SELECT * FROM $$database_app$$.messenger_users
+SELECT * FROM RISK_MDO.dbo.messenger_users
 
 WHERE
 enabled=1
 AND
-last_online >= DATE_SUB(UTC_TIMESTAMP(),INTERVAL $$user_list_max_age_minutes$$ MINUTE)
+last_online >= DATEADD(minute,-5,GETUTCDATE())
 
 ORDER BY nick ASC

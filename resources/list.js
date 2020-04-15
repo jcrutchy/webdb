@@ -4,19 +4,21 @@
 function list_page_load()
 {
   confirm_status_id="";
-  var page_id=document.getElementById("top_level_page_id");
+  var page_id=document.getElementById("parent_form");
   if (page_id)
   {
     if (page_id.innerHTML!="")
     {
       confirm_status_id="confirm_status:"+page_id.innerHTML;
       var confirm_status=document.getElementById(confirm_status_id);
-      var cookie_name="confirm_status_"+page_id.innerHTML;
+      var app_name=document.getElementById("app_name").innerHTML;
+      var cookie_name=app_name+":confirm_status:"+page_id.innerHTML;
+      cookie_name=cookie_name.replace(/ /g,"_");
       var confirm_status_message=get_cookie(cookie_name);
       if ((confirm_status) && (confirm_status_message!=""))
       {
         confirm_status.innerHTML=confirm_status_message;
-        //document.cookie=cookie_name+"=; Domain="+window.location.hostname+"; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+        document.cookie=cookie_name+"=; Domain="+window.location.hostname+"; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
         confirm_status_fade_alpha=1.0;
         confirm_status.style.color="rgba(153,51,0,"+confirm_status_fade_alpha+")";
         confirm_status.style.visibility="visible";
@@ -24,6 +26,38 @@ function list_page_load()
       }
     }
   }
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function set_filter_cookie(page_id,value)
+{
+  var cookie_enabled=document.getElementById("filter_cookie:"+page_id);
+  if (cookie_enabled)
+  {
+    if (cookie_enabled.innerHTML==1)
+    {
+      var app_name=document.getElementById("app_name").innerHTML;
+      var cookie_name=app_name+":filters:"+page_id;
+      cookie_name=cookie_name.replace(/ /g,"_");
+      set_session_cookie(cookie_name,value);
+    }
+  }
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function parent_url_params(page_id)
+{
+  var url_append="";
+  var parent=document.getElementById("parent_form");
+  if (parent!==null)
+  {
+    var parent_form=parent.innerHTML;
+    var parent_id=document.getElementById("parent_id").innerHTML;
+    var url_append=url_append+"&subform="+page_id+"&parent_form="+parent_form+"&parent_id="+parent_id;
+  }
+  return url_append;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -47,8 +81,8 @@ function list_body_click(event)
   var row_edit_mode=document.getElementById("row_edit_mode:"+edit_row_page_id).innerHTML;
   if (row_edit_mode=="inline")
   {
-    var parent_form=document.getElementById("parent_form:"+edit_row_page_id).value;
-    var parent_id=document.getElementById("parent_id:"+edit_row_page_id).value;
+    var parent_form=document.getElementById("parent_form").innerHTML;
+    var parent_id=document.getElementById("parent_id").innerHTML;
     var url_prefix=document.getElementById("inline_edit_page:"+edit_row_page_id).value;
     var url=url_prefix+edit_row_id+"&ajax&reset&parent_form="+parent_form+"&parent_id="+parent_id;
     ajax(url,"get",list_edit_row_reset_load,list_edit_row_reset_error,list_edit_row_reset_timeout);
@@ -130,14 +164,14 @@ function list_edit_row_reset_load()
 
 function list_edit_row_reset_error()
 {
-  custom_alert("error");
+  custom_alert("list_edit_row_reset_error");
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function list_edit_row_reset_timeout()
 {
-  list_edit_row_reset_error();
+  custom_alert("list_edit_row_reset_timeout");
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -169,14 +203,7 @@ function list_insert_row_click(form,page_id)
   }
   var body=data.join("&");
   var url_prefix=form.elements.namedItem("row_insert_page:"+page_id).value;
-  var parent=document.getElementById("top_level_page_id");
-  var url=url_prefix+"&ajax";
-  if (parent!==null)
-  {
-    var parent_form=form.elements.namedItem("parent_form:"+page_id).value;
-    var parent_id=form.elements.namedItem("parent_id:"+page_id).value;
-    var url=url+"&subform="+page_id+"&parent_form="+parent_form+"&parent_id="+parent_id;
-  }
+  var url=url_prefix+"&ajax"+parent_url_params(page_id);
   ajax(url,"post",list_insert_row_load,list_insert_row_error,list_insert_row_timeout,body);
 }
 
@@ -210,14 +237,14 @@ function list_insert_row_load()
 
 function list_insert_row_error()
 {
-  custom_alert("error");
+  custom_alert("list_insert_row_error");
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function list_insert_row_timeout()
 {
-  list_insert_row_error();
+  custom_alert("list_insert_row_timeout");
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -251,7 +278,7 @@ function list_record_cell_click(element,page_id,id,field_name,edit_cmd_id)
   }
   if (row_edit_mode=="inline")
   {
-    var url=document.getElementById("inline_edit_page:"+page_id).value+id+"&ajax";
+    var url=document.getElementById("inline_edit_page:"+page_id).value+id+"&ajax"+parent_url_params(page_id);
     ajax(url,"get",list_edit_row_load,list_edit_row_error,list_edit_row_timeout);
   }
 }
@@ -299,14 +326,14 @@ function list_edit_row_load()
 
 function list_edit_row_error()
 {
-  custom_alert("error");
+  custom_alert("list_edit_row_error");
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function list_edit_row_timeout()
 {
-  list_edit_row_error();
+  custom_alert("list_edit_row_timeout");
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -320,14 +347,7 @@ function list_edit_row_update(form,page_id)
   }
   var body=data.join("&");
   var url_prefix=form.elements.namedItem("ajax_edit_page:"+page_id).value;
-  var parent=document.getElementById("top_level_page_id");
-  var url=url_prefix+edit_row_id+"&ajax";
-  if (parent!==null)
-  {
-    var parent_form=form.elements.namedItem("parent_form:"+edit_row_page_id).value;
-    var parent_id=form.elements.namedItem("parent_id:"+edit_row_page_id).value;
-    var url=url+"&subform="+page_id+"&parent_form="+parent_form+"&parent_id="+parent_id;
-  }
+  var url=url_prefix+edit_row_id+"&ajax"+parent_url_params(page_id);
   ajax(url,"post",list_edit_row_update_load,list_edit_row_update_error,list_edit_row_update_timeout,body);
 }
 
@@ -361,14 +381,14 @@ function list_edit_row_update_load()
 
 function list_edit_row_update_error()
 {
-  custom_alert("error");
+  custom_alert("list_edit_row_update_error");
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function list_edit_row_update_timeout()
 {
-  list_edit_row_update_error();
+  custom_alert("list_edit_row_update_timeout");
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////

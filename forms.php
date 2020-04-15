@@ -27,6 +27,16 @@ function get_form_config($page_id,$return=false)
 
 #####################################################################################################
 
+function set_confirm_status_cookie($form_config,$status_message)
+{
+  global $settings;
+  $cookie_name=$settings["app_name"].":confirm_status:".$form_config["page_id"];
+  #setcookie($cookie_name,$status_message,0,"/",$_SERVER["HTTP_HOST"],false,false);
+  \webdb\utils\webdb_setcookie_raw($cookie_name,$status_message,0,false);
+}
+
+#####################################################################################################
+
 function form_dispatch($page_id)
 {
   global $settings;
@@ -96,9 +106,13 @@ function form_dispatch($page_id)
                 {
                   continue;
                 }
-                if (($name_parts[1]=="list_select") and (in_array($name_parts[0],$checklist_subforms)==false))
+                $checklist_page_id=trim($name_parts[1]);
+                if ((trim($name_parts[0])=="is_checklist") and (in_array($checklist_page_id,$checklist_subforms)==false))
                 {
-                  $checklist_subforms[]=$name_parts[0];
+                  if ($value=="1")
+                  {
+                    $checklist_subforms[]=$checklist_page_id;
+                  }
                 }
               }
               for ($i=0;$i<count($checklist_subforms);$i++)
@@ -166,6 +180,11 @@ function form_dispatch($page_id)
           }
         }
       }
+      if ($form_config["filter_cookie"]==false)
+      {
+        $cookie_name=$settings["app_name"].":filters:".$form_config["page_id"];
+        \webdb\utils\webdb_unsetcookie_raw($cookie_name,false);
+      }
       $list_params=array();
       $list_params["page_id"]=$page_id;
       $event_params=array();
@@ -216,7 +235,7 @@ function checklist_update($form_config,$parent_id)
   $parent_key=$form_config["parent_key"];
   $link_key=$form_config["link_key"];
   $link_fields=$form_config["link_fields"];
-  $list_records=false;
+  $list_records=array();
   \webdb\forms\process_filter_sql($form_config);
   if ($form_config["selected_filter_sql"]<>"")
   {
@@ -267,7 +286,7 @@ function checklist_update($form_config,$parent_id)
     }
   }
   if (isset($_POST[$page_id.":list_select"])==true)
-  {
+  {    
     foreach ($_POST[$page_id.":list_select"] as $child_id => $check_value)
     {
       $where_items=array();
@@ -316,7 +335,6 @@ function checklist_update($form_config,$parent_id)
       }
     }
   }
-  \webdb\forms\page_redirect(false);
 }
 
 #####################################################################################################
@@ -359,20 +377,18 @@ function form_template_fill($name,$params=false)
 function process_filter_sql(&$form_config)
 {
   global $settings;
-  if (isset($_GET["filters"])==true)
+  $page_id=$form_config["page_id"];
+  $cookie_name=\webdb\utils\convert_to_cookie_name($settings["app_name"].":filters:".$page_id);
+  $form_config["selected_filter"]=$form_config["default_filter"];
+  if (isset($_COOKIE[$cookie_name])==true)
   {
-    $filters=json_decode($_GET["filters"],true);
-    $page_id=$form_config["page_id"];
-    if (isset($filters[$page_id])==true)
-    {
-      $form_config["default_filter"]=$filters[$page_id];
-    }
+    $form_config["selected_filter"]=$_COOKIE[$cookie_name];
   }
   $form_config["selected_filter_sql"]="";
   $form_config["selected_filter_condition"]="";
-  if ($form_config["default_filter"]<>"")
+  if ($form_config["selected_filter"]<>"")
   {
-    $filter_name=$form_config["default_filter"];
+    $filter_name=$form_config["selected_filter"];
     if (isset($form_config["filter_options"][$filter_name])==true)
     {
       $form_config["selected_filter_condition"]=$form_config["filter_options"][$filter_name];
@@ -392,6 +408,11 @@ function process_filter_sql(&$form_config)
 function get_subform_content($subform_config,$subform_link_field,$id,$list_only=false,$parent_form_config=false)
 {
   global $settings;
+  if ($subform_config["filter_cookie"]==false)
+  {
+    $cookie_name=$settings["app_name"].":filters:".$subform_config["page_id"];
+    \webdb\utils\webdb_unsetcookie_raw($cookie_name,false);
+  }
   $subform_config["advanced_search"]=false;
   \webdb\forms\process_filter_sql($subform_config);
   $link_records=false;
@@ -476,7 +497,6 @@ function get_subform_content($subform_config,$subform_link_field,$id,$list_only=
   $url_params[$subform_link_field]=$id;
   $subform_config["parent_form_id"]=$id;
   $subform_config["parent_form_config"]=$parent_form_config;
-  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   $event_params=array();
   $event_params["custom_list_content"]=false;
   $event_params["content"]="";
@@ -499,7 +519,6 @@ function get_subform_content($subform_config,$subform_link_field,$id,$list_only=
   {
     $subform_params["subform"]=$event_params["content"];
   }
-  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   $subform_params["subform_style"]="";
   $subform_params["page_id"]=$subform_config["page_id"];
   if ($parent_form_config!==false)
@@ -797,10 +816,7 @@ function list_row($form_config,$record,$column_format,$row_spans,$lookup_records
     if (($form_config["edit_cmd"]=="row") or ($form_config["edit_cmd"]=="inline"))
     {
       $field_params["edit_cmd_id"]=$row_params["edit_cmd_id"];
-      if ($form_config["checklist"]==false)
-      {
-        $field_params["handlers"]=\webdb\forms\form_template_fill("list_field_handlers",$field_params);
-      }
+      $field_params["handlers"]=\webdb\forms\form_template_fill("list_field_handlers",$field_params);
     }
     $skip_field=false;
     if (in_array($field_name,$form_config["group_by"])==true)
@@ -818,21 +834,7 @@ function list_row($form_config,$record,$column_format,$row_spans,$lookup_records
     }
     if ($skip_field==false)
     {
-      if (in_array($field_name,$form_config["link_fields"])==true)
-      {
-        $control_type_suffix="";
-        if ($control_type=="check")
-        {
-          $control_type_suffix="_check";
-        }
-        $submit_fields=array();
-        #$field_params["value"]=output_editable_field($field_params,$display_record,$field_name,$control_type,$form_config,$lookup_records,$submit_fields);
-        $fields.=\webdb\forms\form_template_fill("list_field".$control_type_suffix,$field_params);
-      }
-      else
-      {
-        $fields.=output_readonly_field($field_params,$control_type,$form_config,$field_name,$lookup_records,$display_record,$link_record);
-      }
+      $fields.=\webdb\forms\output_readonly_field($field_params,$control_type,$form_config,$field_name,$lookup_records,$display_record,$link_record);
     }
     $row_params["default_checked"]="";
     if ($checklist_row_linked==true)
@@ -1172,23 +1174,6 @@ function output_editable_field(&$field_params,$record,$field_name,$control_type,
       {
         $field_params["field_key"]=$record[$field_name];
       }
-      /*$field_params["field_value"]="";
-      $lookup_config=$form_config["lookups"][$field_name];
-      $key_field_name=$lookup_config["key_field"];
-      $sibling_field_name=$lookup_config["sibling_field"];
-      for ($i=0;$i<count($lookup_records[$field_name]);$i++)
-      {
-        $key_value=$lookup_records[$field_name][$i][$key_field_name];
-        $display_value=\webdb\forms\lookup_field_display_value($lookup_config,$lookup_records[$field_name][$i]);
-        if ($record[$sibling_field_name]==$key_value)
-        {
-          $field_params["field_key"]=htmlspecialchars($key_value);
-          $field_params["field_value"]=$display_value;
-          break;
-        }
-      }
-      $field_params["field_value"]=htmlspecialchars(str_replace(\webdb\index\LINEBREAK_DB_DELIM,\webdb\index\LINEBREAK_PLACEHOLDER,$field_params["field_value"]));
-      $field_params["field_value"]=str_replace(\webdb\index\LINEBREAK_PLACEHOLDER,\webdb\utils\template_fill("break"),$field_params["field_value"]);*/
       $field_params["value"]=\webdb\forms\get_lookup_field_value($field_name,$form_config,$lookup_records,$record);
       break;
     case "span":
@@ -1657,6 +1642,17 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
     $sql=\webdb\utils\sql_fill("form_list_fetch_all",$form_config);
     $records=\webdb\sql\fetch_prepare($sql,array(),"form_list_fetch_all",false,"","",$form_config);
   }
+  $form_params["selected_filter_input"]="";
+  if (isset($form_config["selected_filter"])==true)
+  {
+    $form_config["insert_row"]=false;
+    $form_params["filter_cookie_value"]=0;
+    if ($form_config["filter_cookie"]==true)
+    {
+      $form_params["filter_cookie_value"]=1;
+    }
+    $form_params["selected_filter_input"]=\webdb\forms\form_template_fill("selected_filter_input",$form_config);
+  }
   $previous_group_by_fields=false;
   $row_spans=array();
   $current_group=0;
@@ -1677,28 +1673,33 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
     }
   }
   $lookup_records=lookup_records($form_config);
+  $form_params["is_checklist"]="0";
   if ($form_config["checklist"]==true)
   {
-    # arrange checklist records with checked first
-    $primary_key=$form_config["primary_key"];
-    $link_key=$form_config["link_key"];
-    $checked_records=array();
-    $unchecked_records=array();
-    for ($i=0;$i<count($records);$i++)
+    $form_params["is_checklist"]="1";
+    if ($form_config["checklist_sort"]=="top")
     {
-      $record=$records[$i];
-      for ($j=0;$j<count($link_records);$j++)
+      # arrange checklist records with checked first
+      $primary_key=$form_config["primary_key"];
+      $link_key=$form_config["link_key"];
+      $checked_records=array();
+      $unchecked_records=array();
+      for ($i=0;$i<count($records);$i++)
       {
-        $test_link_record=$link_records[$j];
-        if ($record[$primary_key]==$test_link_record[$link_key])
+        $record=$records[$i];
+        for ($j=0;$j<count($link_records);$j++)
         {
-          $checked_records[]=$record;
-          continue 2;
+          $test_link_record=$link_records[$j];
+          if ($record[$primary_key]==$test_link_record[$link_key])
+          {
+            $checked_records[]=$record;
+            continue 2;
+          }
         }
+        $unchecked_records[]=$record;
       }
-      $unchecked_records[]=$record;
+      $records=array_merge($checked_records,$unchecked_records);
     }
-    $records=array_merge($checked_records,$unchecked_records);
   }
   for ($i=0;$i<count($records);$i++)
   {
@@ -2068,8 +2069,10 @@ function output_editor($form_config,$record,$command,$verb,$id=false)
   $form_params["cmd"]=$cmd;
   $form_params["id_url_param"]="";
   $form_params["id_cmd_name"]="";
+  $form_params["id"]="";
   if ($id!==false)
   {
+    $form_params["id"]=$id;
     $id_params=array();
     $id_params["id"]=$id;
     $form_params["id_url_param"]=\webdb\forms\form_template_fill("id_url_param",$id_params);
@@ -2523,15 +2526,6 @@ function update_record($form_config,$id,$value_items=false,$where_items=false,$r
     \webdb\utils\redirect($url);
   }
   \webdb\forms\page_redirect(false,$params);
-}
-
-#####################################################################################################
-
-function set_confirm_status_cookie($form_config,$status_message)
-{
-  $cookie_name="confirm_status_".$form_config["page_id"];
-  #\webdb\utils\webdb_setcookie_raw($cookie_name,urlencode($status_message),0,false);
-  setcookie($cookie_name,$status_message,0,"/",$_SERVER["HTTP_HOST"],false,false);
 }
 
 #####################################################################################################

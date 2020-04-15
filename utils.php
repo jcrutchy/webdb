@@ -250,7 +250,17 @@ function webdb_setcookie_raw($name,$value,$max_age=0,$http_only=true)
   {
     $expiry=0;
   }
-  setcookie($name,$value,$expiry,"/",$_SERVER["HTTP_HOST"],false,$http_only);
+  $cookie_name=\webdb\utils\convert_to_cookie_name($name);
+  setcookie($cookie_name,$value,$expiry,"/",$_SERVER["HTTP_HOST"],false,$http_only);
+}
+
+#####################################################################################################
+
+function webdb_unsetcookie_raw($name,$http_only=true)
+{
+  $cookie_name=\webdb\utils\convert_to_cookie_name($name);
+  unset($_COOKIE[$cookie_name]);
+  setcookie($cookie_name,"",1,"/",$_SERVER["HTTP_HOST"],false,$http_only);
 }
 
 #####################################################################################################
@@ -258,7 +268,14 @@ function webdb_setcookie_raw($name,$value,$max_age=0,$http_only=true)
 function webdb_unsetcookie($setting_key,$http_only=true)
 {
   global $settings;
-  setcookie($settings[$setting_key],"",1,"/",$_SERVER["HTTP_HOST"],false,$http_only);
+  \webdb\utils\webdb_unsetcookie_raw($settings[$setting_key],$http_only);
+}
+
+#####################################################################################################
+
+function convert_to_cookie_name($name)
+{
+  return str_replace(" ","_",$name);
 }
 
 #####################################################################################################
@@ -287,6 +304,7 @@ function output_page($content,$title)
     $page_params["authenticated_status"]=\webdb\utils\template_fill("unauthenticated_status");
   }
   $page_params["calendar"]=\webdb\forms\get_calendar();
+  $page_params["app_name"]=$settings["app_name"];
   $output=\webdb\utils\template_fill("page",$page_params);
   die($output);
 }
@@ -969,8 +987,8 @@ function load_db_credentials($type)
   {
     \webdb\utils\system_message("error: invalid database credentials file: ".$filename);
   }
-  $settings["db_".$type."_username"]=$data[0];
-  $settings["db_".$type."_password"]=$data[1];
+  $settings["db_".$type."_username"]=trim($data[0]);
+  $settings["db_".$type."_password"]=trim($data[1]);
 }
 
 #####################################################################################################

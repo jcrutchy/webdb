@@ -14,8 +14,9 @@ insert_row_parents['%%page_id%%']=document.currentScript.parentElement;
 
 <input type="hidden" id="ajax_edit_page:%%page_id%%" name="ajax_edit_page:%%page_id%%" value="$$app_web_index$$?page=%%page_id%%&cmd=edit&id=">
 
-<input type="hidden" id="parent_id:%%page_id%%" name="parent_id:%%page_id%%" value="%%parent_id%%">
-<input type="hidden" id="parent_form:%%page_id%%" name="parent_form:%%page_id%%" value="%%parent_form_page_id%%">
+<input type="hidden" id="is_checklist:%%page_id%%" name="is_checklist:%%page_id%%" value="%%is_checklist%%">
+
+%%selected_filter_input%%
 
 <div id="row_edit_mode:%%page_id%%" style="display: none;">%%row_edit_mode%%</div>
 

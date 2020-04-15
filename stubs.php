@@ -8,26 +8,22 @@ function output_filter_select($form_config,$filter_select_template,$blank_option
 {
   $params=array();
   $page_id=$form_config["page_id"];
-  $filter=$form_config["default_filter"];
-  if (isset($_GET["filters"])==true)
+  $selected_filter=$form_config["default_filter"];
+  if (isset($form_config["selected_filter"])==true)
   {
-    $filters=json_decode($_GET["filters"],true);
-    if (isset($filters[$page_id])==true)
-    {
-      $filter=$filters[$page_id];
-    }
+    $selected_filter=$form_config["selected_filter"];
   }
   if (isset($_GET["new_filter"])==true)
   {
-    $filter=$_GET["new_filter"];
+    $selected_filter=$_GET["new_filter"];
   }
   foreach ($form_config["filter_options"] as $filter_name => $sql_condition)
   {
     $params["active_filter_".$filter_name]="";
   }
-  if ($filter<>"")
+  if ($selected_filter<>"")
   {
-    $params["active_filter_".$filter]=\webdb\utils\template_fill($active_template);
+    $params["active_filter_".$selected_filter]=\webdb\utils\template_fill($active_template);
     $params[$blank_option]=$deselect_all_template;
   }
   else
@@ -42,16 +38,34 @@ function output_filter_select($form_config,$filter_select_template,$blank_option
 
 function filter_select_change($form_config)
 {
-  $required_params=array("new_filter","id","redirect","subform");
-  \webdb\stubs\check_get_parameters_exist($required_params);
-  $filter=$_GET["new_filter"];
-  $subform=$_GET["subform"];
   $data=array();
-  $id=$_GET["id"];
-  $subform_config=\webdb\forms\get_form_config($subform,false);
-  $subform_config["default_filter"]=$filter;
-  $data["html"]=\webdb\forms\get_subform_content($subform_config,$subform_config["parent_key"],$id,true,$form_config);
-  $data["subform"]=$subform_config["page_id"];
+  $required_params=array("new_filter");
+  \webdb\stubs\check_get_parameters_exist($required_params);
+  $new_filter=$_GET["new_filter"];
+  $subform=false;
+  if (isset($_GET["subform"])==true)
+  {
+    if ($form_config["page_id"]<>$_GET["subform"])
+    {
+      $subform=true;
+    }
+  }
+  if ($subform==true)
+  {
+    $required_params=array("id");
+    \webdb\stubs\check_get_parameters_exist($required_params);
+    $subform=$_GET["subform"];
+    $id=$_GET["id"];
+    $subform_config=\webdb\forms\get_form_config($subform,false);
+    $subform_config["default_filter"]=$new_filter;
+    $data["html"]=\webdb\forms\get_subform_content($subform_config,$subform_config["parent_key"],$id,true,$form_config);
+    $data["subform"]=$subform_config["page_id"];
+  }
+  else
+  {
+    $form_config["default_filter"]=$new_filter;
+    $data["html"]=\webdb\forms\list_form_content($form_config);
+  }
   $data=json_encode($data);
   die($data);
 }
@@ -106,14 +120,6 @@ function list_insert($form_config)
   if (\webdb\utils\check_user_form_permission($form_config["page_id"],"i")==false)
   {
     \webdb\utils\error_message("error: record update permission denied for form '".$page_id."'");
-  }
-  if ((isset($_GET["parent_form"])==true) and (isset($_GET["parent_id"])==true))
-  {
-    $form_config["parent_form_config"]=\webdb\forms\get_form_config($_GET["parent_form"],true);
-    if ($form_config["parent_form_config"]!==false)
-    {
-      $form_config["parent_form_id"]=$_GET["parent_id"];
-    }
   }
   $data=array();
   $params=\webdb\forms\process_form_data_fields($form_config);
@@ -172,14 +178,6 @@ function list_edit($id,$form_config)
   {
     \webdb\utils\error_message("error: record update permission denied for form '".$page_id."'");
   }
-  if ((isset($_GET["parent_form"])==true) and (isset($_GET["parent_id"])==true))
-  {
-    $form_config["parent_form_config"]=\webdb\forms\get_form_config($_GET["parent_form"],true);
-    if ($form_config["parent_form_config"]!==false)
-    {
-      $form_config["parent_form_id"]=$_GET["parent_id"];
-    }
-  }
   $data=array();
   $data["page_id"]=$form_config["page_id"];
   $column_format=\webdb\forms\get_column_format_data($form_config);
@@ -203,7 +201,7 @@ function list_edit($id,$form_config)
       }
       $post_fields[$page_id.":".$field_name]=$value;
     }
-    if (isset($_GET["parent_form"])==true)
+    if ((isset($_GET["subform"])==true) and (isset($_GET["parent_form"])==true))
     {
       $subform_page_id=$_GET["subform"];
       $subform_form_config=\webdb\forms\get_form_config($subform_page_id);
@@ -233,7 +231,43 @@ function list_edit($id,$form_config)
   }
   $edit_fields=array();
   $field_name_prefix="edit_control:".$id.":";
-  $data["html"]=\webdb\forms\list_row_controls($form_config,$edit_fields,"edit",$column_format,$record,$field_name_prefix);
+  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  $is_checklist_subform=false;
+  if ((isset($_GET["subform"])==true) and (isset($_GET["parent_form"])==true) and (isset($_GET["parent_id"])==true))
+  {
+    $parent_form_page_id=$_GET["parent_form"];
+    $parent_form_form_config=\webdb\forms\get_form_config($parent_form_page_id);
+    $subform_page_id=$_GET["subform"];
+    $subform_form_config=\webdb\forms\get_form_config($subform_page_id);
+    if ($subform_form_config["checklist"]==true)
+    {
+      $is_checklist_subform=true;
+      # TODO: CONSIDER UTILISING CODE FROM \webdb\forms\checklist_update FUNCTION
+      $conditions=array();
+      $fieldname=$subform_form_config["parent_key"];
+      $conditions[$fieldname]=$_GET["parent_id"];
+      $subform_primary_key_items=\webdb\forms\config_id_conditions($subform_form_config,$id,"primary_key");
+      $fieldname=$subform_form_config["link_key"];
+      $conditions[$fieldname]=$subform_primary_key_items[$fieldname];
+      $sql_params=array();
+      $sql_params["database"]=$subform_form_config["link_database"];
+      $sql_params["table"]=$subform_form_config["link_table"];
+      $sql_params["where_conditions"]=\webdb\sql\build_prepared_where($conditions);
+      $sql=\webdb\utils\sql_fill("form_list_fetch_by_id",$sql_params);
+      $records=\webdb\sql\fetch_prepare($sql,$conditions,"form_list_fetch_by_id",false,$sql_params["table"],$sql_params["database"],$subform_form_config);
+      $link_record=$records[0];
+
+      $row_spans=array();
+      $lookup_records=\webdb\forms\lookup_records($form_config);
+      $data["html"]=\webdb\forms\list_row($form_config,$record,$column_format,$row_spans,$lookup_records,0,$link_record);
+
+    }
+  }
+  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  if ($is_checklist_subform==false)
+  {
+    $data["html"]=\webdb\forms\list_row_controls($form_config,$edit_fields,"edit",$column_format,$record,$field_name_prefix);
+  }
   $data["primary_key"]=$id;
   for ($i=0;$i<count($settings["calendar_fields"]);$i++)
   {

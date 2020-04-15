@@ -6,7 +6,7 @@ function page_load()
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function get_cookie(name)
+function get_cookie(cookie_name)
 {
   var cookies=decodeURIComponent(document.cookie);
   var cookies=cookies.split(";");
@@ -17,7 +17,7 @@ function get_cookie(name)
     if (j>0)
     {
       var test_name=cookie.substring(0,j).trim();
-      if (test_name==name)
+      if (test_name==cookie_name)
       {
         var cookie_value=cookie.substring(j+1).trim();
         cookie_value=cookie_value.replace(/\+/g," ");
@@ -26,6 +26,13 @@ function get_cookie(name)
     }
   }
   return "";
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function set_session_cookie(cookie_name,cookie_value)
+{
+  document.cookie=cookie_name+"="+cookie_value+"; Expires=0; Domain="+window.location.hostname+"; Path=/;";
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////

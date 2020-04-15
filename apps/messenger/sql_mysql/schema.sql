@@ -62,7 +62,7 @@ DROP TABLE IF EXISTS $$database_app$$.`messenger_channel_users` ;
 CREATE TABLE IF NOT EXISTS `messenger`.`messenger_channel_users` (
   `channel_id` INT UNSIGNED NOT NULL,
   `user_id` INT UNSIGNED NOT NULL,
-  `last_read_message_id` INT UNSIGNED DEFAULT 0,
+  `last_read_message_id` INT DEFAULT 0,
   PRIMARY KEY (`channel_id`, `user_id`),
   CONSTRAINT `fk_channel_users_channels1`
     FOREIGN KEY (`channel_id`)

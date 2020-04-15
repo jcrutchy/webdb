@@ -45,7 +45,7 @@ CREATE TABLE test_app_locations (
 CREATE TABLE test_app_item_location_links (
   item_id INT CHECK (item_id > 0) NOT NULL,
   location_id INT CHECK (location_id > 0) NOT NULL,
-  quantity INT CHECK (quantity > 0) DEFAULT 0,
+  quantity INT CHECK (quantity >= 0) DEFAULT 0,
   notes VARCHAR(max) DEFAULT NULL,
   PRIMARY KEY (item_id, location_id),
   CONSTRAINT test_app_fk_item_location_links_items1
