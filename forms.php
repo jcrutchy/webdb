@@ -384,6 +384,10 @@ function process_filter_sql(&$form_config)
   {
     $form_config["selected_filter"]=$_COOKIE[$cookie_name];
   }
+  if (isset($_POST["selected_filter:".$page_id])==true)
+  {
+    $form_config["selected_filter"]=$_POST["selected_filter:".$page_id];
+  }
   $form_config["selected_filter_sql"]="";
   $form_config["selected_filter_condition"]="";
   if ($form_config["selected_filter"]<>"")
