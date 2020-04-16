@@ -45,5 +45,5 @@ $settings["csrf_hash_prefix"]="g7qbz62.Og";
 
 #################################################################################
 
-$fn=dirname(dirname(dirname(__DIR__))).DIRECTORY_SEPARATOR."environment_specific_settings.php";
+$fn=$settings["webdb_parent_path"]."environment_specific_settings.php";
 require_once($fn);

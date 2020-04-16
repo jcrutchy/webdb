@@ -21,9 +21,7 @@ function run_tests()
   \webdb\test\utils\test_cleanup();
   $settings["test_user_agent"]="webdb testing framework";
   \webdb\test\utils\test_info_message("CHECKING SETTINGS...");
-  \webdb\test\check_webdb_settings();
-  \webdb\test\check_app_settings();
-  \webdb\test\check_sql_settings();
+  \webdb\test\check_settings();
   if (\webdb\utils\is_app_mode()==true)
   {
     require_once("test".DIRECTORY_SEPARATOR."security.php");
@@ -46,33 +44,20 @@ function run_tests()
 
 #####################################################################################################
 
-function check_webdb_settings()
+function check_settings()
 {
   global $settings;
   $required_settings=array(
-    "webdb_templates_path",
-    "webdb_sql_path",
-    "webdb_resources_path",
-    "webdb_forms_path");
-  for ($i=0;$i<count($required_settings);$i++)
-  {
-    \webdb\test\utils\check_required_setting_exists($required_settings[$i]);
-  }
-  \webdb\test\utils\check_required_file_exists($settings["webdb_templates_path"],true);
-  \webdb\test\utils\check_required_file_exists($settings["webdb_sql_path"],true);
-  \webdb\test\utils\check_required_file_exists($settings["webdb_resources_path"],true);
-  \webdb\test\utils\check_required_file_exists($settings["webdb_forms_path"],true);
-}
-
-#####################################################################################################
-
-function check_app_settings()
-{
-  global $settings;
-  $required_settings=array(
+    "webdb_root_path",
+    "webdb_parent_path",
+    "app_root_path",
     "db_host",
     "db_engine",
     "db_database",
+    "db_admin_username",
+    "db_admin_password",
+    "db_user_username",
+    "db_user_password",
     "app_name",
     "app_title",
     "webdb_web_root",
@@ -94,9 +79,11 @@ function check_app_settings()
     "app_home_template",
     "db_admin_file",
     "db_user_file",
+    "webdb_templates_path",
     "app_templates_path",
-    "app_sql_path",
+    "webdb_resources_path",
     "app_resources_path",
+    "webdb_forms_path",
     "app_forms_path",
     "gd_ttf",
     "app_test_include",
@@ -135,7 +122,11 @@ function check_app_settings()
     "database_app",
     "sqlsrv_catalog",
     "sqlsrv_schema",
-    "app_group_access");
+    "app_group_access",
+    "webdb_sql_common_path",
+    "webdb_sql_engine_path",
+    "app_sql_common_path",
+    "app_sql_engine_path");
   for ($i=0;$i<count($required_settings);$i++)
   {
     \webdb\test\utils\check_required_setting_exists($required_settings[$i]);
@@ -151,9 +142,15 @@ function check_app_settings()
     \webdb\test\utils\check_required_file_exists($settings[$file]);
   }
   $required_paths=array(
+    "webdb_templates_path",
     "app_templates_path",
-    "app_sql_path",
+    "webdb_sql_common_path",
+    "webdb_sql_engine_path",
+    "app_sql_common_path",
+    "app_sql_engine_path",
+    "webdb_resources_path",
     "app_resources_path",
+    "webdb_forms_path",
     "app_forms_path",
     "sql_log_path",
     "auth_log_path");
@@ -161,21 +158,6 @@ function check_app_settings()
   {
     $path=$required_paths[$i];
     \webdb\test\utils\check_required_file_exists($settings[$path],true);
-  }
-}
-
-#####################################################################################################
-
-function check_sql_settings()
-{
-  $required_settings=array(
-    "db_admin_username",
-    "db_admin_password",
-    "db_user_username",
-    "db_user_password");
-  for ($i=0;$i<count($required_settings);$i++)
-  {
-    \webdb\test\utils\check_required_setting_exists($required_settings[$i]);
   }
 }
 

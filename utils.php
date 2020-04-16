@@ -133,15 +133,17 @@ function build_settings()
   \webdb\utils\initialize_settings();
   \webdb\utils\load_webdb_settings();
   \webdb\utils\load_application_settings();
-  $settings["templates"]=\webdb\utils\load_files($settings["webdb_templates_path"],"","htm",true);
-  $settings["webdb_templates"]=$settings["templates"];
-  $settings["sql"]=\webdb\utils\load_files($settings["webdb_sql_path"],"","sql",true);
-  $settings["webdb_sql"]=$settings["sql"];
   \webdb\utils\load_db_credentials("admin");
   \webdb\utils\load_db_credentials("user");
+  $settings["webdb_templates"]=\webdb\utils\load_files($settings["webdb_templates_path"],"","htm",true);
   $settings["app_templates"]=\webdb\utils\load_files($settings["app_templates_path"],"","htm",true);
   $settings["templates"]=array_merge($settings["webdb_templates"],$settings["app_templates"]);
-  $settings["app_sql"]=\webdb\utils\load_files($settings["app_sql_path"],"","sql",true);
+  $settings["webdb_sql_common"]=\webdb\utils\load_files($settings["webdb_sql_common_path"],"","sql",true);
+  $settings["webdb_sql_engine"]=\webdb\utils\load_files($settings["webdb_sql_engine_path"],"","sql",true);
+  $settings["webdb_sql"]=array_merge($settings["webdb_sql_common"],$settings["webdb_sql_engine"]);
+  $settings["app_sql_common"]=\webdb\utils\load_files($settings["app_sql_common_path"],"","sql",true);
+  $settings["app_sql_engine"]=\webdb\utils\load_files($settings["app_sql_engine_path"],"","sql",true);
+  $settings["app_sql"]=array_merge($settings["app_sql_common"],$settings["app_sql_engine"]);
   $settings["sql"]=array_merge($settings["webdb_sql"],$settings["app_sql"]);
   $settings["forms"]=array();
   \webdb\forms\load_form_defs();
@@ -165,7 +167,7 @@ function initialize_settings()
   $settings["sql_database_change"]=false;
   $settings["calendar_fields"]=array();
   $settings["permissions"]=array();
-  $settings["parent_path"]=dirname(__DIR__).DIRECTORY_SEPARATOR;
+  $settings["webdb_parent_path"]=dirname(__DIR__).DIRECTORY_SEPARATOR;
   $settings["webdb_root_path"]=__DIR__.DIRECTORY_SEPARATOR;
   $settings["webdb_directory_name"]=basename($settings["webdb_root_path"]);
   $settings["app_directory_name"]=basename($settings["app_root_path"]);
@@ -1150,18 +1152,7 @@ function init_webdb_schema()
 
 function init_app_schema()
 {
-  global $settings;
-  $filename=$settings["app_sql_path"]."schema.sql";
-  if (file_exists($filename)==true)
-  {
-    $sql=trim(file_get_contents($filename));
-    \webdb\sql\execute_prepare($sql,array(),"",true);
-    return true;
-  }
-  else
-  {
-    return false;
-  }
+  \webdb\sql\file_execute_prepare("schema",array(),true);
 }
 
 #####################################################################################################

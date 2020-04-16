@@ -44,7 +44,8 @@ function apply_test_app_settings()
     $settings["app_web_index"]=$settings["app_web_root"]."index.php";
     $settings["app_root_namespace"]="\\".$settings["app_directory_name"]."\\";
     $settings["app_templates_path"]=$settings["app_root_path"]."templates".DIRECTORY_SEPARATOR;
-    $settings["app_sql_path"]=$settings["app_root_path"]."sql_".$settings["db_engine"].DIRECTORY_SEPARATOR;
+    $settings["app_sql_common_path"]=$settings["app_root_path"]."sql_common".DIRECTORY_SEPARATOR;
+    $settings["app_sql_engine_path"]=$settings["app_root_path"]."sql_".$settings["db_engine"].DIRECTORY_SEPARATOR;
     $settings["app_resources_path"]=$settings["app_root_path"]."resources".DIRECTORY_SEPARATOR;
     $settings["app_forms_path"]=$settings["app_root_path"]."forms".DIRECTORY_SEPARATOR;
     $settings_filename=$settings["app_root_path"]."settings.php";
@@ -157,10 +158,7 @@ function initialize_test_app_schema()
   {
     \webdb\test\utils\apply_test_app_settings();
   }
-  if (\webdb\utils\init_app_schema()==false)
-  {
-    \webdb\test\utils\test_error_message("error: app schema file not found");
-  }
+  \webdb\utils\init_app_schema();
   if ($is_test_app==false)
   {
     \webdb\test\utils\restore_app_settings();

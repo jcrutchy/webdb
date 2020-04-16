@@ -28,7 +28,7 @@ $settings["app_group_access"]="*";
 
 $settings["logo_resource_file"]="/logo.png";
 
-$fn=dirname(dirname(dirname(__DIR__))).DIRECTORY_SEPARATOR."environment_specific_settings.php";
+$fn=$settings["webdb_parent_path"]."environment_specific_settings.php";
 require_once($fn);
 
 # application-specific settings

@@ -122,14 +122,8 @@ function cli_dispatch()
     case "init_app_schema":
       \webdb\utils\load_settings();
       \webdb\utils\database_connect();
-      if (\webdb\utils\init_app_schema()==true)
-      {
-        \webdb\utils\system_message("app schema initialised");
-      }
-      else
-      {
-        \webdb\utils\system_message("error: app schema file not found");
-      }
+      \webdb\utils\init_app_schema();
+      \webdb\utils\system_message("app schema initialised");
     case "unused_fields":
       \webdb\utils\load_settings();
       \webdb\utils\database_connect();

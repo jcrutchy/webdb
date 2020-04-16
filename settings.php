@@ -8,7 +8,6 @@ $settings["app_web_resources"]=$settings["app_web_root"]."resources/";
 $settings["app_web_index"]=$settings["app_web_root"]."index.php";
 $settings["app_root_namespace"]="\\".$settings["app_directory_name"]."\\";
 $settings["app_templates_path"]=$settings["app_root_path"]."templates".DIRECTORY_SEPARATOR;
-$settings["app_sql_path"]=$settings["app_root_path"]."sql".DIRECTORY_SEPARATOR;
 $settings["app_resources_path"]=$settings["app_root_path"]."resources".DIRECTORY_SEPARATOR;
 $settings["app_forms_path"]=$settings["app_root_path"]."forms".DIRECTORY_SEPARATOR;
 $settings["app_home_template"]="home";
@@ -16,7 +15,6 @@ $settings["app_date_format"]="Y-m-d";
 $settings["app_logo_filename"]="logo.png";
 
 $settings["webdb_templates_path"]=$settings["webdb_root_path"]."templates".DIRECTORY_SEPARATOR;
-$settings["webdb_sql_path"]=$settings["webdb_root_path"]."sql".DIRECTORY_SEPARATOR;
 $settings["webdb_resources_path"]=$settings["webdb_root_path"]."resources".DIRECTORY_SEPARATOR;
 $settings["webdb_forms_path"]=$settings["webdb_root_path"]."forms".DIRECTORY_SEPARATOR;
 
@@ -55,6 +53,11 @@ $settings["admin_remote_address_whitelist"]=array("127.0.0.1","::1");
 $settings["db_host"]="host=localhost";
 $settings["db_engine"]="mysql";
 $settings["db_database"]="";
+
+$settings["webdb_sql_common_path"]=$settings["webdb_root_path"]."sql_common".DIRECTORY_SEPARATOR;
+$settings["webdb_sql_engine_path"]=$settings["webdb_root_path"]."sql_".$settings["db_engine"].DIRECTORY_SEPARATOR;
+$settings["app_sql_common_path"]=$settings["app_root_path"]."sql_common".DIRECTORY_SEPARATOR;
+$settings["app_sql_engine_path"]=$settings["app_root_path"]."sql_".$settings["db_engine"].DIRECTORY_SEPARATOR;
 
 $settings["database_webdb"]="webdb";
 $settings["database_app"]="";
@@ -104,9 +107,6 @@ $settings["admin_remote_address_whitelist"][]="192.168.0.50"; # add as required
 
 $settings["irregular_plurals"]=array(); # singular => plural
 
-$settings["webdb_sql_path"]=$settings["webdb_root_path"]."sql_".$settings["db_engine"].DIRECTORY_SEPARATOR;
-$settings["app_sql_path"]=$settings["app_root_path"]."sql_".$settings["db_engine"].DIRECTORY_SEPARATOR;
-
 # the following settings are also in list.css
 $settings["list_diagonal_border_color"]="888";
 $settings["list_border_color"]="888";
@@ -137,6 +137,3 @@ $settings["permissions"]["admin"]["forms"]["subform_user_groups"]="riud";
 
 #########################################################
 #########################################################
-
-$settings["ip_blacklist_file"]="/home/jared/dev/public/ip_blacklist.txt";
-$settings["ip_whitelist_file"]="/home/jared/dev/public/ip_whitelist.txt";
