@@ -1125,23 +1125,24 @@ function list_row_controls($form_config,&$submit_fields,$operation,$column_forma
     {
       $control_type_suffix="_check";
     }
-    if ($control_type<>"lookup")
+    if ($control_type<>"hidden")
     {
-      if (($form_config["checklist"]==true) and (in_array($field_name,$form_config["link_fields"])==false))
+      if ($control_type<>"lookup")
       {
-        $field_params["value"]=\webdb\forms\output_readonly_field($field_params,$control_type,$form_config,$field_name,$lookup_records,$record);
+        if (($form_config["checklist"]==true) and (in_array($field_name,$form_config["link_fields"])==false))
+        {
+          $fields.=\webdb\forms\output_readonly_field($field_params,$control_type,$form_config,$field_name,$lookup_records,$record);
+          continue;
+        }
+        else
+        {
+          $field_params["value"]=\webdb\forms\output_editable_field($field_params,$record,$field_name,$control_type,$form_config,$lookup_records,$submit_fields);
+        }
       }
       else
       {
-        $field_params["value"]=\webdb\forms\output_editable_field($field_params,$record,$field_name,$control_type,$form_config,$lookup_records,$submit_fields);
+        $field_params["value"]=\webdb\forms\get_lookup_field_value($field_name,$form_config,$lookup_records,$record);
       }
-    }
-    else
-    {
-      $field_params["value"]=\webdb\forms\get_lookup_field_value($field_name,$form_config,$lookup_records,$record);
-    }
-    if ($control_type<>"hidden")
-    {
       $fields.=\webdb\forms\form_template_fill("list_field".$control_type_suffix,$field_params);
     }
     else
@@ -2415,6 +2416,10 @@ function process_form_data_fields($form_config,$post_override=false)
   $page_id=$form_config["page_id"];
   foreach ($form_config["control_types"] as $field_name => $control_type)
   {
+    if (($form_config["checklist"]==true) and (in_array($field_name,$form_config["link_fields"])==false))
+    {
+      continue;
+    }
     switch ($control_type)
     {
       case "lookup":

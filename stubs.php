@@ -183,6 +183,29 @@ function list_edit($id,$form_config)
   $column_format=\webdb\forms\get_column_format_data($form_config);
   $record=\webdb\forms\get_record_by_id($form_config,$id,"primary_key");
   $record=\webdb\forms\process_computed_fields($form_config,$record);
+  $link_record=false;
+  $merged_record=false;
+  if ((isset($_GET["parent_form"])==true) and (isset($_GET["parent_id"])==true))
+  {
+    $parent_form_config=\webdb\forms\get_form_config($_GET["parent_form"]);
+    if ($form_config["checklist"]==true)
+    {
+      $conditions=array();
+      $fieldname=$form_config["parent_key"];
+      $conditions[$fieldname]=$_GET["parent_id"];
+      $primary_key_items=\webdb\forms\config_id_conditions($form_config,$id,"primary_key");
+      $fieldname=$form_config["link_key"];
+      $conditions[$fieldname]=$primary_key_items[$fieldname];
+      $sql_params=array();
+      $sql_params["database"]=$form_config["link_database"];
+      $sql_params["table"]=$form_config["link_table"];
+      $sql_params["where_conditions"]=\webdb\sql\build_prepared_where($conditions);
+      $sql=\webdb\utils\sql_fill("form_list_fetch_by_id",$sql_params);
+      $records=\webdb\sql\fetch_prepare($sql,$conditions,"form_list_fetch_by_id",false,$sql_params["table"],$sql_params["database"],$form_config);
+      $link_record=$records[0];
+      $merged_record=array_merge($record,$link_record);
+    }
+  }
   if (count($_POST)>0)
   {
     $post_fields=array();
@@ -201,13 +224,19 @@ function list_edit($id,$form_config)
       }
       $post_fields[$page_id.":".$field_name]=$value;
     }
-    if ((isset($_GET["subform"])==true) and (isset($_GET["parent_form"])==true))
+    if ((isset($_GET["parent_form"])==true) and (isset($_GET["parent_id"])==true) and ($form_config["checklist"]==true))
     {
-      $subform_page_id=$_GET["subform"];
-      $subform_form_config=\webdb\forms\get_form_config($subform_page_id);
-      $value_items=\webdb\forms\process_form_data_fields($subform_form_config,$post_fields);
-      $where_items=\webdb\forms\config_id_conditions($subform_form_config,$id,"primary_key");
-      \webdb\forms\update_record($subform_form_config,$id,$value_items,$where_items,true);
+      $parent_form_config=\webdb\forms\get_form_config($_GET["parent_form"]);
+      $where_items=array();
+      $fieldname=$form_config["parent_key"];
+      $where_items[$fieldname]=$_GET["parent_id"];
+      $primary_key_items=\webdb\forms\config_id_conditions($form_config,$id,"primary_key");
+      $fieldname=$form_config["link_key"];
+      $where_items[$fieldname]=$primary_key_items[$fieldname];
+      $value_items=\webdb\forms\process_form_data_fields($form_config,$post_fields);
+      $form_config["table"]=$form_config["link_table"];
+      $form_config["database"]=$form_config["link_database"];
+      \webdb\forms\update_record($form_config,$id,$value_items,$where_items,true);
     }
     else
     {
@@ -220,32 +249,6 @@ function list_edit($id,$form_config)
   }
   $edit_fields=array();
   $field_name_prefix="edit_control:".$id.":";
-  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  $link_record=false;
-  $merged_record=false;
-  if ((isset($_GET["parent_form"])==true) and (isset($_GET["parent_id"])==true))
-  {
-    $parent_form_config=\webdb\forms\get_form_config($_GET["parent_form"]);
-    if ($form_config["checklist"]==true)
-    {
-      # TODO: CONSIDER UTILISING CODE FROM \webdb\forms\checklist_update FUNCTION
-      $conditions=array();
-      $fieldname=$form_config["parent_key"];
-      $conditions[$fieldname]=$_GET["parent_id"];
-      $primary_key_items=\webdb\forms\config_id_conditions($form_config,$id,"primary_key");
-      $fieldname=$form_config["link_key"];
-      $conditions[$fieldname]=$primary_key_items[$fieldname];
-      $sql_params=array();
-      $sql_params["database"]=$form_config["link_database"];
-      $sql_params["table"]=$form_config["link_table"];
-      $sql_params["where_conditions"]=\webdb\sql\build_prepared_where($conditions);
-      $sql=\webdb\utils\sql_fill("form_list_fetch_by_id",$sql_params);
-      $records=\webdb\sql\fetch_prepare($sql,$conditions,"form_list_fetch_by_id",false,$sql_params["table"],$sql_params["database"],$form_config);
-      $link_record=$records[0];
-      $merged_record=array_merge($record,$link_record);
-    }
-  }
-  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   if (isset($_GET["reset"])==true)
   {
     $row_spans=array();
