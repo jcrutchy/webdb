@@ -1489,10 +1489,15 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
   {
     $form_config["checklist"]=false;
   }
+  if ($form_config["advanced_search_page_id"]=="")
+  {
+    $form_config["advanced_search_page_id"]=$form_config["page_id"];
+  }
   $form_params=array();
   $form_params["page_id"]=$form_config["page_id"];
   $form_params["edit_cmd_page_id"]=$form_config["edit_cmd_page_id"];
   $form_params["insert_cmd_page_id"]=$form_config["page_id"];
+  $form_params["advanced_search_page_id"]=$form_config["advanced_search_page_id"];
   if ($form_config["insert_cmd_page_id"]<>"")
   {
     $form_params["insert_cmd_page_id"]=$form_config["insert_cmd_page_id"];
@@ -1842,8 +1847,36 @@ function advanced_search($form_config)
     {
       case "lookup":
         continue 2;
-      case "span":
       case "checkbox":
+        $search_control_type="checkbox";
+        $checkbox_operators=array(""=>"","checked"=>"1","unchecked"=>"0");
+        $selected_option=$field_value;
+        $field_params["options"]="";
+        foreach ($checkbox_operators as $caption => $value)
+        {
+          $option_params=array();
+          $option_params["value"]=$value;
+          $option_params["caption"]=$caption;
+          if ($value===$selected_option)
+          {
+            $field_params["options"].=\webdb\utils\template_fill("select_option_selected",$option_params);
+          }
+          else
+          {
+            $field_params["options"].=\webdb\utils\template_fill("select_option",$option_params);
+          }
+        }
+        switch ($field_value)
+        {
+          case "0":
+            $sql_params[$field_name]=0;
+            break;
+          case "1":
+            $sql_params[$field_name]=1;
+            break;
+        }
+        break;
+      case "span":
       case "text":
       case "memo":
       case "combobox":

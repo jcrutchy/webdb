@@ -62,6 +62,7 @@
     "insert_row": true,
     "insert_cmd_page_id": "",
     "advanced_search": true,
+    "advanced_search_page_id": "",
     "sort_field_select": true,
     "allow_field_sort": true,
     "database": "",

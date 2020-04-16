@@ -8,6 +8,12 @@ there are link tables, like hazard_control_links
 then there are checklist link records, derived from the link_* settings in the form config
 link_* records are typically derived from link tables, but they correspond to checklist selections
 
+when you inline edit a checklist link record, you can only edit fields in the link_fields list setting,
+which are fields that must be in the link table (not the main subform list table)
+
+the main subform list table is a reference to the source of all the records that can be checked in the checklist
+the link_* data source refers to where the checklist selections are stored
+
 
 assume for example you have three tables:
 - locations

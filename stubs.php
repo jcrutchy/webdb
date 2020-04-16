@@ -258,11 +258,13 @@ function list_edit($id,$form_config)
 
       $link_record=$records[0];
 
+var_dump($link_record);
+die;
+
       $row_spans=array();
       $lookup_records=\webdb\forms\lookup_records($form_config);
       $data["html"]=\webdb\forms\list_row($form_config,$record,$column_format,$row_spans,$lookup_records,0,$link_record);
 
-      die("todo");
     }
   }
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
