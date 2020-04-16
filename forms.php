@@ -1971,8 +1971,7 @@ function advanced_search($form_config)
       }
     }
     $row_params["field_value"]=\webdb\forms\form_template_fill("advanced_search_".$search_control_type,$field_params);
-    $row_params["interface_button"]="";
-    $rows.=\webdb\forms\form_template_fill("field_row",$row_params);
+    $rows.=\webdb\forms\form_template_fill("advanced_search_row",$row_params);
   }
   $form_params=array();
   $form_params["title"]=$form_config["title"];

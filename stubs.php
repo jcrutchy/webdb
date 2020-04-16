@@ -223,27 +223,24 @@ function list_edit($id,$form_config)
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   $link_record=false;
   $merged_record=false;
-  if ((isset($_GET["subform"])==true) and (isset($_GET["parent_form"])==true) and (isset($_GET["parent_id"])==true))
+  if ((isset($_GET["parent_form"])==true) and (isset($_GET["parent_id"])==true))
   {
-    $parent_form_page_id=$_GET["parent_form"];
-    $parent_form_form_config=\webdb\forms\get_form_config($parent_form_page_id);
-    $subform_page_id=$_GET["subform"];
-    $subform_form_config=\webdb\forms\get_form_config($subform_page_id);
-    if ($subform_form_config["checklist"]==true)
+    $parent_form_config=\webdb\forms\get_form_config($_GET["parent_form"]);
+    if ($form_config["checklist"]==true)
     {
       # TODO: CONSIDER UTILISING CODE FROM \webdb\forms\checklist_update FUNCTION
       $conditions=array();
-      $fieldname=$subform_form_config["parent_key"];
+      $fieldname=$form_config["parent_key"];
       $conditions[$fieldname]=$_GET["parent_id"];
-      $subform_primary_key_items=\webdb\forms\config_id_conditions($subform_form_config,$id,"primary_key");
-      $fieldname=$subform_form_config["link_key"];
-      $conditions[$fieldname]=$subform_primary_key_items[$fieldname];
+      $primary_key_items=\webdb\forms\config_id_conditions($form_config,$id,"primary_key");
+      $fieldname=$form_config["link_key"];
+      $conditions[$fieldname]=$primary_key_items[$fieldname];
       $sql_params=array();
-      $sql_params["database"]=$subform_form_config["link_database"];
-      $sql_params["table"]=$subform_form_config["link_table"];
+      $sql_params["database"]=$form_config["link_database"];
+      $sql_params["table"]=$form_config["link_table"];
       $sql_params["where_conditions"]=\webdb\sql\build_prepared_where($conditions);
       $sql=\webdb\utils\sql_fill("form_list_fetch_by_id",$sql_params);
-      $records=\webdb\sql\fetch_prepare($sql,$conditions,"form_list_fetch_by_id",false,$sql_params["table"],$sql_params["database"],$subform_form_config);
+      $records=\webdb\sql\fetch_prepare($sql,$conditions,"form_list_fetch_by_id",false,$sql_params["table"],$sql_params["database"],$form_config);
       $link_record=$records[0];
       $merged_record=array_merge($record,$link_record);
     }
@@ -251,11 +248,9 @@ function list_edit($id,$form_config)
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   if (isset($_GET["reset"])==true)
   {
-    #var_dump($link_record);
-    #die;
     $row_spans=array();
     $lookup_records=\webdb\forms\lookup_records($form_config);
-    $data["html"]=\webdb\forms\list_row($form_config,$record,$column_format,$row_spans,$lookup_records,$link_record);
+    $data["html"]=\webdb\forms\list_row($form_config,$record,$column_format,$row_spans,$lookup_records,0,$link_record);
     $data["primary_key"]=$id;
     $data["calendar_fields"]=json_encode(array());
     $data["edit_fields"]=json_encode(array());
