@@ -237,15 +237,12 @@ function checklist_update($form_config,$parent_id)
   $link_fields=$form_config["link_fields"];
   $list_records=array();
   \webdb\forms\process_filter_sql($form_config);
-  if ($form_config["selected_filter_sql"]<>"")
+  if ($form_config["sort_sql"]<>"")
   {
-    if ($form_config["sort_sql"]<>"")
-    {
-      $form_config["sort_sql"]=\webdb\utils\sql_fill("sort_clause",$form_config);
-    }
-    $sql=\webdb\utils\sql_fill("form_list_fetch_all",$form_config);
-    $list_records=\webdb\sql\fetch_prepare($sql,array(),"form_list_fetch_all",false,$form_config["table"],$form_config["database"],$form_config);
+    $form_config["sort_sql"]=\webdb\utils\sql_fill("sort_clause",$form_config);
   }
+  $sql=\webdb\utils\sql_fill("form_list_fetch_all",$form_config);
+  $list_records=\webdb\sql\fetch_prepare($sql,array(),"form_list_fetch_all",false,$form_config["table"],$form_config["database"],$form_config);
   $sql_params=array();
   $sql_params["link_database"]=$link_database;
   $sql_params["link_table"]=$link_table;
