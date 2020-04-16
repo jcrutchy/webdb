@@ -1888,7 +1888,7 @@ function advanced_search($form_config)
       case "combobox":
       case "listbox":
       case "radiogroup":
-        $text_operators=array(""=>"","<"=>"<","<="=>"<=","="=>"=",">="=>">=",">"=>">","not"=>"<>");
+        $text_operators=array(""=>"","<"=>"<","<="=>"<=","="=>"LIKE",">="=>">=",">"=>">","not"=>"<>");
         $selected_option="";
         if (isset($_POST["search_operator_".$field_name])==true)
         {
