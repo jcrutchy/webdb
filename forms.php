@@ -1127,7 +1127,14 @@ function list_row_controls($form_config,&$submit_fields,$operation,$column_forma
     }
     if ($control_type<>"lookup")
     {
-      $field_params["value"]=\webdb\forms\output_editable_field($field_params,$record,$field_name,$control_type,$form_config,$lookup_records,$submit_fields);
+      if (($form_config["checklist"]==true) and (in_array($field_name,$form_config["link_fields"])==false))
+      {
+        $field_params["value"]=\webdb\forms\output_readonly_field($field_params,$control_type,$form_config,$field_name,$lookup_records,$record);
+      }
+      else
+      {
+        $field_params["value"]=\webdb\forms\output_editable_field($field_params,$record,$field_name,$control_type,$form_config,$lookup_records,$submit_fields);
+      }
     }
     else
     {
@@ -1845,8 +1852,6 @@ function advanced_search($form_config)
     $search_control_type="text";
     switch ($control_type)
     {
-      case "lookup":
-        continue 2;
       case "checkbox":
         $search_control_type="checkbox";
         $checkbox_operators=array(""=>"","checked"=>"1","unchecked"=>"0");
@@ -1876,13 +1881,35 @@ function advanced_search($form_config)
             break;
         }
         break;
+      case "lookup":
       case "span":
       case "text":
       case "memo":
       case "combobox":
       case "listbox":
       case "radiogroup":
-        if ($field_value<>"")
+        $text_operators=array(""=>"","like"=>"like","<"=>"<","<="=>"<=","="=>"=",">="=>">=",">"=>">","not"=>"<>");
+        $selected_option="";
+        if (isset($_POST["search_operator_".$field_name])==true)
+        {
+          $selected_option=$_POST["search_operator_".$field_name];
+        }
+        $field_params["options"]="";
+        foreach ($text_operators as $caption => $value)
+        {
+          $option_params=array();
+          $option_params["value"]=$value;
+          $option_params["caption"]=htmlspecialchars($caption);
+          if ($value==$selected_option)
+          {
+            $field_params["options"].=\webdb\utils\template_fill("select_option_selected",$option_params);
+          }
+          else
+          {
+            $field_params["options"].=\webdb\utils\template_fill("select_option",$option_params);
+          }
+        }
+        if ($selected_option<>"")
         {
           $sql_params[$field_name]=$field_value;
         }
@@ -1892,19 +1919,19 @@ function advanced_search($form_config)
         {
           $field_value=$_POST["iso_".$field_name];
         }
-        $date_operators=array("<","<=","=",">=",">","<>");
-        $selected_option="=";
+        $date_operators=array("(not searched)"=>"","<"=>"<","<="=>"<=","="=>"=",">="=>">=",">"=>">","not"=>"<>");
+        $selected_option="";
         if (isset($_POST["search_operator_".$field_name])==true)
         {
           $selected_option=$_POST["search_operator_".$field_name];
         }
         $field_params["options"]="";
-        for ($i=0;$i<count($date_operators);$i++)
+        foreach ($date_operators as $caption => $value)
         {
           $option_params=array();
-          $option_params["value"]=$date_operators[$i];
-          $option_params["caption"]=htmlspecialchars($date_operators[$i]);
-          if ($date_operators[$i]==$selected_option)
+          $option_params["value"]=$value;
+          $option_params["caption"]=htmlspecialchars($caption);
+          if ($value==$selected_option)
           {
             $field_params["options"].=\webdb\utils\template_fill("select_option_selected",$option_params);
           }
@@ -1925,7 +1952,7 @@ function advanced_search($form_config)
           $field_params["field_value"]=date($settings["app_date_format"],strtotime($field_value));
           $field_params["iso_field_value"]=date("Y-m-d",strtotime($field_value));
         }
-        if ($field_value<>"")
+        if ($selected_option<>"")
         {
           $sql_params[$field_name]=$field_value;
         }
@@ -1987,39 +2014,39 @@ function advanced_search($form_config)
     $conditions=array();
     for ($i=0;$i<count($fieldnames);$i++)
     {
+      $field_name=$fieldnames[$i];
+      $control_type=$form_config["control_types"][$field_name];
       $value=$values[$i];
-      $operator=substr($value,0,2);
-      switch ($operator)
+      $operator="";
+      switch ($control_type)
       {
-        case ">=":
-        case "<=":
-        case "<>":
-          $sql_params[$fieldnames[$i]]=trim(substr($value,2));
+        case "checkbox":
+          $operator="=";
           break;
-        default:
-          $operator=substr($value,0,1);
-          switch ($operator)
+        case "lookup":
+        case "span":
+        case "text":
+        case "memo":
+        case "combobox":
+        case "listbox":
+        case "radiogroup":
+          if (isset($_POST["search_operator_".$field_name])==true)
           {
-            case "<":
-            case ">":
-            case "=":
-              $sql_params[$fieldnames[$i]]=trim(substr($value,1));
-              break;
-            default:
-              $operator=" like ";
-              switch ($form_config["control_types"][$fieldnames[$i]])
-              {
-                case "checkbox":
-                  $operator="=";
-                  break;
-                case "date":
-                  $operator=$_POST["search_operator_".$fieldnames[$i]];
-                  break;
-              }
-              break;
+            $operator=$_POST["search_operator_".$field_name];
           }
+          break;
+        case "date":
+          if (isset($_POST["search_operator_".$field_name])==true)
+          {
+            $operator=$_POST["search_operator_".$field_name];
+          }
+          break;
       }
-      $conditions[]="(".$quoted_fieldnames[$i].$operator.$placeholders[$i].")";
+      if ($operator=="")
+      {
+        continue;
+      }
+      $conditions[]="(".$quoted_fieldnames[$i]." ".$operator." ".$placeholders[$i].")";
       $prepared_where="WHERE (".implode(" AND ",$conditions).")";
     }
     $params=array();

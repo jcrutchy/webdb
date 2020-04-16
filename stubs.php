@@ -218,21 +218,11 @@ function list_edit($id,$form_config)
     $data=json_encode($data);
     die($data);
   }
-  if (isset($_GET["reset"])==true)
-  {
-    $row_spans=array();
-    $lookup_records=\webdb\forms\lookup_records($form_config);
-    $data["html"]=\webdb\forms\list_row($form_config,$record,$column_format,$row_spans,$lookup_records,0);
-    $data["primary_key"]=$id;
-    $data["calendar_fields"]=json_encode(array());
-    $data["edit_fields"]=json_encode(array());
-    $data=json_encode($data);
-    die($data);
-  }
   $edit_fields=array();
   $field_name_prefix="edit_control:".$id.":";
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  $is_checklist_subform=false;
+  $link_record=false;
+  $merged_record=false;
   if ((isset($_GET["subform"])==true) and (isset($_GET["parent_form"])==true) and (isset($_GET["parent_id"])==true))
   {
     $parent_form_page_id=$_GET["parent_form"];
@@ -241,7 +231,6 @@ function list_edit($id,$form_config)
     $subform_form_config=\webdb\forms\get_form_config($subform_page_id);
     if ($subform_form_config["checklist"]==true)
     {
-      $is_checklist_subform=true;
       # TODO: CONSIDER UTILISING CODE FROM \webdb\forms\checklist_update FUNCTION
       $conditions=array();
       $fieldname=$subform_form_config["parent_key"];
@@ -255,23 +244,29 @@ function list_edit($id,$form_config)
       $sql_params["where_conditions"]=\webdb\sql\build_prepared_where($conditions);
       $sql=\webdb\utils\sql_fill("form_list_fetch_by_id",$sql_params);
       $records=\webdb\sql\fetch_prepare($sql,$conditions,"form_list_fetch_by_id",false,$sql_params["table"],$sql_params["database"],$subform_form_config);
-
       $link_record=$records[0];
-
-var_dump($link_record);
-die;
-
-      $row_spans=array();
-      $lookup_records=\webdb\forms\lookup_records($form_config);
-      $data["html"]=\webdb\forms\list_row($form_config,$record,$column_format,$row_spans,$lookup_records,0,$link_record);
-
+      $merged_record=array_merge($record,$link_record);
     }
   }
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  if ($is_checklist_subform==false)
+  if (isset($_GET["reset"])==true)
   {
-    $data["html"]=\webdb\forms\list_row_controls($form_config,$edit_fields,"edit",$column_format,$record,$field_name_prefix);
+    #var_dump($link_record);
+    #die;
+    $row_spans=array();
+    $lookup_records=\webdb\forms\lookup_records($form_config);
+    $data["html"]=\webdb\forms\list_row($form_config,$record,$column_format,$row_spans,$lookup_records,$link_record);
+    $data["primary_key"]=$id;
+    $data["calendar_fields"]=json_encode(array());
+    $data["edit_fields"]=json_encode(array());
+    $data=json_encode($data);
+    die($data);
   }
+  if ($merged_record!==false)
+  {
+    $record=$merged_record;
+  }
+  $data["html"]=\webdb\forms\list_row_controls($form_config,$edit_fields,"edit",$column_format,$record,$field_name_prefix);
   $data["primary_key"]=$id;
   for ($i=0;$i<count($settings["calendar_fields"]);$i++)
   {
