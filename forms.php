@@ -45,10 +45,21 @@ function form_dispatch($page_id)
   {
     $_GET["cmd"]=$form_config["default_cmd_override"];
   }
+  if (isset($_GET["ajax"])==true)
+  {
+    if (isset($_GET["file_view"])==true)
+    {
+      \webdb\stubs\file_field_view($form_config);
+    }
+    if (isset($_GET["file_delete"])==true)
+    {
+      \webdb\stubs\file_field_delete($form_config);
+    }
+  }
   if ((isset($_GET["ajax"])==true) and (isset($_GET["field_name"])==true))
   {
-    $event_type=$_GET["ajax"];
     $field_name=$_GET["field_name"];
+    $event_type=$_GET["ajax"];
     if (isset($form_config["js_events"][$field_name][$event_type])==true)
     {
       $event_data=$form_config["js_events"][$field_name][$event_type];
@@ -711,12 +722,14 @@ function config_id_url_value($form_config,$record,$config_key)
   {
     if (isset($record[$key_fields[$i]])==true)
     {
-      $values[]=$record[$key_fields[$i]];
+      $value=$record[$key_fields[$i]];
+      if (is_numeric($value)==true)
+      {
+        $values[]=$record[$key_fields[$i]];
+        continue;
+      }
     }
-    else
-    {
-      $values[]="";
-    }
+    $values[]="";
   }
   return implode(\webdb\index\CONFIG_ID_DELIMITER,$values);
 }
@@ -1082,7 +1095,7 @@ function check_column($form_config,$template,$params=array())
 
 #####################################################################################################
 
-function list_row_controls($form_config,&$submit_fields,$operation,$column_format,$record,$field_name_prefix="")
+function list_row_controls($form_config,&$submit_fields,$operation,$column_format,$record)
 {
   global $settings;
   $rotate_group_borders=$column_format["rotate_group_borders"];
@@ -1110,7 +1123,7 @@ function list_row_controls($form_config,&$submit_fields,$operation,$column_forma
       $field_params["border_color"]=$settings["list_group_border_color"];
       $field_params["border_width"]=$settings["list_group_border_width"];
     }
-    $field_params["field_name"]=$field_name_prefix.$field_name;
+    $field_params["field_name"]=$field_name;
     $field_params["group_span"]="";
     $field_params["table_cell_style"]="";
     if (isset($form_config["table_cell_styles"][$field_name])==true)
@@ -1165,6 +1178,7 @@ function list_row_controls($form_config,&$submit_fields,$operation,$column_forma
 function output_editable_field(&$field_params,$record,$field_name,$control_type,$form_config,$lookup_records,&$submit_fields)
 {
   global $settings;
+  $field_params["primary_key"]=\webdb\forms\config_id_url_value($form_config,$record,"primary_key");
   $field_params["field_value"]="";
   if (isset($record[$field_name])==true)
   {
@@ -1181,7 +1195,14 @@ function output_editable_field(&$field_params,$record,$field_name,$control_type,
   switch ($control_type)
   {
     case "file":
-      # TODO
+      $field_params["no_file_disabled"]="";
+      if (array_key_exists($field_name,$record)==true)
+      {
+        if (($record[$field_name]=="") or ($record[$field_name]==null))
+        {
+          $field_params["no_file_disabled"]=\webdb\utils\template_fill("disabled_attribute");
+        }
+      }
       break;
     case "lookup":
       $field_params["field_key"]="";
@@ -1245,7 +1266,7 @@ function output_editable_field(&$field_params,$record,$field_name,$control_type,
       {
         $loop_record=$records[$i];
         $option_params=array();
-        $option_params["name"]=$form_config["page_id"].":".$field_name;
+        $option_params["name"]=$form_config["page_id"].":edit_control:".$field_params["primary_key"].":".$field_name;
         $option_params["value"]=htmlspecialchars($loop_record[$lookup_config["key_field"]]);
         $display_value=\webdb\forms\lookup_field_display_value($lookup_config,$loop_record);
         $option_params["caption"]=htmlspecialchars($display_value);
@@ -1293,7 +1314,7 @@ function output_editable_field(&$field_params,$record,$field_name,$control_type,
       $submit_fields[]=$field_params["field_name"];
       break;
     case "date":
-      $settings["calendar_fields"][]=$field_name;
+      $settings["calendar_fields"][]=$form_config["page_id"].":edit_control:".$field_params["primary_key"].":".$field_name;
       if ($record[$field_name]==null)
       {
         $field_params["field_value"]="";
@@ -1882,6 +1903,7 @@ function advanced_search($form_config)
       case "lookup":
       case "span":
       case "text":
+      case "file":
       case "memo":
       case "combobox":
       case "listbox":
@@ -2023,6 +2045,7 @@ function advanced_search($form_config)
         case "lookup":
         case "span":
         case "text":
+        case "file":
         case "memo":
         case "combobox":
         case "listbox":
@@ -2401,15 +2424,70 @@ function field_js_events($form_config,$field_name,$record)
 
 #####################################################################################################
 
-function process_form_data_fields($form_config,$post_override=false)
+function upload_file($form_config,$field_name,$record_id)
 {
   global $settings;
-  $value_items=array();
+  if (isset($_FILES)==false)
+  {
+    return;
+  }
+  $page_id=$form_config["page_id"];
+  $submit_name=$page_id.":edit_control:".$record_id.":".$field_name;
+  if (isset($_FILES[$submit_name])==false)
+  {
+    return;
+  }
+  $upload_data=$_FILES[$submit_name];
+  $upload_filename=$upload_data["tmp_name"];
+  if ($upload_filename=="")
+  {
+    return;
+  }
+  if (file_exists($upload_filename)==false)
+  {
+    \webdb\utils\error_message("error: uploaded file not found");
+  }
+  $target_filename=\webdb\forms\get_uploaded_filename($page_id,$record_id,$field_name);
+  rename($upload_filename,$target_filename);
+}
+
+#####################################################################################################
+
+function get_uploaded_filename($page_id,$record_id,$field_name)
+{
+  global $settings;
+  $filename=$page_id."__".$record_id."__".$field_name;
+  $filename=str_replace(DIRECTORY_SEPARATOR,"_",$filename);
+  $filename=str_replace(" ","_",$filename);
+  return $settings["app_file_uploads_path"].$filename;
+}
+
+#####################################################################################################
+
+function upload_files($form_config,$record_id,$value_items=false)
+{
+  foreach ($form_config["control_types"] as $field_name => $control_type)
+  {
+    switch ($control_type)
+    {
+      case "file":
+        \webdb\forms\upload_file($form_config,$field_name,$record_id);
+        break;
+    }
+  }
+}
+
+#####################################################################################################
+
+function process_form_data_fields($form_config,$record_id,$post_override=false)
+{
+  global $settings;
   $post_fields=$_POST;
   if ($post_override!==false)
   {
     $post_fields=$post_override;
   }
+  $value_items=array();
   $page_id=$form_config["page_id"];
   foreach ($form_config["control_types"] as $field_name => $control_type)
   {
@@ -2423,9 +2501,28 @@ function process_form_data_fields($form_config,$post_override=false)
       case "span":
         continue 2;
     }
-    $post_name=$page_id.":".$field_name;
+    $post_name=$page_id.":edit_control:".$record_id.":".$field_name;
     switch ($control_type)
     {
+      case "file":
+        if (isset($_FILES[$post_name]["name"])==true)
+        {
+          $filename=$_FILES[$post_name]["name"];
+          if ($filename<>"")
+          {
+            $value_items[$field_name]=$filename;
+          }
+        }
+        elseif (isset($post_fields[$post_name])==true)
+        {
+          $filename=$post_fields[$post_name];
+          if ($filename===-1)
+          {
+            # file deleted
+            $value_items[$field_name]=null;
+          }
+        }
+        break;
       case "checkbox":
         if (isset($post_fields[$post_name])==true)
         {
@@ -2444,7 +2541,7 @@ function process_form_data_fields($form_config,$post_override=false)
         }
         break;
       case "date":
-        $iso_post_name=$page_id.":iso_".$field_name;
+        $iso_post_name=$page_id.":edit_control:".$record_id.":iso_".$field_name;
         if (isset($post_fields[$iso_post_name])==true)
         {
           if ($post_fields[$iso_post_name]<>"")
@@ -2493,7 +2590,7 @@ function insert_record($form_config)
   {
     \webdb\utils\error_message("error: record insert permission denied for form '".$page_id."'");
   }
-  $value_items=\webdb\forms\process_form_data_fields($form_config);
+  $value_items=\webdb\forms\process_form_data_fields($form_config,"");
   \webdb\forms\check_required_values($form_config,$value_items);
   $event_params=array();
   $event_params["handled"]=false;
@@ -2504,6 +2601,7 @@ function insert_record($form_config)
   {
     \webdb\sql\sql_insert($value_items,$form_config["table"],$form_config["database"],false,$form_config);
     $id=\webdb\sql\sql_last_insert_autoinc_id();
+    \webdb\forms\upload_files($form_config,$id);
   }
   else
   {
@@ -2565,7 +2663,7 @@ function update_record($form_config,$id,$value_items=false,$where_items=false,$r
   }
   if ($value_items===false)
   {
-    $value_items=\webdb\forms\process_form_data_fields($form_config);
+    $value_items=\webdb\forms\process_form_data_fields($form_config,$id);
   }
   \webdb\forms\check_required_values($form_config,$value_items);
   if ($where_items===false)
@@ -2585,6 +2683,7 @@ function update_record($form_config,$id,$value_items=false,$where_items=false,$r
   if ($event_params["handled"]==false)
   {
     \webdb\sql\sql_update($value_items,$where_items,$form_config["table"],$form_config["database"],false,$form_config);
+    \webdb\forms\upload_files($form_config,$id,$value_items);
     $params=array();
     $params["update"]=$form_config["page_id"];
   }

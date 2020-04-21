@@ -29,6 +29,21 @@
   </div>
 </div>
 
+<div id="file_delete_confirm_background">
+  <div class="file_delete_confirm_dialog">
+    <div class="file_delete_confirm">
+      <div>Are you sure you want to delete the following <span id="file_delete_confirm_noun"></span> file from the server?</div>
+      <div id="file_delete_confirm_page_id"></div>
+      <div id="file_delete_confirm_field_name"></div>
+      <div class="file_field_value" id="file_delete_confirm_filename"></div>
+      <div class="file_delete_confirm_controls_div">
+        <input type="button" value="Confirm" onclick="file_delete_confirm(); return false;">
+        <input type="button" value="Cancel" onclick="file_delete_cancel(); return false;">
+      </div>
+    </div>
+  </div>
+</div>
+
 %%authenticated_status%%
 
 %%body_text%%

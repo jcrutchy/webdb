@@ -24,16 +24,16 @@ function set_update_timeout()
 function message_send()
 {
   var message_input=document.getElementById("message_input");
-  var message=message_input.value;
-  if (message=="")
+  var message_value=message_input.value;
+  if (message_value=="")
   {
     return;
   }
   clearTimeout(update_message_scroll);
   clearTimeout(update_timeout);
-  var body="message="+encodeURIComponent(message);
+  var params={"message":message_value};
   show_update_status();
-  ajax(ajax_url_update,"post",message_update_load,message_update_error,message_update_timeout,body);
+  ajax(ajax_url_update,"post",message_update_load,message_update_error,message_update_timeout,params);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -91,10 +91,9 @@ function register_channel(channel_name,channel_topic)
 {
   clearTimeout(update_message_scroll);
   clearTimeout(update_timeout);
-  var body="channel_name="+encodeURIComponent(channel_name);
-  body+="&channel_topic="+encodeURIComponent(channel_topic);
+  var params={"channel_name":channel_name,"channel_topic":channel_topic};
   show_update_status();
-  ajax(ajax_url_register_channel,"post",register_channel_load,register_channel_error,register_channel_timeout,body);
+  ajax(ajax_url_register_channel,"post",register_channel_load,register_channel_error,register_channel_timeout,params);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -103,11 +102,16 @@ function register_channel_load()
 {
   try
   {
-    data=JSON.parse(this.responseText);
+    var data=JSON.parse(this.responseText);
   }
   catch (e)
   {
     custom_alert(this.responseText);
+    return;
+  }
+  if (data.hasOwnProperty("error")==true)
+  {
+    custom_alert(data.error);
     return;
   }
   if (data.hasOwnProperty("redirect_url")==true)
@@ -170,7 +174,7 @@ function message_update_load()
 {
   try
   {
-    data=JSON.parse(this.responseText);
+    var data=JSON.parse(this.responseText);
   }
   catch (e)
   {

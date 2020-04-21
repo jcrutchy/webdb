@@ -81,10 +81,14 @@ function list_body_click(event)
   var row_edit_mode=document.getElementById("row_edit_mode:"+edit_row_page_id).innerHTML;
   if (row_edit_mode=="inline")
   {
-    var parent_form=document.getElementById("parent_form").innerHTML;
-    var parent_id=document.getElementById("parent_id").innerHTML;
     var url_prefix=document.getElementById("inline_edit_page:"+edit_row_page_id).value;
-    var url=url_prefix+edit_row_id+"&ajax&reset&parent_form="+parent_form+"&parent_id="+parent_id;
+    var url=url_prefix+edit_row_id+"&ajax&reset";
+    var parent_form=document.getElementById("parent_form");
+    if (parent_form)
+    {
+      var parent_id=document.getElementById("parent_id").innerHTML;
+      url=url+"&parent_form="+parent_form+"&parent_id="+parent_id;
+    }
     ajax(url,"get",list_edit_row_reset_load,list_edit_row_reset_error,list_edit_row_reset_timeout);
   }
 }
@@ -121,11 +125,6 @@ function list_edit_row_button_click(page_id,id)
 
 function list_edit_row_reset_load()
 {
-  var calendar=document.getElementById("calendar_div");
-  if (calendar!==null)
-  {
-    document.body.appendChild(calendar);
-  }
   try
   {
     var data=JSON.parse(this.responseText);
@@ -139,6 +138,11 @@ function list_edit_row_reset_load()
   {
     custom_alert(data.error);
     return;
+  }
+  var calendar=document.getElementById("calendar_div");
+  if (calendar!==null)
+  {
+    document.body.appendChild(calendar);
   }
   if ((data.hasOwnProperty("page_id")==true) && (data.hasOwnProperty("primary_key")==true) && (data.hasOwnProperty("html")==true))
   {
@@ -157,7 +161,7 @@ function list_edit_row_reset_load()
     }
     return;
   }
-  list_edit_row_reset_error();
+  custom_alert("list_edit_row_reset_load");
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -176,35 +180,40 @@ function list_edit_row_reset_timeout()
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function encoded_form_field(page_id,form,field_name)
+function append_form_field_param(params,page_id,form,field_name,record_id)
 {
   if (field_name.startsWith("date_field__")==true)
   {
     field_name="iso_"+field_name;
   }
-  field_name=page_id+":"+field_name;
-  var field_value=form.elements.namedItem(field_name).value;
+  field_name=page_id+":edit_control:"+record_id+":"+field_name;
+  var field_input=form.elements.namedItem(field_name);
+  if (!field_input)
+  {
+    custom_alert(field_name);
+  }
+  var field_value=field_input.value;
   if (form.elements.namedItem(field_name).type=="checkbox")
   {
     field_value=form.elements.namedItem(field_name).checked;
   }
-  return field_name+"="+encodeURIComponent(field_value);
+  params[field_name]=field_value;
+  return params;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function list_insert_row_click(form,page_id)
 {
-  var data=new Array();
+  var params={};
   var field_names=insert_row_controls[page_id];
   for (var i=0;i<field_names.length;i++)
   {
-    data.push(encoded_form_field(page_id,form,field_names[i]));
+    params=append_form_field_param(params,page_id,form,field_names[i],"");
   }
-  var body=data.join("&");
   var url_prefix=form.elements.namedItem("row_insert_page:"+page_id).value;
   var url=url_prefix+"&ajax"+parent_url_params(page_id);
-  ajax(url,"post",list_insert_row_load,list_insert_row_error,list_insert_row_timeout,body);
+  ajax(url,"post",list_insert_row_load,list_insert_row_error,list_insert_row_timeout,params);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -230,7 +239,7 @@ function list_insert_row_load()
     insert_row_parents[data.page_id].innerHTML=data.html;
     return;
   }
-  list_insert_row_error();
+  custom_alert("list_insert_row_load");
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -319,7 +328,7 @@ function list_edit_row_load()
     waiting_edit_row_element=null;
     return;
   }
-  list_edit_row_error();
+  custom_alert("list_edit_row_load");
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -340,15 +349,14 @@ function list_edit_row_timeout()
 
 function list_edit_row_update(form,page_id)
 {
-  var data=new Array();
+  var params={};
   for (var i=0;i<edit_row_controls.length;i++)
   {
-    data.push(encoded_form_field(page_id,form,edit_row_controls[i]));
+    params=append_form_field_param(params,page_id,form,edit_row_controls[i],edit_row_id);
   }
-  var body=data.join("&");
   var url_prefix=form.elements.namedItem("ajax_edit_page:"+page_id).value;
-  var url=url_prefix+edit_row_id+"&ajax"+parent_url_params(page_id);
-  ajax(url,"post",list_edit_row_update_load,list_edit_row_update_error,list_edit_row_update_timeout,body);
+  var url=url_prefix+edit_row_id+parent_url_params(page_id);
+  ajax(url,"post",list_edit_row_update_load,list_edit_row_update_error,list_edit_row_update_timeout,params);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -439,6 +447,124 @@ function list_record_cell_mouseout(page_id,id,field_name,edit_cmd_id)
   }
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function file_field_view(page_id,field_name,filename)
+{
+  var field_name=encodeURIComponent(field_name);
+  var form=document.getElementById(page_id);
+  var url=form.action+"&ajax&file_view="+field_name;
+  ajax(url,"get",file_field_view_load,file_field_view_error,file_field_view_timeout);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function file_field_view_load()
+{
+  try
+  {
+    var data=JSON.parse(this.responseText);
+  }
+  catch (e)
+  {
+    custom_alert(this.responseText);
+    return;
+  }
+  if (data.hasOwnProperty("error")==true)
+  {
+    custom_alert(data.error);
+    return;
+  }
+  // TODO
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function file_field_view_error()
+{
+  custom_alert("file_field_view_error");
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function file_field_view_timeout()
+{
+  custom_alert("file_field_view_timeout");
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function file_delete_confirm()
+{
+  document.getElementById("file_delete_confirm_background").style.display="none";
+  var page_id=document.getElementById("file_delete_confirm_page_id").innerHTML;
+  var field_name=encodeURIComponent(document.getElementById("file_delete_confirm_field_name").innerHTML);
+  var form=document.getElementById(page_id);
+  var url=form.action+"&ajax&file_delete="+field_name;
+  ajax(url,"get",file_field_delete_load,file_field_delete_error,file_field_delete_timeout);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function file_delete_cancel()
+{
+  document.getElementById("file_delete_confirm_background").style.display="none";
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function file_field_delete(page_id,field_name,filename)
+{
+  document.getElementById("file_delete_confirm_page_id").innerHTML=page_id;
+  document.getElementById("file_delete_confirm_field_name").innerHTML=field_name;
+  document.getElementById("file_delete_confirm_filename").innerHTML=filename;
+  document.getElementById("file_delete_confirm_background").style.display="block";
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function file_field_delete_load()
+{
+  try
+  {
+    var data=JSON.parse(this.responseText);
+  }
+  catch (e)
+  {
+    custom_alert(this.responseText);
+    return;
+  }
+  if (data.hasOwnProperty("error")==true)
+  {
+    custom_alert(data.error);
+    return;
+  }
+  if ((data.hasOwnProperty("page_id")==true) && (data.hasOwnProperty("primary_key")==true) && (data.hasOwnProperty("html")==true))
+  {
+    var data_row=document.getElementById("data_row_tr:"+data.page_id+":"+data.primary_key);
+    data_row.innerHTML=data.html;
+    return;
+  }
+  window.location.reload(true);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function file_field_delete_error()
+{
+  custom_alert("file_field_delete_error");
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function file_field_delete_timeout()
+{
+  custom_alert("file_field_delete_timeout");
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 if (window.addEventListener)

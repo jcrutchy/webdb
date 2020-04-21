@@ -82,6 +82,8 @@ $settings["app_group_access"]="*"; # * => all groups
 
 #########################################################
 
+$settings["app_file_uploads_path"]=$settings["webdb_parent_path"]."file_uploads".DIRECTORY_SEPARATOR;
+
 $settings["server_email_from"]="";
 $settings["server_email_reply_to"]="";
 $settings["server_email_bounce_to"]="";

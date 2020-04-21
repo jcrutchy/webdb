@@ -23,7 +23,7 @@ function item_filter_select_load()
 {
   try
   {
-    data=JSON.parse(this.responseText);
+    var data=JSON.parse(this.responseText);
   }
   catch (e)
   {
@@ -40,7 +40,7 @@ function item_filter_select_load()
     insert_row_parents[data.subform].innerHTML=data.html;
     return;
   }
-  item_filter_select_error();
+  custom_alert("item_filter_select_load");
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////

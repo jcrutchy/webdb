@@ -53,19 +53,38 @@ function custom_alert_close()
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function ajax(url,method,load,error,timeout,body="",timeout_sec=30)
+function ajax(url,method,load,error,timeout,params={},timeout_sec=false)
 {
+  if (timeout_sec===false)
+  {
+    timeout_sec=default_ajax_timeout_sec;
+  }
   var xhttp=new XMLHttpRequest();
   xhttp.onerror=error;
   xhttp.onload=load;
   xhttp.ontimeout=timeout;
   xhttp.timeout=timeout_sec*1000; // ms
   xhttp.open(method,url,true);
-  if ((method=="post") && (body!="")) // method is "get" or "post"
+  var body="";
+  if (method=="post") // method is "get" or "post"
   {
-    xhttp.setRequestHeader("Content-type","application/x-www-form-urlencoded");
-    var csrf_token=document.getElementById("csrf_token").innerText;
-    body=body+"&csrf_token="+encodeURIComponent(csrf_token);
+    params["csrf_token"]=document.getElementById("csrf_token").innerText;
+    var form_data=new FormData();
+    for (var key in params)
+    {
+      form_data.append(key,params[key]);
+    }
+    var inputs=document.querySelectorAll("[type=file]");
+    for (var i=0;i<inputs.length;i++)
+    {
+      var input=inputs[i];
+      var file=input.files[0];
+      if (file)
+      {
+        form_data.append(input.name,file);
+      }
+    }
+    body=form_data;
   }
   xhttp.send(body);
 }
@@ -74,23 +93,21 @@ function ajax(url,method,load,error,timeout,body="",timeout_sec=30)
 
 function remove_url_param(key,url)
 {
-  var result=url.split("?")[0];
-  var param;
-  var params_arr=[];
-  var query_string;
-  if (url.indexOf("?")!==-1)
+  var url_parts=url.split("?");
+  var result=url_parts[0];
+  if (url_parts.length>1)
   {
-    query_string=url.split("?")[1];
-    params_arr=query_string.split("&");
-    for (var i=params_arr.length-1;i>=0;i-=1)
+    var query_string=url_parts[1];
+    var params=query_string.split("&");
+    for (var i=params.length-1;i>=0;i--)
     {
-      param=params_arr[i].split("=")[0];
-      if (param===key)
+      var param_parts=params[i].split("=");
+      if (param_parts[0]===key)
       {
-        params_arr.splice(i,1);
+        params.splice(i,1);
       }
     }
-    var params_str=params_arr.join("&");
+    var params_str=params.join("&");
     if (params_str!="")
     {
       params_str="?"+params_str;
@@ -111,6 +128,8 @@ function webdb_get_position(e)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
+
+var default_ajax_timeout_sec=30;
 
 if (window.addEventListener)
 {

@@ -4,6 +4,74 @@ namespace webdb\stubs;
 
 #####################################################################################################
 
+function file_field_view($form_config)
+{
+  $field_name=$_GET["file_view"];
+  $record_id=false;
+  if (isset($_GET["id"])==true)
+  {
+    $record_id=$_GET["id"];
+  }
+  else
+  {
+    # inline edit
+    $file_view=$_GET["file_view"];
+    $file_view=explode(":",$file_view);
+    $tag=array_shift($file_view);
+    if (($tag=="edit_control") and (count($file_view)==2))
+    {
+      $record_id=$file_view[0];
+      $field_name=$file_view[1];
+    }
+  }
+  if ($record_id===false)
+  {
+    \webdb\stubs\stub_error("missing record id parameter");
+  }
+  # TODO
+  die("file_field_view:".$form_config["page_id"].":".$field_name.":".$record_id);
+}
+
+#####################################################################################################
+
+function file_field_delete($form_config)
+{
+  global $settings;
+  if (\webdb\utils\check_user_form_permission($form_config["page_id"],"u")==false)
+  {
+    \webdb\utils\error_message("error: record update permission denied for form '".$page_id."'");
+  }
+  $record_id=false;
+  $post_name=$_GET["file_delete"];
+  $file_delete=explode(":",$post_name);
+  $page_id=array_shift($file_delete);
+  if ($page_id<>$form_config["page_id"])
+  {
+    \webdb\stubs\stub_error("page_id mismatch");
+  }
+  $tag=array_shift($file_delete);
+  if (($tag=="edit_control") and (count($file_delete)==2))
+  {
+    $record_id=$file_delete[0];
+    $field_name=$file_delete[1];
+  }
+  if ($record_id===false)
+  {
+    \webdb\stubs\stub_error("missing record id parameter");
+  }
+  $target_filename=\webdb\forms\get_uploaded_filename($page_id,$record_id,$field_name);
+  if (file_exists($target_filename)==true)
+  {
+    unlink($target_filename);
+  }
+  $post_override=array();
+  $post_override[$post_name]=-1;
+  $settings["sql_check_post_params_override"]=true;
+  \webdb\stubs\list_edit($record_id,$form_config,$post_override);
+}
+
+#####################################################################################################
+
 function output_filter_select($form_config,$filter_select_template,$blank_option,$active_template,$select_all_template,$deselect_all_template)
 {
   $params=array();
@@ -122,7 +190,7 @@ function list_insert($form_config)
     \webdb\utils\error_message("error: record update permission denied for form '".$page_id."'");
   }
   $data=array();
-  $params=\webdb\forms\process_form_data_fields($form_config);
+  $params=\webdb\forms\process_form_data_fields($form_config,"");
   if (count($params)==0)
   {
     \webdb\stubs\stub_error("error: no field data to insert");
@@ -171,7 +239,7 @@ function list_insert($form_config)
 
 #####################################################################################################
 
-function list_edit($id,$form_config)
+function list_edit($id,$form_config,$post_override=false)
 {
   global $settings;
   if (\webdb\utils\check_user_form_permission($form_config["page_id"],"u")==false)
@@ -180,6 +248,7 @@ function list_edit($id,$form_config)
   }
   $data=array();
   $data["page_id"]=$form_config["page_id"];
+  $data["primary_key"]=$id;
   $column_format=\webdb\forms\get_column_format_data($form_config);
   $record=\webdb\forms\get_record_by_id($form_config,$id,"primary_key");
   $record=\webdb\forms\process_computed_fields($form_config,$record);
@@ -206,24 +275,12 @@ function list_edit($id,$form_config)
       $merged_record=array_merge($record,$link_record);
     }
   }
-  if (count($_POST)>0)
+  if ($post_override===false)
   {
-    $post_fields=array();
-    foreach ($_POST as $key => $value)
-    {
-      $parts=explode(":",$key);
-      if (count($parts)<4)
-      {
-        continue;
-      }
-      $page_id=$parts[0];
-      $field_name=$parts[3];
-      if ($parts[1]=="iso_edit_control")
-      {
-        $field_name="iso_".$field_name;
-      }
-      $post_fields[$page_id.":".$field_name]=$value;
-    }
+    $post_override=$_POST;
+  }
+  if (count($post_override)>0)
+  {
     if ((isset($_GET["parent_form"])==true) and (isset($_GET["parent_id"])==true) and ($form_config["checklist"]==true))
     {
       $parent_form_config=\webdb\forms\get_form_config($_GET["parent_form"]);
@@ -233,28 +290,25 @@ function list_edit($id,$form_config)
       $primary_key_items=\webdb\forms\config_id_conditions($form_config,$id,"primary_key");
       $fieldname=$form_config["link_key"];
       $where_items[$fieldname]=$primary_key_items[$fieldname];
-      $value_items=\webdb\forms\process_form_data_fields($form_config,$post_fields);
+      $value_items=\webdb\forms\process_form_data_fields($form_config,$id,$post_override);
       $form_config["table"]=$form_config["link_table"];
       $form_config["database"]=$form_config["link_database"];
       \webdb\forms\update_record($form_config,$id,$value_items,$where_items,true);
     }
     else
     {
-      $value_items=\webdb\forms\process_form_data_fields($form_config,$post_fields);
+      $value_items=\webdb\forms\process_form_data_fields($form_config,$id,$post_override);
       $where_items=\webdb\forms\config_id_conditions($form_config,$id,"primary_key");
       \webdb\forms\update_record($form_config,$id,$value_items,$where_items,true);
     }
     $data=json_encode($data);
     die($data);
   }
-  $edit_fields=array();
-  $field_name_prefix="edit_control:".$id.":";
   if (isset($_GET["reset"])==true)
   {
     $row_spans=array();
     $lookup_records=\webdb\forms\lookup_records($form_config);
     $data["html"]=\webdb\forms\list_row($form_config,$record,$column_format,$row_spans,$lookup_records,0,$link_record);
-    $data["primary_key"]=$id;
     $data["calendar_fields"]=json_encode(array());
     $data["edit_fields"]=json_encode(array());
     $data=json_encode($data);
@@ -264,11 +318,11 @@ function list_edit($id,$form_config)
   {
     $record=$merged_record;
   }
-  $data["html"]=\webdb\forms\list_row_controls($form_config,$edit_fields,"edit",$column_format,$record,$field_name_prefix);
-  $data["primary_key"]=$id;
+  $edit_fields=array();
+  $data["html"]=\webdb\forms\list_row_controls($form_config,$edit_fields,"edit",$column_format,$record);
   for ($i=0;$i<count($settings["calendar_fields"]);$i++)
   {
-    $settings["calendar_fields"][$i]=\webdb\forms\js_date_field($field_name_prefix.$settings["calendar_fields"][$i]);
+    $settings["calendar_fields"][$i]=\webdb\forms\js_date_field($settings["calendar_fields"][$i]);
   }
   $data["calendar_fields"]=json_encode($settings["calendar_fields"]);
   $data["edit_fields"]=json_encode($edit_fields);

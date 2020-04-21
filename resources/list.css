@@ -166,6 +166,22 @@ th.list_controls_head
     z-index: 9998;
   }
 
+.file_field_value
+  {
+    color: #0a4b5c;
+    font-family: "Courier New", Courier, monospace;
+  }
+
+.file_field_controls
+  {
+    margin-top: 2px;
+    margin-bottom: 5px;
+  }
+
+.file_field_chooser
+  {
+  }
+
 #global_page_header
   {
     position: absolute;

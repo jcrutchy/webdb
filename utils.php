@@ -976,7 +976,7 @@ function load_db_credentials($type)
   $filename=$settings["db_".$type."_file"];
   if (file_exists($filename)==false)
   {
-    return;
+    \webdb\utils\system_message("error: database credentials file not found: ".$filename);
   }
   $data=file_get_contents($filename);
   if ($data===false)

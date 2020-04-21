@@ -50,6 +50,7 @@ function check_settings()
   $required_settings=array(
     "webdb_root_path",
     "webdb_parent_path",
+    "app_file_uploads_path",
     "app_root_path",
     "db_host",
     "db_engine",
@@ -153,7 +154,8 @@ function check_settings()
     "webdb_forms_path",
     "app_forms_path",
     "sql_log_path",
-    "auth_log_path");
+    "auth_log_path",
+    "app_file_uploads_path");
   for ($i=0;$i<count($required_paths);$i++)
   {
     $path=$required_paths[$i];
