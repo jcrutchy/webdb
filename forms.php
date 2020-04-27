@@ -37,20 +37,56 @@ function set_confirm_status_cookie($form_config,$status_message)
 
 #####################################################################################################
 
+function file_field_view($form_config)
+{
+  global $settings;
+  $parts=explode(":",$_GET["file_view"]);
+  if (count($parts)<>3)
+  {
+    \webdb\utils\error_message("invalid 'file_view' parameter");
+  }
+  $page_id=$parts[0];
+  $record_id=$parts[1];
+  $field_name=$parts[2];
+  $file_form_config=\webdb\forms\get_form_config($page_id,false);
+  $conditions=\webdb\forms\config_id_conditions($file_form_config,$record_id,"primary_key");
+  $sql_params=array();
+  $sql_params["database"]=$file_form_config["database"];
+  $sql_params["table"]=$file_form_config["table"];
+  $sql_params["where_conditions"]=\webdb\sql\build_prepared_where($conditions);
+  $sql=\webdb\utils\sql_fill("form_list_fetch_by_id",$sql_params);
+  $records=\webdb\sql\fetch_prepare($sql,$conditions,"form_list_fetch_by_id",false,$sql_params["table"],$sql_params["database"],$file_form_config);
+  $record_filename=$records[0][$field_name];
+  $target_filename=\webdb\forms\get_uploaded_filename($page_id,$record_id,$field_name);
+  $settings["ignore_ob_postprocess"]=true;
+  ob_end_clean(); # discard buffer & disable output buffering (\webdb\utils\ob_postprocess function not called)
+  header("Cache-Control: no-cache");
+  header("Expires: -1");
+  header("Pragma: no-cache");
+  header("Accept-Ranges: bytes");
+  header("Content-Type: application/pdf");
+  header("Content-Length: ".filesize($target_filename));
+  header("Content-Disposition: inline; filename=\"".$record_filename."\"");
+  readfile($target_filename);
+  die;
+}
+
+#####################################################################################################
+
 function form_dispatch($page_id)
 {
   global $settings;
   $form_config=\webdb\forms\get_form_config($page_id,false);
+  if (isset($_GET["file_view"])==true)
+  {
+    \webdb\forms\file_field_view($form_config);
+  }
   if (($form_config["default_cmd_override"]<>"") and (isset($_GET["cmd"])==false))
   {
     $_GET["cmd"]=$form_config["default_cmd_override"];
   }
   if (isset($_GET["ajax"])==true)
   {
-    if (isset($_GET["file_view"])==true)
-    {
-      \webdb\stubs\file_field_view($form_config);
-    }
     if (isset($_GET["file_delete"])==true)
     {
       \webdb\stubs\file_field_delete($form_config);

@@ -4,36 +4,6 @@ namespace webdb\stubs;
 
 #####################################################################################################
 
-function file_field_view($form_config)
-{
-  $field_name=$_GET["file_view"];
-  $record_id=false;
-  if (isset($_GET["id"])==true)
-  {
-    $record_id=$_GET["id"];
-  }
-  else
-  {
-    # inline edit
-    $file_view=$_GET["file_view"];
-    $file_view=explode(":",$file_view);
-    $tag=array_shift($file_view);
-    if (($tag=="edit_control") and (count($file_view)==2))
-    {
-      $record_id=$file_view[0];
-      $field_name=$file_view[1];
-    }
-  }
-  if ($record_id===false)
-  {
-    \webdb\stubs\stub_error("missing record id parameter");
-  }
-  # TODO
-  die("file_field_view:".$form_config["page_id"].":".$field_name.":".$record_id);
-}
-
-#####################################################################################################
-
 function file_field_delete($form_config)
 {
   global $settings;

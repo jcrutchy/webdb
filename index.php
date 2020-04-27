@@ -50,9 +50,6 @@ if (\webdb\cli\is_cli_mode()==true)
 $msg="REQUEST_RECEIVED: ".\webdb\utils\get_url();
 $settings["logs"]["auth"][]=$msg;
 $settings["logs"]["sql"][]=$msg;
-header("Cache-Control: no-cache");
-header("Expires: -1");
-header("Pragma: no-cache");
 if ($settings["ip_blacklist_enabled"]==true)
 {
   if (\webdb\users\remote_address_listed($_SERVER["REMOTE_ADDR"],"black")==true)

@@ -285,6 +285,9 @@ function convert_to_cookie_name($name)
 function output_page($content,$title)
 {
   global $settings;
+  header("Cache-Control: no-cache");
+  header("Expires: -1");
+  header("Pragma: no-cache");
   $page_params=array();
   $page_params["page_title"]=$title;
   $page_params["global_styles_modified"]=\webdb\utils\resource_modified_timestamp("global.css");
@@ -371,6 +374,13 @@ function output_resource_links($buffer,$type)
 function ob_postprocess($buffer)
 {
   global $settings;
+  if (isset($settings["ignore_ob_postprocess"])==true)
+  {
+    if ($settings["ignore_ob_postprocess"]==true)
+    {
+      return "";
+    }
+  }
   $buffer=\webdb\csrf\fill_csrf_token($buffer);
   $buffer=\webdb\utils\output_resource_links($buffer,"css");
   $buffer=\webdb\utils\output_resource_links($buffer,"js");
@@ -468,6 +478,22 @@ function get_url($request_uri=false)
     $url.=$request_uri;
   }
   return $url;
+}
+
+#####################################################################################################
+
+function get_base_url()
+{
+  global $settings;
+  $url="http://";
+  if (isset($_SERVER["HTTPS"])==true)
+  {
+    if (($_SERVER["HTTPS"]<>"") and ($_SERVER["HTTPS"]=="on"))
+    {
+      $url="https://";
+    }
+  }
+  return $url.$_SERVER["HTTP_HOST"].$settings["app_web_index"];
 }
 
 #####################################################################################################
@@ -999,13 +1025,14 @@ function send_email($recipient,$cc,$subject,$message,$from,$reply_to,$bounce_to)
 {
   $headers=array();
   $headers[]="From: ".$from;
-  $headers[]="Cc: ".$cc;
+  /*$headers[]="Cc: ".$cc;
   $headers[]="Reply-To: ".$reply_to;
   $headers[]="X-Sender: ".$from;
-  $headers[]="X-Mailer: PHP/".phpversion();
+  $headers[]="X-Mailer: PHP/".phpversion();*/
   $headers[]="MIME-Version: 1.0";
   $headers[]="Content-Type: text/html; charset=iso-8859-1";
-  mail($recipient,$subject,$message,implode(PHP_EOL,$headers),"-f".$bounce_to);
+  #mail($recipient,$subject,$message,implode(PHP_EOL,$headers),"-f".$bounce_to);
+  mail($recipient,$subject,$message,implode(PHP_EOL,$headers));
 }
 
 #####################################################################################################

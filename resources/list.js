@@ -83,12 +83,7 @@ function list_body_click(event)
   {
     var url_prefix=document.getElementById("inline_edit_page:"+edit_row_page_id).value;
     var url=url_prefix+edit_row_id+"&ajax&reset";
-    var parent_form=document.getElementById("parent_form");
-    if (parent_form)
-    {
-      var parent_id=document.getElementById("parent_id").innerHTML;
-      url=url+"&parent_form="+parent_form+"&parent_id="+parent_id;
-    }
+    url=url+parent_url_params(edit_row_page_id);
     ajax(url,"get",list_edit_row_reset_load,list_edit_row_reset_error,list_edit_row_reset_timeout);
   }
 }
@@ -452,45 +447,13 @@ function list_record_cell_mouseout(page_id,id,field_name,edit_cmd_id)
 
 function file_field_view(page_id,field_name,filename)
 {
-  var field_name=encodeURIComponent(field_name);
-  var form=document.getElementById(page_id);
-  var url=form.action+"&ajax&file_view="+field_name;
-  ajax(url,"get",file_field_view_load,file_field_view_error,file_field_view_timeout);
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-
-function file_field_view_load()
-{
-  try
-  {
-    var data=JSON.parse(this.responseText);
-  }
-  catch (e)
-  {
-    custom_alert(this.responseText);
-    return;
-  }
-  if (data.hasOwnProperty("error")==true)
-  {
-    custom_alert(data.error);
-    return;
-  }
-  // TODO
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-
-function file_field_view_error()
-{
-  custom_alert("file_field_view_error");
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-
-function file_field_view_timeout()
-{
-  custom_alert("file_field_view_timeout");
+  var parts=field_name.split(":");
+  field_name=parts[0]+":"+parts[2]+":"+parts[3];
+  var url=window.location.href;
+  url=remove_url_param("cmd",url);
+  url=remove_url_param("id",url);
+  url+="&file_view="+encodeURIComponent(field_name);
+  window.open(url,"_blank");
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////

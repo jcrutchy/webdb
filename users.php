@@ -591,7 +591,12 @@ function send_reset_password_message()
   {
     \webdb\utils\error_message("error: missing username");
   }
-  $user_record=\webdb\users\get_user_record($_POST["login_username"]);
+  $login_username=$_POST["login_username"];
+  if (isset($_COOKIE[$settings["username_cookie"]])==true)
+  {
+    \webdb\utils\webdb_setcookie("username_cookie",$login_username);
+  }
+  $user_record=\webdb\users\get_user_record($login_username);
   $value_items=array();
   $key=\webdb\users\crypto_random_key();
   $value_items["pw_reset_key"]=\webdb\users\webdb_password_hash($key,$user_record["username"]);
@@ -607,12 +612,13 @@ function send_reset_password_message()
   unset($settings["user_record"]);
   $t=$value_items["pw_reset_time"]+$settings["password_reset_timeout"];
   $msg_params=array();
+  $msg_params["base_url"]=\webdb\utils\get_base_url();
   $msg_params["key"]=urlencode($key);
   $msg_params["valid_to_time"]=date("g:i a",$t);
   $msg_params["valid_to_date"]=date("l, j F Y (T)",$t);
   $message=\webdb\utils\template_fill("password_reset_message",$msg_params);
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  \webdb\utils\info_message($message); # TESTING (REMOVE/COMMENT OUT FOR PROD)
+  #\webdb\utils\info_message($message); # TESTING (REMOVE/COMMENT OUT FOR PROD)
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   \webdb\utils\send_email($user_record["email"],"",$settings["app_name"]." password reset",$message,$settings["server_email_from"],$settings["server_email_reply_to"],$settings["server_email_bounce_to"]);
   \webdb\users\unset_login_cookie();
