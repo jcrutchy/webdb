@@ -109,6 +109,11 @@ th.list_controls_head
     opacity: 0.93;
   }
 
+td.editor_field_name
+  {
+    max-width: 400px;
+  }
+
 .verticaltick_left
   {
     position: relative;
