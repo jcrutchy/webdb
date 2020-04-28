@@ -82,7 +82,13 @@ $settings["app_group_access"]="*"; # * => all groups
 
 #########################################################
 
+$settings["file_upload_mode"]="ftp"; # rename | ftp
 $settings["app_file_uploads_path"]=$settings["webdb_parent_path"]."file_uploads".DIRECTORY_SEPARATOR;
+$settings["ftp_app_target_path"]="";
+$settings["ftp_credentials_file"]="";
+$settings["ftp_address"]="127.0.0.1";
+$settings["ftp_port"]=21;
+$settings["ftp_timeout"]=90;
 
 $settings["server_email_from"]="";
 $settings["server_email_reply_to"]="";

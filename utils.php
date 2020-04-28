@@ -133,8 +133,9 @@ function build_settings()
   \webdb\utils\initialize_settings();
   \webdb\utils\load_webdb_settings();
   \webdb\utils\load_application_settings();
-  \webdb\utils\load_db_credentials("admin");
-  \webdb\utils\load_db_credentials("user");
+  \webdb\utils\load_credentials("db_admin");
+  \webdb\utils\load_credentials("db_user");
+  \webdb\utils\load_credentials("ftp_credentials",true);
   $settings["webdb_templates"]=\webdb\utils\load_files($settings["webdb_templates_path"],"","htm",true);
   $settings["app_templates"]=\webdb\utils\load_files($settings["app_templates_path"],"","htm",true);
   $settings["templates"]=array_merge($settings["webdb_templates"],$settings["app_templates"]);
@@ -996,27 +997,50 @@ function redirect($url,$clean_buffer=true)
 
 #####################################################################################################
 
-function load_db_credentials($type)
+function load_credentials($prefix,$optional=false)
 {
   global $settings;
-  $filename=$settings["db_".$type."_file"];
+  $settings[$prefix."_username"]="";
+  $settings[$prefix."_password"]="";
+  $filename=$settings[$prefix."_file"];
   if (file_exists($filename)==false)
   {
-    \webdb\utils\system_message("error: database credentials file not found: ".$filename);
+    if ($optional==false)
+    {
+      \webdb\utils\system_message("error: credentials file not found: ".$filename);
+    }
+    else
+    {
+      return;
+    }
   }
   $data=file_get_contents($filename);
   if ($data===false)
   {
-    \webdb\utils\system_message("error: unable to read database credentials file: ".$filename);
+    if ($optional==false)
+    {
+      \webdb\utils\system_message("error: unable to read credentials file: ".$filename);
+    }
+    else
+    {
+      return;
+    }
   }
   $data=trim($data);
   $data=explode("\n",$data);
   if (count($data)<>2)
   {
-    \webdb\utils\system_message("error: invalid database credentials file: ".$filename);
+    if ($optional==false)
+    {
+      \webdb\utils\system_message("error: invalid credentials file: ".$filename);
+    }
+    else
+    {
+      return;
+    }
   }
-  $settings["db_".$type."_username"]=trim($data[0]);
-  $settings["db_".$type."_password"]=trim($data[1]);
+  $settings[$prefix."_username"]=trim($data[0]);
+  $settings[$prefix."_password"]=trim($data[1]);
 }
 
 #####################################################################################################
@@ -1086,6 +1110,17 @@ function static_page($template,$title)
 {
   $content=\webdb\utils\template_fill($template);
   \webdb\utils\output_page($content,$title);
+}
+
+#####################################################################################################
+
+function webdb_ftp_login()
+{
+  global $settings;
+  $connection=ftp_connect($settings["ftp_address"],$settings["ftp_port"],$settings["ftp_timeout"]);
+  ftp_login($connection,$settings["ftp_credentials_username"],$settings["ftp_credentials_password"]);
+  ftp_pasv($connection,true);
+  return $connection;
 }
 
 #####################################################################################################

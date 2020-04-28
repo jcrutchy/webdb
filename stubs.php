@@ -4,44 +4,6 @@ namespace webdb\stubs;
 
 #####################################################################################################
 
-function file_field_delete($form_config)
-{
-  global $settings;
-  if (\webdb\utils\check_user_form_permission($form_config["page_id"],"u")==false)
-  {
-    \webdb\utils\error_message("error: record update permission denied for form '".$page_id."'");
-  }
-  $record_id=false;
-  $post_name=$_GET["file_delete"];
-  $file_delete=explode(":",$post_name);
-  $page_id=array_shift($file_delete);
-  if ($page_id<>$form_config["page_id"])
-  {
-    \webdb\stubs\stub_error("page_id mismatch");
-  }
-  $tag=array_shift($file_delete);
-  if (($tag=="edit_control") and (count($file_delete)==2))
-  {
-    $record_id=$file_delete[0];
-    $field_name=$file_delete[1];
-  }
-  if ($record_id===false)
-  {
-    \webdb\stubs\stub_error("missing record id parameter");
-  }
-  $target_filename=\webdb\forms\get_uploaded_filename($page_id,$record_id,$field_name);
-  if (file_exists($target_filename)==true)
-  {
-    unlink($target_filename);
-  }
-  $post_override=array();
-  $post_override[$post_name]=-1;
-  $settings["sql_check_post_params_override"]=true;
-  \webdb\stubs\list_edit($record_id,$form_config,$post_override);
-}
-
-#####################################################################################################
-
 function output_filter_select($form_config,$filter_select_template,$blank_option,$active_template,$select_all_template,$deselect_all_template)
 {
   $params=array();

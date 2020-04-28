@@ -59,16 +59,78 @@ function file_field_view($form_config)
   $record_filename=$records[0][$field_name];
   $target_filename=\webdb\forms\get_uploaded_filename($page_id,$record_id,$field_name);
   $settings["ignore_ob_postprocess"]=true;
-  ob_end_clean(); # discard buffer & disable output buffering (\webdb\utils\ob_postprocess function not called)
+  ob_end_clean(); # discard buffer & disable output buffering (\webdb\utils\ob_postprocess function is still called)
   header("Cache-Control: no-cache");
   header("Expires: -1");
   header("Pragma: no-cache");
   header("Accept-Ranges: bytes");
   header("Content-Type: application/pdf");
-  header("Content-Length: ".filesize($target_filename));
   header("Content-Disposition: inline; filename=\"".$record_filename."\"");
-  readfile($target_filename);
-  die;
+  switch ($settings["file_upload_mode"])
+  {
+    case "rename":
+      header("Content-Length: ".filesize($target_filename));
+      readfile($target_filename);
+      die;
+    case "ftp":
+      $connection=\webdb\utils\webdb_ftp_login();
+      $size=ftp_size($connection,$target_filename);
+      header("Content-Length: ".$size);
+      ftp_get($connection,"php://output",$target_filename,FTP_BINARY);
+      ftp_close($connection);
+      die;
+  }
+  \webdb\utils\error_message("error: invalid file upload mode");
+}
+
+#####################################################################################################
+
+function file_field_delete($form_config)
+{
+  global $settings;
+  if (\webdb\utils\check_user_form_permission($form_config["page_id"],"u")==false)
+  {
+    \webdb\stubs\stub_error("error: record update permission denied for form '".$page_id."'");
+  }
+  $record_id=false;
+  $post_name=$_GET["file_delete"];
+  $file_delete=explode(":",$post_name);
+  $page_id=array_shift($file_delete);
+  if ($page_id<>$form_config["page_id"])
+  {
+    \webdb\stubs\stub_error("page_id mismatch");
+  }
+  $tag=array_shift($file_delete);
+  if (($tag=="edit_control") and (count($file_delete)==2))
+  {
+    $record_id=$file_delete[0];
+    $field_name=$file_delete[1];
+  }
+  if ($record_id===false)
+  {
+    \webdb\stubs\stub_error("missing record id parameter");
+  }
+  $target_filename=\webdb\forms\get_uploaded_filename($page_id,$record_id,$field_name);
+  switch ($settings["file_upload_mode"])
+  {
+    case "rename":
+      if (file_exists($target_filename)==true)
+      {
+        unlink($target_filename);
+      }
+      break;
+    case "ftp":
+      $connection=\webdb\utils\webdb_ftp_login();
+      ftp_delete($connection,$target_filename);
+      ftp_close($connection);
+      break;
+    default:
+      \webdb\stubs\stub_error("error: invalid file upload mode");
+  }
+  $post_override=array();
+  $post_override[$post_name]=-1;
+  $settings["sql_check_post_params_override"]=true;
+  \webdb\stubs\list_edit($record_id,$form_config,$post_override);
 }
 
 #####################################################################################################
@@ -89,7 +151,7 @@ function form_dispatch($page_id)
   {
     if (isset($_GET["file_delete"])==true)
     {
-      \webdb\stubs\file_field_delete($form_config);
+      \webdb\forms\file_field_delete($form_config);
     }
   }
   if ((isset($_GET["ajax"])==true) and (isset($_GET["field_name"])==true))
@@ -2484,7 +2546,18 @@ function upload_file($form_config,$field_name,$record_id)
     \webdb\utils\error_message("error: uploaded file not found");
   }
   $target_filename=\webdb\forms\get_uploaded_filename($page_id,$record_id,$field_name);
-  rename($upload_filename,$target_filename);
+  switch ($settings["file_upload_mode"])
+  {
+    case "rename":
+      rename($upload_filename,$target_filename);
+      return;
+    case "ftp":
+      $connection=\webdb\utils\webdb_ftp_login();
+      ftp_put($connection,$target_filename,$upload_filename,FTP_BINARY);
+      ftp_close($connection);
+      return;
+  }
+  \webdb\utils\error_message("error: invalid file upload mode");
 }
 
 #####################################################################################################
@@ -2495,7 +2568,14 @@ function get_uploaded_filename($page_id,$record_id,$field_name)
   $filename=$page_id."__".$record_id."__".$field_name;
   $filename=str_replace(DIRECTORY_SEPARATOR,"_",$filename);
   $filename=str_replace(" ","_",$filename);
-  return $settings["app_file_uploads_path"].$filename;
+  switch ($settings["file_upload_mode"])
+  {
+    case "rename":
+      return $settings["app_file_uploads_path"].$filename;
+    case "ftp":
+      return $settings["ftp_app_target_path"].$filename;
+  }
+  \webdb\utils\error_message("error: invalid file upload mode");
 }
 
 #####################################################################################################
