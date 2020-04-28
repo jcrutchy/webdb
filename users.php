@@ -592,7 +592,7 @@ function send_reset_password_message()
     \webdb\utils\error_message("error: missing username");
   }
   $login_username=$_POST["login_username"];
-  if (isset($_COOKIE[$settings["username_cookie"]])==true)
+  if (isset($_COOKIE[$settings["username_cookie"]])==false)
   {
     \webdb\utils\webdb_setcookie("username_cookie",$login_username);
   }
@@ -624,7 +624,8 @@ function send_reset_password_message()
   \webdb\users\unset_login_cookie();
   $message=\webdb\utils\template_fill("password_reset_valid_to_message",$msg_params);
   \webdb\users\auth_log($user_record,"RESET_PASSWORD_EMAIL","");
-  \webdb\utils\error_message($message);
+  $settings["unauthenticated_content"]=true;
+  \webdb\utils\info_message($message);
 }
 
 #####################################################################################################
