@@ -121,8 +121,6 @@ function list_insert($form_config)
   {
     \webdb\utils\error_message("error: record update permission denied for form '".$page_id."'");
   }
-  var_dump($form_config);
-  die;
   $data=array();
   $params=\webdb\forms\process_form_data_fields($form_config,"");
   if (count($params)==0)

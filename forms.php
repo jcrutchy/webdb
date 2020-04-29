@@ -824,7 +824,7 @@ function config_id_url_value($form_config,$record,$config_key)
         continue;
       }
     }
-    $values[]="";
+    return "";
   }
   return implode(\webdb\index\CONFIG_ID_DELIMITER,$values);
 }
@@ -1751,6 +1751,18 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
   $head_params=\webdb\forms\header_row($form_config);
   $form_params=array_merge($form_params,$head_params);
   $form_params["field_headers"]=$field_headers;
+  $form_params["selected_filter_input"]="";
+  \webdb\forms\process_filter_sql($form_config);
+  if (count($form_config["filter_options"])>0)
+  {
+    $form_config["insert_row"]=false;
+    $form_params["filter_cookie_value"]=0;
+    if ($form_config["filter_cookie"]==true)
+    {
+      $form_params["filter_cookie_value"]=1;
+    }
+    $form_params["selected_filter_input"]=\webdb\forms\form_template_fill("selected_filter_input",$form_config);
+  }
   $rows="";
   if ($records===false)
   {
@@ -1774,24 +1786,12 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
         $form_config["sort_sql"]=$sort_sql;
       }
     }
-    \webdb\forms\process_filter_sql($form_config);
     if ($form_config["sort_sql"]<>"")
     {
       $form_config["sort_sql"]=\webdb\utils\sql_fill("sort_clause",$form_config);
     }
     $sql=\webdb\utils\sql_fill("form_list_fetch_all",$form_config);
     $records=\webdb\sql\fetch_prepare($sql,array(),"form_list_fetch_all",false,"","",$form_config);
-  }
-  $form_params["selected_filter_input"]="";
-  if (count($form_config["filter_options"])>0)
-  {
-    $form_config["insert_row"]=false;
-    $form_params["filter_cookie_value"]=0;
-    if ($form_config["filter_cookie"]==true)
-    {
-      $form_params["filter_cookie_value"]=1;
-    }
-    $form_params["selected_filter_input"]=\webdb\forms\form_template_fill("selected_filter_input",$form_config);
   }
   $previous_group_by_fields=false;
   $row_spans=array();
