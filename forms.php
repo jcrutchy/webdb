@@ -496,20 +496,17 @@ function process_filter_sql(&$form_config)
   }
   $form_config["selected_filter_sql"]="";
   $form_config["selected_filter_condition"]="";
-  if ($form_config["selected_filter"]<>"")
+  $filter_name=$form_config["selected_filter"];
+  if (isset($form_config["filter_options"][$filter_name])==true)
   {
-    $filter_name=$form_config["selected_filter"];
-    if (isset($form_config["filter_options"][$filter_name])==true)
+    $form_config["selected_filter_condition"]=$form_config["filter_options"][$filter_name];
+    $where_params=array();
+    $where_params["where_items"]=$form_config["selected_filter_condition"];
+    if ($form_config["selected_filter_condition"]<>"")
     {
-      $form_config["selected_filter_condition"]=$form_config["filter_options"][$filter_name];
-      $where_params=array();
-      $where_params["where_items"]=$form_config["selected_filter_condition"];
-      if ($form_config["selected_filter_condition"]<>"")
-      {
-        $form_config["selected_filter_condition"]="AND ".$form_config["selected_filter_condition"];
-      }
-      $form_config["selected_filter_sql"]=\webdb\utils\sql_fill("where_clause",$where_params);
+      $form_config["selected_filter_condition"]="AND ".$form_config["selected_filter_condition"];
     }
+    $form_config["selected_filter_sql"]=\webdb\utils\sql_fill("where_clause",$where_params);
   }
 }
 
