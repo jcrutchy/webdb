@@ -56,8 +56,26 @@ function show_calendar(event,element)
   make_calendar(date_in_input,existing_date.getYear(),existing_date.getMonth(),existing_date.getDate());
   calendar.style.display="block";
   var pos=webdb_get_position(calendar_selected_input);
-  calendar.style.left=pos.x+"px";
-  calendar.style.top=(pos.y+calendar_selected_input.offsetHeight)+"px";
+  if ((pos.x+calendar.offsetWidth)>window.innerWidth)
+  {
+    calendar.style.left="initial";
+    calendar.style.right=(window.innerWidth-pos.x-calendar_selected_input.offsetWidth)+"px";
+  }
+  else
+  {
+    calendar.style.right="initial";
+    calendar.style.left=pos.x+"px";
+  }
+  if ((pos.y+calendar.offsetHeight)>window.innerHeight)
+  {
+    calendar.style.top="initial";
+    calendar.style.bottom=(window.innerHeight-pos.y)+"px";
+  }
+  else
+  {
+    calendar.style.bottom="initial";
+    calendar.style.top=(pos.y+calendar_selected_input.offsetHeight)+"px";
+  }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
