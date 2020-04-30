@@ -114,6 +114,11 @@ td.editor_field_name
     max-width: 400px;
   }
 
+input.date_edit_field
+  {
+    width: 75px;
+  }
+
 .verticaltick_left
   {
     position: relative;
