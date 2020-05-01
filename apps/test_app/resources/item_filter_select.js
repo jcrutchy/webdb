@@ -21,20 +21,7 @@ function item_filter_select_click(value,subform)
 
 function item_filter_select_load()
 {
-  try
-  {
-    var data=JSON.parse(this.responseText);
-  }
-  catch (e)
-  {
-    custom_alert(this.responseText);
-    return;
-  }
-  if (data.hasOwnProperty("error")==true)
-  {
-    custom_alert(data.error);
-    return;
-  }
+  var data=get_ajax_load_data(this);
   if ((data.hasOwnProperty("html")==true) && (data.hasOwnProperty("subform")==true))
   {
     insert_row_parents[data.subform].innerHTML=data.html;

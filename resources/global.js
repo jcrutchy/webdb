@@ -51,6 +51,39 @@ function custom_alert_close()
   document.getElementById("custom_alert_background").style.display="none";
 }
 
+function get_base_url()
+{
+  var url=window.location;
+  return url.protocol+"//"+url.host+"/"+url.pathname.split("/")[1];
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function get_ajax_load_data(response)
+{
+  var response_text=response.responseText;
+  if (response_text==="redirect_to_login_form")
+  {
+    window.location.href=get_base_url();
+    return false;
+  }
+  try
+  {
+    var data=JSON.parse(response_text);
+  }
+  catch (e)
+  {
+    custom_alert(response_text);
+    return false;
+  }
+  if (data.hasOwnProperty("error")==true)
+  {
+    custom_alert(data.error);
+    return false;
+  }
+  return data;
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function ajax(url,method,load,error,timeout,params={},timeout_sec=false)

@@ -40,7 +40,7 @@ function filtered_checklist_tests()
   $test_success=true;
 
   $response=\webdb\test\utils\wpost($settings["app_web_root"],$params);
-  if (\webdb\test\utils\compare_template("csrf_error",$response)==false)
+  if (\webdb\utils\compare_template("csrf_error",$response)==false)
   {
     $test_success=false;
   }

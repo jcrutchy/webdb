@@ -120,20 +120,7 @@ function list_edit_row_button_click(page_id,id)
 
 function list_edit_row_reset_load()
 {
-  try
-  {
-    var data=JSON.parse(this.responseText);
-  }
-  catch (e)
-  {
-    custom_alert(this.responseText);
-    return;
-  }
-  if (data.hasOwnProperty("error")==true)
-  {
-    custom_alert(data.error);
-    return;
-  }
+  var data=get_ajax_load_data(this);
   var calendar=document.getElementById("calendar_div");
   if (calendar!==null)
   {
@@ -215,20 +202,7 @@ function list_insert_row_click(form,page_id)
 
 function list_insert_row_load()
 {
-  try
-  {
-    var data=JSON.parse(this.responseText);
-  }
-  catch (e)
-  {
-    custom_alert(this.responseText);
-    return;
-  }
-  if (data.hasOwnProperty("error")==true)
-  {
-    custom_alert(data.error);
-    return;
-  }
+  var data=get_ajax_load_data(this);
   if ((data.hasOwnProperty("page_id")==true) && (data.hasOwnProperty("html")==true))
   {
     insert_row_parents[data.page_id].innerHTML=data.html;
@@ -295,20 +269,7 @@ function list_edit_row_load()
   {
     return;
   }
-  try
-  {
-    var data=JSON.parse(this.responseText);
-  }
-  catch (e)
-  {
-    custom_alert(this.responseText);
-    return;
-  }
-  if (data.hasOwnProperty("error")==true)
-  {
-    custom_alert(data.error);
-    return;
-  }
+  var data=get_ajax_load_data(this);
   if ((data.hasOwnProperty("page_id")==true) && (data.hasOwnProperty("primary_key")==true) && (data.hasOwnProperty("calendar_fields")==true) && (data.hasOwnProperty("edit_fields")==true) && (data.hasOwnProperty("html")==true))
   {
     var data_row=document.getElementById("data_row_tr:"+data.page_id+":"+data.primary_key);
@@ -358,20 +319,7 @@ function list_edit_row_update(form,page_id)
 
 function list_edit_row_update_load()
 {
-  try
-  {
-    var data=JSON.parse(this.responseText);
-  }
-  catch (e)
-  {
-    custom_alert(this.responseText);
-    return;
-  }
-  if (data.hasOwnProperty("error")==true)
-  {
-    custom_alert(data.error);
-    return;
-  }
+  var data=get_ajax_load_data(this);
   if (data.hasOwnProperty("html")==true)
   {
     // TODO: data.html
@@ -490,20 +438,7 @@ function file_field_delete(page_id,field_name,filename)
 
 function file_field_delete_load()
 {
-  try
-  {
-    var data=JSON.parse(this.responseText);
-  }
-  catch (e)
-  {
-    custom_alert(this.responseText);
-    return;
-  }
-  if (data.hasOwnProperty("error")==true)
-  {
-    custom_alert(data.error);
-    return;
-  }
+  var data=get_ajax_load_data(this);
   if ((data.hasOwnProperty("page_id")==true) && (data.hasOwnProperty("primary_key")==true) && (data.hasOwnProperty("html")==true))
   {
     var data_row=document.getElementById("data_row_tr:"+data.page_id+":"+data.primary_key);

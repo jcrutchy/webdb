@@ -928,7 +928,7 @@ function list_row($form_config,$record,$column_format,$row_spans,$lookup_records
     if (($form_config["edit_cmd"]=="row") or ($form_config["edit_cmd"]=="inline"))
     {
       $field_params["edit_cmd_id"]=$row_params["edit_cmd_id"];
-      if (($form_config["checklist"]==false) or ($checklist_row_linked==true))
+      if (($form_config["checklist"]==false) or (($checklist_row_linked==true) and (count($form_config["link_fields"])>0)))
       {
         $field_params["handlers"]=\webdb\forms\form_template_fill("list_field_handlers",$field_params);
       }
@@ -1198,7 +1198,7 @@ function list_row_controls($form_config,&$submit_fields,$operation,$column_forma
   $row_params["primary_key"]=\webdb\forms\config_id_url_value($form_config,$record,"primary_key");
   $row_params["page_id"]=$form_config["page_id"];
   $row_params["check"]=\webdb\forms\check_column($form_config,"list_check_insert");
-  $lookup_records=lookup_records($form_config,true);
+  $lookup_records=\webdb\forms\lookup_records($form_config,true);
   $fields="";
   $hidden_fields="";
   foreach ($form_config["control_types"] as $field_name => $control_type)
@@ -1230,24 +1230,24 @@ function list_row_controls($form_config,&$submit_fields,$operation,$column_forma
     {
       $control_type_suffix="_check";
     }
-    if ($control_type<>"hidden")
+    if ($control_type<>"lookup")
     {
-      if ($control_type<>"lookup")
+      if (($form_config["checklist"]==true) and (in_array($field_name,$form_config["link_fields"])==false))
       {
-        if (($form_config["checklist"]==true) and (in_array($field_name,$form_config["link_fields"])==false))
-        {
-          $fields.=\webdb\forms\output_readonly_field($field_params,$control_type,$form_config,$field_name,$lookup_records,$record);
-          continue;
-        }
-        else
-        {
-          $field_params["value"]=\webdb\forms\output_editable_field($field_params,$record,$field_name,$control_type,$form_config,$lookup_records,$submit_fields);
-        }
+        $fields.=\webdb\forms\output_readonly_field($field_params,$control_type,$form_config,$field_name,$lookup_records,$record);
+        continue;
       }
       else
       {
-        $field_params["value"]=\webdb\forms\get_lookup_field_value($field_name,$form_config,$lookup_records,$record);
+        $field_params["value"]=\webdb\forms\output_editable_field($field_params,$record,$field_name,$control_type,$form_config,$lookup_records,$submit_fields);
       }
+    }
+    else
+    {
+      $field_params["value"]=\webdb\forms\get_lookup_field_value($field_name,$form_config,$lookup_records,$record);
+    }
+    if ($control_type<>"hidden")
+    {
       $fields.=\webdb\forms\form_template_fill("list_field".$control_type_suffix,$field_params);
     }
     else
@@ -1901,11 +1901,11 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
   $form_params["custom_form_below"]="";
   if ($form_config["custom_form_above_template"]<>"")
   {
-    $form_params["custom_form_above"]=\webdb\forms\form_template_fill($form_config["custom_form_above_template"]);
+    $form_params["custom_form_above"]=\webdb\utils\template_fill($form_config["custom_form_above_template"],$form_params);
   }
   if ($form_config["custom_form_below_template"]<>"")
   {
-    $form_params["custom_form_below"]=\webdb\forms\form_template_fill($form_config["custom_form_below_template"]);
+    $form_params["custom_form_below"]=\webdb\utils\template_fill($form_config["custom_form_below_template"],$form_params);
   }
   $event_params=array();
   $event_params["handled"]=false;
@@ -2276,9 +2276,11 @@ function output_editor($form_config,$record,$command,$verb,$id=false)
   $event_params["form_config"]=$form_config;
   $event_params["record"]=$record;
   $event_params["hidden_fields"]=$hidden_fields;
+  $event_params["record_id"]="";
+  $event_params["cmd"]=$cmd;
   if ($id!==false)
   {
-    $event_params["id"]=$id;
+    $event_params["record_id"]=$id;
   }
   $event_params=\webdb\forms\handle_form_config_event($form_config,$event_params,"on_".$cmd);
   $record=$event_params["record"];
@@ -2355,6 +2357,9 @@ function output_editor($form_config,$record,$command,$verb,$id=false)
     }
     else
     {
+      $rows["page_id"]=$form_params["page_id"];
+      $rows["record_id"]=$id;
+      $rows["cmd"]=$cmd;
       $form_params["field_table"]=\webdb\utils\template_fill($form_config["custom_".$cmd."_template"],$rows);
     }
   }
@@ -2373,11 +2378,11 @@ function output_editor($form_config,$record,$command,$verb,$id=false)
   $form_params["custom_form_below"]="";
   if ($form_config["custom_form_above_template"]<>"")
   {
-    $form_params["custom_form_above"]=\webdb\forms\form_template_fill($form_config["custom_form_above_template"]);
+    $form_params["custom_form_above"]=\webdb\utils\template_fill($form_config["custom_form_above_template"],$form_params);
   }
   if ($form_config["custom_form_below_template"]<>"")
   {
-    $form_params["custom_form_below"]=\webdb\forms\form_template_fill($form_config["custom_form_below_template"]);
+    $form_params["custom_form_below"]=\webdb\utils\template_fill($form_config["custom_form_below_template"],$form_params);
   }
   $event_params=array();
   $event_params["handled"]=false;

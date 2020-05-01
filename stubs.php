@@ -117,6 +117,7 @@ function get_unique_stub_record($id_field_name,$id,$sql_stub_name,$return_field_
 function list_insert($form_config)
 {
   global $settings;
+  die("test 1");
   if (\webdb\utils\check_user_form_permission($form_config["page_id"],"i")==false)
   {
     \webdb\utils\error_message("error: record update permission denied for form '".$page_id."'");
@@ -138,6 +139,9 @@ function list_insert($form_config)
       case "redirect":
       case "filters":
       case "ajax":
+      case "subform":
+      case "parent_form":
+      case "parent_id":
         break;
       default:
         $insert_default_params[$param_name]=$param_value;

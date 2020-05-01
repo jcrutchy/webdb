@@ -303,19 +303,6 @@ function extract_http_headers($response)
 
 #####################################################################################################
 
-function strip_http_headers($response)
-{
-  $delim="\r\n\r\n";
-  $i=strpos($response,$delim);
-  if ($i===false)
-  {
-    return $response;
-  }
-  return trim(substr($response,$i+strlen($delim)));
-}
-
-#####################################################################################################
-
 function search_http_headers($headers,$search_key)
 {
   $result=array();
@@ -562,49 +549,9 @@ function extract_text($text,$delim1,$delim2)
 
 #####################################################################################################
 
-function compare_template($template,$response)
-{
-  $response=\webdb\test\utils\strip_http_headers($response);
-  if ($response=="")
-  {
-    return false;
-  }
-  if ($response==$template)
-  {
-    return true;
-  }
-  $template_content=trim(\webdb\utils\template_fill($template));
-  $parts=explode("%%",$template_content);
-  $excluded=array();
-  for ($i=0;$i<count($parts);$i++)
-  {
-    if (($i%2)==0)
-    {
-      $excluded[]=$parts[$i];
-    }
-  }
-  for ($i=0;$i<count($excluded);$i++)
-  {
-    $needle=trim($excluded[$i]);
-    if ($needle=="")
-    {
-      continue;
-    }
-    $k=strpos($response,$needle);
-    if ($k===false)
-    {
-      return false;
-    }
-    $response=substr($response,$k+strlen($needle));
-  }
-  return true;
-}
-
-#####################################################################################################
-
 function compare_form_template($template,$response)
 {
-  return \webdb\test\utils\compare_template("forms/".$template,$response);
+  return \webdb\utils\compare_template("forms/".$template,$response);
 }
 
 #####################################################################################################

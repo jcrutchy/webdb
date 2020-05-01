@@ -411,6 +411,13 @@ function ob_postprocess($buffer)
   {
     $buffer=$settings["system_message"];
   }
+  if (isset($_GET["ajax"])==true)
+  {
+    if ((\webdb\utils\compare_template("login_form",$buffer)==true) or (\webdb\utils\check_csrf_error($buffer)==true))
+    {
+      return "redirect_to_login_form";
+    }
+  }
   # TODO: CALL AUTOMATED W3C VALIDATION HERE
   global $start_time; # debug
   global $stop_time; # debug
@@ -965,6 +972,78 @@ function template_fill($template_key,$params=false,$tracking=array(),$custom_tem
     $result=str_replace($placeholder,$value,$result);
   }
   return $result;
+}
+
+#####################################################################################################
+
+function compare_template($template,$response)
+{
+  $response=\webdb\utils\strip_http_headers($response);
+  if ($response=="")
+  {
+    return false;
+  }
+  if ($response==$template)
+  {
+    return true;
+  }
+  $template_content=trim(\webdb\utils\template_fill($template));
+  $parts=explode("%%",$template_content);
+  $excluded=array();
+  for ($i=0;$i<count($parts);$i++)
+  {
+    if (($i%2)==0)
+    {
+      $excluded[]=$parts[$i];
+    }
+  }
+  for ($i=0;$i<count($excluded);$i++)
+  {
+    $needle=trim($excluded[$i]);
+    if ($needle=="")
+    {
+      continue;
+    }
+    $k=strpos($response,$needle);
+    if ($k===false)
+    {
+      return false;
+    }
+    $response=substr($response,$k+strlen($needle));
+  }
+  return true;
+}
+
+#####################################################################################################
+
+function strip_http_headers($response)
+{
+  if (substr($response,0,4)<>"HTTP")
+  {
+    return $response;
+  }
+  $delim="\r\n\r\n";
+  $i=strpos($response,$delim);
+  if ($i===false)
+  {
+    return $response;
+  }
+  return trim(substr($response,$i+strlen($delim)));
+}
+
+#####################################################################################################
+
+function check_csrf_error($response)
+{
+  if (\webdb\utils\compare_template("csrf_error_unauth",$response)==true)
+  {
+    return true;
+  }
+  if (\webdb\utils\compare_template("csrf_error_auth",$response)==true)
+  {
+    return true;
+  }
+  return false;
 }
 
 #####################################################################################################

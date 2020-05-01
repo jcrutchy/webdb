@@ -51,14 +51,17 @@ following are event-specific $event_params elements, with an indication of initi
   $event_params["form_config"]=array();
   $event_params["custom_content"]=false; # allows overriding of default content output
   $event_params["content"]=""; # assign custom content here
+  $event_params["record_id"]=""; # empty string for insert
   $event_params["record"]=array(); # handling allows overriding of record values before default content output
+  $event_params["cmd"]="insert"; # use when combining stubs for both insert and edit to distinguish between the two commands
 
 "on_edit":
   $event_params["form_config"]=array();
   $event_params["content"]=""; # assign custom content here
-  $event_params["record_id"]=0; # read this to get id passed from url
+  $event_params["record_id"]=""; # read this to get id passed from url
   $event_params["record"]=array(); # handling allows overriding of record values before default content output
   $event_params["hidden_fields"]=""; # assign hidden inputs when handled
+  $event_params["cmd"]="edit"; # use when combining stubs for both insert and edit to distinguish between the two commands
 
 "on_get_record_by_id":
   $event_params["form_config"]=array();
