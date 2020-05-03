@@ -322,6 +322,8 @@ function form_dispatch($page_id)
       $list_params["form_styles_modified"]=\webdb\utils\resource_modified_timestamp("list.css");
       $list_params["form_styles_print_modified"]=\webdb\utils\resource_modified_timestamp("list_print.css");
       $list_params["title"]=$form_config["title"];
+      $list_params["full_url"]=\webdb\utils\get_url();
+      $list_params["base_url"]=\webdb\utils\get_base_url();
       $content=\webdb\forms\form_template_fill("list_page",$list_params);
       $content.=\webdb\forms\output_html_includes($form_config);
       $title=$page_id;
@@ -2399,6 +2401,8 @@ function output_editor($form_config,$record,$command,$verb,$id=false)
   {
     $form_params["custom_form_below"]=$event_params["content"];
   }
+  $form_params["full_url"]=\webdb\utils\get_url();
+  $form_params["base_url"]=\webdb\utils\get_base_url();
   $content=\webdb\forms\form_template_fill("editor_page",$form_params);
   $title=$form_config["title"].": ".$command;
   $result=array();
