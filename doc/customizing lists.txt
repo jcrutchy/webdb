@@ -1,3 +1,14 @@
+result of stub is output in column to the right of fields in the standard edit page
+(eg: stub can output an "edit" button that calls javascript when clicked):
+    "custom_interfaces": {
+        "\\my_app\\computed_fields_php_file\\my_field_interface_button_function": [
+            "field_name_1",
+            "field_name_2"
+        ]
+    },
+
+
+
     "custom_insert_template": "",
     "custom_edit_template": "",
 uses field names as %% templates
