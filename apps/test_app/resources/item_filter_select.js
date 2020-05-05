@@ -24,7 +24,7 @@ function item_filter_select_load()
   var data=get_ajax_load_data(this);
   if ((data.hasOwnProperty("html")==true) && (data.hasOwnProperty("subform")==true))
   {
-    insert_row_parents[data.subform].innerHTML=data.html;
+    document.getElementById("subform_table_"+data.subform).innerHTML=data.html;
     return;
   }
   custom_alert("item_filter_select_load");

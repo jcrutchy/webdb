@@ -205,7 +205,7 @@ function list_insert_row_load()
   var data=get_ajax_load_data(this);
   if ((data.hasOwnProperty("page_id")==true) && (data.hasOwnProperty("html")==true))
   {
-    insert_row_parents[data.page_id].innerHTML=data.html;
+    document.getElementById("subform_table_"+data.page_id).innerHTML=data.html;
     return;
   }
   custom_alert("list_insert_row_load");

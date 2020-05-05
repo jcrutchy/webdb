@@ -29,7 +29,7 @@ function webdb_debug_backtrace()
   global $settings;
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # TODO: DEBUG INFO ONLY (SECURITY RISK) - UNCOMMENT FOLLOWING LINE FOR PRODUCTION
-  #return "";
+  return "";
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   $backtrace=json_encode(debug_backtrace()); # can't have pretty print indents for replacing settings
   $settings_json=json_encode($settings);
@@ -96,6 +96,7 @@ function debug_var_dump($data,$backtrace=false)
 {
   global $settings;
   $settings["unauthenticated_content"]=true;
+  $settings["check_templates"]=false;
   var_dump($data);
   if ($backtrace==true)
   {

@@ -1,3 +1,7 @@
+also refer to: field ja events
+
+
+
 result of stub is output in column to the right of fields in the standard edit page
 (eg: stub can output an "edit" button that calls javascript when clicked):
     "custom_interfaces": {

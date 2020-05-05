@@ -90,7 +90,7 @@ function file_field_delete($form_config)
   global $settings;
   if (\webdb\utils\check_user_form_permission($form_config["page_id"],"u")==false)
   {
-    \webdb\stubs\stub_error("error: record update permission denied for form '".$page_id."'");
+    \webdb\stubs\stub_error("error: record update permission denied for form '".$form_config["page_id"]."'");
   }
   $record_id=false;
   $post_name=$_GET["file_delete"];
@@ -322,8 +322,6 @@ function form_dispatch($page_id)
       $list_params["form_styles_modified"]=\webdb\utils\resource_modified_timestamp("list.css");
       $list_params["form_styles_print_modified"]=\webdb\utils\resource_modified_timestamp("list_print.css");
       $list_params["title"]=$form_config["title"];
-      $list_params["full_url"]=\webdb\utils\get_url();
-      $list_params["base_url"]=\webdb\utils\get_base_url();
       $content=\webdb\forms\form_template_fill("list_page",$list_params);
       $content.=\webdb\forms\output_html_includes($form_config);
       $title=$page_id;
@@ -865,6 +863,11 @@ function list_row($form_config,$record,$column_format,$row_spans,$lookup_records
     {
       continue;
     }
+    if ($control_type=="default")
+    {
+      $record[$field_name]=\webdb\forms\default_value($form_config,$field_name);
+      $control_type="span";
+    }
     $field_params=array();
     $field_params["primary_key"]=$row_params["primary_key"];
     $field_params["page_id"]=$row_params["page_id"];
@@ -1073,6 +1076,8 @@ function output_readonly_field($field_params,$control_type,$form_config,$field_n
       $field_params["value"]=str_replace(\webdb\index\LINEBREAK_PLACEHOLDER,\webdb\utils\template_fill("break"),$field_params["value"]);
       $field_params["value"]=\webdb\forms\memo_field_formatting($field_params["value"]);
       return \webdb\forms\form_template_fill("list_field",$field_params);
+    case "default":
+      $display_record[$field_name]=\webdb\forms\default_value($form_config,$field_name);
     case "span":
     case "file":
     case "text":
@@ -1209,6 +1214,11 @@ function list_row_controls($form_config,&$submit_fields,$operation,$column_forma
     {
       continue;
     }
+    if ($control_type=="default")
+    {
+      $record[$field_name]=\webdb\forms\default_value($form_config,$field_name);
+      $control_type="span";
+    }
     $field_params=array();
     $field_params["primary_key"]=$row_params["primary_key"];
     $field_params["page_id"]=$row_params["page_id"];
@@ -1309,6 +1319,9 @@ function output_editable_field(&$field_params,$record,$field_name,$control_type,
       }
       $field_params["value"]=\webdb\forms\get_lookup_field_value($field_name,$form_config,$lookup_records,$record);
       break;
+    case "default":
+      $record[$field_name]=\webdb\forms\default_value($form_config,$field_name);
+      $control_type="span";
     case "span":
       break;
     case "text":
@@ -1999,6 +2012,7 @@ function advanced_search($form_config)
         break;
       case "lookup":
       case "span":
+      case "default":
       case "text":
       case "file":
       case "memo":
@@ -2141,6 +2155,7 @@ function advanced_search($form_config)
           break;
         case "lookup":
         case "span":
+        case "default":
         case "text":
         case "file":
         case "memo":
@@ -2192,25 +2207,19 @@ function advanced_search($form_config)
 
 #####################################################################################################
 
+function default_value($form_config,$field_name)
+{
+  return \webdb\utils\string_template_fill($form_config["default_values"][$field_name]);
+}
+
+#####################################################################################################
+
 function default_values($form_config)
 {
-  global $settings;
   $record=$form_config["default_values"];
-  foreach ($record as $fieldname => $value)
+  foreach ($record as $field_name => $value)
   {
-    foreach ($settings as $setting_key => $setting_value)
-    {
-      $template='$$'.$setting_key.'$$';
-      if (strpos($value,$template)===false)
-      {
-        continue;
-      }
-      $record[$fieldname]=str_replace($template,$setting_value,$value);
-    }
-    if (isset($_GET[$fieldname])==true)
-    {
-      $record[$fieldname]=htmlspecialchars($_GET[$fieldname]);
-    }
+    $record[$field_name]=\webdb\forms\default_value($form_config,$field_name);
   }
   return $record;
 }
@@ -2312,7 +2321,11 @@ function output_editor($form_config,$record,$command,$verb,$id=false)
           continue;
         }
       }
-      $field_value=$record[$field_name];
+      $field_value="";
+      if ((isset($record[$field_name])==true) and ($control_type<>"lookup"))
+      {
+        $field_value=$record[$field_name];
+      }
       $field_params=array();
       $field_params["page_id"]=$form_config["page_id"];
       $field_params["disabled"]=\webdb\forms\field_disabled($form_config,$field_name);
@@ -2401,8 +2414,6 @@ function output_editor($form_config,$record,$command,$verb,$id=false)
   {
     $form_params["custom_form_below"]=$event_params["content"];
   }
-  $form_params["full_url"]=\webdb\utils\get_url();
-  $form_params["base_url"]=\webdb\utils\get_base_url();
   $content=\webdb\forms\form_template_fill("editor_page",$form_params);
   $title=$form_config["title"].": ".$command;
   $result=array();
@@ -2622,6 +2633,9 @@ function process_form_data_fields($form_config,$record_id,$post_override=false)
       case "lookup":
       case "span":
         continue 2;
+      case "default":
+        $value_items[$field_name]=\webdb\forms\default_value($form_config,$field_name);
+        continue 2;
     }
     $post_name=$page_id.":edit_control:".$record_id.":".$field_name;
     switch ($control_type)
@@ -2710,7 +2724,7 @@ function insert_record($form_config)
   global $settings;
   if (\webdb\utils\check_user_form_permission($form_config["page_id"],"i")==false)
   {
-    \webdb\utils\error_message("error: record insert permission denied for form '".$page_id."'");
+    \webdb\utils\error_message("error: record insert permission denied for form '".$form_config["page_id"]."'");
   }
   $value_items=\webdb\forms\process_form_data_fields($form_config,"");
   \webdb\forms\check_required_values($form_config,$value_items);
@@ -2781,7 +2795,7 @@ function update_record($form_config,$id,$value_items=false,$where_items=false,$r
   global $settings;
   if (\webdb\utils\check_user_form_permission($form_config["page_id"],"u")==false)
   {
-    \webdb\utils\error_message("error: record update permission denied form form '".$page_id."'");
+    \webdb\utils\error_message("error: record update permission denied form form '".$form_config["page_id"]."'");
   }
   if ($value_items===false)
   {
@@ -3095,7 +3109,7 @@ function delete_selected_records($form_config)
   global $settings;
   if (\webdb\utils\check_user_form_permission($form_config["page_id"],"d")==false)
   {
-    \webdb\utils\error_message("error: record(s) delete permission denied for form '".$page_id."'");
+    \webdb\utils\error_message("error: record(s) delete permission denied for form '".$form_config["page_id"]."'");
   }
   foreach ($_POST["id"] as $id => $value)
   {

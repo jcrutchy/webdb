@@ -8,3 +8,4 @@ listbox
 radiogroup
 date
 checkbox
+default

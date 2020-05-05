@@ -117,10 +117,9 @@ function get_unique_stub_record($id_field_name,$id,$sql_stub_name,$return_field_
 function list_insert($form_config)
 {
   global $settings;
-  die("test 1");
   if (\webdb\utils\check_user_form_permission($form_config["page_id"],"i")==false)
   {
-    \webdb\utils\error_message("error: record update permission denied for form '".$page_id."'");
+    \webdb\utils\error_message("error: record update permission denied for form '".$form_config["page_id"]."'");
   }
   $data=array();
   $params=\webdb\forms\process_form_data_fields($form_config,"");
@@ -152,16 +151,15 @@ function list_insert($form_config)
     foreach ($insert_default_params as $param_name => $param_value)
     {
       $params[$param_name]=$param_value;
-      \webdb\forms\check_required_values($form_config,$params);
-      \webdb\sql\sql_insert($params,$form_config["table"],$form_config["database"],false,$form_config);
-      $parent_form_config=false;
-      if (isset($form_config["parent_form_config"])==true)
-      {
-        $parent_form_config=$form_config["parent_form_config"];
-      }
-      $data["html"]=\webdb\forms\get_subform_content($form_config,$param_name,$param_value,true,$parent_form_config);
-      break;
     }
+    \webdb\forms\check_required_values($form_config,$params);
+    \webdb\sql\sql_insert($params,$form_config["table"],$form_config["database"],false,$form_config);
+    $parent_form_config=false;
+    if (isset($form_config["parent_form_config"])==true)
+    {
+      $parent_form_config=$form_config["parent_form_config"];
+    }
+    $data["html"]=\webdb\forms\get_subform_content($form_config,$param_name,$param_value,true,$parent_form_config);
   }
   else
   {
@@ -180,7 +178,7 @@ function list_edit($id,$form_config,$post_override=false)
   global $settings;
   if (\webdb\utils\check_user_form_permission($form_config["page_id"],"u")==false)
   {
-    \webdb\utils\error_message("error: record update permission denied for form '".$page_id."'");
+    \webdb\utils\error_message("error: record update permission denied for form '".$form_config["page_id"]."'");
   }
   $data=array();
   $data["page_id"]=$form_config["page_id"];
