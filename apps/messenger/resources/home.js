@@ -101,6 +101,10 @@ function register_channel(channel_name,channel_topic)
 function register_channel_load()
 {
   var data=get_ajax_load_data(this);
+  if (data===false)
+  {
+    return;
+  }
   if (data.hasOwnProperty("redirect_url")==true)
   {
     window.location=data.redirect_url;
@@ -160,6 +164,10 @@ function message_update(init=false)
 function message_update_load()
 {
   var data=get_ajax_load_data(this);
+  if (data===false)
+  {
+    return;
+  }
   if (data.hasOwnProperty("redirect_url")==true)
   {
     window.location=data.redirect_url;

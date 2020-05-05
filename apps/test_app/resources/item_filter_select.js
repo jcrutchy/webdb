@@ -22,6 +22,10 @@ function item_filter_select_click(value,subform)
 function item_filter_select_load()
 {
   var data=get_ajax_load_data(this);
+  if (data===false)
+  {
+    return;
+  }
   if ((data.hasOwnProperty("html")==true) && (data.hasOwnProperty("subform")==true))
   {
     document.getElementById("subform_table_"+data.subform).innerHTML=data.html;
