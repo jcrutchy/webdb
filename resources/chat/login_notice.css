@@ -1,0 +1,33 @@
+
+#login_notice
+  {
+    position: absolute;
+    left: 30px;
+    bottom: 30px;
+    width: 350px;
+    height: 180px;
+    background-color: #ffffff;
+    border: 1px solid #888888;
+    padding: 5px;
+    box-shadow: 2px 2px 0px 0px rgba(0,0,0,0.67);
+  }
+
+.login_notice_credential
+  {
+    font-family: "Courier New", Courier, monospace;
+    color: #0a4b8c;
+    font-weight: bold;
+  }
+
+#ua_notice
+  {
+    position: absolute;
+    left: 30px;
+    bottom: 250px;
+    width: 350px;
+    height: 180px;
+    background-color: #ffffff;
+    border: 1px solid #888888;
+    padding: 5px;
+    box-shadow: 2px 2px 0px 0px rgba(0,0,0,0.67);
+  }

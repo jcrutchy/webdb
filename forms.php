@@ -187,8 +187,7 @@ function form_dispatch($page_id)
           \webdb\utils\error_message("error: unhandled generate stub");
         }
       }
-      \webdb\forms\output_resource_includes($form_config,"css");
-      \webdb\forms\output_resource_includes($form_config,"js");
+      \webdb\forms\add_resource_includes($form_config);
       if (($form_config["records_sql"]=="") or ($form_config["checklist"]==true))
       {
         if (($form_config["database"]=="") or ($form_config["table"]==""))
@@ -457,17 +456,18 @@ function output_html_includes($form_config)
 
 #####################################################################################################
 
-function output_resource_includes($form_config,$type)
+function add_resource_includes($form_config)
 {
   global $settings;
-  for ($i=0;$i<count($form_config[$type."_includes"]);$i++)
+  for ($i=0;$i<count($form_config["css_includes"]);$i++)
   {
-    $key=$form_config[$type."_includes"][$i];
-    $link=\webdb\utils\link_app_resource($key,$type);
-    if ($link!==false)
-    {
-      $settings["links_".$type][$key]=$link;
-    }
+    $key=$form_config["css_includes"][$i];
+    \webdb\utils\add_resource_link($key,"css");
+  }
+  for ($i=0;$i<count($form_config["js_includes"]);$i++)
+  {
+    $key=$form_config["js_includes"][$i];
+    \webdb\utils\add_resource_link($key,"js");
   }
 }
 
@@ -2387,6 +2387,11 @@ function output_editor($form_config,$record,$command,$verb,$id=false)
       $subform_config=\webdb\forms\get_form_config($subform_page_id,false);
       $subforms.=\webdb\forms\get_subform_content($subform_config,$subform_link_field,$id,false,$form_config);
     }
+  }
+  $form_params["chat_button"]="";
+  if ($form_config["chat_enabled"]==true)
+  {
+    $form_params["chat_button"]=\webdb\utils\template_fill("chat/chat_button",$form_params);
   }
   $form_params["subforms"]=$subforms;
   $form_params["custom_form_above"]="";

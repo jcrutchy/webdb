@@ -733,36 +733,46 @@ function group_by_fields($form_config,$record)
 
 #####################################################################################################
 
-function link_app_resource($name,$type)
+function get_resource_link($name,$type,$source="app")
 {
   global $settings;
   #return false; # TODO: pre-load file modified times into $settings
-  $filename=$settings["app_resources_path"].$name.".".$type;
+  $filename=$settings[$source."_resources_path"].$name.".".$type;
+  $filename=str_replace("/",DIRECTORY_SEPARATOR,$filename);
   if (file_exists($filename)==true)
   {
     $params=array();
     $params["name"]=$name;
     $params["modified"]=filemtime($filename);
-    return \webdb\utils\template_fill("app_resource_".$type,$params);
+    $params["path"]=$settings[$source."_web_resources"];
+    return \webdb\utils\template_fill("resource_".$type,$params);
   }
   return false;
 }
 
 #####################################################################################################
 
-function resource_links($template_key)
+function add_resource_link($name,$type)
 {
   global $settings;
-  $link=\webdb\utils\link_app_resource($template_key,"css");
+  $link=\webdb\utils\get_resource_link($name,$type,"webdb");
   if ($link!==false)
   {
-    $settings["links_css"][$template_key]=$link;
+    $settings["links_".$type][$name]=$link;
   }
-  $link=\webdb\utils\link_app_resource($template_key,"js");
+  $link=\webdb\utils\get_resource_link($name,$type);
   if ($link!==false)
   {
-    $settings["links_js"][$template_key]=$link;
+    $settings["links_".$type][$name]=$link;
   }
+}
+
+#####################################################################################################
+
+function template_resource_links($template_key)
+{
+  \webdb\utils\add_resource_link($template_key,"css");
+  \webdb\utils\add_resource_link($template_key,"js");
 }
 
 #####################################################################################################
@@ -960,7 +970,7 @@ function template_fill($template_key,$params=false,$tracking=array(),$custom_tem
   }
   if (($custom_templates===false) and ($template_key<>"app_resource_styles") and ($template_key<>"app_resource_script"))
   {
-    \webdb\utils\resource_links($template_key);
+    \webdb\utils\template_resource_links($template_key);
   }
   foreach ($template_array as $key => $value)
   {

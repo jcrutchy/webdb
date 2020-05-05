@@ -4,40 +4,25 @@
     "enabled": true,
     "title": "",
     "page_id": "",
+    "chat_enabled": false,
     "generate_stub": "",
-    "edit_subforms": {
-    },
-    "edit_subforms_styles": {
-    },
-    "control_types": {
-    },
-    "captions": {
-    },
-    "caption_groups": {
-    },
-    "visible": {
-    },
-    "disabled": {
-    },
-    "default_values": {
-    },
+    "edit_subforms": {},
+    "edit_subforms_styles": {},
+    "control_types": {},
+    "captions": {},
+    "caption_groups": {},
+    "visible": {},
+    "disabled": {},
+    "default_values": {},
     "required_values": [],
-    "js_events": {
-    },
-    "computed_values": {
-    },
-    "custom_interfaces": {
-    },
-    "table_cell_styles": {
-    },
-    "control_styles": {
-    },
-    "lookups": {
-    },
-    "event_handlers": {
-    },
-    "sql_errors": {
-    },
+    "js_events": {},
+    "computed_values": {},
+    "custom_interfaces": {},
+    "table_cell_styles": {},
+    "control_styles": {},
+    "lookups": {},
+    "event_handlers": {},
+    "sql_errors": {},
     "default_cmd_override": "",
     "editor_visible": false,
     "custom_insert_template": "",
@@ -79,6 +64,5 @@
     "link_fields": [],
     "default_filter": "",
     "filter_cookie": false,
-    "filter_options": {
-    }
+    "filter_options": {}
 }

@@ -1,0 +1,9 @@
+
+#chat_button
+  {
+    position: fixed;
+    bottom: 5px;
+    right: 50%;
+    z-index: 99;
+    width: 150px;
+  }

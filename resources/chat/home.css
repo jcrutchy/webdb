@@ -1,0 +1,592 @@
+html
+  {
+    font-size: 13px;
+    font-family: sans-serif;
+    background-color: #fdede8;
+    border: none; /* get rid of quirks mode border in IE */
+    margin: 0;
+    padding: 0;
+  }
+
+body
+  {
+    font-size: 13px;
+    border: none; /* get rid of quirks mode border in IE */
+    padding: 0;
+    margin: 0;
+    color: #0a4b5c;
+    font-family: "Courier New", Courier, monospace;
+  }
+
+table
+  {
+    empty-cells: show;
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+  }
+
+th
+  {
+    font-size: 13px;
+    font-weight: bold;
+    border: none;
+    height: 10px;
+    padding: 2px;
+    padding-left: 5px;
+    position: sticky;
+    top: 0;
+    color: #073642;
+    text-align: left;
+    line-height: 16px;
+    background-color: rgba(207,213,213,0.8);
+    border-bottom: 1px solid #586e75;
+  }
+
+td
+  {
+    font-size: 13px;
+    border: none;
+    height: 10px;
+    padding: 2px;
+    line-height: 16px;
+    padding-left: 5px;
+    vertical-align: top;
+  }
+
+form
+  {
+    display: inline;
+  }
+
+img
+  {
+    border: 0;
+  }
+
+/************************************************************************/
+
+#left_panel
+  {
+    overflow: hidden;
+    padding: 0;
+    margin: 0;
+    border: 0;
+    position: absolute;
+    left: 5px;
+    bottom: 5px;
+    top: 5px;
+    width: 200px;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: stretch;
+    align-content: space-between;
+  }
+
+#center_panel
+  {
+    overflow: hidden;
+    padding: 0;
+    margin: 0;
+    border: 0;
+    position: absolute;
+    top: 5px;
+    bottom: 5px;
+    left: 210px;
+    right: 210px;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: stretch;
+    align-content: space-between;
+  }
+
+#right_panel
+  {
+    overflow: hidden;
+    padding: 0;
+    margin: 0;
+    border: 0;
+    position: absolute;
+    right: 5px;
+    bottom: 5px;
+    top: 5px;
+    width: 200px;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: stretch;
+    align-content: space-between;
+  }
+
+/************************************************************************/
+
+#splitter_left
+  {
+    position: fixed;
+    left: 206px;
+    width: 3px;
+    top: 5px;
+    bottom: 5px;
+    cursor: col-resize;
+    padding: 0;
+    margin: 0;
+    border: 0;
+  }
+
+#splitter_right
+  {
+    position: fixed;
+    right: 206px;
+    width: 3px;
+    top: 5px;
+    bottom: 5px;
+    cursor: col-resize;
+    padding: 0;
+    margin: 0;
+    border: 0;
+  }
+
+.splitter_highlight
+  {
+    position: absolute;
+    left: 1px;
+    width: 0px;
+    height: 100%;
+    cursor: col-resize;
+    border: 0;
+    border-left: 1px dotted #AAAAAA;
+    margin: 0;
+    padding: 0;
+  }
+
+/************************************************************************/
+
+.logo_outer
+  {
+    padding: 5px;
+  }
+
+.logo_img
+  {
+    width: 100%;
+  }
+
+/************************************************************************/
+
+#center_upper_panel
+  {
+    height: 38px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: stretch;
+    align-content: space-between;
+  }
+
+#channel_info
+  {
+    flex-grow: 1;
+  }
+
+#control_panel
+  {
+    width: 320px;
+    text-align: right;
+    padding: 0;
+  }
+
+#control_panel input
+  {
+    width: 110px;
+    height: 24px;
+  }
+
+#update_status
+  {
+    visibility: hidden;
+    color: green;
+  }
+
+/************************************************************************/
+
+#messages_scroll
+  {
+    flex-basis: 0;
+    flex-grow: 1;
+    overflow-x: auto;
+    overflow-y: scroll;
+    font-size: 13px;
+    padding: 0;
+    background-color: #fdf6e3;
+    border: 1px solid #586e75;
+  }
+
+#messages_content
+  {
+    overflow-anchor: none; /* need at least Firefox 66 or Chrome 51 */
+  }
+
+#messages_anchor
+  {
+    overflow-anchor: auto; /* need at least Firefox 66 or Chrome 51 */
+    height: 1px;
+  }
+
+/************************************************************************/
+
+#message_inputs
+  {
+    height: 30px;
+    padding: 0;
+    border: 0;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: flex-end;
+    align-content: space-between;
+  }
+
+#message_input_div
+  {
+    flex-grow: 1;
+    padding: 0;
+    padding-right: 2px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: flex-end;
+    align-content: space-between;
+  }
+
+#message_input
+  {
+    flex-grow: 1;
+    height: 22px;
+    padding: 0;
+    border: 1px solid #777;
+    margin: 0;
+    line-height: 22px;
+    font-family: "Courier New", Courier, monospace;
+  }
+
+#message_input_button_div
+  {
+    padding: 0;
+    padding-left: 2px;
+    width: 75px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: flex-end;
+    align-content: space-between;
+  }
+
+#message_input_button
+  {
+    flex-grow: 1;
+    height: 24px;
+  }
+
+/************************************************************************/
+
+.list_scroll
+  {
+    flex-grow: 1;
+    overflow-x: auto;
+    overflow-y: scroll;
+    border: none;
+  }
+
+.list_content
+  {
+    background-color: #fafafd;
+    color: #073642;
+    line-height: 20px;
+    text-align: center;
+    font-size: 13px;
+  }
+
+/************************************************************************/
+
+#channels_div
+  {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: stretch;
+    align-content: space-between;
+    overflow: hidden;
+    padding: 0;
+    background-color: #fdf6e3;
+    border: 1px solid #586e75;
+  }
+
+#users_div
+  {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: stretch;
+    align-content: space-between;
+    overflow: hidden;
+    padding: 0;
+    background-color: #fdf6e3;
+    border: 1px solid #586e75;
+  }
+
+/************************************************************************/
+
+.message_th_time
+  {
+    border-right: 1px solid #586e75;
+  }
+
+.message_th_nick
+  {
+    border-right: 1px solid #586e75;
+  }
+
+.message_th_message
+  {
+  }
+
+/************************************************************************/
+
+.message_td_time
+  {
+    width: 1px;
+    white-space: nowrap;
+    padding-right: 20px;
+    border-right: 1px solid #bdc9cd;
+  }
+
+.message_td_nick
+  {
+    width: 1px;
+    white-space: nowrap;
+    padding-right: 20px;
+    border-right: 1px solid #bdc9cd;
+  }
+
+.message_td_message
+  {
+  }
+
+/************************************************************************/
+
+.message_break_td_time
+  {
+    width: 1px;
+    white-space: nowrap;
+    padding-right: 20px;
+    border-right: 1px solid #bdc9cd;
+    border-bottom: 1px solid #bdc9cd;
+  }
+
+.message_break_td_nick
+  {
+    width: 1px;
+    white-space: nowrap;
+    padding-right: 20px;
+    border-right: 1px solid #bdc9cd;
+    border-bottom: 1px solid #bdc9cd;
+  }
+
+.message_break_td_message
+  {
+    border-bottom: 1px solid #bdc9cd;
+  }
+
+/************************************************************************/
+
+.users_th_nick
+  {
+    text-align: center;
+  }
+
+.users_td_nick
+  {
+    text-align: left;
+    background-color: #fdf6e3;
+  }
+
+.active_user_td_nick
+  {
+    text-align: left;
+    font-weight: bold;
+    color: #cb4b16;
+    background-color: #fdf6e3;
+  }
+
+/************************************************************************/
+
+.channels_th_name
+  {
+    text-align: center;
+  }
+
+.channels_td_name
+  {
+    text-align: left;
+    background-color: #fdf6e3;
+    cursor: pointer;
+  }
+
+.active_channel_td_name
+  {
+    text-align: left;
+    font-weight: bold;
+    color: #cb4b16;
+    background-color: #fdf6e3;
+  }
+
+/************************************************************************/
+
+#channel_name
+  {
+    font-weight: bold;
+    color: #cb4b16;
+  }
+
+#channel_topic
+  {
+    font-weight: bold;
+    color: #cb4b16;
+  }
+
+/************************************************************************/
+
+#new_channel_dialog_background
+  {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    top: 0;
+    left: 0;
+    display: none;
+    background: rgba(70,70,70,0.5);
+    z-index: 5000;
+  }
+
+#new_channel_dialog
+  {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 400px;
+    margin-left: -200px;
+    height: 130px;
+    margin-top: -65px;
+    border: solid 1px #073642;
+    box-shadow: 5px 5px 15px 1px rgba(0,0,0,0.67);
+    background-color: #eee8d5;
+  }
+
+#new_channel_content
+  {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #eee8d5;
+    padding: 10px;
+    text-align: left;
+  }
+
+#new_channel_title
+  {
+    font-weight: bold;
+    padding-bottom: 5px;
+    width: 100%;
+  }
+
+#new_channel_controls
+  {
+    padding-top: 10px;
+  }
+
+/************************************************************************/
+
+#help_dialog_background
+  {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    top: 0;
+    left: 0;
+    display: none;
+    background: rgba(70,70,70,0.5);
+    z-index: 5000;
+  }
+
+#help_dialog
+  {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 1000px;
+    margin-left: -500px;
+    height: 600px;
+    margin-top: -300px;
+    border: solid 1px #073642;
+    box-shadow: 5px 5px 15px 1px rgba(0,0,0,0.67);
+    background-color: #eee8d5;
+  }
+
+#help_scroll
+  {
+    position: absolute;
+    top: 30px;
+    left: 10px;
+    right: 10px;
+    bottom: 45px;
+    overflow: auto;
+    background-color: #eee8d5;
+    border: solid 1px #93a1a1;
+  }
+
+#help_content
+  {
+    padding: 10px;
+  }
+
+.help_subtitle
+  {
+    font-weight: bold;
+  }
+
+#help_title
+  {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    font-weight: bold;
+    font-size: 13px;
+  }
+
+#help_close_button
+  {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    width: 100px;
+    height: 25px;
+  }
+
+/************************************************************************/
