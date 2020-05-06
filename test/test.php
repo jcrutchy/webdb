@@ -135,7 +135,11 @@ function check_settings()
     "webdb_sql_common_path",
     "webdb_sql_engine_path",
     "app_sql_common_path",
-    "app_sql_engine_path");
+    "app_sql_engine_path",
+    "permitted_upload_types",
+    "chat_update_interval_sec",
+    "chat_ding_file",
+    "chat_timestamp_format");
   for ($i=0;$i<count($required_settings);$i++)
   {
     \webdb\test\utils\check_required_setting_exists($required_settings[$i]);

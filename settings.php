@@ -80,7 +80,25 @@ $settings["format_tag_templates_subdirectory"]="format_tags";
 
 $settings["app_group_access"]="*"; # * => all groups
 
-#########################################################
+$settings["permitted_upload_types"]=array();
+$settings["permitted_upload_types"]["pdf"]="application/pdf";
+$settings["permitted_upload_types"]["txt"]="text/plain";
+$settings["permitted_upload_types"]["doc"]="application/msword";
+$settings["permitted_upload_types"]["docx"]="application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+$settings["permitted_upload_types"]["xls"]="application/vnd.ms-excel";
+$settings["permitted_upload_types"]["xlsx"]="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+$settings["permitted_upload_types"]["jpg"]="image/jpeg";
+$settings["permitted_upload_types"]["jpeg"]="image/jpeg";
+$settings["permitted_upload_types"]["gif"]="image/gif";
+$settings["permitted_upload_types"]["bmp"]="image/bmp";
+$settings["permitted_upload_types"]["png"]="image/png";
+$settings["permitted_upload_types"]["wav"]="audio/wav";
+$settings["permitted_upload_types"]["mp3"]="audio/mpeg";
+$settings["permitted_upload_types"]["mpeg"]="video/mpeg";
+
+$settings["chat_update_interval_sec"]=10;
+$settings["chat_ding_file"]=$settings["app_web_resources"]."glass.mp3";
+$settings["chat_timestamp_format"]="j-M-y H:i:s";
 
 $settings["file_upload_mode"]="ftp"; # rename | ftp
 $settings["app_file_uploads_path"]=$settings["webdb_parent_path"]."file_uploads".DIRECTORY_SEPARATOR;

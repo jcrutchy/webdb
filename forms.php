@@ -57,6 +57,11 @@ function file_field_view($form_config)
   $sql=\webdb\utils\sql_fill("form_list_fetch_by_id",$sql_params);
   $records=\webdb\sql\fetch_prepare($sql,$conditions,"form_list_fetch_by_id",false,$sql_params["table"],$sql_params["database"],$file_form_config);
   $record_filename=$records[0][$field_name];
+  $ext=pathinfo($record_filename,PATHINFO_EXTENSION);
+  if (isset($settings["permitted_upload_types"][$ext])==false)
+  {
+    \webdb\utils\error_message("error: file type not permitted");
+  }
   $target_filename=\webdb\forms\get_uploaded_filename($page_id,$record_id,$field_name);
   $settings["ignore_ob_postprocess"]=true;
   ob_end_clean(); # discard buffer & disable output buffering (\webdb\utils\ob_postprocess function is still called)
@@ -64,7 +69,7 @@ function file_field_view($form_config)
   header("Expires: -1");
   header("Pragma: no-cache");
   header("Accept-Ranges: bytes");
-  header("Content-Type: application/pdf");
+  header("Content-Type: ".$settings["permitted_upload_types"][$ext]);
   header("Content-Disposition: inline; filename=\"".$record_filename."\"");
   switch ($settings["file_upload_mode"])
   {
@@ -2399,10 +2404,10 @@ function output_editor($form_config,$record,$command,$verb,$id=false)
       $subforms.=\webdb\forms\get_subform_content($subform_config,$subform_link_field,$id,false,$form_config);
     }
   }
-  $form_params["chat_button"]="";
+  $form_params["chat"]="";
   if ($form_config["chat_enabled"]==true)
   {
-    $form_params["chat_button"]=\webdb\utils\template_fill("chat/chat_button",$form_params);
+    $form_params["chat"]=\webdb\chat\get_chat($form_params);
   }
   $form_params["subforms"]=$subforms;
   $form_params["custom_form_above"]="";
@@ -2666,6 +2671,11 @@ function process_form_data_fields($form_config,$record_id,$post_override=false)
           $filename=$_FILES[$post_name]["name"];
           if ($filename<>"")
           {
+            $ext=pathinfo($filename,PATHINFO_EXTENSION);
+            if (isset($settings["permitted_upload_types"][$ext])==false)
+            {
+              \webdb\utils\error_message("error: file type not permitted");
+            }
             $value_items[$field_name]=$filename;
           }
         }

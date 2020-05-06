@@ -1,6 +1,20 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
+function open_chat(page_id,record_id)
+{
+  document.getElementById("chat_background").style.display="block";
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function close_chat()
+{
+  document.getElementById("chat_background").style.display="none";
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
 function page_load()
 {
   ajax_url_update=document.getElementById("ajax_url_update").innerHTML;
@@ -41,48 +55,6 @@ function message_send()
 function show_update_status()
 {
   document.getElementById("update_status").style.visibility="visible";
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-
-function show_help_dialog()
-{
-  document.getElementById("help_dialog_background").style.display="block";
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-
-function hide_help_dialog()
-{
-  document.getElementById("help_dialog_background").style.display="none";
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-
-function show_new_channel_dialog()
-{
-  document.getElementById("new_channel_dialog_background").style.display="block";
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-
-function hide_new_channel_dialog()
-{
-  document.getElementById("new_channel_dialog_background").style.display="none";
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-
-function new_channel()
-{
-  document.getElementById("new_channel_dialog_background").style.display="none";
-  var new_channel_name_input=document.getElementById("new_channel_name_input");
-  if (new_channel_name_input.value=="")
-  {
-    return;
-  }
-  var new_channel_topic_input=document.getElementById("new_channel_topic_input");
-  register_channel(new_channel_name_input.value,new_channel_topic_input.value);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -252,98 +224,6 @@ function update_message_scroll()
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function splitter_left_mousedown(event)
-{
-  if (event.button==0)
-  {
-    splitter_element=document.getElementById("splitter_left");
-    splitter_element.style.backgroundColor="#CCCCCC";
-  }
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-
-function splitter_right_mousedown(event)
-{
-  if (event.button==0)
-  {
-    splitter_element=document.getElementById("splitter_right");
-    splitter_element.style.backgroundColor="#CCCCCC";
-  }
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-
-function splitter_left_mouseup(event)
-{
-  if (event.button==0)
-  {
-    splitter_element.style.backgroundColor="#fdede8";
-  }
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-
-function splitter_right_mouseup(event)
-{
-  if (event.button==0)
-  {
-    splitter_element.style.backgroundColor="#fdede8";
-  }
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-
-function splitter_left_mousemove(event)
-{
-  var left_panel=document.getElementById("left_panel");
-  var center_panel=document.getElementById("center_panel");
-  var right_panel=document.getElementById("right_panel");
-  var splitter_left=document.getElementById("splitter_left");
-  var splitter_right=document.getElementById("splitter_right");
-  if ((event.clientX>=150) && ((window.innerWidth-event.clientX)>=(right_panel.offsetWidth+300)))
-  {
-    splitter_left.style.left=(event.clientX-1)+"px";
-    left_panel.style.width=(event.clientX-left_panel.offsetLeft-2)+"px";
-    center_panel.style.left=(event.clientX+splitter_left.offsetWidth)+"px";
-    center_panel.style.width=(splitter_right.offsetLeft-center_panel.offsetLeft-1)+"px";
-  }
-  if (window.innerWidth<640)
-  {
-    splitter_left.style.visibility="hidden";
-  }
-  else
-  {
-    splitter_left.style.visibility="visible";
-  }
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-
-function splitter_right_mousemove(event)
-{
-  var left_panel=document.getElementById("left_panel");
-  var center_panel=document.getElementById("center_panel");
-  var right_panel=document.getElementById("right_panel");
-  var splitter_right=document.getElementById("splitter_right");
-  if (((window.innerWidth-event.clientX)>=150) && (event.clientX>=(left_panel.offsetWidth+300)))
-  {
-    splitter_right.style.left=event.clientX+"px";
-    right_panel.style.width=(right_panel.offsetLeft+right_panel.offsetWidth-event.clientX-splitter_right.offsetWidth-1)+"px";
-    center_panel.style.width=(event.clientX-center_panel.offsetLeft-1)+"px";
-  }
-  if (window.innerWidth<640)
-  {
-    splitter_right.style.visibility="hidden";
-  }
-  else
-  {
-    splitter_right.style.visibility="visible";
-  }
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-
 function body_mousedown(event)
 {
   if (event.button===0)
@@ -468,13 +348,11 @@ var update_timeout=false;
 var update_interval_seconds=20;
 var scroll_anchored=false;
 var ajax_url_update=false;
-var ajax_url_register_channel=false;
-var splitter_element=false;
 var mousedown_left=false;
 var last_key_code=false;
 var user_nicks=[];
 
-if (window.addEventListener)
+/*if (window.addEventListener)
 {
   window.addEventListener("load",page_load);
   window.addEventListener("resize",window_resize);
@@ -489,6 +367,6 @@ else
   window.attachEvent("mousedown",body_mousedown);
   window.attachEvent("mouseup",body_mouseup);
   window.attachEvent("mousemove",body_mousemove);
-}
+}*/
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////

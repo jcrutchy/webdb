@@ -1,0 +1,49 @@
+<input type="button" id="chat_button" value="Chat" onclick="open_chat('%%page_id%%','%%id%%'); return false;">
+
+<div id="ajax_url_update" style="display: none;">$$app_web_index$$?cmd=update</div>
+<div id="update_interval_seconds" style="display: none;">$$chat_update_interval_sec$$</div>
+
+<div id="chat_background">
+  <div class="chat_dialog">
+    <div class="chat_content">
+
+
+
+  <div id="center_upper_panel">
+    <div id="channel_info">
+      <div>Selected Channel: <span id="channel_name"></span></div>
+      <div>Topic: <span id="channel_topic"></span></div>
+    </div>
+    <div id="control_panel">
+      <span id="update_status">updating</span>
+    </div>
+  </div>
+  <div id="messages_scroll">
+    <div id="messages_content">
+      <table id="messages_table">
+        <tr>
+          <th class="message_th_time">timestamp</th>
+          <th class="message_th_nick">nick</th>
+          <th class="message_th_message">message</th>
+        </tr>
+      </table>
+    </div>
+    <div id="messages_anchor"></div>
+  </div>
+  <div id="message_inputs">
+    <div id="message_input_div">
+      <input id="message_input" type="text" value="" onkeydown="return message_input_keydown(event);" disabled>
+    </div>
+    <div id="message_input_button_div">
+      <input id="message_input_button" type="button" value="send" onclick="message_send(); return false;" disabled>
+    </div>
+  </div>
+
+
+
+      <div class="chat_controls_div">
+        <input type="button" value="Close" onclick="close_chat(); return false;">
+      </div>
+    </div>
+  </div>
+</div>
