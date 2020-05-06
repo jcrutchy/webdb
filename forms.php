@@ -1078,8 +1078,19 @@ function output_readonly_field($field_params,$control_type,$form_config,$field_n
       return \webdb\forms\form_template_fill("list_field",$field_params);
     case "default":
       $display_record[$field_name]=\webdb\forms\default_value($form_config,$field_name);
-    case "span":
     case "file":
+      $field_params["no_file_disabled"]="";
+      if (array_key_exists($field_name,$display_record)==true)
+      {
+        if (($display_record[$field_name]=="") or ($display_record[$field_name]==null))
+        {
+          $field_params["no_file_disabled"]=\webdb\utils\template_fill("disabled_attribute");
+        }
+      }
+      $field_params["field_name_basic"]=$field_name;
+      $field_params["value"]=htmlspecialchars($display_record[$field_name]);
+      return \webdb\forms\form_template_fill("list_field_file",$field_params);
+    case "span":
     case "text":
       $field_params["value"]=htmlspecialchars(str_replace(\webdb\index\LINEBREAK_DB_DELIM,\webdb\index\LINEBREAK_PLACEHOLDER,$display_record[$field_name]));
       $field_params["value"]=str_replace(\webdb\index\LINEBREAK_PLACEHOLDER,\webdb\utils\template_fill("break"),$field_params["value"]);
@@ -2566,6 +2577,10 @@ function upload_file($form_config,$field_name,$record_id)
   if (file_exists($upload_filename)==false)
   {
     \webdb\utils\error_message("error: uploaded file not found");
+  }
+  if ($record_id=="")
+  {
+    $record_id=\webdb\sql\sql_last_insert_autoinc_id();
   }
   $target_filename=\webdb\forms\get_uploaded_filename($page_id,$record_id,$field_name);
   switch ($settings["file_upload_mode"])

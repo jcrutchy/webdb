@@ -211,9 +211,9 @@ function list_insert_row_load()
   {
     return;
   }
-  if ((data.hasOwnProperty("page_id")==true) && (data.hasOwnProperty("html")==true))
+  if ((data.hasOwnProperty("div_id")==true) && (data.hasOwnProperty("html")==true))
   {
-    document.getElementById("subform_table_"+data.page_id).innerHTML=data.html;
+    document.getElementById(data.div_id).innerHTML=data.html;
     return;
   }
   custom_alert("list_insert_row_load");
@@ -409,7 +409,7 @@ function list_record_cell_mouseout(page_id,id,field_name,edit_cmd_id)
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function file_field_view(page_id,field_name,filename)
+function file_field_view(event,page_id,field_name,filename)
 {
   var parts=field_name.split(":");
   field_name=parts[0]+":"+parts[2]+":"+parts[3];
@@ -418,6 +418,8 @@ function file_field_view(page_id,field_name,filename)
   url=remove_url_param("id",url);
   url+="&file_view="+encodeURIComponent(field_name);
   window.open(url,"_blank");
+  event.stopPropagation();
+  event.preventDefault();
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////

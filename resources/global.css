@@ -172,7 +172,7 @@ textarea
     left: 0;
     display: none;
     background: rgba(70,70,70,0.5);
-    z-index: 9999;
+    z-index: 99999;
   }
 
 .custom_alert_outside

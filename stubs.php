@@ -127,7 +127,6 @@ function list_insert($form_config)
   {
     \webdb\stubs\stub_error("error: no field data to insert");
   }
-  $data["page_id"]=$form_config["page_id"];
   $insert_default_params=array();
   foreach ($_GET as $param_name => $param_value)
   {
@@ -160,13 +159,16 @@ function list_insert($form_config)
       $parent_form_config=$form_config["parent_form_config"];
     }
     $data["html"]=\webdb\forms\get_subform_content($form_config,$param_name,$param_value,true,$parent_form_config);
+    $data["div_id"]="subform_table_".$form_config["page_id"];
   }
   else
   {
     \webdb\forms\check_required_values($form_config,$params);
     \webdb\sql\sql_insert($params,$form_config["table"],$form_config["database"],false,$form_config);
     $data["html"]=\webdb\forms\list_form_content($form_config);
+    $data["div_id"]="list_content";
   }
+  \webdb\forms\upload_files($form_config,"");
   $data=json_encode($data);
   die($data);
 }
