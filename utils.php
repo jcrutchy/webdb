@@ -1309,6 +1309,25 @@ function init_app_schema()
 
 #####################################################################################################
 
+function color_blend($R1,$G1,$B1,$R2,$G2,$B2,$increment_fraction)
+{
+  $result=array();
+  $result["R"]=\webdb\utils\color_value_blend($R1,$R2,$increment_fraction);
+  $result["G"]=\webdb\utils\color_value_blend($G1,$G2,$increment_fraction);
+  $result["B"]=\webdb\utils\color_value_blend($B1,$B2,$increment_fraction);
+  return \webdb\utils\template_fill("rgb_css",$result);
+}
+
+#####################################################################################################
+
+function color_value_blend($a,$b,$t)
+{
+  # https://stackoverflow.com/questions/726549/algorithm-for-additive-color-mixing-for-rgb-values
+  return round(sqrt((1-$t)*pow($a,2)+$t*pow($b,2)));
+}
+
+#####################################################################################################
+
 function is_row_locked($schema,$table,$key_field,$key_value)
 {
   global $settings;

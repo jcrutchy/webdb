@@ -182,13 +182,32 @@ function darken_background(element,percent)
   color=color.replace("rgb(","");
   color=color.replace(")","");
   color=color.split(",");
-  var R=color[0];
-  var G=color[1];
-  var B=color[2];
+  var R=Number(color[0]);
+  var G=Number(color[1]);
+  var B=Number(color[2]);
   var d=Math.round(2.55*percent);
   R=Math.max(0,R-d);
   G=Math.max(0,G-d);
   B=Math.max(0,B-d);
+  element.style.backgroundColor="rgb("+R+","+G+","+B+")";
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function lighten_background(element,percent)
+{
+  var color=element.style.backgroundColor;
+  color=color.replace(" ","");
+  color=color.replace("rgb(","");
+  color=color.replace(")","");
+  color=color.split(",");
+  var R=Number(color[0]);
+  var G=Number(color[1]);
+  var B=Number(color[2]);
+  var d=Math.round(2.55*percent);
+  R=Math.min(255,R+d);
+  G=Math.min(255,G+d);
+  B=Math.min(255,B+d);
   element.style.backgroundColor="rgb("+R+","+G+","+B+")";
 }
 
