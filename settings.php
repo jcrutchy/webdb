@@ -96,6 +96,7 @@ $settings["permitted_upload_types"]["wav"]="audio/wav";
 $settings["permitted_upload_types"]["mp3"]="audio/mpeg";
 $settings["permitted_upload_types"]["mpeg"]="video/mpeg";
 
+$settings["chat_global_enable"]=true;
 $settings["chat_update_interval_sec"]=10;
 $settings["chat_ding_file"]=$settings["app_web_resources"]."glass.mp3";
 $settings["chat_timestamp_format"]="j-M-y H:i:s";

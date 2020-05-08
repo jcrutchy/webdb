@@ -17,9 +17,7 @@ function close_chat()
 
 function page_load()
 {
-  ajax_url_update=document.getElementById("ajax_url_update").innerHTML;
-  ajax_url_register_channel=document.getElementById("ajax_url_register_channel").innerHTML;
-  update_interval_seconds=document.getElementById("update_interval_seconds").innerHTML;
+  return;
   message_update(true);
   document.getElementById("message_input").disabled=false;
   document.getElementById("message_input_button").disabled=false;
@@ -59,55 +57,6 @@ function show_update_status()
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function register_channel(channel_name,channel_topic)
-{
-  clearTimeout(update_message_scroll);
-  clearTimeout(update_timeout);
-  var params={"channel_name":channel_name,"channel_topic":channel_topic};
-  show_update_status();
-  ajax(ajax_url_register_channel,"post",register_channel_load,register_channel_error,register_channel_timeout,params);
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-
-function register_channel_load()
-{
-  var data=get_ajax_load_data(this);
-  if (data===false)
-  {
-    return;
-  }
-  if (data.hasOwnProperty("redirect_url")==true)
-  {
-    window.location=data.redirect_url;
-  }
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-
-function register_channel_error()
-{
-  custom_alert("register_channel_error");
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-
-function register_channel_timeout()
-{
-  custom_alert("register_channel_timeout");
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-
-function join_channel(channel_name)
-{
-  var url=document.getElementById("url_channel").innerHTML;
-  url+=encodeURIComponent(channel_name);
-  window.location=url;
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-
 function localize_server_timestamps()
 {
   var items=document.querySelectorAll("span.server_timestamp");
@@ -128,6 +77,8 @@ function message_update(init=false)
   {
     url+="&break";
   }
+  //custom_alert(url);
+  //return;
   ajax(url,"get",message_update_load,message_update_error,message_update_timeout);
 }
 
@@ -160,14 +111,6 @@ function message_update_load()
   if (data.hasOwnProperty("channel_topic")==true)
   {
     document.getElementById("channel_topic").innerHTML=data.channel_topic;
-  }
-  if (data.hasOwnProperty("channels")==true)
-  {
-    document.getElementById("channels_div").innerHTML=data.channels;
-  }
-  if (data.hasOwnProperty("users")==true)
-  {
-    document.getElementById("users_div").innerHTML=data.users;
   }
   if (data.hasOwnProperty("nicks")==true)
   {
@@ -224,85 +167,6 @@ function update_message_scroll()
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function body_mousedown(event)
-{
-  if (event.button===0)
-  {
-    mousedown_left=true;
-  }
-  if (splitter_element!==false)
-  {
-    cancel_event(event);
-  }
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-
-function body_mouseup(event)
-{
-  if (event.button===0)
-  {
-    mousedown_left=false;
-    if (splitter_element!==false)
-    {
-      var func_name=splitter_element.id+"_mouseup";
-      if (window[func_name])
-      {
-        window[func_name](event);
-      }
-      splitter_element=false;
-    }
-  }
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-
-function body_mousemove(event)
-{
-  if ((event.button==0) && (splitter_element!==false))
-  {
-    var func_name=splitter_element.id+"_mousemove";
-    if (window[func_name])
-    {
-      window[func_name](event);
-    }
-  }
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-
-function window_resize(event)
-{
-  if (typeof splitter_left_mousemove==="function")
-  {
-    var fake_event={clientX:Math.round(0.25*window.innerWidth)};
-    splitter_left_mousemove(fake_event);
-  }
-  if (typeof splitter_right_mousemove==="function")
-  {
-    var fake_event={clientX:Math.round(0.75*window.innerWidth)};
-    splitter_right_mousemove(fake_event);
-  }
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-
-function cancel_event(event)
-{
-  if (event.stopPropagation)
-  {
-    event.stopPropagation();
-  }
-  if (event.preventDefault)
-  {
-    event.preventDefault();
-  }
-  event.cancelBubble=true;
-  event.returnValue=false;
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-
 function message_input_keydown(event)
 {
   last_key_code=event.keyCode;
@@ -345,28 +209,17 @@ function message_input_keydown(event)
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 var update_timeout=false;
-var update_interval_seconds=20;
 var scroll_anchored=false;
-var ajax_url_update=false;
-var mousedown_left=false;
 var last_key_code=false;
 var user_nicks=[];
 
-/*if (window.addEventListener)
+if (window.addEventListener)
 {
   window.addEventListener("load",page_load);
-  window.addEventListener("resize",window_resize);
-  window.addEventListener("mousedown",body_mousedown);
-  window.addEventListener("mouseup",body_mouseup);
-  window.addEventListener("mousemove",body_mousemove);
 }
 else
 {
   window.attachEvent("onload",page_load);
-  window.attachEvent("onresize",window_resize);
-  window.attachEvent("mousedown",body_mousedown);
-  window.attachEvent("mouseup",body_mouseup);
-  window.attachEvent("mousemove",body_mousemove);
-}*/
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////

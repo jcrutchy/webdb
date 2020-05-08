@@ -139,7 +139,8 @@ function check_settings()
     "permitted_upload_types",
     "chat_update_interval_sec",
     "chat_ding_file",
-    "chat_timestamp_format");
+    "chat_timestamp_format",
+    "chat_global_enable");
   for ($i=0;$i<count($required_settings);$i++)
   {
     \webdb\test\utils\check_required_setting_exists($required_settings[$i]);

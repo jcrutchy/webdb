@@ -30,6 +30,22 @@ function get_cookie(cookie_name)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
+function cancel_event(event)
+{
+  if (event.stopPropagation)
+  {
+    event.stopPropagation();
+  }
+  if (event.preventDefault)
+  {
+    event.preventDefault();
+  }
+  event.cancelBubble=true;
+  event.returnValue=false;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
 function set_session_cookie(cookie_name,cookie_value)
 {
   document.cookie=cookie_name+"="+cookie_value+"; Expires=0; Domain="+window.location.hostname+"; Path=/;";

@@ -273,6 +273,10 @@ function form_dispatch($page_id)
               }
               if (isset($_GET["ajax"])==true)
               {
+                if (($_GET["ajax"]=="chat_update") and ($form_config["chat_enabled"]==true))
+                {
+                  \webdb\chat\chat_dispatch($form_config);
+                }
                 \webdb\stubs\list_edit($_GET["id"],$form_config);
               }
               $data=\webdb\forms\edit_form($form_config,$_GET["id"]);
@@ -2405,7 +2409,7 @@ function output_editor($form_config,$record,$command,$verb,$id=false)
     }
   }
   $form_params["chat"]="";
-  if ($form_config["chat_enabled"]==true)
+  if (($settings["chat_global_enable"]==true) and ($form_config["chat_enabled"]==true))
   {
     $form_params["chat"]=\webdb\chat\get_chat($form_params);
   }
@@ -2710,11 +2714,8 @@ function process_form_data_fields($form_config,$record_id,$post_override=false)
         $iso_post_name=$page_id.":edit_control:".$record_id.":iso_".$field_name;
         if (isset($post_fields[$iso_post_name])==true)
         {
-          if ($post_fields[$iso_post_name]<>"")
-          {
-            $value_items[$field_name]=$post_fields[$iso_post_name];
-          }
-          else
+          $value_items[$field_name]=$post_fields[$iso_post_name];
+          if ($post_fields[$iso_post_name]=="")
           {
             $value_items[$field_name]=null;
           }
@@ -2730,17 +2731,26 @@ function process_form_data_fields($form_config,$record_id,$post_override=false)
       case "text":
       case "hidden":
         $value_items[$field_name]=$post_fields[$post_name];
+        if ($value_items[$field_name]=="")
+        {
+          $value_items[$field_name]=null;
+        }
         break;
       case "combobox":
       case "listbox":
       case "radiogroup":
-        if ($post_fields[$post_name]<>"")
+        $value_items[$field_name]=$post_fields[$post_name];
+        if ($value_items[$field_name]=="")
         {
-          $value_items[$field_name]=$post_fields[$post_name];
+          $value_items[$field_name]=null;
         }
         break;
       case "memo":
         $value_items[$field_name]=str_replace(PHP_EOL,\webdb\index\LINEBREAK_DB_DELIM,$post_fields[$post_name]);
+        if ($value_items[$field_name]=="")
+        {
+          $value_items[$field_name]=null;
+        }
         break;
     }
   }
