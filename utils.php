@@ -1309,6 +1309,22 @@ function init_app_schema()
 
 #####################################################################################################
 
+function strip_text($value,$additional_valid_chars="")
+{
+  $valid_chars="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".$additional_valid_chars;
+  $result="";
+  for ($i=0;$i<strlen($value);$i++)
+  {
+    if (strpos($valid_chars,$value[$i])!==false)
+    {
+      $result=$result.$value[$i];
+    }
+  }
+  return $result;
+}
+
+#####################################################################################################
+
 function color_blend($R1,$G1,$B1,$R2,$G2,$B2,$increment_fraction)
 {
   $result=array();

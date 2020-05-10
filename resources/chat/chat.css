@@ -23,7 +23,7 @@
     left: 0;
     display: none;
     background: rgba(70,70,70,0.5);
-    z-index: 9999;
+    z-index: 99999;
   }
 
 .chat_dialog
@@ -84,17 +84,6 @@
     border-bottom: 1px solid #586e75;
   }
 
-.chat_content td
-  {
-    font-size: 13px;
-    border: none;
-    height: 10px;
-    padding: 2px;
-    line-height: 16px;
-    padding-left: 5px;
-    vertical-align: top;
-  }
-
 /************************************************************************/
 
 #upper_panel
@@ -103,7 +92,7 @@
     top: 0;
     left: 0;
     right: 0;
-    height: 38px;
+    height: 25px;
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
@@ -130,7 +119,7 @@
     height: 24px;
   }
 
-#update_status
+#update_status_2
   {
     visibility: hidden;
     color: green;
@@ -138,10 +127,27 @@
 
 /************************************************************************/
 
+#update_status_1
+  {
+    position: fixed;
+    bottom: 6px;
+    left: 50%;
+    z-index: 99;
+    height: 22px;
+    line-height: 22px;
+    visibility: hidden;
+    color: green;
+    margin-left: 10px;
+    font-size: 11px;
+    font-family: "Courier New", Courier, monospace;
+  }
+
+/************************************************************************/
+
 #messages_scroll
   {
     position: absolute;
-    top: 38px;
+    top: 25px;
     bottom: 30px;
     left: 0;
     right: 0;
@@ -245,6 +251,13 @@
 
 .message_td_time
   {
+    font-size: 13px;
+    border: none;
+    height: 10px;
+    padding: 2px;
+    line-height: 16px;
+    padding-left: 5px;
+    vertical-align: top;
     width: 1px;
     white-space: nowrap;
     padding-right: 20px;
@@ -253,6 +266,13 @@
 
 .message_td_nick
   {
+    font-size: 13px;
+    border: none;
+    height: 10px;
+    padding: 2px;
+    line-height: 16px;
+    padding-left: 5px;
+    vertical-align: top;
     width: 1px;
     white-space: nowrap;
     padding-right: 20px;
@@ -261,12 +281,26 @@
 
 .message_td_message
   {
+    font-size: 13px;
+    border: none;
+    height: 10px;
+    padding: 2px;
+    line-height: 16px;
+    padding-left: 5px;
+    vertical-align: top;
   }
 
 /************************************************************************/
 
 .message_break_td_time
   {
+    font-size: 13px;
+    border: none;
+    height: 10px;
+    padding: 2px;
+    line-height: 16px;
+    padding-left: 5px;
+    vertical-align: top;
     width: 1px;
     white-space: nowrap;
     padding-right: 20px;
@@ -276,6 +310,13 @@
 
 .message_break_td_nick
   {
+    font-size: 13px;
+    border: none;
+    height: 10px;
+    padding: 2px;
+    line-height: 16px;
+    padding-left: 5px;
+    vertical-align: top;
     width: 1px;
     white-space: nowrap;
     padding-right: 20px;
@@ -285,6 +326,13 @@
 
 .message_break_td_message
   {
+    font-size: 13px;
+    border: none;
+    height: 10px;
+    padding: 2px;
+    line-height: 16px;
+    padding-left: 5px;
+    vertical-align: top;
     border-bottom: 1px solid #bdc9cd;
   }
 

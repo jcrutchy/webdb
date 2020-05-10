@@ -22,6 +22,7 @@ require_once("forms.php");
 require_once("sql.php");
 require_once("stubs.php");
 require_once("chat.php");
+require_once("manage.php");
 require_once("cli.php");
 require_once("tools".DIRECTORY_SEPARATOR."dxf.php");
 require_once("tools".DIRECTORY_SEPARATOR."graphics.php");

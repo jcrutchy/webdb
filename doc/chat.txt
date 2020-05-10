@@ -1,0 +1,35 @@
+
+
+
+$settings["chat_global_enable"]=true;
+$settings["chat_update_interval_sec"]=10;
+$settings["chat_ding_file"]=$settings["app_web_resources"]."chat/glass.mp3";
+$settings["chat_timestamp_format"]="j-M-y H:i:s";
+$settings["chat_channel_prefix"]="webdb";
+
+
+.list form config keys:
+    "chat_enabled": false,
+    "chat_page_id_override": "",
+    "chat_topic_fields": "field1,field2,field3",
+    "chat_topic_format": "Chat for %s - %s: %s",
+
+chat_page_id_override => use if you want multiple page id chats to refer to the same chat
+
+/topic <new topic>
+
+
+red button text => chat rows added since last viewed
+green button text => when page loads indicates that chat isn't empty
+
+'update'
+
+values for each field in chat_topic_fields list are trimmed to a max of 50 characters length
+if field value is greater than 50 characters, the value is trimmed and ... is appended
+
+
+page=chat_messages
+- lists max 100 chat messages
+- only pages that user has read access to
+- doesn't include messages from other apps
+- descending order with last message first

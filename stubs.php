@@ -133,7 +133,7 @@ function list_insert($form_config)
     switch ($param_name)
     {
       case "page":
-      case "break":
+      case "chat_break":
       case "cmd":
       case "redirect":
       case "filters":

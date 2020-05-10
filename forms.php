@@ -275,7 +275,7 @@ function form_dispatch($page_id)
               {
                 if (($_GET["ajax"]=="chat_update") and ($form_config["chat_enabled"]==true))
                 {
-                  \webdb\chat\chat_dispatch($form_config);
+                  \webdb\chat\chat_dispatch($_GET["id"],$form_config);
                 }
                 \webdb\stubs\list_edit($_GET["id"],$form_config);
               }
@@ -824,16 +824,12 @@ function config_id_url_value($form_config,$record,$config_key)
   $values=array();
   for ($i=0;$i<count($key_fields);$i++)
   {
-    if (isset($record[$key_fields[$i]])==true)
+    if (isset($record[$key_fields[$i]])==false)
     {
-      $value=$record[$key_fields[$i]];
-      if (is_numeric($value)==true)
-      {
-        $values[]=$record[$key_fields[$i]];
-        continue;
-      }
+      return "";
     }
-    return "";
+    $value=$record[$key_fields[$i]];
+    $values[]=$record[$key_fields[$i]];
   }
   return implode(\webdb\index\CONFIG_ID_DELIMITER,$values);
 }
@@ -2411,7 +2407,7 @@ function output_editor($form_config,$record,$command,$verb,$id=false)
   $form_params["chat"]="";
   if (($settings["chat_global_enable"]==true) and ($form_config["chat_enabled"]==true))
   {
-    $form_params["chat"]=\webdb\chat\get_chat($form_params);
+    $form_params["chat"]=\webdb\chat\chat_dispatch($form_params["id"],$form_config,$record);
   }
   $form_params["subforms"]=$subforms;
   $form_params["custom_form_above"]="";

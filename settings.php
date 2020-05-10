@@ -98,8 +98,9 @@ $settings["permitted_upload_types"]["mpeg"]="video/mpeg";
 
 $settings["chat_global_enable"]=true;
 $settings["chat_update_interval_sec"]=10;
-$settings["chat_ding_file"]=$settings["app_web_resources"]."glass.mp3";
+$settings["chat_ding_file"]=$settings["app_web_resources"]."chat/glass.mp3";
 $settings["chat_timestamp_format"]="j-M-y H:i:s";
+$settings["chat_channel_prefix"]="webdb";
 
 $settings["file_upload_mode"]="ftp"; # rename | ftp
 $settings["app_file_uploads_path"]=$settings["webdb_parent_path"]."file_uploads".DIRECTORY_SEPARATOR;
@@ -161,6 +162,8 @@ $settings["permissions"]["admin"]["forms"]["groups"]="riud";
 $settings["permissions"]["admin"]["forms"]["users"]="riud";
 $settings["permissions"]["admin"]["forms"]["subform_group_users"]="riud";
 $settings["permissions"]["admin"]["forms"]["subform_user_groups"]="riud";
+
+$settings["permissions"]["admin"]["forms"]["webdb_forms"]="riud";
 
 #########################################################
 #########################################################

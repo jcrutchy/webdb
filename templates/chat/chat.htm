@@ -1,4 +1,7 @@
 <input type="button" id="chat_button" value="chat" onclick="open_chat('%%page_id%%','%%id%%'); return false;">
+<span id="update_status_1">updating</span>
+
+<div id="chat_timestamp_format" style="display: none;">$$chat_timestamp_format$$</div>
 
 <script type="text/javascript">
 var ajax_url_update="$$app_web_index$$?page=%%page_id%%&cmd=edit&id=%%id%%&ajax=chat_update";
@@ -10,11 +13,10 @@ var update_interval_seconds=$$chat_update_interval_sec$$;
     <div class="chat_content">
       <div id="upper_panel">
         <div id="channel_info">
-          <div>Selected Channel: <span id="channel_name"></span></div>
           <div>Topic: <span id="channel_topic"></span></div>
         </div>
         <div id="control_panel">
-          <span id="update_status">updating</span>
+          <span id="update_status_2">updating</span>
         </div>
       </div>
       <div id="messages_scroll">
@@ -22,7 +24,7 @@ var update_interval_seconds=$$chat_update_interval_sec$$;
           <table id="messages_table">
             <tr>
               <th id="message_th_time">timestamp</th>
-              <th id="message_th_nick">nick</th>
+              <th id="message_th_nick">user</th>
               <th id="message_th_message">message</th>
             </tr>
           </table>

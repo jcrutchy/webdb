@@ -101,10 +101,13 @@ following are event-specific $event_params elements, with an indication of initi
 
 
 
+######################################################################################
 
 
-
-
+function list_stub($event_params)
+{
+  global $settings;
+  $form_config=$event_params["form_config"];
 
 
 
