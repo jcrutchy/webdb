@@ -44,9 +44,12 @@
             "display_field": "location_name"
         }
     },
-    "sql_errors": {
+    "mysql_errors": {
         "Column 'location_id' cannot be null": "A valid location must be selected.",
         "Duplicate entry '*-*' for key 'PRIMARY'": "Selected location has already been used previously.<br>Choose a different location.<br><br>Selected Location ID: %%location_id%%"
+    },
+    "sqlsrv_errors": {
+        "Cannot insert the value NULL into column 'location_id'": "A valid location must be selected."
     },
     "editor_visible": false,
     "primary_key": "location_id,item_id",

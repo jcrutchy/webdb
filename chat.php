@@ -184,7 +184,7 @@ function chat_dispatch($record_id,$form_config,$record=false)
         $data["message_delta"]=$delta;
         if ($ding==true)
         {
-          $data["ding_file"]=$settings["ding_file"];
+          $data["ding_file"]=$settings["chat_ding_file"];
         }
         $records=\webdb\chat\get_users();
         $data["nicks"]=array();

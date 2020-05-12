@@ -829,7 +829,11 @@ function config_id_url_value($form_config,$record,$config_key)
       return "";
     }
     $value=$record[$key_fields[$i]];
-    $values[]=$record[$key_fields[$i]];
+    if ($value=="")
+    {
+      return "";
+    }
+    $values[]=$value;
   }
   return implode(\webdb\index\CONFIG_ID_DELIMITER,$values);
 }

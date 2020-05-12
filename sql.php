@@ -37,6 +37,8 @@ function check_post_params($sql)
 
 function query_error($sql,$source="",$filename="",$params=array(),$form_config=false)
 {
+  global $settings;
+  $db_engine=$settings["db_engine"];
   $error_code="";
   $source_error="";
   if ($source!=="")
@@ -48,13 +50,16 @@ function query_error($sql,$source="",$filename="",$params=array(),$form_config=f
       $source_error=$err[2];
       if ($form_config!==false)
       {
-        foreach ($form_config["sql_errors"] as $key => $value)
+        if (isset($form_config[$db_engine."_errors"])==true)
         {
-          if (\webdb\utils\wildcard_compare($source_error,$key)==true)
+          foreach ($form_config[$db_engine."_errors"] as $key => $value)
           {
-            $custom_templates=array("sql_error"=>$value);
-            $message=\webdb\utils\template_fill("sql_error",$params,array(),$custom_templates);
-            \webdb\utils\info_message($message);
+            if (\webdb\utils\wildcard_compare($source_error,$key)==true)
+            {
+              $custom_templates=array("sql_error"=>$value);
+              $message=\webdb\utils\template_fill("sql_error",$params,array(),$custom_templates);
+              \webdb\utils\info_message($message);
+            }
           }
         }
       }

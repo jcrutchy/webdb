@@ -1217,40 +1217,45 @@ function webdb_ftp_login()
 
 function wildcard_compare($compare_value,$wildcard_value)
 {
-  # wildcard is * character
-  $compare_length=strlen($compare_value);
-  $wildcard_length=strlen($wildcard_value);
-  if ($wildcard_length>$compare_length)
+  $wildcard_parts=explode("*",$wildcard_value);
+  $compare_parts=array();
+  for ($i=0;$i<count($wildcard_parts);$i++)
   {
-    return false;
+    if ($wildcard_parts[$i]=="")
+    {
+      continue;
+    }
+    $n=strpos($compare_value,$wildcard_parts[$i]);
+    if ($n===false)
+    {
+      return false;
+    }
+    $compare_parts[]=substr($compare_value,0,$n);
+    $compare_parts[]=substr($compare_value,$n,strlen($wildcard_parts[$i]));
+    $compare_value=substr($compare_value,$n+strlen($wildcard_parts[$i]));
   }
-  $is_wildcard=false;
-  $wildcard_index=0;
-  for ($i=0;$i<count($compare_length);$i++)
+  if ($compare_value<>"")
   {
-    if ($wildcard_index>($wildcard_length-1))
+    $compare_parts[]=$compare_value;
+  }
+  $compare_index=0;
+  $n=count($wildcard_parts);
+  for ($i=0;$i<$n;$i++)
+  {
+    if ($wildcard_parts[$i]=="")
+    {
+      $compare_index++;
+      continue;
+    }
+    if ($compare_index>($n-1))
     {
       return false;
     }
-    if ($wildcard_value[$wildcard_index]=="*")
+    if ($wildcard_parts[$i]==$compare_parts[$compare_index])
     {
-      $is_wildcard=true;
-      $wildcard_index++;
+      $compare_index++;
+      $compare_index++;
       continue;
-    }
-    if (($wildcard_value[$wildcard_index]==$compare_value[$i]) and ($is_wildcard==true))
-    {
-      $is_wildcard=false;
-      $wildcard_index++;
-      continue;
-    }
-    if ($wildcard_value[$wildcard_index]<>$compare_value[$i])
-    {
-      return false;
-    }
-    if ($is_wildcard==false)
-    {
-      $wildcard_index++;
     }
   }
   return true;
