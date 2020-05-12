@@ -36,6 +36,7 @@ function set_update_timeout()
 
 function message_send()
 {
+  document.getElementById("message_input_button").disabled=true;
   var message_input=document.getElementById("message_input");
   var message_value=message_input.value;
   if (message_value=="")
@@ -99,10 +100,6 @@ function message_update_load()
   {
     return;
   }
-  if (data.hasOwnProperty("redirect_url")==true)
-  {
-    window.location=data.redirect_url;
-  }
   if (data.hasOwnProperty("clear_input")==true)
   {
     var message_input=document.getElementById("message_input");
@@ -156,6 +153,7 @@ function message_update_load()
     var audio=new Audio(data.ding_file);
     audio.play();
   }
+  document.getElementById("message_input_button").disabled=false;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -215,7 +213,7 @@ function message_input_keydown(event)
     }
     return false;
   }
-  if (event.keyCode==13)
+  if ((event.keyCode==13) && (document.getElementById("message_input_button").disabled==false))
   {
     message_send();
     return false;

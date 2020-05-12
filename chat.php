@@ -133,18 +133,24 @@ function chat_dispatch($record_id,$form_config,$record=false)
             {
               $parts=explode(" ",$message);
               $cmd_part=array_shift($parts);
+              $trailing=implode(" ",$parts);
               switch ($cmd_part)
               {
                 case "/topic":
-                  $channel_record["topic"]=implode(" ",$parts);
+                  $channel_record["topic"]=$trailing;
                   \webdb\chat\update_channel($channel_record);
+                  break;
+                case "/rps":
+                  require_once($settings["webdb_apps_path"]."rps".DIRECTORY_SEPARATOR."rps.php");
+                  $response=\webdb\chat\rps\play_rps($user_record,$trailing);
+                  if (empty($response)==false)
+                  {
+                    \webdb\chat\private_notice($response);
+                  }
                   break;
               }
             }
-            else
-            {
-              \webdb\chat\save_message($user_record,$channel_record,$message);
-            }
+            \webdb\chat\save_message($user_record,$channel_record,$message);
             $data["clear_input"]=1;
           }
         }
@@ -160,18 +166,33 @@ function chat_dispatch($record_id,$form_config,$record=false)
         for ($i=0;$i<count($records);$i++)
         {
           $record=$records[$i];
+          $nick=$record["nick"];
+          $message=$record["message"];
           if (isset($_GET["chat_break"])==false)
           {
-            if (strpos($record["message"],$user_record["nick"])!==false)
+            if (strpos($message,$user_record["nick"])!==false)
             {
               $ding=true;
+            }
+          }
+          if (substr($message,0,1)=="/")
+          {
+            $parts=explode(" ",$message);
+            $cmd_part=array_shift($parts);
+            $trailing=implode(" ",$parts);
+            switch ($cmd_part)
+            {
+              case "/topic":
+                $message=$nick." changed topic to '".$trailing."'";
+                $nick="*";
+                break;
             }
           }
           $row_params=array();
           $row_params["time"]=\webdb\chat\sql_to_iso_timestamp($record["message_time"]);
           $row_params["time"]=\webdb\utils\template_fill("chat/server_timestamp",$row_params);
-          $row_params["nick"]=htmlspecialchars($record["nick"]);
-          $row_params["message"]=htmlspecialchars($record["message"]);
+          $row_params["nick"]=htmlspecialchars($nick);
+          $row_params["message"]=htmlspecialchars($message);
           if ((isset($_GET["chat_break"])==true) and ($record==$last_message))
           {
             $delta.=\webdb\utils\template_fill("chat/message_row_break",$row_params);
@@ -207,6 +228,21 @@ function chat_dispatch($record_id,$form_config,$record=false)
   $records=\webdb\chat\get_new_message_records($user_record,$channel_record);
   $form_config["id"]=$record_id;
   return \webdb\utils\template_fill("chat/chat",$form_config);
+}
+
+#####################################################################################################
+
+function private_notice($message)
+{
+  $data=array();
+  $data["clear_input"]=1;
+  $row_params=array();
+  $row_params["time"]=date("c");
+  $row_params["time"]=\webdb\utils\template_fill("chat/server_timestamp",$row_params);
+  $row_params["message"]=htmlspecialchars($message);
+  $data["message_delta"]=\webdb\utils\template_fill("chat/message_row_notice",$row_params);
+  $data=json_encode($data);
+  die($data);
 }
 
 #####################################################################################################

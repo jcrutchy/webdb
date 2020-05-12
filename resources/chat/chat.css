@@ -29,12 +29,10 @@
 .chat_dialog
   {
     position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 1300px;
-    height: 700px;
-    margin-left: -650px;
-    margin-top: -350px;
+    top: 50px;
+    left: 50px;
+    bottom: 50px;
+    right: 50px;
     border: solid 1px #555599;
     -webkit-box-shadow: 5px 5px 15px 1px rgba(0,0,0,0.67);
     -moz-box-shadow: 5px 5px 15px 1px rgba(0,0,0,0.67);
@@ -260,22 +258,23 @@
     vertical-align: top;
     width: 1px;
     white-space: nowrap;
-    padding-right: 20px;
+    padding-right: 5px;
     border-right: 1px solid #bdc9cd;
   }
 
 .message_td_nick
   {
     font-size: 13px;
+    text-align: right;
     border: none;
     height: 10px;
     padding: 2px;
     line-height: 16px;
-    padding-left: 5px;
+    padding-right: 5px;
     vertical-align: top;
     width: 1px;
     white-space: nowrap;
-    padding-right: 20px;
+    padding-left: 5px;
     border-right: 1px solid #bdc9cd;
   }
 
@@ -303,7 +302,7 @@
     vertical-align: top;
     width: 1px;
     white-space: nowrap;
-    padding-right: 20px;
+    padding-right: 5px;
     border-right: 1px solid #bdc9cd;
     border-bottom: 1px solid #bdc9cd;
   }
@@ -311,15 +310,16 @@
 .message_break_td_nick
   {
     font-size: 13px;
+    text-align: right;
     border: none;
     height: 10px;
     padding: 2px;
     line-height: 16px;
-    padding-left: 5px;
+    padding-right: 5px;
     vertical-align: top;
     width: 1px;
     white-space: nowrap;
-    padding-right: 20px;
+    padding-left: 5px;
     border-right: 1px solid #bdc9cd;
     border-bottom: 1px solid #bdc9cd;
   }
@@ -334,6 +334,56 @@
     padding-left: 5px;
     vertical-align: top;
     border-bottom: 1px solid #bdc9cd;
+  }
+
+/************************************************************************/
+
+.message_notice_td_time
+  {
+    font-size: 13px;
+    font-style: italic;
+    border: none;
+    height: 10px;
+    padding: 2px;
+    line-height: 16px;
+    padding-left: 5px;
+    vertical-align: top;
+    width: 1px;
+    white-space: nowrap;
+    padding-right: 5px;
+    border-right: 1px solid #bdc9cd;
+    color: #117f9c;
+  }
+
+.message_notice_td_nick
+  {
+    font-size: 13px;
+    font-style: italic;
+    text-align: right;
+    border: none;
+    height: 10px;
+    padding: 2px;
+    line-height: 16px;
+    padding-right: 5px;
+    vertical-align: top;
+    width: 1px;
+    white-space: nowrap;
+    padding-left: 5px;
+    border-right: 1px solid #bdc9cd;
+    color: #117f9c;
+  }
+
+.message_notice_td_message
+  {
+    font-size: 13px;
+    font-style: italic;
+    border: none;
+    height: 10px;
+    padding: 2px;
+    line-height: 16px;
+    padding-left: 5px;
+    vertical-align: top;
+    color: #117f9c;
   }
 
 /************************************************************************/

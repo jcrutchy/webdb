@@ -1,0 +1,33 @@
+asynchronous rock/paper/scissors
+================================
+
+source: https://github.com/crutchy-/exec-irc-bot/blob/master/scripts/rps.php
+
+~rps
+Outputs syntax and online help link.
+
+~rps r
+Adds rock to your account's sequence.
+
+~rps p
+Adds paper to your account's sequence.
+
+~rps s
+Adds scissors to your account's sequence.
+
+~rps rank
+Outputs current ranking to an http://ix.io/ url
+
+You can also submit multiple turns in one command, which is useful if you're a new player. Example:
+~rps rrrrpsrpsrpssspssr
+The script will trim the sequence to the current maximum sequence length of all players, plus one (to gradually advance the available turns).
+
+There is also a random delay requirement between turns, so you can try playing with a bot but you will need to allow for this mandatory delay.
+
+You can play from any channel that 'exec' is currently in, or private message the bot to hide your sequence from prying eyes.
+
+Players are tied to NickServ accounts, so to play you must register with NickServ. This is easy to do and most IRC clients can automagically identify for you with minimal fuss. This is to keep your game from being manipulated when you're offline.
+
+Ranking is based on a handicap that balances the number of wins and losses with the number of rounds played. This is so that a new player who gets a win doesn't secure top spot just because they have a 100% win rate.
+
+inspired by https://sadale.net/RPS/

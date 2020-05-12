@@ -2414,9 +2414,12 @@ function output_editor($form_config,$record,$command,$verb,$id=false)
     }
   }
   $form_params["chat"]="";
-  if (($settings["chat_global_enable"]==true) and ($form_config["chat_enabled"]==true))
+  if (($settings["chat_global_enable"]==true) and ($form_config["chat_enabled"]==true) and (isset($_GET["cmd"])==true) and (empty($form_params["id"])==false))
   {
-    $form_params["chat"]=\webdb\chat\chat_dispatch($form_params["id"],$form_config,$record);
+    if ($_GET["cmd"]=="edit")
+    {
+      $form_params["chat"]=\webdb\chat\chat_dispatch($form_params["id"],$form_config,$record);
+    }
   }
   $form_params["subforms"]=$subforms;
   $form_params["custom_form_above"]="";

@@ -14,6 +14,8 @@ $settings["app_home_template"]="home";
 $settings["app_date_format"]="Y-m-d";
 $settings["app_logo_filename"]="logo.png";
 
+$settings["webdb_apps_path"]=$settings["webdb_root_path"]."apps".DIRECTORY_SEPARATOR;
+
 $settings["webdb_templates_path"]=$settings["webdb_root_path"]."templates".DIRECTORY_SEPARATOR;
 $settings["webdb_resources_path"]=$settings["webdb_root_path"]."resources".DIRECTORY_SEPARATOR;
 $settings["webdb_forms_path"]=$settings["webdb_root_path"]."forms".DIRECTORY_SEPARATOR;
