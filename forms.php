@@ -1077,6 +1077,9 @@ function output_readonly_field($field_params,$control_type,$form_config,$field_n
   {
     case "hidden":
       return "";
+    case "raw":
+      $field_params["value"]=$display_record[$field_name];
+      return \webdb\forms\form_template_fill("list_field_raw",$field_params);
     case "lookup":
       $field_params["value"]=\webdb\forms\get_lookup_field_value($field_name,$form_config,$lookup_records,$display_record,$link_record);
       return \webdb\forms\form_template_fill("list_field",$field_params);
@@ -1150,7 +1153,7 @@ function output_readonly_field($field_params,$control_type,$form_config,$field_n
         }
         $field_params["value"]=\webdb\forms\form_template_fill("check_cross",$field_params);
       }
-      return \webdb\forms\form_template_fill("list_field_check",$field_params);
+      return \webdb\forms\form_template_fill("list_field_raw",$field_params);
   }
   return "";
 }
@@ -1344,6 +1347,7 @@ function output_editable_field(&$field_params,$record,$field_name,$control_type,
       $control_type="span";
     case "span":
       break;
+    case "raw":
     case "text":
       if (isset($form_config["disabled"][$field_name])==true)
       {
@@ -2033,6 +2037,7 @@ function advanced_search($form_config)
       case "lookup":
       case "span":
       case "default":
+      case "raw":
       case "text":
       case "file":
       case "memo":
@@ -2176,6 +2181,7 @@ function advanced_search($form_config)
         case "lookup":
         case "span":
         case "default":
+        case "raw":
         case "text":
         case "file":
         case "memo":
@@ -2759,6 +2765,9 @@ function process_form_data_fields($form_config,$record_id,$post_override=false)
         {
           $value_items[$field_name]=null;
         }
+        break;
+      case "raw":
+        $value_items[$field_name]=$post_fields[$post_name];
         break;
     }
   }

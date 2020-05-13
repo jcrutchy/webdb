@@ -327,6 +327,7 @@ input.date_edit_field
 #flex_columns
   {
     display: flex;
+    overflow: hidden;
   }
 
 #editor_pane
@@ -337,11 +338,15 @@ input.date_edit_field
 #subforms
   {
     flex-grow: 1;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
   }
 
 .subform_outer
   {
     position: relative;
+    width: calc(100% - 8px);
     padding: 3px;
     overflow: hidden;
     border: solid 1px #999999;
@@ -353,40 +358,15 @@ input.date_edit_field
   {
     background-color: #fafafd;
     padding: 0;
+    margin: 0;
     overflow: auto;
   }
-
-/*.subform_outer
-  {
-    position: relative;
-    padding: 0;
-    overflow: hidden;
-    border-style: solid;
-    border-width: 1px;
-    border-top-color: #999999;
-    border-left-color: #999999;
-    border-bottom-color: #FFFFFF;
-    border-right-color: #FFFFFF;
-    margin-bottom: 10px;
-  }
-
-.subform_inner
-  {
-    background-color: #fafafd;
-    padding: 0;
-    overflow: auto;
-    border-style: solid;
-    border-width: 1px;
-    border-top-color: #555555;
-    border-left-color: #555555;
-    border-bottom-color: #CCCCCC;
-    border-right-color: #CCCCCC;
-  }*/
 
 .subform_content
   {
     padding: 10px;
     height: 500px;
+    overflow: auto;
   }
 
 .list_data_table

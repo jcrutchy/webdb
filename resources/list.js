@@ -370,9 +370,7 @@ function list_record_cell_mouseover(page_id,id,field_name,edit_cmd_id)
   var cells=document.getElementsByClassName("list_record:"+page_id+":"+id);
   for (var i=0;i<cells.length;i++)
   {
-    var idstr=cells[i].id.substr(9); // trim 'data_cell' from beginning
-    var cell_style=document.getElementById("cell_style"+idstr);
-    cell_style.innerHTML=cells[i].style.cssText;
+    cells[i].dataset.original_style=cells[i].style.cssText;
     cells[i].style.backgroundColor="#a9d2ef";
     cells[i].style.cursor="pointer";
   }
@@ -395,9 +393,7 @@ function list_record_cell_mouseout(page_id,id,field_name,edit_cmd_id)
   var cells=document.getElementsByClassName("list_record:"+page_id+":"+id);
   for (var i=0;i<cells.length;i++)
   {
-    var idstr=cells[i].id.substr(9); // trim 'data_cell' from beginning
-    var cell_style=document.getElementById("cell_style"+idstr).innerHTML;
-    cells[i].style.cssText=cell_style;
+    cells[i].style.cssText=cells[i].dataset.original_style;
   }
   var footer=document.getElementById("global_page_footer_content");
   if (footer)

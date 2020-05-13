@@ -1,3 +1,7 @@
+.print_only
+  {
+    display: initial;
+  }
 
 .screen_only
   {
