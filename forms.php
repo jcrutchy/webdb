@@ -2242,10 +2242,15 @@ function default_value($form_config,$field_name)
 
 function default_values($form_config)
 {
+  $conditions=\webdb\forms\config_id_conditions($form_config,"","primary_key");
   $record=$form_config["default_values"];
   foreach ($record as $field_name => $value)
   {
     $record[$field_name]=\webdb\forms\default_value($form_config,$field_name);
+  }
+  foreach ($conditions as $key => $value)
+  {
+    $record[$key]=$value;
   }
   return $record;
 }
@@ -2255,12 +2260,7 @@ function default_values($form_config)
 function insert_form($form_config)
 {
   global $settings;
-  $conditions=\webdb\forms\config_id_conditions($form_config,"","primary_key");
   $record=\webdb\forms\default_values($form_config);
-  foreach ($conditions as $key => $value)
-  {
-    $record[$key]=$value;
-  }
   return \webdb\forms\output_editor($form_config,$record,"Insert","Insert");
 }
 
