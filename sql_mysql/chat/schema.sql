@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS $$database_app$$.`messenger_users` (
   `last_online` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `nick` VARCHAR(20) NOT NULL,
   `selected_channel_id` INT UNSIGNED NOT NULL,
+  `json_data` longtext DEFAULT NULL,
   PRIMARY KEY (`user_id`),
   UNIQUE INDEX `nick` (`nick` ASC),
   CONSTRAINT `fk_users_users1`

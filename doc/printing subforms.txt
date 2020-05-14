@@ -1,0 +1,8 @@
+index.php?page=<subform_page_id>&parent_form=<parent_form_page_id>&parent_id=<parent_form_primary_key_value>
+
+
+
+you must make a lookup field in the subform list file corresponding to the parent form primary key,
+but this field can have its visibility set to false so as not to appear in the subform content
+
+the purpose of this lookup is to specify the displayed content corresponding to the parent record at the top of the printed subform

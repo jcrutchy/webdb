@@ -1,6 +1,6 @@
 <?php
 
-# ASYNCHRONOUS ROCK / PAPER / SCISSORS GAME
+# INFINITE ASYNCHRONOUS ROCK / PAPER / SCISSORS GAME
 
 namespace webdb\chat\rps;
 
@@ -10,20 +10,59 @@ function play_rps($user_record,$trailing)
 {
   global $settings;
   $response=array();
-  $response[]="test 1";
-  $response[]="test 2<br>test 3\ntest 4<br>test 5";
-  return $response;
-  $filename=$settings["webdb_parent_path"]."data".DIRECTORY_SEPARATOR."rps.txt";
-  $data=array();
-  if (file_exists($filename)==true)
+  $ts=microtime(true);
+  if ($trailing=="")
   {
-    $data=json_decode(file_get_contents($filename),true);
+    return $response;
   }
-  if ((\webdb\chat\rps\valid_rps_sequence($trailing)==true) and ($trailing<>""))
+  if (\webdb\chat\rps\valid_rps_sequence($trailing)==false)
   {
-    var_dump($user_record);
-    die;
+    $response[]="invalid sequence";
+    return $response;
   }
+  $delta=$ts-strtotime($user_record["last_online"]);
+  if ($delta<mt_rand(3,8))
+  {
+    $response[]="please wait a few seconds before trying again";
+    return $response;
+  }
+  $round_count=0;
+  $player_sequences=array();
+  $user_records=\webdb\sql\file_fetch_prepare("chat/chat_user_get_all_enabled");
+  for ($i=0;$i<count($user_records);$i++)
+  {
+    $user=$user_records[$i];
+    $nick=$user["nick"];
+    if ($user["json_data"]<>"")
+    {
+      $data=json_decode($user["json_data"],true);
+      if (isset($data["rps"])==true)
+      {
+        $player_sequences[$nick]=$data["rps"];
+        $round_count=max($round_count,strlen($data["rps"]));
+      }
+    }
+  }
+
+
+  /*$user_data=array();
+  if ($user_record["json_data"]<>"")
+  {
+    $data=json_decode($user_record["json_data"],true);
+    if (is_array($data)==true)
+    {
+      $user_data=$data;
+    }
+  }
+  if (isset($user_data["rps"])==false)
+  {
+    $user_data["rps"]="";
+  }
+  $user_data["rps"].=$trailing;
+  $response[]=$user_data["rps"];
+  $user_record["json_data"]=json_encode($user_data);
+  \webdb\chat\update_user($user_record);*/
+
   return $response;
 }
 
@@ -49,24 +88,6 @@ function valid_rps_sequence($trailing)
 #####################################################################################################
 
 /*
-  $ts=microtime(true);
-  if (isset($data["users"][$account]["timestamp"])==true)
-  {
-    if (($ts-$data["users"][$account]["timestamp"])<mt_rand(3,8))
-    {
-      privmsg("please wait a few seconds before trying again");
-      return;
-    }
-  }
-  $data["users"][$account]["timestamp"]=$ts;
-  if (isset($data["rounds"])==false)
-  {
-    $data["rounds"]=1;
-  }
-  if (isset($data["users"][$account]["sequence"])==false)
-  {
-    $data["users"][$account]["sequence"]="";
-  }
   if (strlen($data["users"][$account]["sequence"].$trailing)>($data["rounds"]+1))
   {
     $trailing=substr($trailing,0,$data["rounds"]-strlen($data["users"][$account]["sequence"])+1);

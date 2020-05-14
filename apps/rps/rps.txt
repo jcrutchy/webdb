@@ -1,25 +1,20 @@
-asynchronous rock/paper/scissors
-================================
+infinite asynchronous rock/paper/scissors
+=========================================
 
-source: https://github.com/crutchy-/exec-irc-bot/blob/master/scripts/rps.php
+/rps
+outputs rank table
 
-~rps
-Outputs syntax and online help link.
-
-~rps r
+/rps r
 Adds rock to your account's sequence.
 
-~rps p
+/rps p
 Adds paper to your account's sequence.
 
-~rps s
+/rps s
 Adds scissors to your account's sequence.
 
-~rps rank
-Outputs current ranking to an http://ix.io/ url
-
 You can also submit multiple turns in one command, which is useful if you're a new player. Example:
-~rps rrrrpsrpsrpssspssr
+/rps rrrrpsrpsrpssspssr
 The script will trim the sequence to the current maximum sequence length of all players, plus one (to gradually advance the available turns).
 
 There is also a random delay requirement between turns, so you can try playing with a bot but you will need to allow for this mandatory delay.

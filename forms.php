@@ -115,6 +115,30 @@ function file_field_delete($form_config)
   {
     \webdb\stubs\stub_error("missing record id parameter");
   }
+  if (\webdb\forms\delete_file($form_config,$record_id,$field_name)==false)
+  {
+    \webdb\stubs\stub_error("error deleting file");
+  }
+  $post_override=array();
+  $post_override[$post_name]=-1;
+  $settings["sql_check_post_params_override"]=true;
+  \webdb\stubs\list_edit($record_id,$form_config,$post_override);
+}
+
+#####################################################################################################
+
+function delete_file($form_config,$record_id,$field_name)
+{
+  global $settings;
+  if (\webdb\utils\check_user_form_permission($form_config["page_id"],"u")==false)
+  {
+    \webdb\stubs\stub_error("error: record update permission denied for form '".$form_config["page_id"]."'");
+  }
+  if (\webdb\utils\check_user_form_permission($form_config["page_id"],"d")==false)
+  {
+    \webdb\stubs\stub_error("error: record delete permission denied for form '".$form_config["page_id"]."'");
+  }
+  $page_id=$form_config["page_id"];
   $target_filename=\webdb\forms\get_uploaded_filename($page_id,$record_id,$field_name);
   switch ($settings["file_upload_mode"])
   {
@@ -122,20 +146,16 @@ function file_field_delete($form_config)
       if (file_exists($target_filename)==true)
       {
         unlink($target_filename);
+        return true;
       }
       break;
     case "ftp":
       $connection=\webdb\utils\webdb_ftp_login();
       ftp_delete($connection,$target_filename);
       ftp_close($connection);
-      break;
-    default:
-      \webdb\stubs\stub_error("error: invalid file upload mode");
+      return true;
   }
-  $post_override=array();
-  $post_override[$post_name]=-1;
-  $settings["sql_check_post_params_override"]=true;
-  \webdb\stubs\list_edit($record_id,$form_config,$post_override);
+  return false;
 }
 
 #####################################################################################################
@@ -1640,6 +1660,44 @@ function lookup_records($form_config,$include_lookups=true)
 function list_form_content($form_config,$records=false,$insert_default_params=false,$link_records=false)
 {
   global $settings;
+  if (isset($_GET["ajax"])==false)
+  {
+    if ((isset($_GET["parent_form"])==true) and (isset($_GET["parent_id"])==true))
+    {
+      # used for outputting subforms as full page reports (for printing typically)
+      $parent_form_config=\webdb\forms\get_form_config($_GET["parent_form"]);
+      foreach ($parent_form_config["edit_subforms"] as $subform_page_id => $subform_link_field)
+      {
+        if ($form_config["page_id"]==$subform_page_id)
+        {
+          $parent_id=$_GET["parent_id"];
+          unset($_GET["parent_form"]);
+          unset($_GET["parent_id"]);
+          $form_config["insert_new"]=false;
+          $form_config["advanced_search"]=false;
+          $form_config["insert_row"]=false;
+          $form_config["delete_cmd"]=false;
+          $form_config["multi_row_delete"]=false;
+          $lookup_records=\webdb\forms\lookup_records($form_config);
+          $parent_key_field=$parent_form_config["primary_key"];
+          $lookup_config=$form_config["lookups"][$parent_key_field];
+          $lookup_records=$lookup_records[$parent_key_field];
+          for ($i=0;$i<count($lookup_records);$i++)
+          {
+            $lookup_record=$lookup_records[$i];
+            if ($lookup_record[$parent_key_field]==$parent_id)
+            {
+              $lookup_value=\webdb\forms\lookup_field_display_value($lookup_config,$lookup_record);
+              $head_params=array();
+              $head_params["parent_form_lookup_display_field"]=$lookup_value;
+              $head=\webdb\forms\form_template_fill("subform_print_head",$head_params);
+              return $head.\webdb\forms\get_subform_content($form_config,$subform_link_field,$parent_id,true,$parent_form_config);
+            }
+          }
+        }
+      }
+    }
+  }
   if (($form_config["records_sql"]<>"") and ($records===false))
   {
     $sql=\webdb\utils\sql_fill($form_config["records_sql"]);
@@ -1802,7 +1860,6 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
     }
     $form_params["selected_filter_input"]=\webdb\forms\form_template_fill("selected_filter_input",$form_config);
   }
-  $rows="";
   if ($records===false)
   {
     if (isset($_GET["sort"])==true)
@@ -1851,7 +1908,7 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
       $previous_group_by_fields=$group_by_fields;
     }
   }
-  $lookup_records=lookup_records($form_config);
+  $lookup_records=\webdb\forms\lookup_records($form_config);
   $form_params["is_checklist"]="0";
   if ($form_config["checklist"]==true)
   {
@@ -1880,6 +1937,7 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
       $records=array_merge($checked_records,$unchecked_records);
     }
   }
+  $rows="";
   for ($i=0;$i<count($records);$i++)
   {
     $record=$records[$i];
@@ -1902,6 +1960,7 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
     $record=\webdb\forms\process_computed_fields($form_config,$record);
     $rows.=\webdb\forms\list_row($form_config,$record,$column_format,$row_spans,$lookup_records,$i,$link_record);
   }
+  $form_params["record_count"]=count($records);
   $form_params["insert_row_controls"]="";
   if (($form_config["insert_row"]==true) and ($form_config["records_sql"]==""))
   {
@@ -3073,7 +3132,7 @@ function page_redirect($form_config=false,$params=false,$append="")
 
 #####################################################################################################
 
-function delete_record($form_config,$id)
+function delete_record($form_config,$id,$redirect=true)
 {
   global $settings;
   if (\webdb\utils\check_user_form_permission($form_config["page_id"],"d")==false)
@@ -3082,7 +3141,19 @@ function delete_record($form_config,$id)
   }
   $where_items=\webdb\forms\config_id_conditions($form_config,$id,"primary_key");
   \webdb\sql\sql_delete($where_items,$form_config["table"],$form_config["database"],false,$form_config);
-  \webdb\forms\page_redirect();
+  foreach ($form_config["control_types"] as $field_name => $control_type)
+  {
+    switch ($control_type)
+    {
+      case "file":
+        \webdb\forms\delete_file($form_config,$id,$field_name);
+        break;
+    }
+  }
+  if ($redirect==true)
+  {
+    \webdb\forms\page_redirect();
+  }
 }
 
 #####################################################################################################
@@ -3177,8 +3248,7 @@ function delete_selected_records($form_config)
   }
   foreach ($_POST["id"] as $id => $value)
   {
-    $where_items=\webdb\forms\config_id_conditions($form_config,$id,"primary_key");
-    \webdb\sql\sql_delete($where_items,$form_config["table"],$form_config["database"],false,$form_config);
+    \webdb\forms\delete_record($form_config,$id,false);
   }
   \webdb\forms\page_redirect();
 }

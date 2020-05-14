@@ -242,7 +242,7 @@ function private_notice($lines)
     $row_params=array();
     $row_params["time"]=date("c");
     $row_params["time"]=\webdb\utils\template_fill("chat/server_timestamp",$row_params);
-    $row_params["message"]=htmlspecialchars($lines[$i]);
+    $row_params["message"]=$lines[$i];
     $delta.=\webdb\utils\template_fill("chat/message_row_notice",$row_params);
   }
   $data["message_delta"]=$delta;
@@ -270,6 +270,7 @@ function update_user($user_record)
   $value_items["nick"]=$user_record["nick"];
   $value_items["selected_channel_id"]=$user_record["selected_channel_id"];
   $value_items["last_online"]=\webdb\sql\current_sql_timestamp();
+  $value_items["json_data"]=$user_record["json_data"];
   $settings["sql_check_post_params_override"]=true;
   \webdb\sql\sql_update($value_items,$where_items,"messenger_users",$settings["database_app"]);
 }

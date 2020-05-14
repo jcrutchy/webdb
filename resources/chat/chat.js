@@ -45,6 +45,7 @@ function message_send()
   }
   clearTimeout(update_message_scroll);
   clearTimeout(update_timeout);
+  last_message=message_value;
   var params={"message":message_value};
   show_update_status();
   ajax(ajax_url_update,"post",message_update_load,message_update_error,message_update_timeout,params);
@@ -213,6 +214,13 @@ function message_input_keydown(event)
     }
     return false;
   }
+  if (event.keyCode==38) // up arrow
+  {
+    event.preventDefault();
+    var message_input=document.getElementById("message_input");
+    message_input.value=last_message;
+    return false;
+  }
   if ((event.keyCode==13) && (document.getElementById("message_input_button").disabled==false))
   {
     message_send();
@@ -227,6 +235,7 @@ var update_timeout=false;
 var scroll_anchored=false;
 var last_key_code=false;
 var user_nicks=[];
+var last_message="";
 
 if (window.addEventListener)
 {

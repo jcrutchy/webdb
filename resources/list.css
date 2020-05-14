@@ -70,6 +70,13 @@ th.group_caption_head
     z-index: 1000;
   }
 
+.subform_print_head
+  {
+    font-weight: bold;
+    text-shadow: 0 0 4px #999999;
+    font-size: 16px;
+  }
+
 .list_row_check
   {
     border: 0;
@@ -365,8 +372,18 @@ input.date_edit_field
 .subform_content
   {
     padding: 10px;
+    padding-top: 0;
     height: 500px;
     overflow: auto;
+  }
+
+.subform_top_padding
+  {
+    padding-top: 10px;
+  }
+
+.list_controls
+  {
   }
 
 .list_data_table
@@ -551,7 +568,7 @@ input.date_edit_field
 .check_tick
   {
     color: green;
-    font-size: 15pt;
+    font-size: 13pt;
     font-weight: bold;
   }
 
