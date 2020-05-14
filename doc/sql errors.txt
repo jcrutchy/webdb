@@ -1,7 +1,13 @@
 in .list file:
 
 
-    "sql_errors": {
+    "mysql_errors": {
         "Column 'location_id' cannot be null": "A valid location must be selected.",
         "Duplicate entry '*-*' for key 'PRIMARY'": "Selected location has already been used previously.<br>Choose a different location.<br><br>Selected Location ID: %%location_id%%"
+    },
+
+
+
+    "sqlsrv_errors": {
+        "*Cannot insert the value NULL into column '*'*": "<p>You must enter a description.</p><p><a href='$$request_url$$'>Return</a></p>"
     },

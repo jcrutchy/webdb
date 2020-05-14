@@ -49,6 +49,9 @@ if (\webdb\cli\is_cli_mode()==true)
 
 \webdb\utils\load_settings();
 
+$settings["request_url"]=\webdb\utils\get_url();
+$settings["request_base_url"]=\webdb\utils\get_base_url();
+
 $msg="REQUEST_RECEIVED: ".\webdb\utils\get_url();
 $settings["logs"]["auth"][]=$msg;
 $settings["logs"]["sql"][]=$msg;

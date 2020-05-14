@@ -143,7 +143,7 @@ function chat_dispatch($record_id,$form_config,$record=false)
                 case "/rps":
                   require_once($settings["webdb_apps_path"]."rps".DIRECTORY_SEPARATOR."rps.php");
                   $response=\webdb\chat\rps\play_rps($user_record,$trailing);
-                  if (empty($response)==false)
+                  if (count($response)>0)
                   {
                     \webdb\chat\private_notice($response);
                   }
@@ -232,15 +232,20 @@ function chat_dispatch($record_id,$form_config,$record=false)
 
 #####################################################################################################
 
-function private_notice($message)
+function private_notice($lines)
 {
   $data=array();
   $data["clear_input"]=1;
-  $row_params=array();
-  $row_params["time"]=date("c");
-  $row_params["time"]=\webdb\utils\template_fill("chat/server_timestamp",$row_params);
-  $row_params["message"]=htmlspecialchars($message);
-  $data["message_delta"]=\webdb\utils\template_fill("chat/message_row_notice",$row_params);
+  $delta="";
+  for ($i=0;$i<count($lines);$i++)
+  {
+    $row_params=array();
+    $row_params["time"]=date("c");
+    $row_params["time"]=\webdb\utils\template_fill("chat/server_timestamp",$row_params);
+    $row_params["message"]=htmlspecialchars($lines[$i]);
+    $delta.=\webdb\utils\template_fill("chat/message_row_notice",$row_params);
+  }
+  $data["message_delta"]=$delta;
   $data=json_encode($data);
   die($data);
 }

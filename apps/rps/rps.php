@@ -8,33 +8,47 @@ namespace webdb\chat\rps;
 
 function play_rps($user_record,$trailing)
 {
-  return "test";
+  global $settings;
+  $response=array();
+  $response[]="test 1";
+  $response[]="test 2<br>test 3\ntest 4<br>test 5";
+  return $response;
+  $filename=$settings["webdb_parent_path"]."data".DIRECTORY_SEPARATOR."rps.txt";
+  $data=array();
+  if (file_exists($filename)==true)
+  {
+    $data=json_decode(file_get_contents($filename),true);
+  }
+  if ((\webdb\chat\rps\valid_rps_sequence($trailing)==true) and ($trailing<>""))
+  {
+    var_dump($user_record);
+    die;
+  }
+  return $response;
 }
 
 #####################################################################################################
 
-/*$trailing=strtolower(trim($argv[1]));
-$dest=$argv[2];
-$nick=$argv[3];
-$alias=$argv[4];
-$params=$argv[5];
-$server=$argv[6];
-
-$data=array();
-$fn=DATA_PATH."rps_data_".$server;
-if (file_exists($fn)==true)
+function valid_rps_sequence($trailing)
 {
-  $data=json_decode(file_get_contents($fn),true);
+  for ($i=0;$i<strlen($trailing);$i++)
+  {
+    switch ($trailing[$i])
+    {
+      case "r":
+      case "p":
+      case "s":
+        break;
+      default:
+        return false;
+    }
+  }
+  return true;
 }
 
-if ((valid_rps_sequence($trailing)==true) and ($trailing<>""))
-{
-  $account=users_get_account($nick);
-  if ($account=="")
-  {
-    privmsg("you need to identify with nickserv to play");
-    return;
-  }
+#####################################################################################################
+
+/*
   $ts=microtime(true);
   if (isset($data["users"][$account]["timestamp"])==true)
   {
@@ -93,25 +107,6 @@ if ($trailing=="ranks")
 }
 
 privmsg("syntax: ~rps [ranks|r|p|s]");
-
-#####################################################################################################
-
-function valid_rps_sequence($trailing)
-{
-  for ($i=0;$i<strlen($trailing);$i++)
-  {
-    switch ($trailing[$i])
-    {
-      case "r":
-      case "p":
-      case "s":
-        continue;
-      default:
-        return false;
-    }
-  }
-  return true;
-}
 
 #####################################################################################################
 
