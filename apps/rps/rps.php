@@ -22,7 +22,8 @@ function play_rps($user_record,$trailing)
     $response[]="can submit multiple turns in one command, which is useful if you're a new player";
     $response[]="/rps rrrrpsrpsrpssspssr";
     $response[]="sequences will be trimmed to the current maximum sequence length of all players, plus one (to gradually advance the available turns)";
-    $response[]="ranking is based on a handicap that balances the number of wins and losses with the number of rounds played, so that a new player who gets a win doesn't secure top spot just because they have a 100% win rate";
+    $response[]="ranking is based on a handicap that balances the number of wins and losses with the number of rounds played";
+    $response[]="so that a new player who gets a win doesn't secure top spot just because they have a 100% win rate";
     \webdb\chat\insert_notice_breaks($response);
     return $response;
   }
@@ -231,7 +232,8 @@ function play_rps($user_record,$trailing)
   $response[]="maximum sequence length: ".$max_rounds;
   $response[]="handicap = (wins-losses)*rounds for more wins than losses";
   $response[]="handicap = (wins-losses)/rounds*100000 for more losses than wins";
-  $response[]="ranking is based on a handicap that balances the number of wins and losses with the number of rounds played, so that a new player who gets a win doesn't secure top spot just because they have a 100% win rate";
+  $response[]="ranking is based on a handicap that balances the number of wins and losses with the number of rounds played";
+  $response[]="so that a new player who gets a win doesn't secure top spot just because they have a 100% win rate";
   \webdb\chat\insert_notice_breaks($response);
   return $response;
 }
