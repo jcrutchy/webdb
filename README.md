@@ -11,3 +11,7 @@ Based on this framework, you can create a complete web-based database applicatio
 [various other guides](doc/)
 
 Visit the Freenode project channel: #webdb
+
+![](doc/test_app_list.png)
+
+![](doc/test_app_edit.png)
