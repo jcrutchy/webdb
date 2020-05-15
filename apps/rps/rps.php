@@ -200,7 +200,7 @@ function play_rps($user_record,$trailing)
   $max_nick_len=max($max_nick_len,8);
   $response[]="infinite asynchronous rock/paper/scissors rankings";
   $tab=10;
-  $out=str_pad("account",$max_nick_len," ",STR_PAD_RIGHT);
+  $out=str_pad("user",$max_nick_len," ",STR_PAD_RIGHT);
   $out.=str_pad("rounds",$tab," ",STR_PAD_LEFT);
   $out.=str_pad("wins",$tab," ",STR_PAD_LEFT);
   $out.=str_pad("losses",$tab," ",STR_PAD_LEFT);
