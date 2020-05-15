@@ -13,6 +13,30 @@ function play_rps($user_record,$trailing)
   $ts=microtime(true);
   if ($trailing=="")
   {
+    $response[]="infinite asynchronous rock/paper/scissors help";
+    $response[]="/rps [r|p|s]";
+    $response[]="r =&gt; rock";
+    $response[]="p =&gt; paper";
+    $response[]="s =&gt; scissors";
+    $response[]="/rps reset";
+    $response[]="can submit multiple turns in one command, which is useful if you're a new player";
+    $response[]="/rps rrrrpsrpsrpssspssr";
+    $response[]="sequences will be trimmed to the current maximum sequence length of all players, plus one (to gradually advance the available turns)";
+    $response[]="ranking is based on a handicap that balances the number of wins and losses with the number of rounds played, so that a new player who gets a win doesn't secure top spot just because they have a 100% win rate";
+    \webdb\chat\insert_notice_breaks($response);
+    return $response;
+  }
+  if ($trailing=="reset")
+  {
+    $data=array();
+    if ($user_record["json_data"]<>"")
+    {
+      $data=json_decode($user_record["json_data"],true);
+    }
+    $data["rps"]="";
+    $user_record["json_data"]=json_encode($data);
+    \webdb\chat\update_user($user_record);
+    $response[]="sequence reset";
     return $response;
   }
   if (\webdb\chat\rps\valid_rps_sequence($trailing)==false)
@@ -23,46 +47,192 @@ function play_rps($user_record,$trailing)
   $delta=$ts-strtotime($user_record["last_online"]);
   if ($delta<mt_rand(3,8))
   {
-    $response[]="please wait a few seconds before trying again";
-    return $response;
+    # delay to prevent spamming
+    #$response[]="please wait a few seconds before trying again";
+    #return $response;
   }
-  $round_count=0;
-  $player_sequences=array();
+  $max_rounds=0;
+  $max_nick_len=0;
+  $player_data=array();
   $user_records=\webdb\sql\file_fetch_prepare("chat/chat_user_get_all_enabled");
   for ($i=0;$i<count($user_records);$i++)
   {
     $user=$user_records[$i];
     $nick=$user["nick"];
+    $max_nick_len=max($max_nick_len,strlen($nick));
     if ($user["json_data"]<>"")
     {
       $data=json_decode($user["json_data"],true);
       if (isset($data["rps"])==true)
       {
-        $player_sequences[$nick]=$data["rps"];
-        $round_count=max($round_count,strlen($data["rps"]));
+        $player=array();
+        $player["nick"]=$nick;
+        $player["sequence"]=$data["rps"];
+        $player["wins"]=0;
+        $player["ties"]=0;
+        $player["losses"]=0;
+        $player["rounds"]=0;
+        $player["rank"]=0;
+        $player["handicap"]=0;
+        $player_data[$nick]=$player;
+        $max_rounds=max($max_rounds,strlen($data["rps"]));
       }
     }
   }
-
-
-  /*$user_data=array();
+  $nick=$user_record["nick"];
+  if (isset($player_data[$nick]["sequence"])==false)
+  {
+    $player=array();
+    $player["nick"]=$nick;
+    $player["sequence"]="";
+    $player["wins"]=0;
+    $player["ties"]=0;
+    $player["losses"]=0;
+    $player["rounds"]=0;
+    $player["rank"]=0;
+    $player["handicap"]=0;
+    $player_data[$nick]=$player;
+  }
+  $sequence=$player_data[$nick]["sequence"].$trailing;
+  if (strlen($sequence)>($max_rounds+1))
+  {
+    $sequence=substr($sequence,0,($max_rounds+1));
+    $response[]="sequence trimmed";
+  }
+  $player_data[$nick]["sequence"]=$sequence;
+  $data=array();
   if ($user_record["json_data"]<>"")
   {
     $data=json_decode($user_record["json_data"],true);
-    if (is_array($data)==true)
+  }
+  $data["rps"]=$sequence;
+  $user_record["json_data"]=json_encode($data);
+  \webdb\chat\update_user($user_record);
+  foreach ($player_data as $outer_nick => $outer_player)
+  {
+    $outer_sequence=$outer_player["sequence"];
+    for ($i=0;$i<strlen($outer_sequence);$i++)
     {
-      $user_data=$data;
+      foreach ($player_data as $inner_nick => $inner_player)
+      {
+        if ($outer_nick==$inner_nick)
+        {
+          continue;
+        }
+        $inner_sequence=$inner_player["sequence"];
+        if (isset($inner_sequence[$i])==false)
+        {
+          continue;
+        }
+        switch ($outer_sequence[$i])
+        {
+          case "r":
+            switch ($inner_sequence[$i])
+            {
+              case "r":
+                $player_data[$outer_nick]["ties"]++;
+                break;
+              case "p":
+                $player_data[$outer_nick]["losses"]++;
+                break;
+              case "s":
+                $player_data[$outer_nick]["wins"]++;
+                break;
+            }
+            break;
+          case "p":
+            switch ($inner_sequence[$i])
+            {
+              case "r":
+                $player_data[$outer_nick]["wins"]++;
+                break;
+              case "p":
+                $player_data[$outer_nick]["ties"]++;
+                break;
+              case "s":
+                $player_data[$outer_nick]["losses"]++;
+                break;
+            }
+            break;
+          case "s":
+            switch ($inner_sequence[$i])
+            {
+              case "r":
+                $player_data[$outer_nick]["losses"]++;
+                break;
+              case "p":
+                $player_data[$outer_nick]["wins"]++;
+                break;
+              case "s":
+                $player_data[$outer_nick]["ties"]++;
+                break;
+            }
+            break;
+        }
+      }
     }
   }
-  if (isset($user_data["rps"])==false)
+  foreach ($player_data as $nick => $player)
   {
-    $user_data["rps"]="";
+    $player_data[$nick]["rounds"]=$player["wins"]+$player["ties"]+$player["losses"];
+    if ($player_data[$nick]["rounds"]>0)
+    {
+      $delta=$player["wins"]-$player["losses"];
+      if ($delta>=0)
+      {
+        $player_data[$nick]["handicap"]=$delta*$player_data[$nick]["rounds"];
+      }
+      else
+      {
+        $player_data[$nick]["handicap"]=$delta/$player_data[$nick]["rounds"]*100000;
+      }
+    }
   }
-  $user_data["rps"].=$trailing;
-  $response[]=$user_data["rps"];
-  $user_record["json_data"]=json_encode($user_data);
-  \webdb\chat\update_user($user_record);*/
-
+  ksort($player_data);
+  uasort($player_data,"\\webdb\\chat\\rps\\ranking_sort_callback");
+  $rank=1;
+  foreach ($player_data as $nick => $player)
+  {
+    $player_data[$nick]["rank"]=$rank;
+    $rank++;
+  }
+  $max_nick_len=max($max_nick_len,8);
+  $response[]="infinite asynchronous rock/paper/scissors rankings";
+  $tab=10;
+  $out=str_pad("account",$max_nick_len," ",STR_PAD_RIGHT);
+  $out.=str_pad("rounds",$tab," ",STR_PAD_LEFT);
+  $out.=str_pad("wins",$tab," ",STR_PAD_LEFT);
+  $out.=str_pad("losses",$tab," ",STR_PAD_LEFT);
+  $out.=str_pad("ties",$tab," ",STR_PAD_LEFT);
+  $out.=str_pad("%wins",$tab," ",STR_PAD_LEFT);
+  $out.=str_pad("rank",$tab," ",STR_PAD_LEFT);
+  $out.=str_pad("handicap",13," ",STR_PAD_LEFT);
+  $response[]="<pre style='display: inline; font-weight: bold;'>".$out."</pre>";
+  foreach ($player_data as $nick => $player)
+  {
+    if ($player["rounds"]>0)
+    {
+      $win_frac=$player["wins"]/$player["rounds"]*100;
+    }
+    else
+    {
+      $win_frac=0;
+    }
+    $out=str_pad($nick,$max_nick_len," ",STR_PAD_RIGHT);
+    $out.=str_pad($player["rounds"],$tab," ",STR_PAD_LEFT);
+    $out.=str_pad($player["wins"],$tab," ",STR_PAD_LEFT);
+    $out.=str_pad($player["losses"],$tab," ",STR_PAD_LEFT);
+    $out.=str_pad($player["ties"],$tab," ",STR_PAD_LEFT);
+    $out.=str_pad(sprintf("%.0f",$win_frac)."%",$tab," ",STR_PAD_LEFT);
+    $out.=str_pad($player["rank"],$tab," ",STR_PAD_LEFT);
+    $out.=str_pad(sprintf("%.0f",$player["handicap"]),13," ",STR_PAD_LEFT);
+    $response[]="<pre style='display: inline; font-weight: bold;'>".$out."</pre>";
+  }
+  $response[]="maximum sequence length: ".$max_rounds;
+  $response[]="handicap = (wins-losses)*rounds for more wins than losses";
+  $response[]="handicap = (wins-losses)/rounds*100000 for more losses than wins";
+  $response[]="ranking is based on a handicap that balances the number of wins and losses with the number of rounds played, so that a new player who gets a win doesn't secure top spot just because they have a 100% win rate";
+  \webdb\chat\insert_notice_breaks($response);
   return $response;
 }
 
@@ -87,184 +257,9 @@ function valid_rps_sequence($trailing)
 
 #####################################################################################################
 
-/*
-  if (strlen($data["users"][$account]["sequence"].$trailing)>($data["rounds"]+1))
-  {
-    $trailing=substr($trailing,0,$data["rounds"]-strlen($data["users"][$account]["sequence"])+1);
-    privmsg("sequence trimmed");
-  }
-  if (isset($data["users"])==false)
-  {
-    $data["users"]=array();
-  }
-  if (isset($data["users"][$account])==false)
-  {
-    $data["users"][$account]=array();
-    $data["users"][$account]["rank"]="ERROR";
-  }
-  $data["users"][$account]["sequence"]=$data["users"][$account]["sequence"].$trailing;
-  $data["rounds"]=max($data["rounds"],strlen($data["users"][$account]["sequence"]));
-  if (file_put_contents($fn,json_encode($data,JSON_PRETTY_PRINT))===false)
-  {
-    privmsg("error writing data file");
-    return;
-  }
-  $ranks=update_ranking($data);
-  privmsg("rank for $account: ".$data["users"][$account]["rank"]." - ".output_ixio_paste($ranks,false));
-  return;
-}
-
-if ($trailing=="ranks")
-{
-  if (isset($data["users"])==true)
-  {
-    output_ixio_paste(update_ranking($data));
-    return;
-  }
-  else
-  {
-    privmsg("no players registered yet");
-  }
-}
-
-privmsg("syntax: ~rps [ranks|r|p|s]");
-
-#####################################################################################################
-
-function update_ranking(&$data)
-{
-  global $server;
-  $max_sequence=0;
-  foreach ($data["users"] as $account => $user_data)
-  {
-    $data["users"][$account]["wins"]=0;
-    $data["users"][$account]["losses"]=0;
-    $data["users"][$account]["ties"]=0;
-    $max_sequence=max($max_sequence,strlen($data["users"][$account]["sequence"]));
-    for ($i=0;$i<strlen($data["users"][$account]["sequence"]);$i++)
-    {
-      foreach ($data["users"] as $sub_account => $sub_user_data)
-      {
-        if ($sub_account==$account)
-        {
-          continue;
-        }
-        if (isset($data["users"][$sub_account]["sequence"][$i])==true)
-        {
-          switch ($data["users"][$account]["sequence"][$i])
-          {
-            case "r":
-              switch ($data["users"][$sub_account]["sequence"][$i])
-              {
-                case "r":
-                  $data["users"][$account]["ties"]=$data["users"][$account]["ties"]+1;
-                  break;
-                case "p":
-                  $data["users"][$account]["losses"]=$data["users"][$account]["losses"]+1;
-                  break;
-                case "s":
-                  $data["users"][$account]["wins"]=$data["users"][$account]["wins"]+1;
-                  break;
-              }
-              break;
-            case "p":
-              switch ($data["users"][$sub_account]["sequence"][$i])
-              {
-                case "r":
-                  $data["users"][$account]["wins"]=$data["users"][$account]["wins"]+1;
-                  break;
-                case "p":
-                  $data["users"][$account]["ties"]=$data["users"][$account]["ties"]+1;
-                  break;
-                case "s":
-                  $data["users"][$account]["losses"]=$data["users"][$account]["losses"]+1;
-                  break;
-              }
-              break;
-            case "s":
-              switch ($data["users"][$sub_account]["sequence"][$i])
-              {
-                case "r":
-                  $data["users"][$account]["losses"]=$data["users"][$account]["losses"]+1;
-                  break;
-                case "p":
-                  $data["users"][$account]["wins"]=$data["users"][$account]["wins"]+1;
-                  break;
-                case "s":
-                  $data["users"][$account]["ties"]=$data["users"][$account]["ties"]+1;
-                  break;
-              }
-              break;
-          }
-        }
-      }
-    }
-  }
-  $rankings=array();
-  foreach ($data["users"] as $account => $user_data)
-  {
-    $data["users"][$account]["rounds"]=$data["users"][$account]["wins"]+$data["users"][$account]["losses"]+$data["users"][$account]["ties"];
-    $data["users"][$account]["rank"]=0;
-    if ($data["users"][$account]["rounds"]>0)
-    {
-      $delta=$data["users"][$account]["wins"]-$data["users"][$account]["losses"];
-      if ($delta>=0)
-      {
-        $rankings[$account]=$delta*$data["users"][$account]["rounds"];
-      }
-      else
-      {
-        $rankings[$account]=$delta/$data["users"][$account]["rounds"]*100000;
-      }
-    }
-    else
-    {
-      $rankings[$account]=0;
-    }
-  }
-  ksort($rankings);
-  uasort($rankings,"ranking_sort_callback");
-  $ranking_keys=array_keys($rankings);
-  foreach ($data["users"] as $account => $user_data)
-  {
-    $data["users"][$account]["rank"]=array_search($account,$ranking_keys)+1;
-  }
-  $out="infinite asynchronous play-by-irc rock/paper/scissors rankings for $server:\n\n";
-  $actlen=0;
-  foreach ($data["users"] as $account => $user_data)
-  {
-    if (strlen($account)>$actlen)
-    {
-      $actlen=strlen($account);
-    }
-  }
-  $head_account="account";
-  $actlen=max($actlen,strlen($head_account));
-  $out=$out.$head_account.str_repeat(" ",$actlen-strlen($head_account))."\trounds\twins\tlosses\tties\twins\trank\thandicap\n";
-  $out=$out."=======".str_repeat(" ",$actlen-strlen($head_account))."\t======\t====\t======\t====\t====\t====\t========\n";
-  foreach ($rankings as $account => $rank)
-  {
-    if ($data["users"][$account]["rounds"]>0)
-    {
-      $win_frac=$data["users"][$account]["wins"]/$data["users"][$account]["rounds"]*100;
-    }
-    else
-    {
-      $win_frac=0;
-    }
-    $out=$out.$account.str_repeat(" ",$actlen-strlen($account))."\t".$data["users"][$account]["rounds"]."\t".$data["users"][$account]["wins"]."\t".$data["users"][$account]["losses"]."\t".$data["users"][$account]["ties"]."\t".sprintf("%.0f",$win_frac)."%\t".$data["users"][$account]["rank"]."\t".str_pad(sprintf("%.0f",$rankings[$account]),strlen("handicap")," ",STR_PAD_LEFT)."\n";
-  }
-  $out=$out."\n\nmaximum sequence length: ".$max_sequence;
-  $out=$out."\n\nhandicap = (wins-losses)*rounds for more wins than losses\nhandicap = (wins-losses)/rounds*100000 for more losses than wins\n\n\n";
-  $out=$out.file_get_contents(__DIR__."/rps.help");
-  return $out;
-}
-
-#####################################################################################################
-
 function ranking_sort_callback($a,$b)
 {
-  return ($b-$a);
-}*/
+  return ($b["rank"]-$a["rank"]);
+}
 
 #####################################################################################################

@@ -252,6 +252,20 @@ function private_notice($lines)
 
 #####################################################################################################
 
+function insert_notice_breaks(&$response)
+{
+  $max_len=0;
+  for ($i=0;$i<count($response);$i++)
+  {
+    $max_len=max($max_len,strlen($response[$i]));
+  }
+  $break=str_repeat("*",$max_len);
+  array_unshift($response,$break);
+  $response[]=$break;
+}
+
+#####################################################################################################
+
 function sql_to_iso_timestamp($timestamp)
 {
   $timestamp=strtotime($timestamp);

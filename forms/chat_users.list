@@ -27,8 +27,8 @@
         "enabled": true,
         "nick": true,
         "last_online": true,
-        "selected_channel_id": true,
-        "json_data": true
+        "selected_channel_id": false,
+        "json_data": false
     },
     "disabled": [],
     "default_values": {
