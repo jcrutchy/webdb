@@ -208,7 +208,9 @@ function play_rps($user_record,$trailing)
   $out.=str_pad("%wins",$tab," ",STR_PAD_LEFT);
   $out.=str_pad("rank",$tab," ",STR_PAD_LEFT);
   $out.=str_pad("handicap",13," ",STR_PAD_LEFT);
-  $response[]="<pre style='display: inline; font-weight: bold;'>".$out."</pre>";
+  $params=array();
+  $params["response"]=$out;
+  $response[]=\webdb\utils\template_fill("chat/pre_notice",$params);
   foreach ($player_data as $nick => $player)
   {
     if ($player["rounds"]>0)
@@ -227,7 +229,9 @@ function play_rps($user_record,$trailing)
     $out.=str_pad(sprintf("%.0f",$win_frac)."%",$tab," ",STR_PAD_LEFT);
     $out.=str_pad($player["rank"],$tab," ",STR_PAD_LEFT);
     $out.=str_pad(sprintf("%.0f",$player["handicap"]),13," ",STR_PAD_LEFT);
-    $response[]="<pre style='display: inline; font-weight: bold;'>".$out."</pre>";
+    $params=array();
+    $params["response"]=$out;
+    $response[]=\webdb\utils\template_fill("chat/pre_notice",$params);
   }
   $response[]="maximum sequence length: ".$max_rounds;
   $response[]="handicap = (wins-losses)*rounds for more wins than losses";
