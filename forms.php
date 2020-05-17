@@ -1713,12 +1713,20 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
   }
   $form_params=array();
   $form_params["page_id"]=$form_config["page_id"];
-  $form_params["edit_cmd_page_id"]=$form_config["edit_cmd_page_id"];
+  $form_params["edit_cmd_page_id"]=$form_config["page_id"];
+  if ($form_config["edit_cmd_page_id"]<>"")
+  {
+    $form_params["edit_cmd_page_id"]=$form_config["edit_cmd_page_id"];
+  }
   $form_params["insert_cmd_page_id"]=$form_config["page_id"];
-  $form_params["advanced_search_page_id"]=$form_config["advanced_search_page_id"];
   if ($form_config["insert_cmd_page_id"]<>"")
   {
     $form_params["insert_cmd_page_id"]=$form_config["insert_cmd_page_id"];
+  }
+  $form_params["advanced_search_page_id"]=$form_config["page_id"];
+  if ($form_config["advanced_search_page_id"]<>"")
+  {
+    $form_params["advanced_search_page_id"]=$form_config["advanced_search_page_id"];
   }
   $form_params["insert_default_params"]="";
   if ($insert_default_params!==false)

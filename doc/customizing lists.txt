@@ -39,12 +39,25 @@ app/index.php?page=page_id&id=x => app/index.php?page=page_id&cmd=edit&id=x
     },
 
 
-general form of event handler stub with required function arguments and returned value:
+* general form of event handler stub with required function arguments and returned value (except for on_list):
 
 function my_event_php_stub($form_config,$event_params,$event_name)
 {
   global $settings;
   # do stuff here
+  return $event_params;
+}
+
+* general form of on_list event handler:
+
+function my_list_event()
+{
+  global $settings;
+  $event_params["custom_list_content"]=false;
+  #$event_params["content"]="";
+  $records=array();
+  # build $records array
+  $event_params["records"]=$records;
   return $event_params;
 }
 
@@ -80,7 +93,7 @@ following are event-specific $event_params elements, with an indication of initi
 
 "on_get_record_by_id":
   $event_params["form_config"]=array();
-  $event_params["record_id"]=0;
+  $event_params["record_id"]=0; # initialised with id passed from url
   $event_params["config_key"]="primary";
   $event_params["record"]=false; # initialised with false, but assign array with field_name=>field_value pairs when handled
 

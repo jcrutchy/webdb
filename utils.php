@@ -408,22 +408,28 @@ function ob_postprocess($buffer)
   {
     if ($settings["check_templates"]==true)
     {
-      if (strpos($buffer,"%%")!==false)
+      foreach ($settings["templates"] as $template_name => $template_content)
       {
-        $buffer="error: unassigned % template found: ".htmlspecialchars($buffer);
+        if (strpos($buffer,"%%".$template_name."%%")!==false)
+        {
+          $buffer="error: unassigned % template '".$template_name."' found: ".htmlspecialchars($buffer);
+          break;
+        }
+        if (strpos($buffer,"$$".$template_name."$$")!==false)
+        {
+          $buffer="error: unassigned $ template '".$template_name."' found: ".htmlspecialchars($buffer);
+          break;
+        }
+        if (strpos($buffer,"@@".$template_name."@@")!==false)
+        {
+          $buffer="error: unassigned @ template '".$template_name."' found: ".htmlspecialchars($buffer);
+          break;
+        }
       }
-      if (strpos($buffer,"$$")!==false)
-      {
-        $buffer="error: unassigned $ template found: ".htmlspecialchars($buffer);
-      }
-      if (strpos($buffer,"@@")!==false)
-      {
-        $buffer="error: unassigned @ template found: ".htmlspecialchars($buffer);
-      }
-      if ((isset($settings["unauthenticated_content"])==false) and (isset($settings["user_record"])==false))
-      {
-        $buffer="error: authentication failure";
-      }
+    }
+    if ((isset($settings["unauthenticated_content"])==false) and (isset($settings["user_record"])==false))
+    {
+      $buffer="error: authentication failure";
     }
   }
   else

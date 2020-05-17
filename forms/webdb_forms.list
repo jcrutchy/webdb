@@ -12,28 +12,41 @@
     "edit_subforms": {},
     "edit_subforms_styles": {},
     "control_types": {
-        "page_id": "text"
+        "page_id": "text",
+        "json": "memo"
     },
     "captions": {
-        "page_id": "page_id"
+        "page_id": "page_id",
+        "json": "json"
     },
     "caption_groups": {},
     "visible": {
-        "page_id": true
+        "page_id": true,
+        "json": false
     },
     "disabled": {},
     "default_values": {
-        "page_id": ""
+        "page_id": "",
+        "json": ""
     },
     "required_values": [],
     "js_events": {},
     "computed_values": {},
     "custom_interfaces": {},
     "table_cell_styles": {},
-    "control_styles": {},
+    "control_styles": {
+        "json": "width: 1000px; height: 500px;"
+    },
     "lookups": {},
     "event_handlers": {
-        "on_list": "\\webdb\\manage\\forms_list"
+        "on_list": "\\webdb\\manage\\forms_list",
+        "on_insert": "\\webdb\\manage\\forms_insert",
+        "on_edit": "\\webdb\\manage\\forms_edit",
+        "on_get_record_by_id": "\\webdb\\manage\\forms_get_record",
+        "on_update_record": "\\webdb\\manage\\forms_update_record",
+        "on_insert_record": "\\webdb\\manage\\forms_insert_record",
+        "on_custom_form_above": "\\webdb\\manage\\forms_above",
+        "on_custom_form_below": "\\webdb\\manage\\forms_below"
     },
     "sql_errors": {},
     "default_cmd_override": "",

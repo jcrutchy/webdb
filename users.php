@@ -2,6 +2,10 @@
 
 namespace webdb\users;
 
+# TODO:
+# $hash=sodium_crypto_pwhash_str($password,SODIUM_CRYPTO_PWHASH_OPSLIMIT_INTERACTIVE,SODIUM_CRYPTO_PWHASH_MEMLIMIT_INTERACTIVE);
+# sodium_crypto_pwhash_str_verify($hash,$password)
+
 #####################################################################################################
 
 function auth_dispatch()
