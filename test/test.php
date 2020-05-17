@@ -53,6 +53,8 @@ function check_settings()
     "file_upload_mode",
     "app_file_uploads_path",
     "ftp_app_target_path",
+    "enable_pwd_file_encrypt",
+    "encrypt_key_file",
     "ftp_credentials_file",
     "ftp_address",
     "ftp_port",
@@ -149,6 +151,7 @@ function check_settings()
   $required_files=array(
     "db_admin_file",
     "db_user_file",
+    "encrypt_key_file",
     "gd_ttf",
     "app_test_include");
   for ($i=0;$i<count($required_files);$i++)

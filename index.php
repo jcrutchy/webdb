@@ -16,6 +16,7 @@ date_default_timezone_set("UTC");
 chdir(__DIR__);
 
 require_once("utils.php");
+require_once("encrypt.php");
 require_once("users.php");
 require_once("csrf.php");
 require_once("forms.php");

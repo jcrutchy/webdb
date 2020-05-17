@@ -137,6 +137,24 @@ function build_settings()
   \webdb\utils\load_credentials("db_admin");
   \webdb\utils\load_credentials("db_user");
   \webdb\utils\load_credentials("ftp_credentials",true);
+  if ($settings["enable_pwd_file_encrypt"]==true)
+  {
+    if (file_exists($settings["encrypt_key_file"])==false)
+    {
+      \webdb\utils\error_message("error: encrypt key file not found");
+    }
+    $key=trim(file_get_contents($settings["encrypt_key_file"]));
+    $settings["db_admin_password"]=\webdb\encrypt\webdb_decrypt($settings["db_admin_password"],$key);
+    $settings["db_user_password"]=\webdb\encrypt\webdb_decrypt($settings["db_user_password"],$key);
+    $settings["ftp_credentials_password"]=\webdb\encrypt\webdb_decrypt($settings["ftp_credentials_password"],$key);
+    # ~~~~~~~~~~~~~~~~~~~
+    #$test=array();
+    #$test["encrypted"]=\webdb\encrypt\webdb_encrypt("test",$key);
+    #$test["decrypted"]=\webdb\encrypt\webdb_decrypt($test["encrypted"],$key);
+    # ~~~~~~~~~~~~~~~~~~~
+    sodium_memzero($key);
+    #\webdb\utils\debug_var_dump($test);
+  }
   $settings["webdb_templates"]=\webdb\utils\load_files($settings["webdb_templates_path"],"","htm",true);
   $settings["app_templates"]=\webdb\utils\load_files($settings["app_templates_path"],"","htm",true);
   $settings["templates"]=array_merge($settings["webdb_templates"],$settings["app_templates"]);

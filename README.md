@@ -11,6 +11,7 @@ Based on this framework, you can create a complete web-based database applicatio
 [various other guides](doc/)
 
 Visit the Freenode project channel: #webdb
+Join the Discord server: https://discord.gg/9AmUP4K
 
 ![](doc/test_app_list.png)
 
