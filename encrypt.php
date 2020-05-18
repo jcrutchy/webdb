@@ -13,12 +13,12 @@ function webdb_encrypt(string $message,string $key): string
 {
   if (defined("SODIUM_CRYPTO_SECRETBOX_KEYBYTES")==false)
   {
-    \webdb\utils\error_message("please enable extension=sodium in php.ini");
+    \webdb\utils\system_message("please enable extension=sodium in php.ini");
   }
   $key=base64_decode($key);
   if (mb_strlen($key,"8bit")!==SODIUM_CRYPTO_SECRETBOX_KEYBYTES)
   {
-    \webdb\utils\error_message("webdb_encrypt: incorrect key size (must be 32 bytes)");
+    \webdb\utils\system_message("webdb_encrypt: incorrect key size (must be 32 bytes)");
   }
   $nonce=random_bytes(SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
   $cipher=base64_encode($nonce.sodium_crypto_secretbox($message,$nonce,$key));
@@ -33,7 +33,7 @@ function webdb_decrypt(string $encrypted,string $key): string
 {
   if (defined("SODIUM_CRYPTO_SECRETBOX_NONCEBYTES")==false)
   {
-    \webdb\utils\error_message("please enable extension=sodium in php.ini");
+    \webdb\utils\system_message("please enable extension=sodium in php.ini");
   }
   $key=base64_decode($key);
   $decoded=base64_decode($encrypted);
@@ -42,7 +42,7 @@ function webdb_decrypt(string $encrypted,string $key): string
   $plain=sodium_crypto_secretbox_open($ciphertext,$nonce,$key);
   if (is_string($plain)==false)
   {
-    \webdb\utils\error_message("webdb_decrypt: invalid MAC");
+    \webdb\utils\system_message("webdb_decrypt: invalid MAC");
   }
   sodium_memzero($ciphertext);
   sodium_memzero($key);
