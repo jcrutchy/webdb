@@ -550,95 +550,15 @@ function get_subform_content($subform_config,$subform_link_field,$id,$list_only=
     \webdb\utils\webdb_unsetcookie_raw($cookie_name,false);
   }
   $subform_config["advanced_search"]=false;
-  \webdb\forms\process_filter_sql($subform_config);
-  $link_records=false;
-  if (count($subform_config["link_fields"])>0)
-  {
-    $sql=\webdb\utils\sql_fill("link_records",$subform_config);
-    $sql_params=array();
-    $sql_params["parent_key"]=$id;
-    $link_records=\webdb\sql\fetch_prepare($sql,$sql_params,"link_records",false,"","",$subform_config);
-  }
-  $subform_config["insert_new"]=false;
-  if ($subform_config["checklist"]==true)
-  {
-    $subform_config["multi_row_delete"]=false;
-    $subform_config["delete_cmd"]=false;
-    $subform_config["insert_row"]=false;
-    $subform_config["edit_cmd"]="inline";
-    if ($subform_config["records_sql"]=="")
-    {
-      if ($subform_config["sort_sql"]<>"")
-      {
-        $subform_config["sort_sql"]=\webdb\utils\sql_fill("sort_clause",$subform_config);
-      }
-      $sql=\webdb\utils\sql_fill("form_list_fetch_all",$subform_config);
-      $records=\webdb\sql\fetch_prepare($sql,array(),"form_list_fetch_all",false,$subform_config["table"],$subform_config["database"],$subform_config);
-    }
-    else
-    {
-      $records=\webdb\sql\file_fetch_prepare($subform_config["records_sql"],array(),false,"","",$subform_config);
-    }
-  }
-  else
-  {
-    if ((count($subform_config["link_fields"])>0) and ($subform_config["records_sql"]==""))
-    {
-      $subform_config["insert_row"]=false;
-      $subform_config["multi_row_delete"]=false;
-      $subform_config["delete_cmd"]=false;
-      $subform_config["insert_new"]=false;
-      $sql=\webdb\utils\sql_fill("link_records",$subform_config);
-      $sql_params=array();
-      $sql_params["parent_key"]=$id;
-      $subform_config_swapped=$subform_config;
-      $subform_config_swapped["database"]=$subform_config["link_database"];
-      $subform_config_swapped["table"]=$subform_config["link_table"];
-      $subform_config_swapped["link_database"]=$subform_config["database"];
-      $subform_config_swapped["link_table"]=$subform_config["table"];
-      $records=\webdb\sql\fetch_prepare($sql,$sql_params,"link_records",false,"","",$subform_config_swapped);
-    }
-    else
-    {
-      if ($subform_config["records_sql"]=="")
-      {
-        $sql_params=array();
-        $sql_params["database"]=$subform_config["database"];
-        $sql_params["table"]=$subform_config["table"];
-        $sql_params["sort_sql"]=$subform_config["sort_sql"];
-        $sql_params["link_field_name"]=$subform_link_field;
-        if ($sql_params["sort_sql"]<>"")
-        {
-          $sql_params["sort_sql"]=\webdb\utils\sql_fill("sort_clause",$sql_params);
-        }
-        $sql_filename="subform_list_fetch";
-        $database=$sql_params["database"];
-        $table=$sql_params["table"];
-        $sql=\webdb\utils\sql_fill("subform_list_fetch",$sql_params);
-      }
-      else
-      {
-        $sql_filename=$subform_config["records_sql"];
-        $database="";
-        $table="";
-        $sql=\webdb\utils\sql_fill($subform_config["records_sql"]);
-      }
-      $sql_params=array();
-      $sql_params["id"]=$id;
-      $records=\webdb\sql\fetch_prepare($sql,$sql_params,$sql_filename,false,$table,$database,$subform_config);
-    }
-  }
-  $subform_params=array();
-  $url_params=array();
-  $url_params[$subform_link_field]=$id;
-  $subform_config["parent_form_id"]=$id;
-  $subform_config["parent_form_config"]=$parent_form_config;
+  $records=false;
   $event_params=array();
+  $event_params["handled"]=false;
   $event_params["custom_list_content"]=false;
   $event_params["content"]="";
   $event_params["parent_form_config"]=$parent_form_config;
   $event_params["subform_config"]=$subform_config;
   $event_params["parent_id"]=$id;
+  $event_params["records"]=$records;
   if (isset($subform_config["event_handlers"]["on_list"])==true)
   {
     $func_name=$subform_config["event_handlers"]["on_list"];
@@ -647,6 +567,95 @@ function get_subform_content($subform_config,$subform_link_field,$id,$list_only=
       $event_params=call_user_func($func_name,$event_params);
     }
   }
+  $records=$event_params["records"];
+  $link_records=false;
+  if ($event_params["handled"]==false)
+  {
+    \webdb\forms\process_filter_sql($subform_config);
+    if (count($subform_config["link_fields"])>0)
+    {
+      $sql=\webdb\utils\sql_fill("link_records",$subform_config);
+      $sql_params=array();
+      $sql_params["parent_key"]=$id;
+      $link_records=\webdb\sql\fetch_prepare($sql,$sql_params,"link_records",false,"","",$subform_config);
+    }
+    $subform_config["insert_new"]=false;
+    if ($subform_config["checklist"]==true)
+    {
+      $subform_config["multi_row_delete"]=false;
+      $subform_config["delete_cmd"]=false;
+      $subform_config["insert_row"]=false;
+      $subform_config["edit_cmd"]="inline";
+      if ($subform_config["records_sql"]=="")
+      {
+        if ($subform_config["sort_sql"]<>"")
+        {
+          $subform_config["sort_sql"]=\webdb\utils\sql_fill("sort_clause",$subform_config);
+        }
+        $sql=\webdb\utils\sql_fill("form_list_fetch_all",$subform_config);
+        $records=\webdb\sql\fetch_prepare($sql,array(),"form_list_fetch_all",false,$subform_config["table"],$subform_config["database"],$subform_config);
+      }
+      else
+      {
+        $records=\webdb\sql\file_fetch_prepare($subform_config["records_sql"],array(),false,"","",$subform_config);
+      }
+    }
+    else
+    {
+      if ((count($subform_config["link_fields"])>0) and ($subform_config["records_sql"]==""))
+      {
+        $subform_config["insert_row"]=false;
+        $subform_config["multi_row_delete"]=false;
+        $subform_config["delete_cmd"]=false;
+        $subform_config["insert_new"]=false;
+        $sql=\webdb\utils\sql_fill("link_records",$subform_config);
+        $sql_params=array();
+        $sql_params["parent_key"]=$id;
+        $subform_config_swapped=$subform_config;
+        $subform_config_swapped["database"]=$subform_config["link_database"];
+        $subform_config_swapped["table"]=$subform_config["link_table"];
+        $subform_config_swapped["link_database"]=$subform_config["database"];
+        $subform_config_swapped["link_table"]=$subform_config["table"];
+        $records=\webdb\sql\fetch_prepare($sql,$sql_params,"link_records",false,"","",$subform_config_swapped);
+      }
+      else
+      {
+        if ($subform_config["records_sql"]=="")
+        {
+          $sql_params=array();
+          $sql_params["database"]=$subform_config["database"];
+          $sql_params["table"]=$subform_config["table"];
+          $sql_params["sort_sql"]=$subform_config["sort_sql"];
+          $sql_params["link_field_name"]=$subform_link_field;
+          if ($sql_params["sort_sql"]<>"")
+          {
+            $sql_params["sort_sql"]=\webdb\utils\sql_fill("sort_clause",$sql_params);
+          }
+          $sql_filename="subform_list_fetch";
+          $database=$sql_params["database"];
+          $table=$sql_params["table"];
+          $sql=\webdb\utils\sql_fill("subform_list_fetch",$sql_params);
+        }
+        else
+        {
+          $sql_filename=$subform_config["records_sql"];
+          $database="";
+          $table="";
+          $sql=\webdb\utils\sql_fill($subform_config["records_sql"]);
+        }
+        $sql_params=array();
+        $sql_params["id"]=$id;
+        $records=\webdb\sql\fetch_prepare($sql,$sql_params,$sql_filename,false,$table,$database,$subform_config);
+      }
+    }
+  }
+  $subform_params=array();
+  $url_params=array();
+  $url_params[$subform_link_field]=$id;
+  $subform_config["parent_form_id"]=$id;
+  $subform_config["parent_form_config"]=$parent_form_config;
+  $subform_params["subform_style"]="";
+  $subform_params["page_id"]=$subform_config["page_id"];
   if ($event_params["custom_list_content"]==false)
   {
     $subform_params["subform"]=list_form_content($subform_config,$records,$url_params,$link_records);
@@ -655,8 +664,6 @@ function get_subform_content($subform_config,$subform_link_field,$id,$list_only=
   {
     $subform_params["subform"]=$event_params["content"];
   }
-  $subform_params["subform_style"]="";
-  $subform_params["page_id"]=$subform_config["page_id"];
   if ($parent_form_config!==false)
   {
     $subform_page_id=$subform_config["page_id"];
