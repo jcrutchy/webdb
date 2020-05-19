@@ -365,6 +365,25 @@ function user_login_settings_unset() # used for testing
 
 #####################################################################################################
 
+function logged_in_user_in_group($group_name)
+{
+  global $settings;
+  if (isset($settings["logged_in_user_groups"])==false)
+  {
+    return false;
+  }
+  for ($i=0;$i<count($settings["logged_in_user_groups"]);$i++)
+  {
+    if ($settings["logged_in_user_groups"][$i]["group_name"]==$group_name)
+    {
+      return true;
+    }
+  }
+  return false;
+}
+
+#####################################################################################################
+
 function crypto_random_key()
 {
   $crypto_strong=true;

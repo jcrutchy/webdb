@@ -100,6 +100,7 @@ function play_rps($user_record,$trailing)
     $sequence=substr($sequence,0,($max_rounds+1));
     $response[]="sequence trimmed";
   }
+  $max_rounds=max($max_rounds,strlen($sequence));
   $player_data[$nick]["sequence"]=$sequence;
   $data=array();
   if ($user_record["json_data"]<>"")

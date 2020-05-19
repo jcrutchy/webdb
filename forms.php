@@ -658,6 +658,32 @@ function get_subform_content($subform_config,$subform_link_field,$id,$list_only=
   $subform_params["page_id"]=$subform_config["page_id"];
   if ($event_params["custom_list_content"]==false)
   {
+    $key_fieldnames=explode(\webdb\index\CONFIG_ID_DELIMITER,$subform_config["primary_key"]);
+    if (count($key_fieldnames)>1)
+    {
+      $additional_fields=false;
+      foreach ($subform_config["control_types"] as $field_name => $control_type)
+      {
+        if (in_array($field_name,$key_fieldnames)==false)
+        {
+          $additional_fields=true;
+          break;
+        }
+      }
+      if ($additional_fields==false)
+      {
+        $subform_config["delete_button_caption"]="Remove Link";
+      }
+      else
+      {
+        $subform_config["multi_row_delete"]=false;
+      }
+    }
+    else
+    {
+      $subform_config["delete_cmd"]=false;
+      $subform_config["multi_row_delete"]=false;
+    }
     $subform_params["subform"]=list_form_content($subform_config,$records,$url_params,$link_records);
   }
   else

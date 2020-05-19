@@ -148,6 +148,21 @@ function chat_dispatch($record_id,$form_config,$record=false)
                     \webdb\chat\private_notice($response);
                   }
                   break;
+                case "/delete":
+                  if (\webdb\users\logged_in_user_in_group("admin")==true)
+                  {
+                  }
+                  break;
+                /*case "/shell": # TODO: potentially limit to use within a specific restricted administration channel
+                  if (\webdb\users\logged_in_user_in_group("admin")==true)
+                  {
+                  }
+                  break;
+                case "/sql": # less important because can use sql studio
+                  if (\webdb\users\logged_in_user_in_group("admin")==true)
+                  {
+                  }
+                  break;*/
               }
             }
             \webdb\chat\save_message($user_record,$channel_record,$message);
