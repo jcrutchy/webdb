@@ -672,7 +672,14 @@ function get_subform_content($subform_config,$subform_link_field,$id,$list_only=
       }
       if ($additional_fields==false)
       {
-        $subform_config["delete_button_caption"]="Remove Link";
+        if ($subform_config["delete_button_caption"]=="Delete")
+        {
+          $subform_config["delete_button_caption"]="Remove Link";
+        }
+        if ($subform_config["multi_row_delete_button_caption"]=="Delete Selected")
+        {
+          $subform_config["multi_row_delete_button_caption"]="Remove Selected Links";
+        }
       }
       else
       {

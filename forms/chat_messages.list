@@ -12,6 +12,7 @@
     "edit_subforms": {},
     "edit_subforms_styles": {},
     "control_types": {
+        "message_id": "span",
         "page_id": "span",
         "record_id": "span",
         "id_field": "span",
@@ -20,6 +21,7 @@
         "message": "span"
     },
     "captions": {
+        "message_id": "message_id",
         "page_id": "page_id",
         "record_id": "record_id",
         "id_field": "id_field",
@@ -29,6 +31,7 @@
     },
     "caption_groups": {},
     "visible": {
+        "message_id": true,
         "page_id": true,
         "record_id": true,
         "id_field": true,
@@ -38,6 +41,7 @@
     },
     "disabled": {},
     "default_values": {
+        "message_id": "",
         "page_id": "",
         "record_id": "",
         "id_field": "",

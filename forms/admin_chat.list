@@ -1,0 +1,12 @@
+{
+    "form_version": "20190829.1",
+    "form_type": "list",
+    "enabled": true,
+    "title": "System Administration Chat",
+    "page_id": "admin_chat",
+    "generate_stub": "\\webdb\\chat\\admin_chat_stub",
+    "chat_enabled": true,
+    "chat_topic_fields": "topic",
+    "chat_topic_format": "%s",
+    "topic": "System Administration Chat"
+}

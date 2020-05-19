@@ -158,6 +158,8 @@ $settings["permissions"]["admin"]["templates"]["admin_links"]="";
 $settings["permissions"]["admin"]["templates"]["groups_page_link"]="";
 $settings["permissions"]["admin"]["templates"]["user_groups_page_link"]="";
 $settings["permissions"]["admin"]["templates"]["users_page_link"]="";
+$settings["permissions"]["admin"]["templates"]["chat_users_page_link"]="";
+$settings["permissions"]["admin"]["templates"]["admin_chat_page_link"]="";
 
 # webdb form permissions
 # $settings["permissions"]["group_name"]["forms"]["page_id"]="riud";
@@ -167,6 +169,8 @@ $settings["permissions"]["admin"]["forms"]["groups"]="riud";
 $settings["permissions"]["admin"]["forms"]["users"]="riud";
 $settings["permissions"]["admin"]["forms"]["subform_group_users"]="riud";
 $settings["permissions"]["admin"]["forms"]["subform_user_groups"]="riud";
+
+$settings["permissions"]["admin"]["forms"]["admin_chat"]="riud";
 
 $settings["permissions"]["admin"]["forms"]["webdb_forms"]="riud";
 
