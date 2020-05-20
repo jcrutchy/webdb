@@ -17,3 +17,8 @@ inline is where you click a row and it turns into editable controls (ajax-driven
 (or the highlighted record row), corresponding to the primary key of the dataset inferred by the "edit_cmd_page_id" controller
 
 "edit_title_field" is for the name of the field to show in the browser title bar for the editor page
+
+
+
+when using row edit mode and you have grouped fields, make sure you only have one field in the primary key
+or the row mouseover will distinguish between the multiple primary key fields
