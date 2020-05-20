@@ -658,39 +658,7 @@ function get_subform_content($subform_config,$subform_link_field,$id,$list_only=
   $subform_params["page_id"]=$subform_config["page_id"];
   if ($event_params["custom_list_content"]==false)
   {
-    $key_fieldnames=explode(\webdb\index\CONFIG_ID_DELIMITER,$subform_config["primary_key"]);
-    if (count($key_fieldnames)>1)
-    {
-      $additional_fields=false;
-      foreach ($subform_config["control_types"] as $field_name => $control_type)
-      {
-        if (in_array($field_name,$key_fieldnames)==false)
-        {
-          $additional_fields=true;
-          break;
-        }
-      }
-      if ($additional_fields==false)
-      {
-        if ($subform_config["delete_button_caption"]=="Delete")
-        {
-          $subform_config["delete_button_caption"]="Remove Link";
-        }
-        if ($subform_config["multi_row_delete_button_caption"]=="Delete Selected")
-        {
-          $subform_config["multi_row_delete_button_caption"]="Remove Selected Links";
-        }
-      }
-      else
-      {
-        $subform_config["multi_row_delete"]=false;
-      }
-    }
-    else
-    {
-      $subform_config["delete_cmd"]=false;
-      $subform_config["multi_row_delete"]=false;
-    }
+    $subform_config=\webdb\forms\override_delete_config($subform_config);
     $subform_params["subform"]=list_form_content($subform_config,$records,$url_params,$link_records);
   }
   else
@@ -711,6 +679,53 @@ function get_subform_content($subform_config,$subform_link_field,$id,$list_only=
     return $subform_params["subform"];
   }
   return \webdb\forms\form_template_fill("subform",$subform_params);
+}
+
+#####################################################################################################
+
+function override_delete_config($subform_config)
+{
+  $key_fieldnames=explode(\webdb\index\CONFIG_ID_DELIMITER,$subform_config["primary_key"]);
+  if (count($key_fieldnames)>1)
+  {
+    $additional_fields=false;
+    foreach ($subform_config["control_types"] as $field_name => $control_type)
+    {
+      if (in_array($field_name,$key_fieldnames)==false)
+      {
+        if ($control_type<>"lookup")
+        {
+          $additional_fields=true;
+          break;
+        }
+      }
+    }
+    if ($additional_fields==false)
+    {
+      if ($subform_config["delete_button_caption"]=="Delete")
+      {
+        $subform_config["delete_button_caption"]="Remove Link";
+      }
+      if ($subform_config["multi_row_delete_button_caption"]=="Delete Selected")
+      {
+        $subform_config["multi_row_delete_button_caption"]="Remove Selected Links";
+      }
+    }
+    else
+    {
+      $subform_config["multi_row_delete"]=false;
+      if ($subform_config["delete_button_caption"]=="Delete")
+      {
+        $subform_config["delete_button_caption"]="Remove Link Data";
+      }
+    }
+  }
+  else
+  {
+    $subform_config["delete_cmd"]=false;
+    $subform_config["multi_row_delete"]=false;
+  }
+  return $subform_config;
 }
 
 #####################################################################################################

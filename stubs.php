@@ -193,6 +193,7 @@ function list_edit($id,$form_config,$post_override=false)
   $merged_record=false;
   if ((isset($_GET["parent_form"])==true) and (isset($_GET["parent_id"])==true))
   {
+    $form_config=\webdb\forms\override_delete_config($form_config);
     $parent_form_config=\webdb\forms\get_form_config($_GET["parent_form"]);
     if ($form_config["checklist"]==true)
     {
