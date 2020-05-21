@@ -2100,6 +2100,8 @@ function advanced_search($form_config)
   global $settings;
   $rows="";
   $sql_params=array();
+  $null_fields=array();
+  $not_null_fields=array();
   foreach ($form_config["control_types"] as $field_name => $control_type)
   {
     if ($form_config["visible"][$field_name]==false)
@@ -2161,7 +2163,7 @@ function advanced_search($form_config)
       case "combobox":
       case "listbox":
       case "radiogroup":
-        $text_operators=array(""=>"","<"=>"<","<="=>"<=","="=>"LIKE",">="=>">=",">"=>">","not"=>"<>");
+        $text_operators=array(""=>"","<"=>"<","<="=>"<=","="=>"LIKE",">="=>">=",">"=>">","not"=>"<>","assigned"=>"not_null","unassigned"=>"null");
         $selected_option="";
         if (isset($_POST["search_operator_".$field_name])==true)
         {
@@ -2184,7 +2186,19 @@ function advanced_search($form_config)
         }
         if ($selected_option<>"")
         {
-          $sql_params[$field_name]=$field_value;
+          switch ($selected_option)
+          {
+            case "null":
+              $null_fields[]=$field_name;
+              $field_params["field_value"]="";
+              break;
+            case "not_null":
+              $not_null_fields[]=$field_name;
+              $field_params["field_value"]="";
+              break;
+            default:
+              $sql_params[$field_name]=$field_value;
+          }
         }
         break;
       case "date":
@@ -2192,7 +2206,7 @@ function advanced_search($form_config)
         {
           $field_value=$_POST["iso_".$field_name];
         }
-        $date_operators=array(""=>"","<"=>"<","<="=>"<=","="=>"=",">="=>">=",">"=>">","not"=>"<>");
+        $date_operators=array(""=>"","<"=>"<","<="=>"<=","="=>"=",">="=>">=",">"=>">","not"=>"<>","assigned"=>"not_null","unassigned"=>"null");
         $selected_option="";
         if (isset($_POST["search_operator_".$field_name])==true)
         {
@@ -2215,7 +2229,7 @@ function advanced_search($form_config)
         }
         $search_control_type="date";
         $settings["calendar_fields"][]=$field_name;
-        if ($field_value=="")
+        if (($field_value=="") or ($selected_option=="null"))
         {
           $field_params["field_value"]="";
           $field_params["iso_field_value"]="";
@@ -2227,7 +2241,21 @@ function advanced_search($form_config)
         }
         if ($selected_option<>"")
         {
-          $sql_params[$field_name]=$field_value;
+          switch ($selected_option)
+          {
+            case "null":
+              $null_fields[]=$field_name;
+              $field_params["field_value"]="";
+              $field_params["iso_field_value"]="";
+              break;
+            case "not_null":
+              $not_null_fields[]=$field_name;
+              $field_params["field_value"]="";
+              $field_params["iso_field_value"]="";
+              break;
+            default:
+              $sql_params[$field_name]=$field_value;
+          }
         }
         break;
       default:
@@ -2250,16 +2278,14 @@ function advanced_search($form_config)
   $form_params["title"]=$form_config["title"];
   $form_params["rows"]=$rows;
   $form_params["page_id"]=$form_config["page_id"];
-  $search_page_params=array();
-  $search_page_params["advanced_search"]=\webdb\forms\form_template_fill("advanced_search",$form_params);
-  $fieldnames=array_keys($sql_params);
-  $values=array_values($sql_params);
-  $placeholders=array_map("\webdb\sql\callback_prepare",$fieldnames);
-  $quoted_fieldnames=array_map("\webdb\sql\callback_quote",$fieldnames);
+  $form_params["where_clause"]="";
   $records=array();
-  $prepared_where="";
-  if (count($sql_params)>0)
+  if ((count($sql_params)>0) or (count($null_fields)>0) or (count($not_null_fields)>0))
   {
+    $fieldnames=array_keys($sql_params);
+    $values=array_values($sql_params);
+    $placeholders=array_map("\webdb\sql\callback_prepare",$fieldnames);
+    $quoted_fieldnames=array_map("\webdb\sql\callback_quote",$fieldnames);
     $inner_joins=array();
     foreach ($form_config["lookups"] as $field_name => $lookup_data)
     {
@@ -2322,17 +2348,29 @@ function advanced_search($form_config)
         continue;
       }
       $conditions[]="(".$quoted_fieldnames[$i]." ".$operator." ".$placeholders[$i].")";
-      $prepared_where="WHERE (".implode(" AND ",$conditions).")";
+    }
+    $quoted_fieldnames=array_map("\webdb\sql\callback_quote",$null_fields);
+    for ($i=0;$i<count($null_fields);$i++)
+    {
+      $conditions[]="(".$quoted_fieldnames[$i]."is null)";
+    }
+    $quoted_fieldnames=array_map("\webdb\sql\callback_quote",$not_null_fields);
+    for ($i=0;$i<count($not_null_fields);$i++)
+    {
+      $conditions[]="(".$quoted_fieldnames[$i]."is not null)";
     }
     $params=array();
     $params["database"]=$form_config["database"];
     $params["table"]=$form_config["table"];
     $params["inner_joins"]=implode(" ",$inner_joins);
-    $params["prepared_where"]=$prepared_where;
+    $params["prepared_where"]="WHERE (".implode(" AND ",$conditions).")";
+    $form_params["where_clause"]=$params["prepared_where"];
     $params["sort_sql"]=$form_config["sort_sql"];
     $sql=\webdb\utils\sql_fill("form_list_advanced_search",$params);
     $records=\webdb\sql\fetch_prepare($sql,$sql_params,"form_list_advanced_search",false,$form_config["table"],$form_config["database"],$form_config);
   }
+  $search_page_params=array();
+  $search_page_params["advanced_search"]=\webdb\forms\form_template_fill("advanced_search",$form_params);
   $form_config["insert_new"]=false;
   $form_config["insert_row"]=false;
   $form_config["advanced_search"]=false;
