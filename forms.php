@@ -2041,7 +2041,6 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
   $form_params["sort_field_control"]="";
   $form_params["insert_control"]="";
   $form_params["delete_selected_control"]="";
-  $form_params["checklist_update_control"]="";
   if (($form_config["records_sql"]=="") or ($form_config["checklist"]==true))
   {
     if ($form_config["advanced_search"]==true)
@@ -2090,10 +2089,6 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
   {
     $form_params["parent_id"]=$form_config["parent_form_id"];
     $form_params["parent_form_page_id"]=$form_config["parent_form_config"]["page_id"];
-  }
-  if (($form_params["insert_control"]=="") and ($form_params["delete_selected_control"]=="") and ($form_params["advanced_search_control"]=="") and ($form_params["sort_field_control"]=="") and ($form_params["checklist_update_control"]==""))
-  {
-    $form_params["delete_selected_control"]=\webdb\utils\template_fill("break");
   }
   return \webdb\forms\form_template_fill("list",$form_params);
 }
@@ -2346,6 +2341,7 @@ function advanced_search($form_config)
   $search_page_params["advanced_search_results"]=\webdb\forms\list_form_content($form_config,$records,false);
   $search_page_params["form_script_modified"]=\webdb\utils\resource_modified_timestamp("list.js");
   $search_page_params["form_styles_modified"]=\webdb\utils\resource_modified_timestamp("list.css");
+  $search_page_params["form_styles_print_modified"]=\webdb\utils\resource_modified_timestamp("list_print.css");
   $search_page_params["title"]=$form_config["title"];
   $result=array();
   $result["title"]=$form_config["title"].": Advanced Search";

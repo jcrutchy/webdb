@@ -76,3 +76,63 @@ tr[class^="list_insert_row_"]
   {
     display: none;
   }
+
+/* advanced search */
+
+.advanced_search_form_outer
+  {
+    display: none;
+  }
+
+.advanced_search_results_outer
+  {
+    position: initial;
+    left: initial;
+    right: initial;
+    bottom: initial;
+    top: initial;
+    padding: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    border: 0;
+    margin: 0;
+  }
+
+.advanced_search_help_outer
+  {
+    display: none;
+  }
+
+.advanced_search_inner
+  {
+    position: initial;
+    left: initial;
+    right: initial;
+    top: initial;
+    bottom: initial;
+    padding: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    border: 0;
+  }
+
+.advanced_search_form_content
+  {
+    padding: 10px;
+    max-height: 100%;
+  }
+
+.advanced_search_results_content
+  {
+    padding: 0;
+    max-height: initial;
+  }
+
+#advanced_search_results
+  {
+  }
+
+#advanced_search_page_search_button
+  {
+    display: none;
+  }
