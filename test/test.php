@@ -48,6 +48,9 @@ function check_settings()
 {
   global $settings;
   $required_settings=array(
+    "env_root_path",
+    "app_root_path",
+    "app_directory_name",
     "webdb_root_path",
     "webdb_parent_path",
     "file_upload_mode",
@@ -160,6 +163,8 @@ function check_settings()
     \webdb\test\utils\check_required_file_exists($settings[$file]);
   }
   $required_paths=array(
+    "app_root_path",
+    "webdb_root_path",
     "webdb_templates_path",
     "app_templates_path",
     "webdb_sql_common_path",

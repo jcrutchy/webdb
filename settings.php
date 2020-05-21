@@ -3,6 +3,12 @@
 $settings["app_name"]="WebDB";
 $settings["app_title"]=$settings["app_name"];
 
+if (isset($settings["app_root_path"])==false)
+{
+  $settings["app_root_path"]=$settings["env_root_path"];
+}
+$settings["app_directory_name"]=basename($settings["app_root_path"]);
+
 $settings["app_web_root"]="/".$settings["app_directory_name"]."/";
 $settings["app_web_resources"]=$settings["app_web_root"]."resources/";
 $settings["app_web_index"]=$settings["app_web_root"]."index.php";
@@ -19,6 +25,8 @@ $settings["webdb_apps_path"]=$settings["webdb_root_path"]."apps".DIRECTORY_SEPAR
 $settings["webdb_templates_path"]=$settings["webdb_root_path"]."templates".DIRECTORY_SEPARATOR;
 $settings["webdb_resources_path"]=$settings["webdb_root_path"]."resources".DIRECTORY_SEPARATOR;
 $settings["webdb_forms_path"]=$settings["webdb_root_path"]."forms".DIRECTORY_SEPARATOR;
+
+$settings["env_templates_path"]="";
 
 $settings["webdb_default_form"]="default";
 

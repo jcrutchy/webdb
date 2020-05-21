@@ -44,7 +44,10 @@ if (\webdb\cli\is_cli_mode()==false)
   ob_start("\\webdb\\utils\\ob_postprocess");
 }
 
-$settings=array();
+if (isset($settings)==false)
+{
+  $settings=array();
+}
 
 if (\webdb\cli\is_cli_mode()==true)
 {

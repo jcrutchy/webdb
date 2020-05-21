@@ -158,6 +158,15 @@ function build_settings()
   $settings["webdb_templates"]=\webdb\utils\load_files($settings["webdb_templates_path"],"","htm",true);
   $settings["app_templates"]=\webdb\utils\load_files($settings["app_templates_path"],"","htm",true);
   $settings["templates"]=array_merge($settings["webdb_templates"],$settings["app_templates"]);
+  $settings["env_templates"]=array();
+  if (file_exists($settings["env_templates_path"])==true)
+  {
+    if (is_dir($settings["env_templates_path"])==true)
+    {
+      $settings["env_templates"]=\webdb\utils\load_files($settings["env_templates_path"],"","htm",true);
+      $settings["templates"]=array_merge($settings["templates"],$settings["env_templates"]);
+    }
+  }
   $settings["webdb_sql_common"]=\webdb\utils\load_files($settings["webdb_sql_common_path"],"","sql",true);
   $settings["webdb_sql_engine"]=\webdb\utils\load_files($settings["webdb_sql_engine_path"],"","sql",true);
   $settings["webdb_sql"]=array_merge($settings["webdb_sql_common"],$settings["webdb_sql_engine"]);
@@ -176,7 +185,7 @@ function initialize_settings()
 {
   global $settings;
   $includes=get_included_files();
-  $settings["app_root_path"]=dirname($includes[0]).DIRECTORY_SEPARATOR;
+  $settings["env_root_path"]=dirname($includes[0]).DIRECTORY_SEPARATOR;
   $settings["links_css"]=array();
   $settings["links_js"]=array();
   $settings["logs"]=array();
@@ -190,7 +199,6 @@ function initialize_settings()
   $settings["webdb_parent_path"]=dirname(__DIR__).DIRECTORY_SEPARATOR;
   $settings["webdb_root_path"]=__DIR__.DIRECTORY_SEPARATOR;
   $settings["webdb_directory_name"]=basename($settings["webdb_root_path"]);
-  $settings["app_directory_name"]=basename($settings["app_root_path"]);
   #$settings["constants"]=get_defined_constants(false); # BAD FOR PERFORMANCE OF TEMPLATE_FILL FUNCTION
   $settings["constants"]=array();
   $settings["constants"]["DIRECTORY_SEPARATOR"]=DIRECTORY_SEPARATOR;
@@ -220,7 +228,7 @@ function load_application_settings()
   $settings_filename=$settings["app_root_path"]."settings.php";
   if (file_exists($settings_filename)==false)
   {
-    \webdb\utils\system_message("error: settings file not found: ".$settings_filename);
+    \webdb\utils\system_message("error: application settings file not found: ".$settings_filename);
   }
   require_once($settings_filename);
 }
