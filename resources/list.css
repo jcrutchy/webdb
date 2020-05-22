@@ -126,6 +126,11 @@ input.date_edit_field
     width: 75px;
   }
 
+.print_only
+  {
+    display: none;
+  }
+
 .verticaltick_left
   {
     position: relative;
