@@ -4,6 +4,111 @@ namespace webdb\chat;
 
 #####################################################################################################
 
+function chat_initialize()
+{
+  global $settings;
+  if ($settings["db_engine"]=="mysql")
+  {
+    \webdb\sql\file_execute_prepare("chat/timezone_set");
+  }
+  $user_record=\webdb\chat\get_user_record_by_id($settings["user_record"]["user_id"]);
+  if ($user_record===false)
+  {
+    $value_items=array();
+    $value_items["user_id"]=$settings["user_record"]["user_id"];
+    $value_items["nick"]=$settings["user_record"]["username"];
+    $value_items["selected_channel_id"]=$channel_record["channel_id"];
+    $settings["sql_check_post_params_override"]=true;
+    \webdb\sql\sql_insert($value_items,"messenger_users",$settings["database_app"]);
+    $user_record=\webdb\chat\get_user_record_by_id($settings["user_record"]["user_id"]);
+  }
+  \webdb\chat\update_user($user_record);
+  return $user_record;
+}
+
+#####################################################################################################
+
+function update_online_user_list()
+{
+  global $settings;
+  $user_record=\webdb\chat\chat_initialize();
+  $data=array();
+  if ($user_record["json_data"]<>"")
+  {
+    $data=json_decode($user_record["json_data"],true);
+  }
+  if (isset($data["pages"])==false)
+  {
+    $data["pages"]=array();
+  }
+  $now=microtime(true);
+  foreach ($data["pages"] as $page_id => $page_time)
+  {
+    $delta=$now-$page_time;
+    if ($delta>$settings["online_user_list_update_interval_sec"])
+    {
+      unset($data["pages"][$page_id]);
+    }
+  }
+  if (isset($_GET["page"])==true)
+  {
+    $page_id=$_GET["page"];
+    $data["pages"][$page_id]=$now;
+  }
+  else
+  {
+    $data["pages"][""]=$now;
+  }
+  if ((count($data["pages"])>1) and (isset($data["pages"][""])==true))
+  {
+    unset($data["pages"][""]);
+  }
+  $user_record["json_data"]=json_encode($data);
+  \webdb\chat\update_user($user_record);
+  $user_records=\webdb\sql\file_fetch_prepare("chat/chat_user_get_all_enabled");
+  $online_users=array();
+  for ($i=0;$i<count($user_records);$i++)
+  {
+    $user=$user_records[$i];
+    $nick=$user["nick"];
+    $online_users[$nick]=array();
+    if ($user["json_data"]<>"")
+    {
+      $data=json_decode($user["json_data"],true);
+      if (isset($data["pages"])==true)
+      {
+        foreach ($data["pages"] as $page_id => $page_time)
+        {
+          $delta=$now-$page_time;
+          if ($delta<=$settings["online_user_list_update_interval_sec"])
+          {
+            $online_users[$nick][]=$page_id;
+          }
+        }
+      }
+    }
+  }
+  $data=array();
+  $rows="";
+  foreach ($online_users as $nick => $pages)
+  {
+    for ($i=0;$i<count($pages);$i++)
+    {
+      $params=array();
+      $params["nick"]=$nick;
+      $params["page_id"]=$pages[$i];
+      $rows.=\webdb\utils\template_fill("online_user_list_row",$params);
+    }
+  }
+  $params=array();
+  $params["rows"]=$rows;
+  $data["html"]=\webdb\utils\template_fill("online_user_list_table",$params);
+  $data=json_encode($data);
+  die($data);
+}
+
+#####################################################################################################
+
 function chat_messages_list($event_params)
 {
   global $settings;
@@ -48,7 +153,7 @@ function chat_messages_list($event_params)
 
 #####################################################################################################
 
-function admin_chat_stub($form_config)
+function page_chat_stub($form_config)
 {
   $record=array();
   $record["topic"]=$form_config["topic"];
@@ -90,10 +195,7 @@ function get_topic($form_config,$record)
 function chat_dispatch($record_id,$form_config,$record=false,$template="chat/popup_chat")
 {
   global $settings;
-  if ($settings["db_engine"]=="mysql")
-  {
-    \webdb\sql\file_execute_prepare("chat/timezone_set");
-  }
+  $user_record=\webdb\chat\chat_initialize();
   $channel_name=array();
   $channel_name["chat_channel_prefix"]=$settings["chat_channel_prefix"];
   $channel_name["page_id"]=$form_config["page_id"];
@@ -105,17 +207,6 @@ function chat_dispatch($record_id,$form_config,$record=false,$template="chat/pop
   $channel_name=json_encode($channel_name);
   $topic=\webdb\chat\get_topic($form_config,$record);
   $channel_record=\webdb\chat\get_channel_by_name($channel_name,$topic);
-  $user_record=\webdb\chat\get_user_record_by_id($settings["user_record"]["user_id"]);
-  if ($user_record===false)
-  {
-    $value_items=array();
-    $value_items["user_id"]=$settings["user_record"]["user_id"];
-    $value_items["nick"]=$settings["user_record"]["username"];
-    $value_items["selected_channel_id"]=$channel_record["channel_id"];
-    $settings["sql_check_post_params_override"]=true;
-    \webdb\sql\sql_insert($value_items,"messenger_users",$settings["database_app"]);
-    $user_record=\webdb\chat\get_user_record_by_id($settings["user_record"]["user_id"]);
-  }
   $value_items=array();
   $value_items["channel_id"]=$channel_record["channel_id"];
   $value_items["user_id"]=$user_record["user_id"];
@@ -149,6 +240,9 @@ function chat_dispatch($record_id,$form_config,$record=false,$template="chat/pop
                 case "/topic":
                   $channel_record["topic"]=$trailing;
                   \webdb\chat\update_channel($channel_record);
+                  $response=array();
+                  $response[]="topic changed";
+                  \webdb\chat\private_notice($response);
                   break;
                 case "/rps":
                   require_once($settings["webdb_apps_path"]."rps".DIRECTORY_SEPARATOR."rps.php");
@@ -159,78 +253,7 @@ function chat_dispatch($record_id,$form_config,$record=false,$template="chat/pop
                   }
                   break;
                 case "/delete":
-                  $response=array();
-                  if (\webdb\users\logged_in_user_in_group("admin")==true)
-                  {
-                    $message_id=array_shift($parts);
-                    $confirm_code=implode(" ",$parts);
-                    $data=array();
-                    if ($user_record["json_data"]<>"")
-                    {
-                      $data=json_decode($user_record["json_data"],true);
-                    }
-                    if (is_numeric($message_id)==true)
-                    {
-                      if (empty($confirm_code)==true)
-                      {
-                        $message_record=\webdb\chat\get_message_record_by_id($message_id);
-                        if ($message_record!==false)
-                        {
-                          foreach ($message_record as $field_name => $value)
-                          {
-                            $message_record[$field_name]=htmlspecialchars($value);
-                          }
-                          $delete_data=array();
-                          $delete_data["message_id"]=$message_id;
-                          $delete_data["confirm_code"]=\webdb\users\crypto_random_key();
-                          $data["admin_delete"]=$delete_data;
-                          $user_record["json_data"]=json_encode($data);
-                          \webdb\chat\update_user($user_record);
-                          $response[]="chat record to delete: ".json_encode($message_record);
-                          $response[]="repeat command with confirm code: ".$delete_data["confirm_code"];
-                          \webdb\chat\private_notice($response);
-                        }
-                        $response[]="error: message with id not found";
-                        \webdb\chat\private_notice($response);
-                      }
-                      else
-                      {
-                        if (isset($data["admin_delete"])==true)
-                        {
-                          $reference_code=$data["admin_delete"]["confirm_code"];
-                          unset($data["admin_delete"]);
-                          $user_record["json_data"]=json_encode($data);
-                          \webdb\chat\update_user($user_record);
-                          if ($confirm_code===$reference_code)
-                          {
-                            $items=array();
-                            $items["message_id"]=$message_id;
-                            \webdb\sql\sql_delete($items,"messenger_messages",$settings["database_app"]);
-                            $response[]="chat message with id ".$message_id." deleted";
-                            \webdb\chat\private_notice($response);
-                          }
-                          else
-                          {
-                            $response[]="error: confirm code mismatch";
-                            \webdb\chat\private_notice($response);
-                          }
-                        }
-                        $response[]="error: no admin_delete data found";
-                        \webdb\chat\private_notice($response);
-                      }
-                    }
-                    if (empty($trailing)==true)
-                    {
-                      $response[]=htmlspecialchars("syntax: /delete <message_id> [<confirm_code>]");
-                    }
-                    else
-                    {
-                      $response[]="error: invalid message id";
-                    }
-                    \webdb\chat\private_notice($response);
-                  }
-                  $response[]="error: command not permitted";
-                  \webdb\chat\private_notice($response);
+                  \webdb\chat\delete_chat_message($parts,$trailing);
                   break;
                 case "/shell":
                   $response=array();
@@ -266,10 +289,11 @@ function chat_dispatch($record_id,$form_config,$record=false,$template="chat/pop
                   $response[]="error: command not permitted";
                   \webdb\chat\private_notice($response);
                   break;
-                case "/sql": # less important because can use sql studio
+                case "/sql":
                   $response=array();
                   if (\webdb\users\logged_in_user_in_group("admin")==true)
                   {
+                    # todo: less important because can use sql studio
                   }
                   $response[]="error: command not permitted";
                   \webdb\chat\private_notice($response);
@@ -356,6 +380,84 @@ function chat_dispatch($record_id,$form_config,$record=false,$template="chat/pop
   \webdb\chat\update_last_read_message($user_record,$channel_record);
   $form_config["id"]=$record_id;
   return \webdb\utils\template_fill($template,$form_config);
+}
+
+#####################################################################################################
+
+function delete_chat_message($parts,$trailing)
+{
+  $response=array();
+  if (\webdb\users\logged_in_user_in_group("admin")==true)
+  {
+    $message_id=array_shift($parts);
+    $confirm_code=implode(" ",$parts);
+    $data=array();
+    if ($user_record["json_data"]<>"")
+    {
+      $data=json_decode($user_record["json_data"],true);
+    }
+    if (is_numeric($message_id)==true)
+    {
+      if (empty($confirm_code)==true)
+      {
+        $message_record=\webdb\chat\get_message_record_by_id($message_id);
+        if ($message_record!==false)
+        {
+          foreach ($message_record as $field_name => $value)
+          {
+            $message_record[$field_name]=htmlspecialchars($value);
+          }
+          $delete_data=array();
+          $delete_data["message_id"]=$message_id;
+          $delete_data["confirm_code"]=\webdb\users\crypto_random_key();
+          $data["admin_delete"]=$delete_data;
+          $user_record["json_data"]=json_encode($data);
+          \webdb\chat\update_user($user_record);
+          $response[]="chat record to delete: ".json_encode($message_record);
+          $response[]="repeat command with confirm code: ".$delete_data["confirm_code"];
+          \webdb\chat\private_notice($response);
+        }
+        $response[]="error: message with id not found";
+        \webdb\chat\private_notice($response);
+      }
+      else
+      {
+        if (isset($data["admin_delete"])==true)
+        {
+          $reference_code=$data["admin_delete"]["confirm_code"];
+          unset($data["admin_delete"]);
+          $user_record["json_data"]=json_encode($data);
+          \webdb\chat\update_user($user_record);
+          if ($confirm_code===$reference_code)
+          {
+            $items=array();
+            $items["message_id"]=$message_id;
+            \webdb\sql\sql_delete($items,"messenger_messages",$settings["database_app"]);
+            $response[]="chat message with id ".$message_id." deleted";
+            \webdb\chat\private_notice($response);
+          }
+          else
+          {
+            $response[]="error: confirm code mismatch";
+            \webdb\chat\private_notice($response);
+          }
+        }
+        $response[]="error: no admin_delete data found";
+        \webdb\chat\private_notice($response);
+      }
+    }
+    if (empty($trailing)==true)
+    {
+      $response[]=htmlspecialchars("syntax: /delete <message_id> [<confirm_code>]");
+    }
+    else
+    {
+      $response[]="error: invalid message id";
+    }
+    \webdb\chat\private_notice($response);
+  }
+  $response[]="error: command not permitted";
+  \webdb\chat\private_notice($response);
 }
 
 #####################################################################################################

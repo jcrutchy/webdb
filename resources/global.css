@@ -27,7 +27,7 @@ table
 input
   {
     font-size: 10pt;
-    background-image: none;
+    /*background-image: none;*/
   }
 
 select

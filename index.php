@@ -123,6 +123,11 @@ if ($settings["check_ua"]==true)
 
 \webdb\users\auth_dispatch();
 
+if (isset($_GET["update_oul"])==true)
+{
+  \webdb\chat\update_online_user_list();
+}
+
 if (isset($settings["controller_dispatch"])==true)
 {
   if (function_exists($settings["controller_dispatch"])==true)

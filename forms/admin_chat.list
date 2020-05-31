@@ -4,7 +4,7 @@
     "enabled": true,
     "title": "System Administration Chat",
     "page_id": "admin_chat",
-    "generate_stub": "\\webdb\\chat\\admin_chat_stub",
+    "generate_stub": "\\webdb\\chat\\page_chat_stub",
     "chat_enabled": true,
     "chat_topic_fields": "topic",
     "chat_topic_format": "%s",

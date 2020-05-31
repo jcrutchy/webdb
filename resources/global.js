@@ -2,6 +2,59 @@
 
 function page_load()
 {
+  update_online_user_list();
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function update_online_user_list()
+{
+  var url=window.location.href;
+  if (url.includes("?")==true)
+  {
+    url+="&update_oul";
+  }
+  else
+  {
+    url+="?update_oul";
+  }
+  ajax(url,"get",update_online_user_list_load,update_online_user_list_error,update_online_user_list_timeout);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function update_online_user_list_load()
+{
+  var data=get_ajax_load_data(this);
+  if (data===false)
+  {
+    return;
+  }
+  if (data.hasOwnProperty("html")==true)
+  {
+    var oul=document.getElementById("online_user_list_content");
+    if (oul)
+    {
+      oul.innerHTML=data.html;
+    }
+    setTimeout(update_online_user_list,oul_update_interval*1000);
+    return;
+  }
+  custom_alert("update_online_user_list_load");
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function update_online_user_list_error()
+{
+  custom_alert("update_online_user_list_error");
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function update_online_user_list_timeout()
+{
+  custom_alert("update_online_user_list_timeout");
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -178,19 +231,6 @@ function webdb_get_position(e)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-var default_ajax_timeout_sec=30;
-
-if (window.addEventListener)
-{
-  window.addEventListener("load",page_load);
-}
-else
-{
-  window.attachEvent("onload",page_load);
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-
 function darken_background(element,percent)
 {
   var color=element.style.backgroundColor;
@@ -225,6 +265,19 @@ function lighten_background(element,percent)
   G=Math.min(255,G+d);
   B=Math.min(255,B+d);
   element.style.backgroundColor="rgb("+R+","+G+","+B+")";
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+var default_ajax_timeout_sec=30;
+
+if (window.addEventListener)
+{
+  window.addEventListener("load",page_load);
+}
+else
+{
+  window.attachEvent("onload",page_load);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////

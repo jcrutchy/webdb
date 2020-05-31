@@ -58,7 +58,7 @@ function file_field_view($form_config)
   $records=\webdb\sql\fetch_prepare($sql,$conditions,"form_list_fetch_by_id",false,$sql_params["table"],$sql_params["database"],$file_form_config);
   $record_filename=$records[0][$field_name];
   $ext=pathinfo($record_filename,PATHINFO_EXTENSION);
-  if (isset($settings["permitted_upload_types"][$ext])==false)
+  if (isset($settings["permitted_upload_types"][strtolower($ext)])==false)
   {
     \webdb\utils\error_message("error: file type not permitted");
   }
@@ -2846,7 +2846,7 @@ function process_form_data_fields($form_config,$record_id,$post_override=false)
           if ($filename<>"")
           {
             $ext=pathinfo($filename,PATHINFO_EXTENSION);
-            if (isset($settings["permitted_upload_types"][$ext])==false)
+            if (isset($settings["permitted_upload_types"][strtolower($ext)])==false)
             {
               \webdb\utils\error_message("error: file type not permitted");
             }

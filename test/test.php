@@ -146,7 +146,8 @@ function check_settings()
     "chat_ding_file",
     "chat_timestamp_format",
     "chat_global_enable",
-    "chat_channel_prefix");
+    "chat_channel_prefix",
+    "online_user_list_update_interval_sec");
   for ($i=0;$i<count($required_settings);$i++)
   {
     \webdb\test\utils\check_required_setting_exists($required_settings[$i]);
