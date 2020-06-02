@@ -9,6 +9,11 @@ function page_load()
 
 function update_online_user_list()
 {
+  var auth_username=document.getElementById("auth_user_name");
+  if (auth_username===null)
+  {
+    return;
+  }
   var url=window.location.href;
   if (url.includes("?")==true)
   {

@@ -338,3 +338,8 @@ textarea
   {
     display: none;
   }
+
+#auth_user_name
+  {
+    display: none;
+  }
