@@ -58,3 +58,8 @@
     padding-bottom: 1px;
     margin: 0;
   }
+
+#online_user_list_content td.oul_nick
+  {
+    padding-right: 3px;
+  }

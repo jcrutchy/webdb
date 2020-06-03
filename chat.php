@@ -42,27 +42,38 @@ function update_online_user_list()
     $data["pages"]=array();
   }
   $now=microtime(true);
-  foreach ($data["pages"] as $page_id => $page_time)
+  foreach ($data["pages"] as $url => $page_time)
   {
     $delta=$now-$page_time;
     if ($delta>$settings["online_user_list_update_interval_sec"])
     {
-      unset($data["pages"][$page_id]);
+      unset($data["pages"][$url]);
     }
   }
-  if (isset($_GET["page"])==true)
+  $url=\webdb\utils\get_url();
+  $strip_params=array("update_oul","chat_break","redirect","filters","ajax","subform","parent_form","parent_id");
+  $params=explode("?",$url);
+  if (count($params)==2)
   {
-    $page_id=$_GET["page"];
-    $data["pages"][$page_id]=$now;
+    $url=$params[0];
+    $params=$params[1];
+    $params=explode("&",$params);
+    $output=array();
+    for ($i=0;$i<count($params);$i++)
+    {
+      $parts=explode("=",$params[$i]);
+      $test_param=array_shift($parts);
+      if (in_array($test_param,$strip_params)==false)
+      {
+        $output[]=$params[$i];
+      }
+    }
+    if (count($output)>0)
+    {
+      $url.="?".implode("&",$output);
+    }
   }
-  else
-  {
-    $data["pages"][""]=$now;
-  }
-  if ((count($data["pages"])>1) and (isset($data["pages"][""])==true))
-  {
-    unset($data["pages"][""]);
-  }
+  $data["pages"][$url]=$now;
   $user_record["json_data"]=json_encode($data);
   \webdb\chat\update_user($user_record);
   $user_records=\webdb\sql\file_fetch_prepare("chat/chat_user_get_all_enabled");
@@ -77,12 +88,12 @@ function update_online_user_list()
       $data=json_decode($user["json_data"],true);
       if (isset($data["pages"])==true)
       {
-        foreach ($data["pages"] as $page_id => $page_time)
+        foreach ($data["pages"] as $url => $page_time)
         {
           $delta=$now-$page_time;
           if ($delta<=$settings["online_user_list_update_interval_sec"])
           {
-            $online_users[$nick][]=$page_id;
+            $online_users[$nick][]=$url;
           }
         }
       }
@@ -96,7 +107,13 @@ function update_online_user_list()
     {
       $params=array();
       $params["nick"]=$nick;
-      $params["page_id"]=$pages[$i];
+      $params["url"]=$pages[$i];
+      $params["caption"]="";
+      if (strpos($pages[$i],"?")!==false)
+      {
+        $caption=explode("?",$pages[$i]);
+        $params["caption"]=array_pop($caption);
+      }
       $rows.=\webdb\utils\template_fill("online_user_list_row",$params);
     }
   }
