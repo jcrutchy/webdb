@@ -42,8 +42,15 @@ function update_online_user_list()
     $data["pages"]=array();
   }
   $now=microtime(true);
-  foreach ($data["pages"] as $url => $page_time)
+  foreach ($data["pages"] as $url => $page_data)
   {
+    $parts=explode("|",$page_data);
+    if (count($parts)==1)
+    {
+      unset($data["pages"][$url]);
+      continue;
+    }
+    $page_time=$parts[2];
     $delta=$now-$page_time;
     if ($delta>$settings["online_user_list_update_interval_sec"])
     {
@@ -51,8 +58,12 @@ function update_online_user_list()
     }
   }
   $url=\webdb\utils\get_url();
-  $strip_params=array("update_oul","chat_break","redirect","filters","ajax","subform","parent_form","parent_id");
+  $strip_params=array("update_oul","chat_break","redirect","filters","sort","dir");
+  $skip_params=array("ajax","subform","parent_form","parent_id");
   $params=explode("?",$url);
+  $skip=false;
+  $page_id="";
+  $record_id="";
   if (count($params)==2)
   {
     $url=$params[0];
@@ -62,8 +73,27 @@ function update_online_user_list()
     for ($i=0;$i<count($params);$i++)
     {
       $parts=explode("=",$params[$i]);
-      $test_param=array_shift($parts);
-      if (in_array($test_param,$strip_params)==false)
+      $test_key=array_shift($parts);
+      $test_val=implode("=",$parts);
+      if (($test_key=="cmd") and ($test_val=="insert"))
+      {
+        $skip=true;
+        break;
+      }
+      if (in_array($test_key,$skip_params)==true)
+      {
+        $skip=true;
+        break;
+      }
+      if ($test_key=="page")
+      {
+        $page_id=$test_val;
+      }
+      if ($test_key=="id")
+      {
+        $record_id=$test_val;
+      }
+      if (in_array($test_key,$strip_params)==false)
       {
         $output[]=$params[$i];
       }
@@ -73,7 +103,10 @@ function update_online_user_list()
       $url.="?".implode("&",$output);
     }
   }
-  $data["pages"][$url]=$now;
+  if ($skip==false)
+  {
+    $data["pages"][$url]=$page_id."|".$record_id."|".$now;
+  }
   $user_record["json_data"]=json_encode($data);
   \webdb\chat\update_user($user_record);
   $user_records=\webdb\sql\file_fetch_prepare("chat/chat_user_get_all_enabled");
@@ -88,12 +121,18 @@ function update_online_user_list()
       $data=json_decode($user["json_data"],true);
       if (isset($data["pages"])==true)
       {
-        foreach ($data["pages"] as $url => $page_time)
+        foreach ($data["pages"] as $url => $page_data)
         {
+          $parts=explode("|",$page_data);
+          if (count($parts)==1)
+          {
+            continue;
+          }
+          $page_time=$parts[2];
           $delta=$now-$page_time;
           if ($delta<=$settings["online_user_list_update_interval_sec"])
           {
-            $online_users[$nick][]=$url;
+            $online_users[$nick][$url]=$page_data;
           }
         }
       }
@@ -101,18 +140,34 @@ function update_online_user_list()
   }
   $data=array();
   $rows="";
-  foreach ($online_users as $nick => $pages)
+  foreach ($online_users as $nick => $urls)
   {
-    for ($i=0;$i<count($pages);$i++)
+    foreach ($urls as $url => $page_data)
     {
+      $parts=explode("|",$page_data);
       $params=array();
       $params["nick"]=$nick;
-      $params["url"]=$pages[$i];
+      $params["url"]=$url;
+      $page_id=$parts[0];
+      $record_id=$parts[1];
+      $form_config=\webdb\forms\get_form_config($page_id,true);
       $params["caption"]="";
-      if (strpos($pages[$i],"?")!==false)
+      if ($form_config!==false)
       {
-        $caption=explode("?",$pages[$i]);
-        $params["caption"]=array_pop($caption);
+        $params["caption"]=$form_config["title"];
+        if ($record_id!=="")
+        {
+          $record=\webdb\forms\get_record_by_id($form_config,$record_id,"primary_key");
+          $params["caption"]=\webdb\chat\get_topic($form_config,$record,"user_list");
+        }
+      }
+      if ($params["caption"]=="")
+      {
+        if (strpos($url,"?")!==false)
+        {
+          $caption=explode("?",$url);
+          $params["caption"]=array_pop($caption);
+        }
       }
       $rows.=\webdb\utils\template_fill("online_user_list_row",$params);
     }
@@ -180,12 +235,12 @@ function page_chat_stub($form_config)
 
 #####################################################################################################
 
-function get_topic($form_config,$record)
+function get_topic($form_config,$record,$config_prefix="chat_topic")
 {
   $topic="";
-  if (($record!==false) and ($form_config["chat_topic_fields"]<>"") and ($form_config["chat_topic_format"]<>""))
+  if (($record!==false) and ($form_config[$config_prefix."_fields"]<>"") and ($form_config[$config_prefix."_format"]<>""))
   {
-    $field_names=explode(",",$form_config["chat_topic_fields"]);
+    $field_names=explode(",",$form_config[$config_prefix."_fields"]);
     $field_values=array();
     for ($i=0;$i<count($field_names);$i++)
     {
@@ -201,7 +256,7 @@ function get_topic($form_config,$record)
       }
       $field_values[]=$value;
     }
-    $format=trim($form_config["chat_topic_format"]);
+    $format=trim($form_config[$config_prefix."_format"]);
     $topic=vsprintf($format,$field_values);
   }
   return $topic;

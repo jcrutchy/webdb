@@ -586,3 +586,17 @@ input.date_edit_field
   {
     color: green;
   }
+
+.list_sort_link
+  {
+    text-decoration: none;
+    cursor: pointer;
+    color: #cc0033;
+  }
+
+.reset_sort_link
+  {
+    text-decoration: none;
+    cursor: pointer;
+    color: #cc0033;
+  }

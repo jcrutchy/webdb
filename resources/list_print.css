@@ -136,3 +136,13 @@ tr[class^="list_insert_row_"]
   {
     display: none;
   }
+
+.list_sort_link
+  {
+    display: none;
+  }
+
+.reset_sort_link
+  {
+    display: none;
+  }

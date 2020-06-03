@@ -42,13 +42,11 @@
     padding: 0;
     padding-top: 2px;
     text-align: left;
-    font-size: 7px;
     color: #555555;
   }
 
 #online_user_list_content table
   {
-    width: 100%;
   }
 
 #online_user_list_content td
@@ -57,9 +55,10 @@
     padding: 0;
     padding-bottom: 1px;
     margin: 0;
+    font-size: 11px !important;
   }
 
 #online_user_list_content td.oul_nick
   {
-    padding-right: 3px;
+    padding-right: 5px;
   }

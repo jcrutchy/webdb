@@ -13,6 +13,10 @@ function get_form_config($page_id,$return=false)
     {
       if (\webdb\utils\check_user_form_permission($page_id,"r")==false)
       {
+        if ($return!==false)
+        {
+          return false;
+        }
         \webdb\utils\error_message("error: form read permission denied");
       }
       return $form_config;
@@ -363,6 +367,22 @@ function form_dispatch($page_id)
 
 #####################################################################################################
 
+function process_sort_sql(&$form_config)
+{
+  global $settings;
+  $engine_key="sort_sql_".$settings["db_engine"];
+  if (($form_config["sort_sql"]=="") and ($form_config[$engine_key]<>""))
+  {
+    $form_config["sort_sql"]=$form_config[$engine_key];
+  }
+  if ($form_config["sort_sql"]<>"")
+  {
+    $form_config["sort_sql"]=\webdb\utils\sql_fill("sort_clause",$form_config);
+  }
+}
+
+#####################################################################################################
+
 function checklist_update($form_config,$parent_id)
 {
   global $settings;
@@ -374,10 +394,7 @@ function checklist_update($form_config,$parent_id)
   $link_fields=$form_config["link_fields"];
   $list_records=array();
   \webdb\forms\process_filter_sql($form_config);
-  if ($form_config["sort_sql"]<>"")
-  {
-    $form_config["sort_sql"]=\webdb\utils\sql_fill("sort_clause",$form_config);
-  }
+  \webdb\forms\process_sort_sql($form_config);
   $sql=\webdb\utils\sql_fill("form_list_fetch_all",$form_config);
   $list_records=\webdb\sql\fetch_prepare($sql,array(),"form_list_fetch_all",false,$form_config["table"],$form_config["database"],$form_config);
   $sql_params=array();
@@ -588,10 +605,7 @@ function get_subform_content($subform_config,$subform_link_field,$id,$list_only=
       $subform_config["edit_cmd"]="inline";
       if ($subform_config["records_sql"]=="")
       {
-        if ($subform_config["sort_sql"]<>"")
-        {
-          $subform_config["sort_sql"]=\webdb\utils\sql_fill("sort_clause",$subform_config);
-        }
+        \webdb\forms\process_sort_sql($subform_config);
         $sql=\webdb\utils\sql_fill("form_list_fetch_all",$subform_config);
         $records=\webdb\sql\fetch_prepare($sql,array(),"form_list_fetch_all",false,$subform_config["table"],$subform_config["database"],$subform_config);
       }
@@ -625,12 +639,9 @@ function get_subform_content($subform_config,$subform_link_field,$id,$list_only=
           $sql_params=array();
           $sql_params["database"]=$subform_config["database"];
           $sql_params["table"]=$subform_config["table"];
+          \webdb\forms\process_sort_sql($subform_config);
           $sql_params["sort_sql"]=$subform_config["sort_sql"];
           $sql_params["link_field_name"]=$subform_link_field;
-          if ($sql_params["sort_sql"]<>"")
-          {
-            $sql_params["sort_sql"]=\webdb\utils\sql_fill("sort_clause",$sql_params);
-          }
           $sql_filename="subform_list_fetch";
           $database=$sql_params["database"];
           $table=$sql_params["table"];
@@ -1575,7 +1586,7 @@ function get_column_format_data($form_config)
     {
       continue;
     }
-    $caption=$form_config["captions"][$field_name];
+    $caption="&nbsp;&nbsp;".$form_config["captions"][$field_name];
     $lines=explode("@@break@@",$caption);
     for ($i=0;$i<count($lines);$i++)
     {
@@ -1594,7 +1605,7 @@ function get_column_format_data($form_config)
   $data["rotate_height"]=round($data["rotate_span_width"]*0.707)+30;
   $data["group_caption_first_left"]=$data["rotate_height"]+1-20;
   $data["group_caption_left"]=$data["rotate_height"]-20;
-  $data["controls_min_width"]=round($data["rotate_span_width"]*0.707)-20;
+  $data["controls_min_width"]=round($data["rotate_span_width"]*0.707)-5;
   $data["rotate_group_borders"]=array();
   $data["left_group_borders"]=array();
   $data["right_group_borders"]=array();
@@ -1813,7 +1824,15 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
     $header_params["z_index"]=$z_index;
     $z_index--;
     $header_params["rotate_div_translate"]=1;
-    $header_params["field_name"]=$form_config["captions"][$field_name];
+    $header_params["field_name"]="&nbsp;&nbsp;".$form_config["captions"][$field_name];
+    $header_params["sort_link"]="";
+    if ((isset($_GET["cmd"])==false) and (isset($_GET["ajax"])==false) and ($form_config["sort_enabled"]==true))
+    {
+      $sort_link_params=array();
+      $sort_link_params["page_id"]=$form_config["page_id"];
+      $sort_link_params["field_name"]=$field_name;
+      $header_params["sort_link"]=\webdb\forms\form_template_fill("sort_link",$sort_link_params);
+    }
     $header_params["rotate_border_color"]=$settings["list_diagonal_border_color"];
     $header_params["left_border_color"]=$settings["list_border_color"];
     $header_params["right_border_color"]=$settings["list_border_color"];
@@ -1906,6 +1925,7 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
     $header_params["right_border_color"]=$settings["list_border_color"];
     $header_params["rotate_border_width"]=$settings["list_group_border_width"];
     $header_params["rotate_border_color"]=$settings["list_group_border_color"];
+    $header_params["sort_link"]="";
     $field_headers.=\webdb\forms\form_template_fill("list_field_header",$header_params);
   }
   $head_params=\webdb\forms\header_row($form_config);
@@ -1925,7 +1945,7 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
   }
   if ($records===false)
   {
-    if (isset($_GET["sort"])==true)
+    if ((isset($_GET["sort"])==true) and ($form_config["sort_enabled"]==true))
     {
       $sort_field=$_GET["sort"];
       if (isset($form_config["control_types"][$sort_field])==true)
@@ -1945,10 +1965,7 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
         $form_config["sort_sql"]=$sort_sql;
       }
     }
-    if ($form_config["sort_sql"]<>"")
-    {
-      $form_config["sort_sql"]=\webdb\utils\sql_fill("sort_clause",$form_config);
-    }
+    \webdb\forms\process_sort_sql($form_config);
     $sql=\webdb\utils\sql_fill("form_list_fetch_all",$form_config);
     $records=\webdb\sql\fetch_prepare($sql,array(),"form_list_fetch_all",false,"","",$form_config);
   }
@@ -2089,6 +2106,11 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
   {
     $form_params["parent_id"]=$form_config["parent_form_id"];
     $form_params["parent_form_page_id"]=$form_config["parent_form_config"]["page_id"];
+  }
+  $form_params["reset_sort_link"]="";
+  if ((isset($_GET["cmd"])==false) and (isset($_GET["ajax"])==false) and ($form_config["sort_enabled"]==true))
+  {
+    $form_params["reset_sort_link"]=\webdb\forms\form_template_fill("reset_sort_link",$form_params);
   }
   return \webdb\forms\form_template_fill("list",$form_params);
 }

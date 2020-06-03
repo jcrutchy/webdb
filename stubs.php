@@ -141,6 +141,8 @@ function list_insert($form_config)
       case "subform":
       case "parent_form":
       case "parent_id":
+      case "sort":
+      case "dir":
         break;
       default:
         $insert_default_params[$param_name]=$param_value;
