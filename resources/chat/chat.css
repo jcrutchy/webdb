@@ -260,6 +260,7 @@
     white-space: nowrap;
     padding-right: 5px;
     border-right: 1px solid #bdc9cd;
+    text-align: right;
   }
 
 .message_td_nick
@@ -305,6 +306,7 @@
     padding-right: 5px;
     border-right: 1px solid #bdc9cd;
     border-bottom: 1px solid #bdc9cd;
+    text-align: right;
   }
 
 .message_break_td_nick
@@ -353,6 +355,7 @@
     padding-right: 5px;
     border-right: 1px solid #bdc9cd;
     color: #117f9c;
+    text-align: right;
   }
 
 .message_notice_td_nick

@@ -3151,6 +3151,8 @@ function delete_confirmation($form_config,$id)
   $list_form_config=$form_config;
   $list_form_config["multi_row_delete"]=false;
   $list_form_config["delete_cmd"]=false;
+  $list_form_config["sort_enabled"]=false;
+  $list_form_config["chat_enabled"]=false;
   $list_form_config["edit_cmd"]="none";
   $list_form_config["insert_new"]=false;
   $list_form_config["insert_row"]=false;
@@ -3329,6 +3331,8 @@ function delete_selected_confirmation($form_config)
   $list_form_config["table_cell_styles"]["fk_table_list"]=\webdb\forms\form_template_fill("delete_selected_foreign_key_ref_style");
   $list_form_config["multi_row_delete"]=false;
   $list_form_config["delete_cmd"]=false;
+  $list_form_config["sort_enabled"]=false;
+  $list_form_config["chat_enabled"]=false;
   $list_form_config["edit_cmd"]="none";
   $list_form_config["insert_new"]=false;
   $list_form_config["insert_row"]=false;
