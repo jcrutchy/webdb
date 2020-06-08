@@ -39,6 +39,8 @@ define("webdb\\index\\TEMPLATE_PLACEHOLDER_1","!~template_placeholder_1~!");
 define("webdb\\index\\TEMPLATE_PLACEHOLDER_2","!~template_placeholder_2~!");
 define("webdb\\index\\TEMPLATE_PLACEHOLDER_3","!~template_placeholder_3~!");
 
+\webdb\utils\run_service();
+
 if (\webdb\cli\is_cli_mode()==false)
 {
   ob_start("\\webdb\\utils\\ob_postprocess");

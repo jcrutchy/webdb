@@ -1389,3 +1389,12 @@ function is_row_locked($schema,$table,$key_field,$key_value)
 }
 
 #####################################################################################################
+
+function run_service()
+{
+  global $settings;
+  #$cmd="wmic process where \"name='php.exe'\" get Commandline";
+  #die(shell_exec($cmd));
+}
+
+#####################################################################################################
