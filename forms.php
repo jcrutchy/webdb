@@ -66,14 +66,14 @@ function file_field_view($form_config)
   {
     \webdb\utils\error_message("error: file type not permitted");
   }
-  $target_filename=\webdb\forms\get_uploaded_filename($page_id,$record_id,$field_name);
+  $target_filename=\webdb\forms\get_uploaded_filename($file_form_config,$record_id,$field_name);
   $settings["ignore_ob_postprocess"]=true;
   ob_end_clean(); # discard buffer & disable output buffering (\webdb\utils\ob_postprocess function is still called)
   header("Cache-Control: no-cache");
   header("Expires: -1");
   header("Pragma: no-cache");
   header("Accept-Ranges: bytes");
-  header("Content-Type: ".$settings["permitted_upload_types"][$ext]);
+  header("Content-Type: ".$settings["permitted_upload_types"][strtolower($ext)]);
   header("Content-Disposition: inline; filename=\"".$record_filename."\"");
   switch ($settings["file_upload_mode"])
   {
@@ -142,8 +142,7 @@ function delete_file($form_config,$record_id,$field_name)
   {
     \webdb\stubs\stub_error("error: record delete permission denied for form '".$form_config["page_id"]."'");
   }
-  $page_id=$form_config["page_id"];
-  $target_filename=\webdb\forms\get_uploaded_filename($page_id,$record_id,$field_name);
+  $target_filename=\webdb\forms\get_uploaded_filename($form_config,$record_id,$field_name);
   switch ($settings["file_upload_mode"])
   {
     case "rename":
@@ -2783,7 +2782,7 @@ function upload_file($form_config,$field_name,$record_id)
   {
     $record_id=\webdb\sql\sql_last_insert_autoinc_id();
   }
-  $target_filename=\webdb\forms\get_uploaded_filename($page_id,$record_id,$field_name);
+  $target_filename=\webdb\forms\get_uploaded_filename($form_config,$record_id,$field_name);
   switch ($settings["file_upload_mode"])
   {
     case "rename":
@@ -2800,9 +2799,14 @@ function upload_file($form_config,$field_name,$record_id)
 
 #####################################################################################################
 
-function get_uploaded_filename($page_id,$record_id,$field_name)
+function get_uploaded_filename($form_config,$record_id,$field_name)
 {
   global $settings;
+  $page_id=$form_config["page_id"];
+  if ($form_config["file_field_page_id"]<>"")
+  {
+    $page_id=$form_config["file_field_page_id"];
+  }
   $filename=$page_id."__".$record_id."__".$field_name;
   $filename=str_replace(DIRECTORY_SEPARATOR,"_",$filename);
   $filename=str_replace(" ","_",$filename);
