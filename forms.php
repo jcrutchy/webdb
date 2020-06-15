@@ -1050,13 +1050,33 @@ function list_row($form_config,$record,$column_format,$row_spans,$lookup_records
     {
       $fields.=\webdb\forms\output_readonly_field($field_params,$control_type,$form_config,$field_name,$lookup_records,$display_record,$link_record);
     }
-    $row_params["default_checked"]="";
+  }
+  $row_params["list_row_controls"]="";
+  $row_params["default_checked"]="";
+  $row_params["controls"]="";
+  $row_params["group_span"]="";
+  $row_params["check"]=\webdb\forms\check_column($form_config,"list_check",$row_params);
+  $row_params["controls_min_width"]=$column_format["controls_min_width"];
+  $skip_controls=false;
+  if (in_array($form_config["edit_cmd_id"],$form_config["group_by"])==true)
+  {
+    if ($row_spans[$record_index]==0)
+    {
+      $skip_controls=true;
+    }
+    else
+    {
+      $group_span_params=array();
+      $group_span_params["row_span"]=$row_spans[$record_index];
+      $row_params["group_span"]=\webdb\forms\form_template_fill("group_span",$group_span_params);
+    }
+  }
+  if ($skip_controls==false)
+  {
     if ($checklist_row_linked==true)
     {
       $row_params["default_checked"]=\webdb\utils\template_fill("checkbox_checked");
     }
-    $row_params["check"]=\webdb\forms\check_column($form_config,"list_check",$row_params);
-    $row_params["controls"]="";
     if (($form_config["edit_cmd"]=="button") or ($form_config["edit_cmd"]=="inline"))
     {
       if ($form_config["edit_button_caption"]<>"")
@@ -1072,7 +1092,7 @@ function list_row($form_config,$record,$column_format,$row_spans,$lookup_records
       $row_params["delete_button_caption"]=$form_config["delete_button_caption"];
       $row_params["controls"].=\webdb\forms\form_template_fill("list_row_del",$row_params);
     }
-    $row_params["controls_min_width"]=$column_format["controls_min_width"];
+    $row_params["list_row_controls"]=\webdb\forms\form_template_fill("list_row_controls",$row_params);
   }
   $row_params["fields"]=$fields;
   $row_params["last_group_border_width"]=$settings["list_border_width"];

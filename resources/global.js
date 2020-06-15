@@ -43,23 +43,19 @@ function update_online_user_list_load()
       oul.innerHTML=data.html;
     }
     setTimeout(update_online_user_list,oul_update_interval*1000);
-    return;
   }
-  custom_alert("update_online_user_list_load");
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function update_online_user_list_error()
 {
-  custom_alert("update_online_user_list_error");
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function update_online_user_list_timeout()
 {
-  custom_alert("update_online_user_list_timeout");
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////

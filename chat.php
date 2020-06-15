@@ -17,7 +17,7 @@ function chat_initialize()
     $value_items=array();
     $value_items["user_id"]=$settings["user_record"]["user_id"];
     $value_items["nick"]=$settings["user_record"]["username"];
-    $value_items["selected_channel_id"]=$channel_record["channel_id"];
+    $value_items["selected_channel_id"]=1; # not used
     $settings["sql_check_post_params_override"]=true;
     \webdb\sql\sql_insert($value_items,"messenger_users",$settings["database_app"]);
     $user_record=\webdb\chat\get_user_record_by_id($settings["user_record"]["user_id"]);
@@ -288,8 +288,6 @@ function chat_dispatch($record_id,$form_config,$record=false,$template="chat/pop
     $settings["sql_check_post_params_override"]=true;
     \webdb\sql\sql_insert($value_items,"messenger_channel_users",$settings["database_app"]);
   }
-  $user_record["selected_channel_id"]=$channel_record["channel_id"];
-  \webdb\chat\update_user($user_record);
   if (isset($_GET["ajax"])==true)
   {
     $cmd=$_GET["ajax"];
@@ -584,7 +582,6 @@ function update_user($user_record)
   $value_items=array();
   $value_items["enabled"]=$user_record["enabled"];
   $value_items["nick"]=$user_record["nick"];
-  $value_items["selected_channel_id"]=$user_record["selected_channel_id"];
   $value_items["last_online"]=\webdb\sql\current_sql_timestamp();
   $value_items["json_data"]=$user_record["json_data"];
   $settings["sql_check_post_params_override"]=true;
