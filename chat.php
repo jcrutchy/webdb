@@ -58,7 +58,7 @@ function update_online_user_list()
     }
   }
   $url=\webdb\utils\get_url();
-  $strip_params=array("update_oul","chat_break","redirect","filters","sort","dir");
+  $strip_params=array("update_oul","chat_break","redirect","filters","sort","dir","home");
   $skip_params=array("ajax","subform","parent_form","parent_id");
   $params=explode("?",$url);
   $skip=false;

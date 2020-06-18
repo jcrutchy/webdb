@@ -95,6 +95,8 @@ $settings["app_group_access"]="*"; # * => all groups
 $settings["permitted_upload_types"]=array();
 $settings["permitted_upload_types"]["pdf"]="application/pdf";
 $settings["permitted_upload_types"]["txt"]="text/plain";
+$settings["permitted_upload_types"]["htm"]="text/html";
+$settings["permitted_upload_types"]["html"]="text/html";
 $settings["permitted_upload_types"]["doc"]="application/msword";
 $settings["permitted_upload_types"]["docx"]="application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 $settings["permitted_upload_types"]["xls"]="application/vnd.ms-excel";

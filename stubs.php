@@ -142,6 +142,7 @@ function list_insert($form_config)
       case "parent_form":
       case "parent_id":
       case "sort":
+      case "home":
       case "dir":
         break;
       default:
