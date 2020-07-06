@@ -9,6 +9,11 @@ function page_load()
 
 function update_online_user_list()
 {
+  var status=document.getElementById("status_message");
+  if (status)
+  {
+    status.innerHTML="updating user list...";
+  }
   var auth_username=document.getElementById("auth_user_name");
   if (auth_username===null)
   {
@@ -35,6 +40,11 @@ function update_online_user_list_load()
   {
     return;
   }
+  var status=document.getElementById("status_message");
+  if (status)
+  {
+    status.innerHTML="";
+  }
   if (data.hasOwnProperty("html")==true)
   {
     var oul=document.getElementById("online_user_list_content");
@@ -50,12 +60,22 @@ function update_online_user_list_load()
 
 function update_online_user_list_error()
 {
+  var status=document.getElementById("status_message");
+  if (status)
+  {
+    status.innerHTML="";
+  }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function update_online_user_list_timeout()
 {
+  var status=document.getElementById("status_message");
+  if (status)
+  {
+    status.innerHTML="";
+  }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -143,7 +163,7 @@ function get_ajax_load_data(response)
   }
   catch (e)
   {
-    custom_alert(response_text);
+    //custom_alert(response_text);
     return false;
   }
   if (data.hasOwnProperty("error")==true)

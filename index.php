@@ -27,6 +27,7 @@ require_once("manage.php");
 require_once("cli.php");
 require_once("tools".DIRECTORY_SEPARATOR."dxf.php");
 require_once("tools".DIRECTORY_SEPARATOR."graphics.php");
+require_once("service".DIRECTORY_SEPARATOR."service.php");
 
 set_error_handler("\\webdb\\utils\\error_handler",E_ALL);
 set_exception_handler("\\webdb\\utils\\exception_handler");
@@ -38,8 +39,6 @@ define("webdb\\index\\LOOKUP_DISPLAY_FIELD_DELIM"," - ");
 define("webdb\\index\\TEMPLATE_PLACEHOLDER_1","!~template_placeholder_1~!");
 define("webdb\\index\\TEMPLATE_PLACEHOLDER_2","!~template_placeholder_2~!");
 define("webdb\\index\\TEMPLATE_PLACEHOLDER_3","!~template_placeholder_3~!");
-
-\webdb\utils\run_service();
 
 if (\webdb\cli\is_cli_mode()==false)
 {
@@ -54,9 +53,12 @@ if (isset($settings)==false)
 if (\webdb\cli\is_cli_mode()==true)
 {
   \webdb\cli\cli_dispatch();
+  die;
 }
 
 \webdb\utils\load_settings();
+
+\webdb\service\run_service();
 
 $settings["request_url"]=\webdb\utils\get_url();
 $settings["request_base_url"]=\webdb\utils\get_base_url();

@@ -38,7 +38,9 @@ function check_unauthenticated_csrf_token()
   }
   if ($csrf_ok==false)
   {
-    \webdb\utils\error_message(\webdb\utils\template_fill("csrf_error_unauth"));
+    $url=\webdb\utils\get_base_url();
+    \webdb\utils\redirect($url,true);
+    #\webdb\utils\error_message(\webdb\utils\template_fill("csrf_error_unauth"));
   }
   $token=\webdb\users\crypto_random_key();
   $settings["csrf_header_unauth"]=$token;

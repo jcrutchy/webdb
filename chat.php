@@ -325,6 +325,9 @@ function chat_dispatch($record_id,$form_config,$record=false,$template="chat/pop
                 case "/delete":
                   \webdb\chat\delete_chat_message($parts,$trailing);
                   break;
+                case "/service":
+                  \webdb\service\client_message($parts);
+                  break;
                 case "/shell":
                   $response=array();
                   $admin_channel_name=array();

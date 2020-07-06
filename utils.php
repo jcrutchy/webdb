@@ -83,10 +83,13 @@ function info_message($message,$show_backtrace=false)
 
 function error_message($message)
 {
+  global $settings;
   if (isset($_GET["ajax"])==true)
   {
     $message.=\webdb\utils\webdb_debug_backtrace();
   }
+  $subject=$settings["app_name"]." \\webdb\\utils\\error_message";
+  \webdb\utils\send_email($settings["admin_email"],"",$subject,$message);
   \webdb\utils\info_message($message,true);
 }
 
@@ -1093,15 +1096,34 @@ function check_csrf_error($response)
 
 function error_handler($errno,$errstr,$errfile,$errline)
 {
-  \webdb\utils\system_message("[".date("Y-m-d, H:i:s T",time())."] ".$errstr." in \"".$errfile."\" on line ".$errline);
-  return false;
+  $message="[".date("Y-m-d, H:i:s T",time())."] ".$errstr." in \"".$errfile."\" on line ".$errline;
+  \webdb\utils\email_admin($message,"error_handler");
+  \webdb\utils\system_message($message);
+}
+
+#####################################################################################################
+
+function email_admin($message,$type)
+{
+  global $settings;
+  $subject=$settings["app_name"]." ".$type;
+  $user_record=false;
+  if (isset($settings["user_record"])==true)
+  {
+    $user_record=$settings["user_record"];
+    \webdb\users\obfuscate_hashes($user_record);
+  }
+  $message.=PHP_EOL.print_r($user_record);
+  \webdb\utils\send_email($settings["admin_email"],"",$subject,$message);
 }
 
 #####################################################################################################
 
 function exception_handler($exception)
 {
-  \webdb\utils\system_message("[".date("Y-m-d, H:i:s T",time())."] ".$exception->getMessage()." in \"".$exception->getFile()."\" on line ".$exception->getLine());
+  $message="[".date("Y-m-d, H:i:s T",time())."] ".$exception->getMessage()." in \"".$exception->getFile()."\" on line ".$exception->getLine();
+  \webdb\utils\email_admin($message,"exception_handler");
+  \webdb\utils\system_message();
 }
 
 #####################################################################################################
@@ -1167,8 +1189,21 @@ function load_credentials($prefix,$optional=false)
 
 #####################################################################################################
 
-function send_email($recipient,$cc,$subject,$message,$from,$reply_to,$bounce_to)
+function send_email($recipient,$cc,$subject,$message,$from="",$reply_to="",$bounce_to="")
 {
+  global $settings;
+  if ($from=="")
+  {
+    $from=$settings["server_email_from"];
+  }
+  if ($reply_to=="")
+  {
+    $reply_to=$settings["server_email_reply_to"];
+  }
+  if ($bounce_to=="")
+  {
+    $bounce_to=$settings["server_email_bounce_to"];
+  }
   $headers=array();
   $headers[]="From: ".$from;
   /*$headers[]="Cc: ".$cc;
@@ -1386,15 +1421,6 @@ function is_row_locked($schema,$table,$key_field,$key_value)
   global $settings;
   # $settings["user_record"]
   # delete expired locks
-}
-
-#####################################################################################################
-
-function run_service()
-{
-  global $settings;
-  #$cmd="wmic process where \"name='php.exe'\" get Commandline";
-  #die(shell_exec($cmd));
 }
 
 #####################################################################################################

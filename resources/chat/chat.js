@@ -161,14 +161,14 @@ function message_update_load()
 
 function message_update_error()
 {
-  custom_alert("message_update_error");
+  //custom_alert("message_update_error");
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function message_update_timeout()
 {
-  custom_alert("message_update_timeout");
+  //custom_alert("message_update_timeout");
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -118,6 +118,7 @@ function check_settings()
     "min_password_length",
     "max_login_attempts",
     "admin_remote_address_whitelist",
+    "admin_email",
     "test_settings_file",
     "ip_blacklist_file",
     "ip_whitelist_file",

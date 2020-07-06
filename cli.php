@@ -70,7 +70,11 @@ function cli_dispatch()
   global $argv;
   switch ($argv[1])
   {
-    case "run_tests":
+    case "alert_service":
+      \webdb\utils\load_settings();
+      \webdb\utils\database_connect();
+      \webdb\service\service_main();
+    /*case "run_tests":
       \webdb\utils\load_settings();
       \webdb\utils\database_connect();
       require_once("test".DIRECTORY_SEPARATOR."test.php");
@@ -152,7 +156,7 @@ function cli_dispatch()
         \webdb\utils\system_message("filename not specified");
       }
       \webdb\cli\generate_form($argv[2],$argv[3],$argv[4]);
-      die;
+      die;*/
   }
 }
 

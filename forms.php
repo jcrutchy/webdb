@@ -669,7 +669,7 @@ function get_subform_content($subform_config,$subform_link_field,$id,$list_only=
   if ($event_params["custom_list_content"]==false)
   {
     $subform_config=\webdb\forms\override_delete_config($subform_config);
-    $subform_params["subform"]=list_form_content($subform_config,$records,$url_params,$link_records);
+    $subform_params["subform"]=\webdb\forms\list_form_content($subform_config,$records,$url_params,$link_records);
   }
   else
   {
@@ -1055,7 +1055,6 @@ function list_row($form_config,$record,$column_format,$row_spans,$lookup_records
   $row_params["default_checked"]="";
   $row_params["controls"]="";
   $row_params["group_span"]="";
-  $row_params["check"]=\webdb\forms\check_column($form_config,"list_check",$row_params);
   $row_params["controls_min_width"]=$column_format["controls_min_width"];
   $skip_controls=false;
   if (in_array($form_config["edit_cmd_id"],$form_config["group_by"])==true)
@@ -1094,6 +1093,7 @@ function list_row($form_config,$record,$column_format,$row_spans,$lookup_records
     }
     $row_params["list_row_controls"]=\webdb\forms\form_template_fill("list_row_controls",$row_params);
   }
+  $row_params["check"]=\webdb\forms\check_column($form_config,"list_check",$row_params);
   $row_params["fields"]=$fields;
   $row_params["last_group_border_width"]=$settings["list_border_width"];
   $row_params["last_group_border_color"]=$settings["list_border_color"];
@@ -2406,6 +2406,7 @@ function advanced_search($form_config)
     $params["inner_joins"]=implode(" ",$inner_joins);
     $params["prepared_where"]="WHERE (".implode(" AND ",$conditions).")";
     $form_params["where_clause"]=$params["prepared_where"];
+    \webdb\forms\process_sort_sql($form_config);
     $params["sort_sql"]=$form_config["sort_sql"];
     $sql=\webdb\utils\sql_fill("form_list_advanced_search",$params);
     $records=\webdb\sql\fetch_prepare($sql,$sql_params,"form_list_advanced_search",false,$form_config["table"],$form_config["database"],$form_config);

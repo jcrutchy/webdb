@@ -614,11 +614,8 @@ function send_reset_password_message()
   {
     \webdb\utils\error_message("error: missing username");
   }
-  $login_username=$_POST["login_username"];
-  if (isset($_COOKIE[$settings["username_cookie"]])==false)
-  {
-    \webdb\utils\webdb_setcookie("username_cookie",$login_username);
-  }
+  $login_username=trim(strtolower($_POST["login_username"]));
+  \webdb\utils\webdb_setcookie("username_cookie",$login_username);
   $user_record=\webdb\users\get_user_record($login_username);
   $value_items=array();
   $key=\webdb\users\crypto_random_key();
@@ -643,7 +640,8 @@ function send_reset_password_message()
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   #\webdb\utils\info_message($message); # TESTING (REMOVE/COMMENT OUT FOR PROD)
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  \webdb\utils\send_email($user_record["email"],"",$settings["app_name"]." password reset",$message,$settings["server_email_from"],$settings["server_email_reply_to"],$settings["server_email_bounce_to"]);
+  $subject=$settings["app_name"]." password reset";
+  \webdb\utils\send_email($user_record["email"],"",$subject,$message);
   \webdb\users\unset_login_cookie();
   $message=\webdb\utils\template_fill("password_reset_valid_to_message",$msg_params);
   \webdb\users\auth_log($user_record,"RESET_PASSWORD_EMAIL","");
