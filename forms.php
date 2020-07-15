@@ -566,6 +566,8 @@ function get_subform_content($subform_config,$subform_link_field,$id,$list_only=
     \webdb\utils\webdb_unsetcookie_raw($cookie_name,false);
   }
   $subform_config["advanced_search"]=false;
+  $subform_config["insert_new"]=false;
+  $subform_config=\webdb\forms\override_delete_config($subform_config);
   $records=false;
   $event_params=array();
   $event_params["handled"]=false;
@@ -583,6 +585,7 @@ function get_subform_content($subform_config,$subform_link_field,$id,$list_only=
       $event_params=call_user_func($func_name,$event_params);
     }
   }
+  $subform_config=$event_params["subform_config"];
   $records=$event_params["records"];
   $link_records=false;
   if ($event_params["handled"]==false)
@@ -595,7 +598,6 @@ function get_subform_content($subform_config,$subform_link_field,$id,$list_only=
       $sql_params["parent_key"]=$id;
       $link_records=\webdb\sql\fetch_prepare($sql,$sql_params,"link_records",false,"","",$subform_config);
     }
-    $subform_config["insert_new"]=false;
     if ($subform_config["checklist"]==true)
     {
       $subform_config["multi_row_delete"]=false;
@@ -620,7 +622,6 @@ function get_subform_content($subform_config,$subform_link_field,$id,$list_only=
         $subform_config["insert_row"]=false;
         $subform_config["multi_row_delete"]=false;
         $subform_config["delete_cmd"]=false;
-        $subform_config["insert_new"]=false;
         $sql=\webdb\utils\sql_fill("link_records",$subform_config);
         $sql_params=array();
         $sql_params["parent_key"]=$id;
@@ -668,7 +669,6 @@ function get_subform_content($subform_config,$subform_link_field,$id,$list_only=
   $subform_params["page_id"]=$subform_config["page_id"];
   if ($event_params["custom_list_content"]==false)
   {
-    $subform_config=\webdb\forms\override_delete_config($subform_config);
     $subform_params["subform"]=\webdb\forms\list_form_content($subform_config,$records,$url_params,$link_records);
   }
   else
@@ -1194,6 +1194,7 @@ function output_readonly_field($field_params,$control_type,$form_config,$field_n
       $field_params["value"]=\webdb\forms\memo_field_formatting($field_params["value"]);
       return \webdb\forms\form_template_fill("list_field",$field_params);
     case "default":
+    case "info":
       $display_record[$field_name]=\webdb\forms\default_value($form_config,$field_name);
     case "file":
       $field_params["no_file_disabled"]="";
@@ -1429,6 +1430,9 @@ function output_editable_field(&$field_params,$record,$field_name,$control_type,
   $field_params["js_events"]=\webdb\forms\field_js_events($form_config,$field_name,$record);
   switch ($control_type)
   {
+    case "info":
+      $field_params["caption"]=\webdb\forms\default_value($form_config,$field_name);
+      break;
     case "file":
       $field_params["no_file_disabled"]="";
       if (array_key_exists($field_name,$record)==true)
@@ -1451,6 +1455,8 @@ function output_editable_field(&$field_params,$record,$field_name,$control_type,
       $record[$field_name]=\webdb\forms\default_value($form_config,$field_name);
       $control_type="span";
     case "span":
+      $field_params["field_value"]=htmlspecialchars(str_replace(\webdb\index\LINEBREAK_DB_DELIM,\webdb\index\LINEBREAK_PLACEHOLDER,$record[$field_name]));
+      $field_params["field_value"]=str_replace(\webdb\index\LINEBREAK_PLACEHOLDER,PHP_EOL,$field_params["field_value"]);
       break;
     case "raw":
     case "text":
@@ -2459,6 +2465,11 @@ function insert_form($form_config)
 {
   global $settings;
   $record=\webdb\forms\default_values($form_config);
+  $url_params=\webdb\forms\insert_default_url_params();
+  foreach ($url_params as $name => $value)
+  {
+    $record[$name]=htmlspecialchars($value);
+  }
   return \webdb\forms\output_editor($form_config,$record,"Insert","Insert");
 }
 
@@ -2532,7 +2543,7 @@ function output_editor($form_config,$record,$command,$verb,$id=false)
   else
   {
     $submit_fields=array();
-    $lookup_records=lookup_records($form_config);
+    $lookup_records=\webdb\forms\lookup_records($form_config);
     $rows=array();
     foreach ($form_config["control_types"] as $field_name => $control_type)
     {
@@ -2549,6 +2560,13 @@ function output_editor($form_config,$record,$command,$verb,$id=false)
         {
           continue;
         }
+      }
+      if ($control_type=="title")
+      {
+        $title_params=array();
+        $title_params["title"]=$form_config["captions"][$field_name];
+        $rows[$field_name]=\webdb\forms\form_template_fill("editor_title_field",$title_params);
+        continue;
       }
       $field_value="";
       if ((isset($record[$field_name])==true) and ($control_type<>"lookup"))
@@ -2576,7 +2594,7 @@ function output_editor($form_config,$record,$command,$verb,$id=false)
       {
         $field_params["control_style"]=$form_config["control_styles"][$field_name];
       }
-      $row_params["field_value"]=output_editable_field($field_params,$record,$field_name,$control_type,$form_config,$lookup_records,$submit_fields);
+      $row_params["field_value"]=\webdb\forms\output_editable_field($field_params,$record,$field_name,$control_type,$form_config,$lookup_records,$submit_fields);
       $row_params["interface_button"]=\webdb\forms\get_interface_button($form_config,$record,$field_name,$field_value);
       if ($control_type<>"hidden")
       {
@@ -2858,6 +2876,35 @@ function upload_files($form_config,$record_id,$value_items=false)
 
 #####################################################################################################
 
+function insert_default_url_params()
+{
+  $params=array();
+  foreach ($_GET as $param_name => $param_value)
+  {
+    switch ($param_name)
+    {
+      case "page":
+      case "chat_break":
+      case "cmd":
+      case "redirect":
+      case "filters":
+      case "ajax":
+      case "subform":
+      case "parent_form":
+      case "parent_id":
+      case "sort":
+      case "home":
+      case "dir":
+        break;
+      default:
+        $params[$param_name]=$param_value;
+    }
+  }
+  return $params;
+}
+
+#####################################################################################################
+
 function process_form_data_fields($form_config,$record_id,$post_override=false)
 {
   global $settings;
@@ -3003,7 +3050,10 @@ function insert_record($form_config)
   {
     $id=$event_params["new_record_id"];
   }
-  \webdb\forms\set_confirm_status_cookie($form_config,"RECORD INSERTED SUCCESSFULLY");
+  if (($form_config["edit_cmd_page_id"]=="") or ($form_config["edit_cmd_page_id"]==$form_config["page_id"]))
+  {
+    \webdb\forms\set_confirm_status_cookie($form_config,"RECORD INSERTED SUCCESSFULLY");
+  }
   if ($form_config["edit_cmd_page_id"]<>"")
   {
     $record=\webdb\forms\get_record_by_id($form_config,$id,"primary_key");
@@ -3087,7 +3137,10 @@ function update_record($form_config,$id,$value_items=false,$where_items=false,$r
   {
     return;
   }
-  \webdb\forms\set_confirm_status_cookie($form_config,"RECORD UPDATED SUCCESSFULLY");
+  if (($form_config["edit_cmd_page_id"]=="") or ($form_config["edit_cmd_page_id"]==$form_config["page_id"]))
+  {
+    \webdb\forms\set_confirm_status_cookie($form_config,"RECORD UPDATED SUCCESSFULLY");
+  }
   if ($form_config["edit_cmd_page_id"]<>"")
   {
     $record=\webdb\forms\get_record_by_id($form_config,$id,"primary_key");
@@ -3135,7 +3188,7 @@ function config_id_conditions($form_config,$id,$config_key)
 
 #####################################################################################################
 
-function get_record_by_id($form_config,$id,$config_key)
+function get_record_by_id($form_config,$id,$config_key,$error_none=true)
 {
   global $settings;
   $event_params=array();
@@ -3155,7 +3208,14 @@ function get_record_by_id($form_config,$id,$config_key)
   $records=\webdb\sql\fetch_prepare($sql,$items,"form_list_fetch_by_id",false,$form_config["table"],$form_config["database"],$form_config);
   if (count($records)==0)
   {
-    \webdb\utils\error_message("error: no records found for id '".$id."' in query: ".$sql);
+    if ($error_none==true)
+    {
+      \webdb\utils\error_message("error: no records found for id '".$id."' in query: ".$sql);
+    }
+    else
+    {
+      return false;
+    }
   }
   if (count($records)>1)
   {

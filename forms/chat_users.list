@@ -10,7 +10,6 @@
         "enabled": "checkbox",
         "nick": "text",
         "last_online": "text",
-        "selected_channel_id": "combobox",
         "json_data": "memo"
     },
     "captions": {
@@ -18,7 +17,6 @@
         "enabled": "enabled",
         "nick": "nick",
         "last_online": "last_online",
-        "selected_channel_id": "selected_channel_id",
         "json_data": "json_data"
     },
     "caption_groups": [],
@@ -27,7 +25,6 @@
         "enabled": true,
         "nick": true,
         "last_online": true,
-        "selected_channel_id": false,
         "json_data": false
     },
     "disabled": [],
@@ -36,7 +33,6 @@
         "enabled": false,
         "nick": "",
         "last_online": "",
-        "selected_channel_id": "",
         "json_data": ""
     },
     "required_values": [
@@ -50,13 +46,6 @@
             "table": "users",
             "key_field": "user_id",
             "display_field": "username"
-        },
-        "selected_channel_id": {
-            "database": "$$database_webdb$$",
-            "table": "messenger_channels",
-            "key_field": "channel_id",
-            "sibling_field": "selected_channel_id",
-            "display_field": "channel_name"
         }
     },
     "editor_visible": false,

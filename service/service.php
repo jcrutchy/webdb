@@ -6,7 +6,14 @@ namespace webdb\service;
 
 function service_main()
 {
+  return;
+  global $settings;
+  if (file_exists(__DIR__.DIRECTORY_SEPARATOR."enable=1")==false)
+  {
+    return;
+  }
   set_time_limit(0);
+  \webdb\utils\email_admin("","service started");
   $sockets=array();
   $server=stream_socket_server("tcp://localhost:50000",$err_no,$err_msg);
   if ($server===false)
@@ -41,8 +48,6 @@ function service_main()
           }
           stream_set_blocking($client,0);
           $sockets[]=$client;
-          $client_key=array_search($client,$sockets,true);
-          \webdb\service\client_connect($sockets,$client_key);
         }
         else
         {
@@ -91,18 +96,12 @@ function service_main()
 
 #####################################################################################################
 
-function client_connect(&$sockets,$client_key)
-{
-}
-
-#####################################################################################################
-
-function error_handler($errno,$errstr,$errfile,$errline)
+/*function error_handler($errno,$errstr,$errfile,$errline)
 {
   $message="[".date("Y-m-d, H:i:s T",time())."] ".$errstr." in \"".$errfile."\" on line ".$errline;
   \webdb\utils\email_admin($message,"service error");
   die;
-}
+}*/
 
 #####################################################################################################
 
@@ -122,51 +121,6 @@ function close_client(&$sockets,$client_key)
 
 #####################################################################################################
 
-/*function broadcast_to_all($msg)
-{
-  global $connections;
-  foreach ($connections as $key => $conn)
-  {
-    if ($conn["state"]=="OPEN")
-    {
-      show_message("sending to client socket ".$key.": ".$msg,true);
-      $frame=encode_text_data_frame($msg);
-      do_reply($key,$frame);
-    }
-  }
-}*/
-
-#####################################################################################################
-
-/*function do_reply($client_key,$msg)
-{
-  global $sockets;
-  $total_sent=0;
-  while ($total_sent<strlen($msg))
-  {
-    $buf=substr($msg,$total_sent);
-    try
-    {
-      $written=fwrite($sockets[$client_key],$buf,min(strlen($buf),8192));
-    }
-    catch (Exception $e)
-    {
-      $err_msg="an exception occurred when attempting to write to client socket $client_key";
-      send_email(ADMINISTRATOR_EMAIL,"WEBSOCKET SERVER EXCEPTION (do_reply)",$err_msg);
-      close_client($client_key);
-      return;
-    }
-    if (($written===false) or ($written<=0))
-    {
-      close_client($client_key);
-      return;
-    }
-    $total_sent+=$written;
-  }
-}*/
-
-#####################################################################################################
-
 function client_message($parts)
 {
   $response=array();
@@ -177,13 +131,19 @@ function client_message($parts)
     switch ($directive)
     {
       case "quit":
-        $socket=stream_socket_client("tcp://localhost:50000",$err_no,$err_msg);
-        fwrite($socket,$directive);
-        fclose($socket);
-        $response[]="service quit";
-        break;
+        $output=\webdb\service\get_process_status();
+        if (strpos($output,"php")!==false)
+        {
+          $socket=stream_socket_client("tcp://localhost:50000",$err_no,$err_msg);
+          fwrite($socket,$directive);
+          fclose($socket);
+          $response[]="service quit";
+        }
       case "status":
         $response[]=\webdb\service\get_process_status();
+        break;
+      case "kill":
+        $response[]=shell_exec("taskkill /f /t /im php.exe 2>&1");
         break;
       default:
         $response[]="error: unknown directive";
@@ -200,7 +160,7 @@ function client_message($parts)
 
 function get_process_status()
 {
-  $cmd="wmic process where \"name='php.exe'\" get Commandline /format:LIST 2>&1";
+  $cmd="wmic process where \"name='php.exe'\" get Caption /format:LIST 2>&1";
   return shell_exec($cmd);
 }
 
@@ -208,15 +168,13 @@ function get_process_status()
 
 function run_service()
 {
-  global $settings;
   return;
-  #$output=\webdb\service\get_process_status();
-  # test in git-bash: start "" /d/dev/public/webdb/service/win_start.bat "D:\dev\public\env\"
-  #if ((strpos($output,"php ")===false) or (strpos($output,"index.php")===false) or (strpos($output,"alert_service")===false))
-  #{
-    #$cmd=$settings["webdb_root_path"]."service".DIRECTORY_SEPARATOR."win_start.bat \"".$settings["env_root_path"]."\"";
-    #shell_exec("start \"\" ".$cmd);
-  #}
+  global $settings;
+  $output=\webdb\service\get_process_status();
+  if (strpos($output,"php")===false)
+  {
+    pclose(popen('start "webdb_service" /B php '.$settings["env_root_path"].'index.php alert_service',"r"));
+  }
 }
 
 #####################################################################################################

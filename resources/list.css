@@ -121,6 +121,13 @@ td.editor_field_name
     max-width: 400px;
   }
 
+td.editor_title_field
+  {
+    font-weight: bold;
+    font-size: 14px;
+    background-color: #f2f2fd;
+  }
+
 input.date_edit_field
   {
     width: 75px;
@@ -353,6 +360,7 @@ input.date_edit_field
     overflow: hidden;
     margin: 0;
     padding: 0;
+    max-width: 65%;
   }
 
 .subform_outer

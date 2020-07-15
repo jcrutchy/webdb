@@ -93,6 +93,13 @@ if (isset($_SERVER["HTTP_USER_AGENT"])==true)
 {
   $settings["user_agent"]=$_SERVER["HTTP_USER_AGENT"];
 }
+
+# poor man's browser detection
+if (strpos($settings["user_agent"],"Chrome")===false)
+{
+  \webdb\utils\system_message("Please use the Google Chrome web browser.");
+}
+
 $settings["browser_info"]=array();
 $settings["browser_info"]["browser"]="chrome"; # default to chrome settings if user agent check not enabled
 

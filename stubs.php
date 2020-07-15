@@ -127,28 +127,7 @@ function list_insert($form_config)
   {
     \webdb\stubs\stub_error("error: no field data to insert");
   }
-  $insert_default_params=array();
-  foreach ($_GET as $param_name => $param_value)
-  {
-    switch ($param_name)
-    {
-      case "page":
-      case "chat_break":
-      case "cmd":
-      case "redirect":
-      case "filters":
-      case "ajax":
-      case "subform":
-      case "parent_form":
-      case "parent_id":
-      case "sort":
-      case "home":
-      case "dir":
-        break;
-      default:
-        $insert_default_params[$param_name]=$param_value;
-    }
-  }
+  $insert_default_params=\webdb\forms\insert_default_url_params();
   if (count($insert_default_params)>0)
   {
     foreach ($insert_default_params as $param_name => $param_value)

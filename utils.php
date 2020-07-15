@@ -405,6 +405,13 @@ function output_resource_links($buffer,$type)
 function ob_postprocess($buffer)
 {
   global $settings;
+  if ((isset($_GET["ajax"])==true) or (isset($_GET["update_oul"])==true))
+  {
+    if ((\webdb\utils\compare_template("login_form",$buffer)==true) or (\webdb\utils\check_csrf_error($buffer)==true))
+    {
+      return "redirect_to_login_form";
+    }
+  }
   if (isset($settings["ignore_ob_postprocess"])==true)
   {
     if ($settings["ignore_ob_postprocess"]==true)
@@ -446,13 +453,6 @@ function ob_postprocess($buffer)
   else
   {
     $buffer=$settings["system_message"];
-  }
-  if (isset($_GET["ajax"])==true)
-  {
-    if ((\webdb\utils\compare_template("login_form",$buffer)==true) or (\webdb\utils\check_csrf_error($buffer)==true))
-    {
-      return "redirect_to_login_form";
-    }
   }
   # TODO: CALL AUTOMATED W3C VALIDATION HERE
   global $start_time; # debug
@@ -1131,6 +1131,7 @@ function exception_handler($exception)
 function redirect($url,$clean_buffer=true)
 {
   global $settings;
+  $settings["ignore_ob_postprocess"]=true;
   if ($clean_buffer==true)
   {
     ob_end_clean(); # discard buffer

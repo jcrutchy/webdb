@@ -163,7 +163,7 @@ function get_ajax_load_data(response)
   }
   catch (e)
   {
-    //custom_alert(response_text);
+    custom_alert(response_text);
     return false;
   }
   if (data.hasOwnProperty("error")==true)

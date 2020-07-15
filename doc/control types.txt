@@ -10,3 +10,5 @@ date
 checkbox
 default
 raw
+title
+info
