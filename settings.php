@@ -20,6 +20,8 @@ $settings["app_home_template"]="home";
 $settings["app_date_format"]="Y-m-d";
 $settings["app_logo_filename"]="logo.png";
 
+$settings["sql_change_event_handler"]="";
+
 $settings["online_user_list_update_interval_sec"]=60;
 
 $settings["webdb_apps_path"]=$settings["webdb_root_path"]."apps".DIRECTORY_SEPARATOR;

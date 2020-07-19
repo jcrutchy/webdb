@@ -572,6 +572,10 @@ function sql_change($old_records,$sql,$where_items,$value_items,$table,$database
   $items["where_items"]=json_encode($where_items);
   $items["value_items"]=json_encode($value_items);
   $items["old_records"]=json_encode($old_records);
+  if (function_exists($settings["sql_change_event_handler"])==true)
+  {
+    call_user_func($settings["sql_change_event_handler"],$items);
+  }
   $settings["sql_check_post_params_override"]=true;
   \webdb\sql\sql_insert($items,"sql_changes",$settings["database_webdb"],true);
 }

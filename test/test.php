@@ -48,6 +48,7 @@ function check_settings()
 {
   global $settings;
   $required_settings=array(
+    "sql_change_event_handler",
     "env_root_path",
     "app_root_path",
     "app_directory_name",

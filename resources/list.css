@@ -346,6 +346,7 @@ input.date_edit_field
 #flex_columns
   {
     display: flex;
+    justify-content: space-between;
     overflow: hidden;
   }
 
