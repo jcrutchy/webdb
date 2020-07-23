@@ -6,7 +6,6 @@ namespace webdb\service;
 
 function service_main()
 {
-  return;
   global $settings;
   if (file_exists(__DIR__.DIRECTORY_SEPARATOR."enable=1")==false)
   {
@@ -96,15 +95,6 @@ function service_main()
 
 #####################################################################################################
 
-/*function error_handler($errno,$errstr,$errfile,$errline)
-{
-  $message="[".date("Y-m-d, H:i:s T",time())."] ".$errstr." in \"".$errfile."\" on line ".$errline;
-  \webdb\utils\email_admin($message,"service error");
-  die;
-}*/
-
-#####################################################################################################
-
 function on_msg($client_key,$data)
 {
   \webdb\utils\email_admin($data,"service client message received");
@@ -168,12 +158,14 @@ function get_process_status()
 
 function run_service()
 {
-  return;
   global $settings;
   $output=\webdb\service\get_process_status();
   if (strpos($output,"php")===false)
   {
-    pclose(popen('start "webdb_service" /B php '.$settings["env_root_path"].'index.php alert_service',"r"));
+    /*$settings["run_service_cmd"]='start "webdb_service" /B "C:\Program Files (x86)\PHP\php.exe" $$env_root_path$$index.php alert_service';
+    $tmp=array("tmp"=>$settings["run_service_cmd"]);
+    $cmd=\webdb\utils\template_fill("tmp",false,array(),$tmp);
+    pclose(popen($cmd,"r"));*/
   }
 }
 

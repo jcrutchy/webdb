@@ -505,23 +505,22 @@ function sql_log($status,$sql,$params=array(),$table="",$database="")
 function null_user_check($sql,$where_items,$table,$database)
 {
   global $settings;
-  $user_id=null;
+  $user=null;
   if (isset($settings["user_record"])==true)
   {
-    $user_id=$settings["user_record"]["user_id"];
+    $user=$settings["user_record"];
   }
   if (\webdb\cli\is_cli_mode()==true)
   {
-    return $user_id;
+    return $user;
   }
-  if (is_null($user_id)==false)
+  if (is_null($user)==false)
   {
-    return $user_id;
+    return $user;
   }
-  # user_id is null from here on
-  if (($database=="webdb") and ($table=="auth_log"))
+  if ($table=="auth_log")
   {
-    return $user_id;
+    return null;
   }
   $error_params=array();
   $error_params["database"]=$database;
@@ -558,9 +557,13 @@ function sql_change($old_records,$sql,$where_items,$value_items,$table,$database
   {
     \webdb\users\obfuscate_hashes($old_records[$i]);
   }
-  $user_id=\webdb\sql\null_user_check($sql,$where_items,$table,$database);
+  $user=\webdb\sql\null_user_check($sql,$where_items,$table,$database);
+  if (is_null($user)==true)
+  {
+    return;
+  }
   $items=array();
-  $items["user_id"]=$user_id;
+  $items["user_id"]=$user["user_id"];
   $tmp_sql=array("temp_sql"=>$sql);
   $sql=\webdb\utils\template_fill("temp_sql",false,array(),$tmp_sql);
   $items["sql_statement"]=$sql;
@@ -572,12 +575,13 @@ function sql_change($old_records,$sql,$where_items,$value_items,$table,$database
   $items["where_items"]=json_encode($where_items);
   $items["value_items"]=json_encode($value_items);
   $items["old_records"]=json_encode($old_records);
+  $settings["sql_check_post_params_override"]=true;
+  \webdb\sql\sql_insert($items,"sql_changes",$settings["database_webdb"],true);
+  $items["username"]=$user["username"];
   if (function_exists($settings["sql_change_event_handler"])==true)
   {
     call_user_func($settings["sql_change_event_handler"],$items);
   }
-  $settings["sql_check_post_params_override"]=true;
-  \webdb\sql\sql_insert($items,"sql_changes",$settings["database_webdb"],true);
 }
 
 #####################################################################################################
