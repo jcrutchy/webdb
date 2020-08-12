@@ -1,0 +1,40 @@
+############################################################################################################
+HIGH PRIORITY:
+
+- form config field help template popups (? button, make popup draggable)
+- performance auditing
+- insert document attachment bug
+- need to clarify "assigned" and "unassigned" in advanced search tips
+- sysadmin email alerts for different events
+- for lookup fields, automatically sort by display field ratlher than underlying id
+- friendly ajax error pages/messages
+- basic search feature (key fields, uses implicit wildcards)
+- report/form generator with field grid, custom sql memo and query templates (with add/remove template)
+
+############################################################################################################
+LOW PRIORITY:
+
+- ability to edit all records at once
+- xdebug performance auditing
+- dynamic filtering for reports
+- setting to adjust column heading rotation angle
+- group header text colors
+- friendly error message when deleting record fails due to foreign key
+- edit all by selection/filter to change common field values (sort of like AutoCAD properties)
+- pdf printing on server (using TCPDF or FPDF, or maybe wkhtmltopdf if you can get a decent webkit layout to work)
+
+extention_loaded();
+dl();
+
+messenger:
+- add anchor to URLs
+- indicate channels with new comments since last viewed
+- do server broadcasts for joins/parts for all users viewing. use online user list code to tell based on chat update parameter. don't save broadcast to database
+- /del <channel> (cannot be currently viewing, make fail if channel contains messages unless force param is used, include confirmation prompt
+- /purge_empty (except for currently viewing)
+- /export (saves chat to file)
+- ability to organise channels into a tree structure
+  /child <parent_channel>
+  /link <parent_channel> (creates link in tree only)?
+  /move <timerange> <nicklist> <tochannel> (if tochannel doesn't exist, create it) (use same time format as displayed in chat window)
+  /copy <timerange> <nicklist> <tochannel> (if tochannel doesn't exist, create it) (use same time format as displayed in chat window)

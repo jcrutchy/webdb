@@ -48,6 +48,10 @@ function check_settings()
 {
   global $settings;
   $required_settings=array(
+    "service_cmd_run",
+    "service_cmd_status",
+    "service_loop_event_handler",
+    "service_loop_event_time",
     "sql_change_event_handler",
     "env_root_path",
     "app_root_path",

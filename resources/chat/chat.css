@@ -1,11 +1,21 @@
 
 /************************************************************************/
 
+#favorite_button
+  {
+    position: fixed;
+    bottom: 6px;
+    right: calc(50% + 4px);
+    z-index: 99;
+    width: 150px;
+    height: 22px;
+  }
+
 #chat_button
   {
     position: fixed;
     bottom: 6px;
-    right: calc(50% - 75px);
+    left: calc(50% + 4px);
     z-index: 99;
     width: 150px;
     height: 22px;
@@ -129,7 +139,7 @@
   {
     position: fixed;
     bottom: 6px;
-    left: calc(50% + 75px);
+    left: calc(50% + 158px);
     z-index: 99;
     height: 22px;
     line-height: 22px;

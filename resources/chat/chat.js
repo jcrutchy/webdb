@@ -1,6 +1,48 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
+function page_favorite(page_id,record_id)
+{
+  var favorite_button=document.getElementById("favorite_button");
+  favorite_button.disabled=true;
+  var url=ajax_favorite+favorite_button.value;
+  ajax(url,"get",page_favorite_load,page_favorite_error,page_favorite_timeout);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function page_favorite_load()
+{
+  var data=get_ajax_load_data(this);
+  if (data===false)
+  {
+    return;
+  }
+  if ((data.hasOwnProperty("success_msg")==true) && (data.hasOwnProperty("button_caption")==true))
+  {
+    var favorite_button=document.getElementById("favorite_button");
+    favorite_button.disabled=false;
+    favorite_button.value=data.button_caption;
+    custom_alert(data.success_msg);
+  }
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function page_favorite_error()
+{
+  //custom_alert("page_favorite_error");
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function page_favorite_timeout()
+{
+  //custom_alert("page_favorite_timeout");
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
 function open_chat(page_id,record_id)
 {
   var chat_button=document.getElementById("chat_button");

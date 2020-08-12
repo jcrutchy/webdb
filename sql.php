@@ -447,10 +447,11 @@ function fetch_prepare($sql,$params=array(),$filename="",$is_admin=false,$table=
 
 function fetch_all_records($table,$database,$sort_field="",$sort_dir="",$is_admin=false)
 {
-  $sql_params=array();
-  $sql_params["sort_sql"]="";
+  $sort_sql="";
   if ($sort_field<>"")
   {
+    $sql_params=array();
+    $sql_params["sort_sql"]="";
     $sql_params["sort_sql"]=$sort_field;
     if ($sort_dir<>"")
     {
@@ -460,8 +461,8 @@ function fetch_all_records($table,$database,$sort_field="",$sort_dir="",$is_admi
     {
       $sql_params["sort_sql"].=" ASC";
     }
+    $sort_sql=\webdb\utils\sql_fill("sort_clause",$sql_params);
   }
-  $sort_sql=\webdb\utils\sql_fill("sort_clause",$sql_params);
   $sql_params=array();
   $sql_params["database"]=$database;
   $sql_params["table"]=$table;

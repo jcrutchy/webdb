@@ -13,11 +13,6 @@ function system_message($message)
     die;
   }
   $settings["unauthenticated_content"]=true;
-  $buffer=ob_get_contents();
-  if (strlen($buffer)<>0)
-  {
-    ob_end_clean(); # discard buffer
-  }
   $settings["system_message"]=$message;
   die;
 }
@@ -405,6 +400,10 @@ function output_resource_links($buffer,$type)
 function ob_postprocess($buffer)
 {
   global $settings;
+  if (isset($settings["system_message"])==true)
+  {
+    return $settings["system_message"];
+  }
   if ((isset($_GET["ajax"])==true) or (isset($_GET["update_oul"])==true))
   {
     if ((\webdb\utils\compare_template("login_form",$buffer)==true) or (\webdb\utils\check_csrf_error($buffer)==true))
@@ -416,43 +415,36 @@ function ob_postprocess($buffer)
   {
     if ($settings["ignore_ob_postprocess"]==true)
     {
-      return "";
+      return $buffer;
     }
   }
   $buffer=\webdb\csrf\fill_csrf_token($buffer);
   $buffer=\webdb\utils\output_resource_links($buffer,"css");
   $buffer=\webdb\utils\output_resource_links($buffer,"js");
-  if (isset($settings["system_message"])==false)
+  if ($settings["check_templates"]==true)
   {
-    if ($settings["check_templates"]==true)
+    foreach ($settings["templates"] as $template_name => $template_content)
     {
-      foreach ($settings["templates"] as $template_name => $template_content)
+      if (strpos($buffer,"%%".$template_name."%%")!==false)
       {
-        if (strpos($buffer,"%%".$template_name."%%")!==false)
-        {
-          $buffer="error: unassigned % template '".$template_name."' found: ".htmlspecialchars($buffer);
-          break;
-        }
-        if (strpos($buffer,"$$".$template_name."$$")!==false)
-        {
-          $buffer="error: unassigned $ template '".$template_name."' found: ".htmlspecialchars($buffer);
-          break;
-        }
-        if (strpos($buffer,"@@".$template_name."@@")!==false)
-        {
-          $buffer="error: unassigned @ template '".$template_name."' found: ".htmlspecialchars($buffer);
-          break;
-        }
+        $buffer="error: unassigned % template '".$template_name."' found: ".htmlspecialchars($buffer);
+        break;
+      }
+      if (strpos($buffer,"$$".$template_name."$$")!==false)
+      {
+        $buffer="error: unassigned $ template '".$template_name."' found: ".htmlspecialchars($buffer);
+        break;
+      }
+      if (strpos($buffer,"@@".$template_name."@@")!==false)
+      {
+        $buffer="error: unassigned @ template '".$template_name."' found: ".htmlspecialchars($buffer);
+        break;
       }
     }
-    if ((isset($settings["unauthenticated_content"])==false) and (isset($settings["user_record"])==false))
-    {
-      $buffer="error: authentication failure";
-    }
   }
-  else
+  if ((isset($settings["unauthenticated_content"])==false) and (isset($settings["user_record"])==false))
   {
-    $buffer=$settings["system_message"];
+    $buffer="error: authentication failure";
   }
   # TODO: CALL AUTOMATED W3C VALIDATION HERE
   global $start_time; # debug
@@ -1096,6 +1088,8 @@ function check_csrf_error($response)
 
 function error_handler($errno,$errstr,$errfile,$errline)
 {
+  global $settings;
+  $settings["service_loop_event_handler"]=false;
   $message="[".date("Y-m-d, H:i:s T",time())."] ".$errstr." in \"".$errfile."\" on line ".$errline;
   \webdb\utils\email_admin($message,"error_handler");
   \webdb\utils\system_message($message);
@@ -1121,9 +1115,11 @@ function email_admin($message,$type)
 
 function exception_handler($exception)
 {
+  global $settings;
+  $settings["service_loop_event_handler"]=false;
   $message="[".date("Y-m-d, H:i:s T",time())."] ".$exception->getMessage()." in \"".$exception->getFile()."\" on line ".$exception->getLine();
   \webdb\utils\email_admin($message,"exception_handler");
-  \webdb\utils\system_message();
+  \webdb\utils\system_message($message);
 }
 
 #####################################################################################################

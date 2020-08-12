@@ -177,6 +177,12 @@ function form_dispatch($page_id)
   }
   if (isset($_GET["ajax"])==true)
   {
+    switch ($_GET["ajax"])
+    {
+      case "favourite":
+      case "unfavourite":
+        \webdb\chat\page_favorite_ajax_stub();
+    }
     if (isset($_GET["file_delete"])==true)
     {
       \webdb\forms\file_field_delete($form_config);
@@ -386,6 +392,7 @@ function checklist_update($form_config,$parent_id)
 {
   global $settings;
   $page_id=$form_config["page_id"];
+  $checklist_enabled_fieldname=$form_config["checklist_enabled_fieldname"];
   $link_database=$form_config["link_database"];
   $link_table=$form_config["link_table"];
   $parent_key=$form_config["parent_key"];
@@ -425,14 +432,23 @@ function checklist_update($form_config,$parent_id)
     }
     if (isset($_POST[$page_id.":list_select"][$child_id])==false)
     {
-      $where_items=array();
-      $where_items[$parent_key]=$parent_id;
-      $where_items[$link_key]=$child_id;
       if (\webdb\utils\check_user_form_permission($page_id,"d")==false)
       {
         \webdb\utils\error_message("error: form record(s) delete permission denied");
       }
-      \webdb\sql\sql_delete($where_items,$link_table,$link_database,false,$form_config);
+      $where_items=array();
+      $where_items[$parent_key]=$parent_id;
+      $where_items[$link_key]=$child_id;
+      if ($checklist_enabled_fieldname=="")
+      {
+        \webdb\sql\sql_delete($where_items,$link_table,$link_database,false,$form_config);
+      }
+      else
+      {
+        $value_items=array();
+        $value_items[$checklist_enabled_fieldname]=false;
+        \webdb\sql\sql_update($value_items,$where_items,$link_table,$link_database,false,$form_config);
+      }
     }
   }
   if (isset($_POST[$page_id.":list_select"])==true)
@@ -456,6 +472,13 @@ function checklist_update($form_config,$parent_id)
       if (count($records)==1)
       {
         $record=$records[0];
+        if ($checklist_enabled_fieldname<>"")
+        {
+          if ($record[$checklist_enabled_fieldname]==false)
+          {
+            $value_items[$checklist_enabled_fieldname]=true;
+          }
+        }
         foreach ($value_items as $field_name => $field_value)
         {
           if ($record[$field_name]==$field_value)
@@ -943,9 +966,18 @@ function list_row($form_config,$record,$column_format,$row_spans,$lookup_records
     if ($link_record!==false)
     {
       $checklist_row_linked=true;
+      $checklist_enabled_fieldname=$form_config["checklist_enabled_fieldname"];
+      if ($checklist_enabled_fieldname<>"")
+      {
+        if ($link_record[$checklist_enabled_fieldname]==false)
+        {
+          $link_record=false;
+          $checklist_row_linked=false;
+        }
+      }
     }
   }
-  $fields="";
+  $fields=array();
   $empty_cell=\webdb\utils\template_fill("empty_cell");
   foreach ($form_config["control_types"] as $field_name => $control_type)
   {
@@ -1037,6 +1069,11 @@ function list_row($form_config,$record,$column_format,$row_spans,$lookup_records
     {
       if ($row_spans[$record_index]==0)
       {
+        if (isset($_GET["format"])==true)
+        {
+          $fields[]="";
+          continue;
+        }
         $skip_field=true;
       }
       else
@@ -1048,9 +1085,22 @@ function list_row($form_config,$record,$column_format,$row_spans,$lookup_records
     }
     if ($skip_field==false)
     {
-      $fields.=\webdb\forms\output_readonly_field($field_params,$control_type,$form_config,$field_name,$lookup_records,$display_record,$link_record);
+      $fields[]=\webdb\forms\output_readonly_field($field_params,$control_type,$form_config,$field_name,$lookup_records,$display_record,$link_record);
     }
   }
+  if (isset($_GET["format"])==true)
+  {
+    switch ($_GET["format"])
+    {
+      case "csv":
+        for ($i=0;$i<count($fields);$i++)
+        {
+          $fields[$i]=str_replace(","," ",$fields[$i]);
+        }
+        return implode(",",$fields);
+    }
+  }
+  $fields=implode("",$fields);
   $row_params["list_row_controls"]="";
   $row_params["default_checked"]="";
   $row_params["controls"]="";
@@ -1178,6 +1228,19 @@ function get_lookup_field_value($field_name,$form_config,$lookup_records,$displa
 function output_readonly_field($field_params,$control_type,$form_config,$field_name,$lookup_records,$display_record,$link_record=false)
 {
   global $settings;
+  if (isset($_GET["format"])==true)
+  {
+    switch ($control_type)
+    {
+      case "raw":
+      case "memo":
+      case "file":
+      case "span":
+      case "text":
+      case "checkbox":
+        return $display_record[$field_name];
+    }
+  }
   switch ($control_type)
   {
     case "hidden":
@@ -1187,6 +1250,10 @@ function output_readonly_field($field_params,$control_type,$form_config,$field_n
       return \webdb\forms\form_template_fill("list_field_raw",$field_params);
     case "lookup":
       $field_params["value"]=\webdb\forms\get_lookup_field_value($field_name,$form_config,$lookup_records,$display_record,$link_record);
+      if (isset($_GET["format"])==true)
+      {
+        return $field_params["value"];
+      }
       return \webdb\forms\form_template_fill("list_field",$field_params);
     case "memo":
       $field_params["value"]=htmlspecialchars(str_replace(\webdb\index\LINEBREAK_DB_DELIM,\webdb\index\LINEBREAK_PLACEHOLDER,$display_record[$field_name]));
@@ -1196,6 +1263,11 @@ function output_readonly_field($field_params,$control_type,$form_config,$field_n
     case "default":
     case "info":
       $display_record[$field_name]=\webdb\forms\default_value($form_config,$field_name);
+      if (isset($_GET["format"])==true)
+      {
+        return $display_record[$field_name];
+      }
+      return \webdb\forms\form_template_fill("list_field",$field_params);
     case "file":
       $field_params["no_file_disabled"]="";
       if (array_key_exists($field_name,$display_record)==true)
@@ -1229,6 +1301,10 @@ function output_readonly_field($field_params,$control_type,$form_config,$field_n
           break;
         }
       }
+      if (isset($_GET["format"])==true)
+      {
+        return $field_params["value"];
+      }
       return \webdb\forms\form_template_fill("list_field",$field_params);
     case "date":
       if ($display_record[$field_name]==null)
@@ -1238,6 +1314,10 @@ function output_readonly_field($field_params,$control_type,$form_config,$field_n
       else
       {
         $field_params["value"]=date($settings["app_date_format"],strtotime($display_record[$field_name]));
+      }
+      if (isset($_GET["format"])==true)
+      {
+        return $field_params["value"];
       }
       return \webdb\forms\form_template_fill("list_field",$field_params);
     case "checkbox":
@@ -1544,6 +1624,19 @@ function output_editable_field(&$field_params,$record,$field_name,$control_type,
         if ($excluded_parent==true)
         {
           continue;
+        }
+        if (isset($lookup_config["sibling_filter_fields"])==true)
+        {
+          $sibling_filter_fields=$lookup_config["sibling_filter_fields"];
+          $sibling_filter_fields=explode(",",$sibling_filter_fields);
+          for ($j=0;$j<count($sibling_filter_fields);$j++)
+          {
+            $sibling_filter_fieldname=$sibling_filter_fields[$j];
+            if ($loop_record[$sibling_filter_fieldname]<>$record[$sibling_filter_fieldname])
+            {
+              continue 2;
+            }
+          }
         }
         if (($loop_record[$lookup_config["key_field"]]==$record[$field_name]) and ($selected_found==false))
         {
@@ -2042,7 +2135,7 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
       $records=array_merge($checked_records,$unchecked_records);
     }
   }
-  $rows="";
+  $rows=array();
   for ($i=0;$i<count($records);$i++)
   {
     $record=$records[$i];
@@ -2063,8 +2156,16 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
       }
     }
     $record=\webdb\forms\process_computed_fields($form_config,$record);
-    $rows.=\webdb\forms\list_row($form_config,$record,$column_format,$row_spans,$lookup_records,$i,$link_record);
+    $rows[]=\webdb\forms\list_row($form_config,$record,$column_format,$row_spans,$lookup_records,$i,$link_record);
   }
+  if (isset($_GET["format"])==true)
+  {
+    $format_params=array();
+    $format_params["data"]=implode(PHP_EOL,$rows);
+    $content=\webdb\forms\form_template_fill("format_output",$format_params);
+    die($content);
+  }
+  $rows=implode("",$rows);
   $form_params["record_count"]=count($records);
   $form_params["insert_row_controls"]="";
   if (($form_config["insert_row"]==true) and ($form_config["records_sql"]==""))
@@ -2884,6 +2985,7 @@ function insert_default_url_params()
     switch ($param_name)
     {
       case "page":
+      case "update_oul":
       case "chat_break":
       case "cmd":
       case "redirect":
@@ -2894,6 +2996,7 @@ function insert_default_url_params()
       case "parent_id":
       case "sort":
       case "home":
+      case "format":
       case "dir":
         break;
       default:

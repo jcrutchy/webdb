@@ -27,6 +27,8 @@ require_once("manage.php");
 require_once("cli.php");
 require_once("tools".DIRECTORY_SEPARATOR."dxf.php");
 require_once("tools".DIRECTORY_SEPARATOR."graphics.php");
+require_once("tools".DIRECTORY_SEPARATOR."tree.php");
+require_once("tools".DIRECTORY_SEPARATOR."chart.php");
 require_once("service".DIRECTORY_SEPARATOR."service.php");
 
 set_error_handler("\\webdb\\utils\\error_handler",E_ALL);
@@ -175,6 +177,9 @@ if (isset($_GET["page"])==true)
   \webdb\forms\form_dispatch($_GET["page"]);
 }
 
-\webdb\utils\static_page($settings["app_home_template"],$settings["app_title"]);
+$home_params=array();
+$home_params["user_favorites_list"]=\webdb\chat\output_user_favorites_list();
+$content=\webdb\utils\template_fill($settings["app_home_template"],$home_params);
+\webdb\utils\output_page($content,$settings["app_title"]);
 
 #####################################################################################################

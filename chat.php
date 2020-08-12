@@ -43,71 +43,27 @@ function update_online_user_list()
   $now=microtime(true);
   foreach ($data["pages"] as $url => $page_data)
   {
-    $parts=explode("|",$page_data);
-    if (count($parts)==1)
+    if (isset($page_data["page_time"])==false)
     {
       unset($data["pages"][$url]);
       continue;
     }
-    $page_time=$parts[2];
+    $page_time=$page_data["page_time"];
     $delta=$now-$page_time;
     if ($delta>$settings["online_user_list_update_interval_sec"])
     {
       unset($data["pages"][$url]);
     }
   }
-  $url=\webdb\utils\get_url();
-  $strip_params=array("update_oul","chat_break","redirect","filters","sort","dir","home");
-  $skip_params=array("ajax","subform","parent_form","parent_id");
-  $params=explode("?",$url);
-  $skip=false;
-  $page_id="";
-  $record_id="";
-  if (count($params)==2)
+  $page_data=\webdb\chat\get_stripped_url();
+  $url=$page_data["url"];
+  $page_data["page_time"]=$now;
+  if ($page_data["skip"]==false)
   {
-    $url=$params[0];
-    $params=$params[1];
-    $params=explode("&",$params);
-    $output=array();
-    for ($i=0;$i<count($params);$i++)
-    {
-      $parts=explode("=",$params[$i]);
-      $test_key=array_shift($parts);
-      $test_val=implode("=",$parts);
-      if (($test_key=="cmd") and ($test_val=="insert"))
-      {
-        $skip=true;
-        break;
-      }
-      if (in_array($test_key,$skip_params)==true)
-      {
-        $skip=true;
-        break;
-      }
-      if ($test_key=="page")
-      {
-        $page_id=$test_val;
-      }
-      if ($test_key=="id")
-      {
-        $record_id=$test_val;
-      }
-      if (in_array($test_key,$strip_params)==false)
-      {
-        $output[]=$params[$i];
-      }
-    }
-    if (count($output)>0)
-    {
-      $url.="?".implode("&",$output);
-    }
+    $data["pages"][$url]=$page_data;
+    $user_record["json_data"]=json_encode($data);
+    \webdb\chat\update_user($user_record);
   }
-  if ($skip==false)
-  {
-    $data["pages"][$url]=$page_id."|".$record_id."|".$now;
-  }
-  $user_record["json_data"]=json_encode($data);
-  \webdb\chat\update_user($user_record);
   $user_records=\webdb\sql\file_fetch_prepare("chat/chat_user_get_all_enabled");
   $online_users=array();
   for ($i=0;$i<count($user_records);$i++)
@@ -122,12 +78,11 @@ function update_online_user_list()
       {
         foreach ($data["pages"] as $url => $page_data)
         {
-          $parts=explode("|",$page_data);
-          if (count($parts)==1)
+          if (isset($page_data["page_time"])==false)
           {
             continue;
           }
-          $page_time=$parts[2];
+          $page_time=$page_data["page_time"];
           $delta=$now-$page_time;
           if ($delta<=$settings["online_user_list_update_interval_sec"])
           {
@@ -141,36 +96,20 @@ function update_online_user_list()
   $rows="";
   foreach ($online_users as $nick => $urls)
   {
+    $blank_exists=false;
     foreach ($urls as $url => $page_data)
     {
-      $parts=explode("|",$page_data);
       $params=array();
       $params["nick"]=$nick;
       $params["url"]=$url;
-      $page_id=$parts[0];
-      $record_id=$parts[1];
-      $form_config=\webdb\forms\get_form_config($page_id,true);
-      $params["caption"]="";
-      if ($form_config!==false)
-      {
-        $params["caption"]=$form_config["title"];
-        if ($record_id!=="")
-        {
-          $record=\webdb\forms\get_record_by_id($form_config,$record_id,"primary_key",false);
-          if ($record===false)
-          {
-            continue;
-          }
-          $params["caption"]=\webdb\chat\get_topic($form_config,$record,"user_list");
-        }
-      }
+      $params["caption"]=\webdb\chat\get_user_list_caption($url,$page_data);
       if ($params["caption"]=="")
       {
-        if (strpos($url,"?")!==false)
+        if ($blank_exists==true)
         {
-          $caption=explode("?",$url);
-          $params["caption"]=array_pop($caption);
+          continue;
         }
+        $blank_exists=true;
       }
       $rows.=\webdb\utils\template_fill("online_user_list_row",$params);
     }
@@ -180,6 +119,176 @@ function update_online_user_list()
   $data["html"]=\webdb\utils\template_fill("online_user_list_table",$params);
   $data=json_encode($data);
   die($data);
+}
+
+#####################################################################################################
+
+function output_user_favorites_list()
+{
+  global $settings;
+  $user_record=\webdb\chat\chat_initialize();
+  $data=array();
+  if ($user_record["json_data"]<>"")
+  {
+    $data=json_decode($user_record["json_data"],true);
+  }
+  if (isset($data["favorites"])==false)
+  {
+    return "";
+  }
+  $rows="";
+  foreach ($data["favorites"] as $url => $url_data)
+  {
+    $row_params=array();
+    $row_params["url"]=$url;
+    $row_params["caption"]=\webdb\chat\get_user_list_caption($url,$url_data);
+    if ($row_params["caption"]=="")
+    {
+      continue;
+    }
+    $rows.=\webdb\utils\template_fill("user_favorites_list_row",$row_params);
+  }
+  $params=array();
+  $params["rows"]=$rows;
+  return \webdb\utils\template_fill("user_favorites_list_table",$params);
+}
+
+#####################################################################################################
+
+function page_favorite_ajax_stub()
+{
+  global $settings;
+  $result_data=array();
+  $user_record=\webdb\chat\chat_initialize();
+  $data=array();
+  if ($user_record["json_data"]<>"")
+  {
+    $data=json_decode($user_record["json_data"],true);
+  }
+  if (isset($data["favorites"])==false)
+  {
+    $data["favorites"]=array();
+  }
+  $url_data=\webdb\chat\get_stripped_url(true);
+  $url=$url_data["url"];
+  switch ($_GET["ajax"])
+  {
+    case "favourite":
+      if ($url_data["skip"]==false)
+      {
+        $data["favorites"][$url]=$url_data;
+        $result_data["success_msg"]="Added to favourites.";
+      }
+      $result_data["button_caption"]="unfavourite";
+      break;
+    case "unfavourite":
+      if (isset($data["favorites"][$url])==true)
+      {
+        unset($data["favorites"][$url]);
+        $result_data["success_msg"]="Removed from favourites.";
+      }
+      $result_data["button_caption"]="favourite";
+      break;
+  }
+  $user_record["json_data"]=json_encode($data);
+  \webdb\chat\update_user($user_record);
+  $result_data=json_encode($result_data);
+  die($result_data);
+}
+
+#####################################################################################################
+
+function get_stripped_url($ignore_ajax=false)
+{
+  $result=array();
+  $result["url"]=\webdb\utils\get_url();
+  $result["page_id"]="";
+  $result["record_id"]="";
+  $result["skip"]=false;
+  $strip_params=array("update_oul","chat_break","redirect","filters","sort","dir","home");
+  $skip_params=array("subform","parent_form","parent_id","format");
+  if ($ignore_ajax==true)
+  {
+    $strip_params[]="ajax";
+  }
+  else
+  {
+    $skip_params[]="ajax";
+  }
+  $params=explode("?",$result["url"]);
+  if (count($params)<2)
+  {
+    return $result;
+  }
+  $result["url"]=$params[0];
+  $params=$params[1];
+  $params=explode("&",$params);
+  $output=array();
+  for ($i=0;$i<count($params);$i++)
+  {
+    $parts=explode("=",$params[$i]);
+    $test_key=array_shift($parts);
+    $test_val=implode("=",$parts);
+    if (($test_key=="cmd") and ($test_val=="insert"))
+    {
+      $result["skip"]=true;
+      break;
+    }
+    if (in_array($test_key,$skip_params)==true)
+    {
+      $result["skip"]=true;
+      break;
+    }
+    if ($test_key=="page")
+    {
+      $result["page_id"]=$test_val;
+    }
+    if ($test_key=="id")
+    {
+      $result["record_id"]=$test_val;
+    }
+    if (in_array($test_key,$strip_params)==false)
+    {
+      $output[]=$params[$i];
+    }
+  }
+  if (count($output)>0)
+  {
+    $result["url"].="?".implode("&",$output);
+  }
+  return $result;
+}
+
+#####################################################################################################
+
+function get_user_list_caption($url,$url_data)
+{
+  $result="";
+  $page_id=$url_data["page_id"];
+  $record_id=$url_data["record_id"];
+  $form_config=\webdb\forms\get_form_config($page_id,true);
+  if ($form_config!==false)
+  {
+    $caption=$form_config["title"];
+    if (($record_id!=="") and ($form_config["user_list_fields"]<>"") and ($form_config["user_list_format"]<>""))
+    {
+      $record=\webdb\forms\get_record_by_id($form_config,$record_id,"primary_key",false);
+      if ($record===false)
+      {
+        return $result;
+      }
+      $result=\webdb\chat\get_topic($form_config,$record,"user_list");
+    }
+  }
+  if ($result=="")
+  {
+    if (strpos($url,"?")!==false)
+    {
+      $caption=explode("?",$url);
+      $result=array_pop($caption);
+    }
+  }
+  return $result;
 }
 
 #####################################################################################################
@@ -455,7 +564,31 @@ function chat_dispatch($record_id,$form_config,$record=false,$template="chat/pop
   }
   \webdb\chat\update_last_read_message($user_record,$channel_record);
   $form_config["id"]=$record_id;
+  $form_config["favourite_caption"]=\webdb\chat\get_favorite_button_caption();
   return \webdb\utils\template_fill($template,$form_config);
+}
+
+#####################################################################################################
+
+function get_favorite_button_caption()
+{
+  $user_record=\webdb\chat\chat_initialize();
+  $data=array();
+  if ($user_record["json_data"]<>"")
+  {
+    $data=json_decode($user_record["json_data"],true);
+  }
+  if (isset($data["favorites"])==false)
+  {
+    return "favourite";
+  }
+  $url_data=\webdb\chat\get_stripped_url(true);
+  $url=$url_data["url"];
+  if (isset($data["favorites"][$url])==true)
+  {
+    return "unfavourite";
+  }
+  return "favourite";
 }
 
 #####################################################################################################
