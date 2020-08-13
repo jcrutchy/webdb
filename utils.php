@@ -1394,6 +1394,21 @@ function strip_text($value,$additional_valid_chars="")
 
 #####################################################################################################
 
+function contains_number($value)
+{
+  $num_chars="0123456789";
+  for ($i=0;$i<strlen($value);$i++)
+  {
+    if (strpos($num_chars,$value[$i])!==false)
+    {
+      return true;
+    }
+  }
+  return false;
+}
+
+#####################################################################################################
+
 function color_blend($R1,$G1,$B1,$R2,$G2,$B2,$increment_fraction)
 {
   $result=array();

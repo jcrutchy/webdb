@@ -21,6 +21,23 @@ function chart_colors()
 
 #####################################################################################################
 
+function initilize_chart()
+{
+  $data=array();
+  $data["w"]=1800;
+  $data["h"]=800;
+  $data["series"]=array();
+  $data["grid_x"]=1;
+  $data["grid_y"]=1;
+  $data["x_min"]=0;
+  $data["x_max"]=10;
+  $data["y_min"]=0;
+  $data["y_max"]=10;
+  return $data;
+}
+
+#####################################################################################################
+
 function get_time_captions($scale,&$data)
 {
   $min_x=$data["x_min"];
@@ -38,10 +55,10 @@ function get_time_captions($scale,&$data)
       $max_x=strtotime("+2 month",$max_x);
       $max_x=strtotime(date("M-Y",$max_x)."-01");
       $data["x_max"]=$max_x;
-      $d1=date("Y-m-d",$min_x);
-      $d2=date("Y-m-d",$max_x);
-      $diff=date_diff(date_create($d1),date_create($d2));
-      $n=$diff->format("%m");
+      $d1=new \DateTime("@".$min_x);
+      $d2=new \DateTime("@".$max_x);
+      $diff=$d1->diff($d2);
+      $n=$diff->y*12+$diff->m;
       $x=$min_x;
       for ($i=0;$i<=$n;$i++)
       {
@@ -55,6 +72,24 @@ function get_time_captions($scale,&$data)
       break;
   }
   $data["x_captions"]=$x_captions;
+}
+
+#####################################################################################################
+
+function output_legend_line($series)
+{
+  $chart_colors=\webdb\chart\chart_colors();
+  $color=$series["color"];
+  $color=$chart_colors[$color];
+  $w=60;
+  $h=20;
+  $buffer=imagecreatetruecolor($w,$h);
+  $bg_color=imagecolorallocate($buffer,255,0,255); # magenta
+  imagecolortransparent($buffer,$bg_color);
+  imagefill($buffer,0,0,$bg_color);
+  $line_color=imagecolorallocate($buffer,$color[0],$color[1],$color[2]);
+  imageline($buffer,0,$h/2,$w-1,$h/2,$line_color);
+  return \webdb\graphics\base64_image($buffer,"png");
 }
 
 #####################################################################################################
@@ -120,13 +155,12 @@ function output_chart($data)
   }
   $y=\webdb\chart\real_to_pixel_y($h,$top,$bottom,$min_y,$max_y,$min_y);
   imageline($buffer,$left,$y,$w-$right-1,$y,$line_color);
+  $grid_x_pixels=\webdb\chart\real_to_pixel_x($w,$left,$right,$min_x,$max_x,$grid_x);
   $n=round($dx/$grid_x);
   for ($i=0;$i<=$n;$i++)
   {
     $rx=$grid_x*$i+$min_x;
     $x=\webdb\chart\real_to_pixel_x($w,$left,$right,$min_x,$max_x,$rx);
-    imageline($buffer,$x,$y,$x,$y+$tick_length,$line_color);
-    imageline($buffer,$x,$y+$tick_length,$x-$tick_length,$y+2*$tick_length,$line_color);
     $caption=$rx;
     if (isset($data["x_captions"][$i])==true)
     {
@@ -135,8 +169,15 @@ function output_chart($data)
     $bbox=imagettfbbox($font_size,0,$text_file,$caption);
     $text_w=$bbox[2]-$bbox[0];
     $text_h=$bbox[1]-$bbox[7];
-    #$text_x=$x-round($text_w/2); # for horizontal text
-    #$text_y=$y+$text_h+$tick_length+$label_space; # for horizontal text
+    if ($grid_x_pixels<($text_h*2))
+    {
+      if (($i%2)>0)
+      {
+        continue;
+      }
+    }
+    imageline($buffer,$x,$y,$x,$y+$tick_length,$line_color);
+    imageline($buffer,$x,$y+$tick_length,$x-$tick_length,$y+2*$tick_length,$line_color);
     $text_x=$x-round($text_w/sqrt(2))-$tick_length;
     $text_y=$y+round($text_w/sqrt(2))+2*$tick_length+$label_space+2;
     imagettftext($buffer,$font_size,45,$text_x,$text_y,$line_color,$text_file,$caption);
@@ -149,14 +190,33 @@ function output_chart($data)
     $line_color=imagecolorallocate($buffer,$color[0],$color[1],$color[2]);
     $x_values=$series["x_values"];
     $y_values=$series["y_values"];
-    $n=count($x_values)-1;
-    for ($j=0;$j<$n;$j++)
+    switch ($series["type"])
     {
-      $x1=\webdb\chart\real_to_pixel_x($w,$left,$right,$min_x,$max_x,$x_values[$j]);
-      $y1=\webdb\chart\real_to_pixel_y($h,$top,$bottom,$min_y,$max_y,$y_values[$j]);
-      $x2=\webdb\chart\real_to_pixel_x($w,$left,$right,$min_x,$max_x,$x_values[$j+1]);
-      $y2=\webdb\chart\real_to_pixel_y($h,$top,$bottom,$min_y,$max_y,$y_values[$j+1]);
-      imageline($buffer,$x1,$y1,$x2,$y2,$line_color);
+      case "plot":
+        $n=count($x_values)-1;
+        for ($j=0;$j<$n;$j++)
+        {
+          $x1=\webdb\chart\real_to_pixel_x($w,$left,$right,$min_x,$max_x,$x_values[$j]);
+          $y1=\webdb\chart\real_to_pixel_y($h,$top,$bottom,$min_y,$max_y,$y_values[$j]);
+          imagerectangle($buffer,$x1-3,$y1-3,$x1+3-1,$y1+3-1,$line_color);
+          $x2=\webdb\chart\real_to_pixel_x($w,$left,$right,$min_x,$max_x,$x_values[$j+1]);
+          $y2=\webdb\chart\real_to_pixel_y($h,$top,$bottom,$min_y,$max_y,$y_values[$j+1]);
+          imageline($buffer,$x1,$y1,$x2,$y2,$line_color);
+        }
+        imagerectangle($buffer,$x2-3,$y2-3,$x2+3-1,$y2+3-1,$line_color);
+        break;
+      case "step":
+        $n=count($x_values)-1;
+        for ($j=0;$j<$n;$j++)
+        {
+          $x1=\webdb\chart\real_to_pixel_x($w,$left,$right,$min_x,$max_x,$x_values[$j]);
+          $y1=\webdb\chart\real_to_pixel_y($h,$top,$bottom,$min_y,$max_y,$y_values[$j]);
+          $x2=\webdb\chart\real_to_pixel_x($w,$left,$right,$min_x,$max_x,$x_values[$j+1]);
+          imageline($buffer,$x1,$y1,$x2,$y1,$line_color);
+          $y2=\webdb\chart\real_to_pixel_y($h,$top,$bottom,$min_y,$max_y,$y_values[$j+1]);
+          imageline($buffer,$x2,$y1,$x2,$y2,$line_color);
+        }
+        break;
     }
   }
   return \webdb\graphics\base64_image($buffer,"png");
