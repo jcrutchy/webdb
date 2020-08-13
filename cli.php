@@ -230,7 +230,7 @@ function generate_form($database,$table,$filename,$parent_page_id=false,$parent_
   global $settings;
   $settings["forms"]=array();
   \webdb\forms\load_form_defs();
-  $records=\webdb\cli\column_list($database,$table);
+  $records=\webdb\sql\column_list($database,$table);
   $full_filename=$settings["app_forms_path"].$filename;
   $form_type=pathinfo($full_filename,PATHINFO_EXTENSION);
   $page_id=pathinfo($full_filename,PATHINFO_FILENAME);
@@ -294,7 +294,7 @@ function generate_form($database,$table,$filename,$parent_page_id=false,$parent_
             $lookup_def["table"]=$fk["REFERENCED_TABLE_NAME"];
             $lookup_def["key_field"]=$fk["REFERENCED_COLUMN_NAME"];
             $lookup_def["sibling_field"]=$fk["COLUMN_NAME"];
-            $lookup_table_columns=\webdb\cli\column_list($lookup_def["database"],$lookup_def["table"]);
+            $lookup_table_columns=\webdb\sql\column_list($lookup_def["database"],$lookup_def["table"]);
             $display_field=$lookup_def["key_field"];
             for ($k=0;$k<count($lookup_table_columns);$k++)
             {
@@ -487,16 +487,6 @@ function table_list($database)
   $sql_params=array();
   $sql_params["database"]=$database;
   return \webdb\sql\file_fetch_prepare("generate_form_table_list",$sql_params);
-}
-
-#####################################################################################################
-
-function column_list($database,$table)
-{
-  $sql_params=array();
-  $sql_params["table"]=$table;
-  $sql_params["database"]=$database;
-  return \webdb\sql\file_fetch_prepare("generate_form_column_list",$sql_params);
 }
 
 #####################################################################################################

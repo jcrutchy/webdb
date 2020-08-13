@@ -126,6 +126,20 @@ function get_statement_type($sql)
 
 #####################################################################################################
 
+function column_list($database,$table)
+{
+  global $settings;
+  $sql_params=array();
+  $sql_params["table"]=strtoupper($table);
+  if ($settings["db_engine"]<>"sqlsrv")
+  {
+    $sql_params["database"]=strtoupper($database);
+  }
+  return \webdb\sql\file_fetch_prepare("generate_form_column_list",$sql_params);
+}
+
+#####################################################################################################
+
 function sql_last_insert_autoinc_id($is_admin=false)
 {
   $pdo=\webdb\sql\get_pdo_object($is_admin);
