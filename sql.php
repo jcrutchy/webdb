@@ -163,7 +163,8 @@ function sql_insert($items,$table,$database,$is_admin=false,$form_config=false)
   $result=\webdb\sql\execute_prepare($sql,$items,"",$is_admin,$table,$database,$form_config);
   if ($result===true)
   {
-    \webdb\sql\sql_change(array(),$sql,array(),$items,$table,$database,$is_admin);
+    $insert_id=\webdb\sql\sql_last_insert_autoinc_id($is_admin);
+    \webdb\sql\sql_change(array(),$sql,array(),$items,$table,$database,$is_admin,$insert_id);
   }
   return $result;
 }
@@ -547,7 +548,7 @@ function null_user_check($sql,$where_items,$table,$database)
 
 #####################################################################################################
 
-function sql_change($old_records,$sql,$where_items,$value_items,$table,$database,$is_admin)
+function sql_change($old_records,$sql,$where_items,$value_items,$table,$database,$is_admin,$insert_id=null)
 {
   global $settings;
   if (\webdb\cli\is_cli_mode()==true)
@@ -590,6 +591,8 @@ function sql_change($old_records,$sql,$where_items,$value_items,$table,$database
   $items["where_items"]=json_encode($where_items);
   $items["value_items"]=json_encode($value_items);
   $items["old_records"]=json_encode($old_records);
+  # note that insert_id may not always be set for insert records (from before field was added in aug-2020)
+  $items["insert_id"]=$insert_id;
   $settings["sql_check_post_params_override"]=true;
   \webdb\sql\sql_insert($items,"sql_changes",$settings["database_webdb"],true);
   $items["username"]=$user["username"];

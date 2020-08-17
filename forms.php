@@ -1188,6 +1188,10 @@ function get_lookup_field_value($field_name,$form_config,$lookup_records,$displa
   $result="";
   $lookup_config=$form_config["lookups"][$field_name];
   $key_field_name=$lookup_config["key_field"];
+  if (isset($lookup_config["sibling_field"])==false)
+  {
+    $lookup_config["sibling_field"]=$field_name;
+  }
   $sibling_field_name=$lookup_config["sibling_field"];
   if (($form_config["checklist"]==false) or (array_key_exists($sibling_field_name,$display_record)==true))
   {
@@ -2801,11 +2805,21 @@ function lookup_field_data($form_config,$field_name)
   {
     $lookup_config["order_by"]="";
   }
+  if (isset($lookup_config["where_clause"])==false)
+  {
+    $lookup_config["where_clause"]="";
+  }
   if ($lookup_config["lookup_sql_file"]=="")
   {
     $filename="form_lookup";
     $database=$lookup_config["database"];
     $table=$lookup_config["table"];
+    if ($lookup_config["where_clause"]<>"")
+    {
+      $where_params=array();
+      $where_params["where_items"]=$lookup_config["where_clause"];
+      $lookup_config["where_clause"]=\webdb\utils\sql_fill("where_clause",$where_params);
+    }
     if ($lookup_config["order_by"]=="")
     {
       $display_fields=explode(",",$lookup_config["display_field"]);

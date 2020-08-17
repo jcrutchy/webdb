@@ -18,7 +18,10 @@ the display_format value must be a value format string to be passed as the first
             "exclude_parent": true,
             "exclude_null": true,
             "parent_key_field": "",
-            "sibling_filter_fields": "field1,field2,field3"
+            "sibling_filter_fields": "field1,field2,field3",
+            "where_clause": "(enabled=1)",
+            "where_clause_mysql": "",
+            "where_clause_sqlsrv": ""
         }
     },
 
