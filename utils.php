@@ -1054,6 +1054,57 @@ function compare_template($template,$response)
 
 #####################################################################################################
 
+function extract_params($template,$data)
+{
+  $data=trim($data);
+  $template_content=trim(\webdb\utils\template_fill($template));
+  $data=str_replace("\r","",$data);
+  $template_content=str_replace("\r","",$template_content);
+  $parts=explode("%%",$template_content);
+  $keys=array();
+  $excluded=array();
+  for ($i=0;$i<count($parts);$i++)
+  {
+    if (($i%2)==0)
+    {
+      $excluded[]=$parts[$i];
+    }
+    else
+    {
+      $keys[]=$parts[$i];
+    }
+  }
+  $nk=count($keys);
+  $ne=count($excluded);
+  if ($nk<>($ne-1))
+  {
+    return false;
+  }
+  $params=array();
+  for ($i=0;$i<$nk;$i++)
+  {
+    $compare=$excluded[$i];
+    $data_test=substr($data,0,strlen($compare));
+    if ($data_test!==$compare)
+    {
+      return false;
+    }
+    $data=substr($data,strlen($compare));
+    $next=$excluded[$i+1];
+    $k=strpos($data,$next);
+    if ($k===false)
+    {
+      return false;
+    }
+    $key=$keys[$i];
+    $params[$key]=trim(substr($data,0,$k));
+    $data=substr($data,$k);
+  }
+  return $params;
+}
+
+#####################################################################################################
+
 function strip_http_headers($response)
 {
   if (substr($response,0,4)<>"HTTP")

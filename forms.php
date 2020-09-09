@@ -1159,6 +1159,7 @@ function list_row($form_config,$record,$column_format,$row_spans,$lookup_records
 
 function lookup_field_display_value($lookup_config,$lookup_record)
 {
+  global $settings;
   $display_field_names=explode(",",$lookup_config["display_field"]);
   $display_values=array();
   for ($i=0;$i<count($display_field_names);$i++)
@@ -1173,9 +1174,25 @@ function lookup_field_display_value($lookup_config,$lookup_record)
   if (isset($lookup_config["display_format"])==true)
   {
     $format=trim($lookup_config["display_format"]);
-    if ($format<>"")
+    switch ($format)
     {
-      return vsprintf($format,$display_values);
+      case "link":
+        if (count($display_values)==1)
+        {
+          $link_params=array();
+          $link_params["url"]=$display_values[0];
+          return \webdb\forms\form_template_fill("lookup_link",$link_params);
+        }
+      case "date":
+        if (count($display_values)==1)
+        {
+          return date($settings["app_date_format"],strtotime($display_values[0]));
+        }
+      default:
+        if ($format<>"")
+        {
+          return vsprintf($format,$display_values);
+        }
     }
   }
   return implode(\webdb\index\LOOKUP_DISPLAY_FIELD_DELIM,$display_values);
@@ -1223,8 +1240,27 @@ function get_lookup_field_value($field_name,$form_config,$lookup_records,$displa
       }
     }
   }
+  if (isset($lookup_config["display_format"])==true)
+  {
+    $format=$lookup_config["display_format"];
+    switch ($format)
+    {
+      case "link":
+        return $result;
+    }
+  }
   $result=htmlspecialchars(str_replace(\webdb\index\LINEBREAK_DB_DELIM,\webdb\index\LINEBREAK_PLACEHOLDER,$result));
   return str_replace(\webdb\index\LINEBREAK_PLACEHOLDER,\webdb\utils\template_fill("break"),$result);
+}
+
+#####################################################################################################
+
+function format_text_output($value)
+{
+  $value=htmlspecialchars(str_replace(\webdb\index\LINEBREAK_DB_DELIM,\webdb\index\LINEBREAK_PLACEHOLDER,$value));
+  $value=str_replace(\webdb\index\LINEBREAK_PLACEHOLDER,\webdb\utils\template_fill("break"),$value);
+  $value=\webdb\forms\memo_field_formatting($value);
+  return $value;
 }
 
 #####################################################################################################
@@ -1260,9 +1296,7 @@ function output_readonly_field($field_params,$control_type,$form_config,$field_n
       }
       return \webdb\forms\form_template_fill("list_field",$field_params);
     case "memo":
-      $field_params["value"]=htmlspecialchars(str_replace(\webdb\index\LINEBREAK_DB_DELIM,\webdb\index\LINEBREAK_PLACEHOLDER,$display_record[$field_name]));
-      $field_params["value"]=str_replace(\webdb\index\LINEBREAK_PLACEHOLDER,\webdb\utils\template_fill("break"),$field_params["value"]);
-      $field_params["value"]=\webdb\forms\memo_field_formatting($field_params["value"]);
+      $field_params["value"]=\webdb\forms\format_text_output($display_record[$field_name]);
       return \webdb\forms\form_template_fill("list_field",$field_params);
     case "default":
     case "info":

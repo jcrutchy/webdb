@@ -1,0 +1,5 @@
+USE RISK_MDO;
+GO
+ALTER TABLE dbo.users
+ADD CONSTRAINT [fullname] UNIQUE ([fullname] ASC)
+GO

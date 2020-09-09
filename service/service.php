@@ -37,6 +37,7 @@ function service_main()
       $stop_status="service file changed";
       break;
     }
+    set_time_limit(0);
     call_user_func($settings["service_loop_event_handler"]);
     usleep(0.1*1e6);
   }
