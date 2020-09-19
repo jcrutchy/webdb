@@ -279,6 +279,7 @@ function webdb_setcookie_raw($name,$value,$max_age=0,$http_only=true)
     $expiry=0;
   }
   $cookie_name=\webdb\utils\convert_to_cookie_name($name);
+  # TODO: instead of using expires, try max-age (in seconds) but probably need to use header() function instead of setcookie()
   setcookie($cookie_name,$value,$expiry,"/",$_SERVER["HTTP_HOST"],false,$http_only);
 }
 

@@ -43,7 +43,7 @@ $settings["webdb_default_form"]="default";
 $settings["csrf_hash_prefix"]="uwkTy+ZgSP5jaowf2ghk";
 $settings["csrf_cookie_unauth"]="webdb_csrf_unauth";
 $settings["csrf_cookie_auth"]="webdb_csrf_auth";
-$settings["max_csrf_token_age"]=60*60*24;
+$settings["max_csrf_token_age"]=60*60*24*30;
 
 $settings["app_test_include"]=$settings["app_root_path"]."test".DIRECTORY_SEPARATOR."test.php";
 
