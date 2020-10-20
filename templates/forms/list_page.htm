@@ -6,21 +6,7 @@ var edit_row_id=null;
 var waiting_edit_row_element=null;
 </script>
 
-<script type="text/javascript" src="$$webdb_web_resources$$list.js?mod=%%form_script_modified%%"></script>
-<link rel="stylesheet" property="stylesheet" href="$$webdb_web_resources$$list.css?mod=%%form_styles_modified%%">
-<link rel="stylesheet" property="stylesheet" href="$$webdb_web_resources$$list_print.css?mod=%%form_styles_print_modified%%" media="print">
-
-<div id="global_page_header">
-<div id="global_page_header_content">
-<div id="header_title">%%title%%</div>
-<div id="header_links_bar">@@$$links_template$$@@</div>
-<a href="$$app_web_index$$"><img id="company_logo" src="$$app_web_resources$$$$app_logo_filename$$" alt=""></a>
-</div>
-</div>
-
-<div id="global_page_body_outer">
-<div id="global_page_body_inner">
-<div id="global_page_body_content">
+@@data_page_head@@
 
 <form name="%%page_id%%" id="%%page_id%%" action="$$app_web_index$$?page=%%page_id%%" method="post">
 <input type="hidden" name="csrf_token" value="%%csrf_token%%">
@@ -31,12 +17,4 @@ var waiting_edit_row_element=null;
 
 </form>
 
-</div>
-</div>
-</div>
-
-<div id="global_page_footer">
-<div id="footer_info_bar">@@$$footer_template$$@@</div>
-<div id="global_page_footer_content">
-</div>
-</div>
+@@data_page_foot@@

@@ -53,3 +53,7 @@ in subform_location_widgets.list:
 
 "checklist_sort": "", # checked items stay in same sort order as normal
 "checklist_sort": "top", # checked items at the top
+
+
+events (see customizing_lists):
+  on_checklist_insert

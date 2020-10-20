@@ -20,13 +20,11 @@ $settings["app_home_template"]="home";
 $settings["app_date_format"]="Y-m-d";
 $settings["app_logo_filename"]="logo.png";
 
-$settings["sql_change_event_handler"]="";
+$settings["basic_search_forms"]=array();
 
-$settings["service_loop_event_handler"]="";
-$settings["service_cmd_status"]="wmic process where \"name='php.exe'\" get Caption /format:LIST 2>&1";
-$settings["service_cmd_run"]='start "webdb_service" /B php $$env_root_path$$index.php alert_service';
-#$settings["service_cmd_run"]='start "webdb_service" /B "C:\Program Files (x86)\PHP\php.exe" $$env_root_path$$index.php alert_service';
-$settings["service_loop_event_time"]=false;
+$settings["fpdf_path"]=$settings["webdb_parent_path"]."fpdf".DIRECTORY_SEPARATOR."fpdf182".DIRECTORY_SEPARATOR;
+
+$settings["sql_change_event_handler"]="";
 
 $settings["online_user_list_update_interval_sec"]=60;
 

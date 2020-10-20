@@ -141,6 +141,8 @@ function custom_alert_close()
   document.getElementById("custom_alert_background").style.display="none";
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
 function get_base_url()
 {
   var url=window.location;

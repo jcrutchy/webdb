@@ -35,7 +35,8 @@ app/index.php?page=page_id&id=x => app/index.php?page=page_id&cmd=edit&id=x
         "on_update_record": "\\my_app\\stubs\\my_update_record_php_stub",
         "on_insert_record": "\\my_app\\stubs\\my_insert_record_php_stub",
         "on_custom_form_above": "\\my_app\\stubs\\my_custom_form_above_php_stub",
-        "on_custom_form_below": "\\my_app\\stubs\\my_custom_form_below_php_stub"
+        "on_custom_form_below": "\\my_app\\stubs\\my_custom_form_below_php_stub",
+        "on_checklist_insert": "\\my_app\\stubs\\my_checklist_insert_php_stub"
     },
 
 
@@ -132,6 +133,10 @@ following are event-specific $event_params elements, with an indication of initi
 "on_custom_form_below":
   $event_params["content"]="";
 
+
+
+"on_checklist_insert":
+  $event_params["value_items"]=array();
 
 
 ######################################################################################

@@ -29,7 +29,6 @@ require_once("tools".DIRECTORY_SEPARATOR."dxf.php");
 require_once("tools".DIRECTORY_SEPARATOR."graphics.php");
 require_once("tools".DIRECTORY_SEPARATOR."tree.php");
 require_once("tools".DIRECTORY_SEPARATOR."chart.php");
-require_once("service".DIRECTORY_SEPARATOR."service.php");
 
 set_error_handler("\\webdb\\utils\\error_handler",E_ALL);
 set_exception_handler("\\webdb\\utils\\exception_handler");
@@ -59,8 +58,6 @@ if (\webdb\cli\is_cli_mode()==true)
 }
 
 \webdb\utils\load_settings();
-
-\webdb\service\run_service();
 
 $settings["request_url"]=\webdb\utils\get_url();
 $settings["request_base_url"]=\webdb\utils\get_base_url();
@@ -171,6 +168,11 @@ for ($i=1;$i<=19953;$i++)
 $stop_time=microtime(true); # debug
 # 11.13 sec to run test
 die;*/
+
+if (isset($_GET["basic_search"])==true)
+{
+  \webdb\forms\basic_search();
+}
 
 if (isset($_GET["page"])==true)
 {

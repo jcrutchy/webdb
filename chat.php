@@ -205,7 +205,7 @@ function get_stripped_url($ignore_ajax=false)
   $result["page_id"]="";
   $result["record_id"]="";
   $result["skip"]=false;
-  $strip_params=array("update_oul","chat_break","redirect","filters","sort","dir","home");
+  $strip_params=array("update_oul","chat_break","redirect","filters","sort","dir","home","basic_search");
   $skip_params=array("subform","parent_form","parent_id","format");
   if ($ignore_ajax==true)
   {
@@ -436,9 +436,6 @@ function chat_dispatch($record_id,$form_config,$record=false,$template="chat/pop
                   break;
                 case "/delete":
                   \webdb\chat\delete_chat_message($parts,$trailing);
-                  break;
-                case "/service":
-                  \webdb\service\client_message($parts);
                   break;
                 case "/shell":
                   $response=array();

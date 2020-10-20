@@ -48,10 +48,8 @@ function check_settings()
 {
   global $settings;
   $required_settings=array(
-    "service_cmd_run",
-    "service_cmd_status",
-    "service_loop_event_handler",
-    "service_loop_event_time",
+    "basic_search_forms",
+    "fpdf_path",
     "sql_change_event_handler",
     "env_root_path",
     "app_root_path",
@@ -170,6 +168,7 @@ function check_settings()
     \webdb\test\utils\check_required_file_exists($settings[$file]);
   }
   $required_paths=array(
+    "fpdf_path",
     "app_root_path",
     "webdb_root_path",
     "webdb_templates_path",

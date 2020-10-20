@@ -9,20 +9,7 @@ var waiting_edit_row_element=null;
 <div id="parent_id">%%id%%</div>
 <div id="parent_form">%%page_id%%</div>
 
-<script type="text/javascript" src="$$webdb_web_resources$$list.js?mod=%%form_script_modified%%"></script>
-<link rel="stylesheet" property="stylesheet" href="$$webdb_web_resources$$list.css?mod=%%form_styles_modified%%">
-
-<div id="global_page_header">
-<div id="global_page_header_content">
-<div id="header_title">%%command%% %%command_caption_noun%%</div>
-<div id="header_links_bar">@@$$links_template$$@@</div>
-<a href="$$app_web_index$$"><img id="company_logo" src="$$app_web_resources$$$$app_logo_filename$$" alt=""></a>
-</div>
-</div>
-
-<div id="global_page_body_outer" class="global_page_body_outer">
-<div id="global_page_body_inner">
-<div id="global_page_body_content">
+@@data_page_head@@
 
 %%chat%%
 
@@ -57,12 +44,4 @@ var waiting_edit_row_element=null;
 
 </form>
 
-</div>
-</div>
-</div>
-
-<div id="global_page_footer">
-<div id="footer_info_bar">@@$$footer_template$$@@</div>
-<div id="global_page_footer_content">
-</div>
-</div>
+@@data_page_foot@@

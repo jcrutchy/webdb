@@ -1140,8 +1140,6 @@ function check_csrf_error($response)
 
 function error_handler($errno,$errstr,$errfile,$errline)
 {
-  global $settings;
-  $settings["service_loop_event_handler"]=false;
   $message="[".date("Y-m-d, H:i:s T",time())."] ".$errstr." in \"".$errfile."\" on line ".$errline;
   \webdb\utils\email_admin($message,"error_handler");
   \webdb\utils\system_message($message);
@@ -1167,8 +1165,6 @@ function email_admin($message,$type)
 
 function exception_handler($exception)
 {
-  global $settings;
-  $settings["service_loop_event_handler"]=false;
   $message="[".date("Y-m-d, H:i:s T",time())."] ".$exception->getMessage()." in \"".$exception->getFile()."\" on line ".$exception->getLine();
   \webdb\utils\email_admin($message,"exception_handler");
   \webdb\utils\system_message($message);

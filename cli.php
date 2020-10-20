@@ -70,10 +70,6 @@ function cli_dispatch()
   global $argv;
   switch ($argv[1])
   {
-    case "alert_service":
-      \webdb\utils\load_settings();
-      \webdb\utils\database_connect();
-      \webdb\service\service_main();
     /*case "run_tests":
       \webdb\utils\load_settings();
       \webdb\utils\database_connect();

@@ -503,8 +503,16 @@ function checklist_update($form_config,$parent_id)
           \webdb\utils\error_message("error: form record(s) insert permission denied");
         }
         $value_items+=$where_items;
-        \webdb\forms\check_required_values($form_config,$value_items);
-        \webdb\sql\sql_insert($value_items,$link_table,$link_database,false,$form_config);
+        $event_params=array();
+        $event_params["handled"]=false;
+        $event_params["value_items"]=$value_items;
+        $event_params=\webdb\forms\handle_form_config_event($form_config,$event_params,"on_checklist_insert");
+        if ($event_params["handled"]===false)
+        {
+          $value_items=$event_params["value_items"];
+          \webdb\forms\check_required_values($form_config,$value_items);
+          \webdb\sql\sql_insert($value_items,$link_table,$link_database,false,$form_config);
+        }
       }
     }
   }
@@ -1259,6 +1267,9 @@ function format_text_output($value)
 {
   $value=htmlspecialchars(str_replace(\webdb\index\LINEBREAK_DB_DELIM,\webdb\index\LINEBREAK_PLACEHOLDER,$value));
   $value=str_replace(\webdb\index\LINEBREAK_PLACEHOLDER,\webdb\utils\template_fill("break"),$value);
+  $value=str_replace(PHP_EOL,\webdb\utils\template_fill("break"),$value);
+  $value=str_replace("\r",\webdb\utils\template_fill("break"),$value);
+  $value=str_replace("\n",\webdb\utils\template_fill("break"),$value);
   $value=\webdb\forms\memo_field_formatting($value);
   return $value;
 }
@@ -2164,6 +2175,14 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
           $test_link_record=$link_records[$j];
           if ($record[$primary_key]==$test_link_record[$link_key])
           {
+            if ($form_config["checklist_enabled_fieldname"]<>"")
+            {
+              $enabled_fieldname=$form_config["checklist_enabled_fieldname"];
+              if ($test_link_record[$enabled_fieldname]==false)
+              {
+                continue;
+              }
+            }
             $checked_records[]=$record;
             continue 2;
           }
@@ -2461,7 +2480,6 @@ function advanced_search($form_config)
     $rows.=\webdb\forms\form_template_fill("advanced_search_row",$row_params);
   }
   $form_params=array();
-  $form_params["title"]=$form_config["title"];
   $form_params["rows"]=$rows;
   $form_params["page_id"]=$form_config["page_id"];
   $form_params["where_clause"]="";
@@ -2567,7 +2585,7 @@ function advanced_search($form_config)
   $search_page_params["form_script_modified"]=\webdb\utils\resource_modified_timestamp("list.js");
   $search_page_params["form_styles_modified"]=\webdb\utils\resource_modified_timestamp("list.css");
   $search_page_params["form_styles_print_modified"]=\webdb\utils\resource_modified_timestamp("list_print.css");
-  $search_page_params["title"]=$form_config["title"];
+  $search_page_params["title"]="Advanced Search: ".$form_config["title"];
   $result=array();
   $result["title"]=$form_config["title"].": Advanced Search";
   $result["content"]=\webdb\forms\form_template_fill("advanced_search_page",$search_page_params);
@@ -2645,6 +2663,7 @@ function output_editor($form_config,$record,$command,$verb,$id=false)
   $form_params["form_styles_modified"]=\webdb\utils\resource_modified_timestamp("list.css");
   $form_params["command"]=$command;
   $form_params["command_caption_noun"]=$form_config["command_caption_noun"];
+  $form_params["title"]=$command." ".$form_config["command_caption_noun"];
   $form_params["cmd"]=$cmd;
   $form_params["id_url_param"]="";
   $form_params["id_cmd_name"]="";
@@ -3046,6 +3065,7 @@ function insert_default_url_params()
       case "home":
       case "format":
       case "dir":
+      case "basic_search":
         break;
       default:
         $params[$param_name]=$param_value;
@@ -3185,14 +3205,15 @@ function insert_record($form_config)
     \webdb\utils\error_message("error: record insert permission denied for form '".$form_config["page_id"]."'");
   }
   $value_items=\webdb\forms\process_form_data_fields($form_config,"");
-  \webdb\forms\check_required_values($form_config,$value_items);
   $event_params=array();
   $event_params["handled"]=false;
   $event_params["value_items"]=$value_items;
   $event_params["new_record_id"]=0;
   $event_params=\webdb\forms\handle_form_config_event($form_config,$event_params,"on_insert_record");
+  $value_items=$event_params["value_items"];
   if ($event_params["handled"]===false)
   {
+    \webdb\forms\check_required_values($form_config,$value_items);
     \webdb\sql\sql_insert($value_items,$form_config["table"],$form_config["database"],false,$form_config);
     $id=\webdb\sql\sql_last_insert_autoinc_id();
     \webdb\forms\upload_files($form_config,$id);
@@ -3262,7 +3283,6 @@ function update_record($form_config,$id,$value_items=false,$where_items=false,$r
   {
     $value_items=\webdb\forms\process_form_data_fields($form_config,$id);
   }
-  \webdb\forms\check_required_values($form_config,$value_items);
   if ($where_items===false)
   {
     $where_items=\webdb\forms\config_id_conditions($form_config,$id,"edit_cmd_id");
@@ -3279,6 +3299,7 @@ function update_record($form_config,$id,$value_items=false,$where_items=false,$r
   $params=false;
   if ($event_params["handled"]==false)
   {
+    \webdb\forms\check_required_values($form_config,$value_items);
     \webdb\sql\sql_update($value_items,$where_items,$form_config["table"],$form_config["database"],false,$form_config);
     \webdb\forms\upload_files($form_config,$id,$value_items);
     $params=array();
@@ -3400,7 +3421,7 @@ function delete_confirmation($form_config,$id)
   $form_params["list"]=\webdb\forms\list_form_content($list_form_config,$records,false);
   $form_params["page_id"]=$form_config["page_id"];
   $form_params["primary_key"]=$id;
-  $form_params["command_caption_noun"]=$form_config["command_caption_noun"];
+  $form_params["title"]="Delete ".$form_config["command_caption_noun"];
   $foreign_keys=\webdb\sql\foreign_key_used($form_config["database"],$form_config["table"],$record);
   if ($foreign_keys!==false)
   {
@@ -3575,7 +3596,7 @@ function delete_selected_confirmation($form_config)
   $list_form_config["advanced_search"]=false;
   $form_params["records"]=\webdb\forms\list_form_content($list_form_config,$records,false);
   $form_params["page_id"]=$form_config["page_id"];
-  $form_params["command_caption_noun"]=$form_config["command_caption_noun"];
+  $form_params["title"]="Delete Selected ".$form_config["command_caption_noun"]."(s)";
   $form_params["delete_all_button"]=\webdb\forms\form_template_fill("delete_selected_cancel_controls",$form_params);
   if ($foreign_key_used==false)
   {
@@ -3610,6 +3631,20 @@ function delete_selected_records($form_config)
     \webdb\forms\delete_record($form_config,$id,false);
   }
   \webdb\forms\page_redirect();
+}
+
+#####################################################################################################
+
+function basic_search()
+{
+  global $settings;
+  # $settings["basic_search_forms"]
+  $query=$_GET["basic_search"];
+  $page_params=array();
+  $page_params["title"]="basic search results: ".htmlspecialchars($query);
+  $content=\webdb\utils\template_fill("basic_search/results",$page_params);
+  $title="basic search";
+  \webdb\utils\output_page($content,$title);
 }
 
 #####################################################################################################
