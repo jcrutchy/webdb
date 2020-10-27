@@ -12,6 +12,7 @@
     "chat_topic_fields": "",
     "chat_topic_format": "",
     "generate_stub": "",
+    "format_stubs": {},
     "edit_subforms": {},
     "edit_subforms_styles": {},
     "control_types": {},

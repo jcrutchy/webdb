@@ -221,6 +221,21 @@ function form_dispatch($page_id)
           \webdb\utils\error_message("error: unhandled generate stub");
         }
       }
+      if ((count($form_config["format_stubs"])>0) and (isset($_GET["format"])==true))
+      {
+        $format_stubs=$form_config["format_stubs"];
+        $format=$_GET["format"];
+        $stub=$format_stubs[$format];
+        if (function_exists($stub)==true)
+        {
+          echo call_user_func($stub,$form_config);
+          die;
+        }
+        else
+        {
+          \webdb\utils\error_message("error: unhandled format stub");
+        }
+      }
       \webdb\forms\add_resource_includes($form_config);
       if (($form_config["records_sql"]=="") or ($form_config["checklist"]==true))
       {
@@ -2661,6 +2676,7 @@ function output_editor($form_config,$record,$command,$verb,$id=false)
   $form_params["page_id"]=$form_config["page_id"];
   $form_params["form_script_modified"]=\webdb\utils\resource_modified_timestamp("list.js");
   $form_params["form_styles_modified"]=\webdb\utils\resource_modified_timestamp("list.css");
+  $form_params["form_styles_print_modified"]=\webdb\utils\resource_modified_timestamp("list_print.css");
   $form_params["command"]=$command;
   $form_params["command_caption_noun"]=$form_config["command_caption_noun"];
   $form_params["title"]=$command." ".$form_config["command_caption_noun"];
@@ -3447,6 +3463,7 @@ function delete_confirmation($form_config,$id)
   }
   $form_params["form_script_modified"]=\webdb\utils\resource_modified_timestamp("list.js");
   $form_params["form_styles_modified"]=\webdb\utils\resource_modified_timestamp("list.css");
+  $form_params["form_styles_print_modified"]=\webdb\utils\resource_modified_timestamp("list_print.css");
   $form_params["redirect"]="";
   if (isset($_GET["redirect"])==true)
   {
@@ -3604,6 +3621,7 @@ function delete_selected_confirmation($form_config)
   }
   $form_params["form_script_modified"]=\webdb\utils\resource_modified_timestamp("list.js");
   $form_params["form_styles_modified"]=\webdb\utils\resource_modified_timestamp("list.css");
+  $form_params["form_styles_print_modified"]=\webdb\utils\resource_modified_timestamp("list_print.css");
   $form_params["redirect"]="";
   if (isset($_GET["redirect"])==true)
   {
