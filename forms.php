@@ -590,13 +590,8 @@ function process_filter_sql(&$form_config)
   $filter_name=$form_config["selected_filter"];
   if (isset($form_config["filter_options"][$filter_name])==true)
   {
-    $form_config["selected_filter_condition"]=$form_config["filter_options"][$filter_name];
     $where_params=array();
-    $where_params["where_items"]=$form_config["selected_filter_condition"];
-    if ($form_config["selected_filter_condition"]<>"")
-    {
-      $form_config["selected_filter_condition"]="AND ".$form_config["selected_filter_condition"];
-    }
+    $where_params["where_items"]=$form_config["filter_options"][$filter_name];
     $form_config["selected_filter_sql"]=\webdb\utils\sql_fill("where_clause",$where_params);
   }
 }
@@ -687,11 +682,20 @@ function get_subform_content($subform_config,$subform_link_field,$id,$list_only=
           $sql_params["table"]=$subform_config["table"];
           \webdb\forms\process_sort_sql($subform_config);
           $sql_params["sort_sql"]=$subform_config["sort_sql"];
-          $sql_params["link_field_name"]=$subform_link_field;
-          $sql_filename="subform_list_fetch";
+          if ($subform_config["selected_filter_sql"]=="")
+          {
+            $where_params=array();
+            $where_params["where_items"]=$subform_link_field."=:id";
+            $sql_params["selected_filter_sql"]=\webdb\utils\sql_fill("where_clause",$where_params);
+          }
+          else
+          {
+            $sql_params["selected_filter_sql"]=$subform_config["selected_filter_sql"]." AND (".$subform_link_field."=:id)";
+          }
+          $sql_filename="form_list_fetch_all";
           $database=$sql_params["database"];
           $table=$sql_params["table"];
-          $sql=\webdb\utils\sql_fill("subform_list_fetch",$sql_params);
+          $sql=\webdb\utils\sql_fill($sql_filename,$sql_params);
         }
         else
         {
@@ -3656,10 +3660,39 @@ function delete_selected_records($form_config)
 function basic_search()
 {
   global $settings;
-  # $settings["basic_search_forms"]
   $query=$_GET["basic_search"];
   $page_params=array();
   $page_params["title"]="basic search results: ".htmlspecialchars($query);
+  $results="";
+  $sql_params=array("query"=>$query);
+  $search_forms=$settings["basic_search_forms"];
+  for ($i=0;$i<count($search_forms);$i++)
+  {
+    $page_id=$search_forms[$i];
+    $form_config=\webdb\forms\get_form_config($page_id);
+    \webdb\forms\process_sort_sql($form_config);
+    \webdb\forms\process_filter_sql($form_config);
+
+    $query_params=$form_config;
+
+    $conditions="() AND ()"; # TODO (include :query for each text field)
+
+    if ($form_config["selected_filter_sql"]=="")
+    {
+      $where_params=array();
+      $where_params["where_items"]=$conditions;
+      $query_params["selected_filter_sql"]=\webdb\utils\sql_fill("where_clause",$where_params);
+    }
+    else
+    {
+      $query_params["selected_filter_sql"].=" AND (".$conditions.")";
+    }
+
+    $sql=\webdb\utils\sql_fill("basic_search",$query_params);
+    $records=\webdb\sql\fetch_prepare($sql,$sql_params);
+    $results.=\webdb\forms\list_form_content($form_config,$records);
+  }
+  $page_params["results"]=$results;
   $content=\webdb\utils\template_fill("basic_search/results",$page_params);
   $title="basic search";
   \webdb\utils\output_page($content,$title);
