@@ -6,4 +6,4 @@ INNER JOIN
 
 ON link.%%link_key%%=parent.%%link_key%%
 
-WHERE %%parent_key%%=:parent_key %%selected_filter_condition%%
+WHERE link.%%parent_key%%=:parent_key %%selected_filter_condition%%

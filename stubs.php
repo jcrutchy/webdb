@@ -158,9 +158,59 @@ function list_insert($form_config)
 
 #####################################################################################################
 
-function subform_edit()
+function subform_edit($data,$subform_config,$subform_id,$parent_form,$parent_id,$post_override,$record,&$link_record,&$merged_record)
 {
-
+  $parent_form_config=\webdb\forms\get_form_config($parent_form);
+  $data["div_id"]="subform_table_".$subform_config["page_id"];
+  $subform_config=\webdb\forms\override_delete_config($subform_config);
+  $primary_key_items=\webdb\forms\config_id_conditions($subform_config,$subform_id,"primary_key");
+  if ($subform_config["checklist"]==true)
+  {
+    $conditions=array();
+    $fieldname=$subform_config["parent_key"];
+    $conditions[$fieldname]=$parent_id;
+    $fieldname=$subform_config["link_key"];
+    $conditions[$fieldname]=$primary_key_items[$fieldname];
+    $sql_params=array();
+    $sql_params["database"]=$subform_config["link_database"];
+    $sql_params["table"]=$subform_config["link_table"];
+    $sql_params["where_conditions"]=\webdb\sql\build_prepared_where($conditions);
+    $sql=\webdb\utils\sql_fill("form_list_fetch_by_id",$sql_params);
+    $records=\webdb\sql\fetch_prepare($sql,$conditions,"form_list_fetch_by_id",false,$sql_params["table"],$sql_params["database"],$subform_config);
+    $link_record=$records[0];
+    $merged_record=array_merge($record,$link_record);
+  }
+  if ($post_override===false)
+  {
+    $post_override=$_POST;
+  }
+  if (count($post_override)>0)
+  {
+    $subform_page_id=$subform_config["page_id"];
+    $fieldname=$parent_form_config["edit_subforms"][$subform_page_id];
+    if ($subform_config["checklist"]==true)
+    {
+      $where_items=array();
+      $fieldname=$subform_config["parent_key"];
+      $where_items[$fieldname]=$parent_id;
+      $fieldname=$subform_config["link_key"];
+      $where_items[$fieldname]=$primary_key_items[$fieldname];
+      $value_items=\webdb\forms\process_form_data_fields($subform_config,$subform_id,$post_override);
+      $subform_config_link=$subform_config;
+      $subform_config_link["table"]=$subform_config["link_table"];
+      $subform_config_link["database"]=$subform_config["link_database"];
+      \webdb\forms\update_record($subform_config_link,$subform_id,$value_items,$where_items,true);
+      $data["html"]=\webdb\forms\get_subform_content($subform_config,$fieldname,$parent_id,true,$parent_form_config);
+    }
+    else
+    {
+      $value_items=\webdb\forms\process_form_data_fields($subform_config,$subform_id,$post_override);
+      \webdb\forms\update_record($subform_config,$subform_id,$value_items,$primary_key_items,true);
+      $data["html"]=\webdb\forms\get_subform_content($subform_config,$fieldname,$parent_id,true,$parent_form_config);
+    }
+    $data=json_encode($data);
+    die($data);
+  }
 }
 
 #####################################################################################################
@@ -175,7 +225,6 @@ function list_edit($id,$form_config,$post_override=false)
   $data=array();
   $data["page_id"]=$form_config["page_id"];
   $data["primary_key"]=$id;
-  $data["div_id"]="subform_table_".$form_config["page_id"];
   $column_format=\webdb\forms\get_column_format_data($form_config);
   $record=\webdb\forms\get_record_by_id($form_config,$id,"primary_key");
   $record=\webdb\forms\process_computed_fields($form_config,$record);
@@ -183,25 +232,7 @@ function list_edit($id,$form_config,$post_override=false)
   $merged_record=false;
   if ((isset($_GET["parent_form"])==true) and (isset($_GET["parent_id"])==true))
   {
-    $form_config=\webdb\forms\override_delete_config($form_config);
-    $parent_form_config=\webdb\forms\get_form_config($_GET["parent_form"]);
-    if ($form_config["checklist"]==true)
-    {
-      $conditions=array();
-      $fieldname=$form_config["parent_key"];
-      $conditions[$fieldname]=$_GET["parent_id"];
-      $primary_key_items=\webdb\forms\config_id_conditions($form_config,$id,"primary_key");
-      $fieldname=$form_config["link_key"];
-      $conditions[$fieldname]=$primary_key_items[$fieldname];
-      $sql_params=array();
-      $sql_params["database"]=$form_config["link_database"];
-      $sql_params["table"]=$form_config["link_table"];
-      $sql_params["where_conditions"]=\webdb\sql\build_prepared_where($conditions);
-      $sql=\webdb\utils\sql_fill("form_list_fetch_by_id",$sql_params);
-      $records=\webdb\sql\fetch_prepare($sql,$conditions,"form_list_fetch_by_id",false,$sql_params["table"],$sql_params["database"],$form_config);
-      $link_record=$records[0];
-      $merged_record=array_merge($record,$link_record);
-    }
+    \webdb\stubs\subform_edit($data,$form_config,$id,$_GET["parent_form"],$_GET["parent_id"],$post_override,$record,$link_record,$merged_record);
   }
   if ($post_override===false)
   {
@@ -209,36 +240,9 @@ function list_edit($id,$form_config,$post_override=false)
   }
   if (count($post_override)>0)
   {
-    if ((isset($_GET["parent_form"])==true) and (isset($_GET["parent_id"])==true) and ($form_config["checklist"]==true))
-    {
-      $parent_form_config=\webdb\forms\get_form_config($_GET["parent_form"]);
-      $where_items=array();
-      $fieldname=$form_config["parent_key"];
-      $where_items[$fieldname]=$_GET["parent_id"];
-      $primary_key_items=\webdb\forms\config_id_conditions($form_config,$id,"primary_key");
-      $fieldname=$form_config["link_key"];
-      $where_items[$fieldname]=$primary_key_items[$fieldname];
-      $value_items=\webdb\forms\process_form_data_fields($form_config,$id,$post_override);
-      $form_config["table"]=$form_config["link_table"];
-      $form_config["database"]=$form_config["link_database"];
-      \webdb\forms\update_record($form_config,$id,$value_items,$where_items,true);
-    }
-    else
-    {
-      $value_items=\webdb\forms\process_form_data_fields($form_config,$id,$post_override);
-      $where_items=\webdb\forms\config_id_conditions($form_config,$id,"primary_key");
-      \webdb\forms\update_record($form_config,$id,$value_items,$where_items,true);
-
-      if ((isset($_GET["parent_form"])==true) and (isset($_GET["parent_id"])==true))
-      {
-        $parent_form_config=\webdb\forms\get_form_config($_GET["parent_form"]);
-        $subform_page_id=$form_config["page_id"];
-        $fieldname=$parent_form_config["edit_subforms"][$subform_page_id];
-        $data["html"]=\webdb\forms\get_subform_content($form_config,$fieldname,$_GET["parent_id"],true,$parent_form_config);
-        $data["div_id"]="subform_table_".$form_config["page_id"];
-      }
-
-    }
+    $value_items=\webdb\forms\process_form_data_fields($form_config,$id,$post_override);
+    $where_items=\webdb\forms\config_id_conditions($form_config,$id,"primary_key");
+    \webdb\forms\update_record($form_config,$id,$value_items,$where_items,true);
     $data=json_encode($data);
     die($data);
   }
