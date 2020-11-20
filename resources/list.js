@@ -336,9 +336,16 @@ function list_edit_row_update_load()
   {
     return;
   }
-  if (data.hasOwnProperty("html")==true)
+  if ((data.hasOwnProperty("div_id")==true) && (data.hasOwnProperty("html")==true))
   {
-    // TODO: data.html
+    document.getElementById(data.div_id).innerHTML=data.html;
+    if ((typeof calendar_inputs)!==(typeof undefined))
+    {
+      calendar_inputs=initial_calendar_inputs;
+    }
+    edit_row_controls=new Array();
+    edit_row_page_id=null;
+    edit_row_id=null;
     return;
   }
   location.reload();

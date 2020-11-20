@@ -1092,12 +1092,17 @@ function extract_params($template,$data)
     }
     $data=substr($data,strlen($compare));
     $next=$excluded[$i+1];
+    $key=$keys[$i];
+    if ($next=="")
+    {
+      $params[$key]=$data;
+      continue;
+    }
     $k=strpos($data,$next);
     if ($k===false)
     {
       return false;
     }
-    $key=$keys[$i];
     $params[$key]=trim(substr($data,0,$k));
     $data=substr($data,$k);
   }

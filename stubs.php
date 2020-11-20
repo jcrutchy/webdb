@@ -158,6 +158,13 @@ function list_insert($form_config)
 
 #####################################################################################################
 
+function subform_edit()
+{
+
+}
+
+#####################################################################################################
+
 function list_edit($id,$form_config,$post_override=false)
 {
   global $settings;
@@ -168,6 +175,7 @@ function list_edit($id,$form_config,$post_override=false)
   $data=array();
   $data["page_id"]=$form_config["page_id"];
   $data["primary_key"]=$id;
+  $data["div_id"]="subform_table_".$form_config["page_id"];
   $column_format=\webdb\forms\get_column_format_data($form_config);
   $record=\webdb\forms\get_record_by_id($form_config,$id,"primary_key");
   $record=\webdb\forms\process_computed_fields($form_config,$record);
@@ -220,6 +228,16 @@ function list_edit($id,$form_config,$post_override=false)
       $value_items=\webdb\forms\process_form_data_fields($form_config,$id,$post_override);
       $where_items=\webdb\forms\config_id_conditions($form_config,$id,"primary_key");
       \webdb\forms\update_record($form_config,$id,$value_items,$where_items,true);
+
+      if ((isset($_GET["parent_form"])==true) and (isset($_GET["parent_id"])==true))
+      {
+        $parent_form_config=\webdb\forms\get_form_config($_GET["parent_form"]);
+        $subform_page_id=$form_config["page_id"];
+        $fieldname=$parent_form_config["edit_subforms"][$subform_page_id];
+        $data["html"]=\webdb\forms\get_subform_content($form_config,$fieldname,$_GET["parent_id"],true,$parent_form_config);
+        $data["div_id"]="subform_table_".$form_config["page_id"];
+      }
+
     }
     $data=json_encode($data);
     die($data);
