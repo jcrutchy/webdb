@@ -22,6 +22,7 @@
     "disabled": {},
     "default_values": {},
     "required_values": [],
+    "basic_search_fields": [],
     "js_events": {},
     "computed_values": {},
     "custom_interfaces": {},

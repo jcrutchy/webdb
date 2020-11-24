@@ -9,6 +9,10 @@ function get_form_config($page_id,$return=false)
   global $settings;
   foreach ($settings["forms"] as $key => $form_config)
   {
+    if ($form_config["enabled"]==false)
+    {
+      continue;
+    }
     if ($page_id===$form_config["page_id"])
     {
       if (\webdb\utils\check_user_form_permission($page_id,"r")==false)
@@ -1625,10 +1629,13 @@ function output_editable_field(&$field_params,$record,$field_name,$control_type,
     case "combobox":
     case "listbox":
     case "radiogroup":
-      $option_template="select";
       if ($control_type=="radiogroup")
       {
         $option_template="radio";
+      }
+      else
+      {
+        $option_template="select";
       }
       $lookup_config=$form_config["lookups"][$field_name];
       $option_params=array();
@@ -1637,13 +1644,18 @@ function output_editable_field(&$field_params,$record,$field_name,$control_type,
       $option_params["caption"]="";
       $option_params["disabled"]=\webdb\forms\field_disabled($form_config,$field_name);
       $option_params["js_events"]=\webdb\forms\field_js_events($form_config,$field_name,$record);
-      $options=\webdb\utils\template_fill($option_template."_option",$option_params);
+      $options=array();
+      $exclude_null=false;
       if (isset($lookup_config["exclude_null"])==true)
       {
         if ($lookup_config["exclude_null"]==true)
         {
-          $options="";
+          $exclude_null=true;
         }
+      }
+      if ($exclude_null==false)
+      {
+        $options[]=\webdb\utils\template_fill($option_template."_option",$option_params);
       }
       $records=\webdb\forms\lookup_field_data($form_config,$field_name);
       $parent_list=false;
@@ -1708,13 +1720,21 @@ function output_editable_field(&$field_params,$record,$field_name,$control_type,
         }
         if (($loop_record[$lookup_config["key_field"]]==$record[$field_name]) and ($selected_found==false))
         {
-          $options.=\webdb\utils\template_fill($option_template."_option_selected",$option_params);
+          $options[]=\webdb\utils\template_fill($option_template."_option_selected",$option_params);
           $selected_found=true;
         }
         else
         {
-          $options.=\webdb\utils\template_fill($option_template."_option",$option_params);
+          $options[]=\webdb\utils\template_fill($option_template."_option",$option_params);
         }
+      }
+      if ($control_type=="radiogroup")
+      {
+        $options=implode(\webdb\utils\template_fill("break").PHP_EOL,$options);
+      }
+      else
+      {
+        $options=implode(PHP_EOL,$options);
       }
       $field_params["options"]=$options;
       $submit_fields[]=$field_params["field_name"];
@@ -1773,7 +1793,7 @@ function get_column_format_data($form_config)
       continue;
     }
     $caption="&nbsp;&nbsp;".$form_config["captions"][$field_name];
-    $lines=explode("@@break@@",$caption);
+    $lines=explode("@@forms/col_title_break@@",$caption);
     for ($i=0;$i<count($lines);$i++)
     {
       $line=htmlspecialchars_decode($lines[$i]);
@@ -3660,39 +3680,74 @@ function delete_selected_records($form_config)
 function basic_search()
 {
   global $settings;
-  $query=$_GET["basic_search"];
+  $query=strtolower($_GET["basic_search"]);
   $page_params=array();
   $page_params["title"]="basic search results: ".htmlspecialchars($query);
   $results="";
-  $sql_params=array("query"=>$query);
-  $search_forms=$settings["basic_search_forms"];
-  for ($i=0;$i<count($search_forms);$i++)
+  for ($i=0;$i<count($settings["basic_search_forms"]);$i++)
   {
-    $page_id=$search_forms[$i];
-    $form_config=\webdb\forms\get_form_config($page_id);
+    $page_id=$settings["basic_search_forms"][$i];
+    $form_config=\webdb\forms\get_form_config($page_id,false);
+    if (count($form_config["basic_search_fields"])==0)
+    {
+      continue;
+    }
+    $form_config["insert_new"]=false;
+    $form_config["insert_row"]=false;
+    $form_config["advanced_search"]=false;
+    $form_config["delete_cmd"]=false;
+    $form_config["multi_row_delete"]=false;
+    $form_config["sort_enabled"]=false;
     \webdb\forms\process_sort_sql($form_config);
     \webdb\forms\process_filter_sql($form_config);
-
-    $query_params=$form_config;
-
-    $conditions="() AND ()"; # TODO (include :query for each text field)
-
-    if ($form_config["selected_filter_sql"]=="")
+    $sql=\webdb\utils\sql_fill("form_list_fetch_all",$form_config);
+    $records=\webdb\sql\fetch_prepare($sql,array(),"form_list_fetch_all",false,"","",$form_config);
+    $lookup_records=\webdb\forms\lookup_records($form_config);
+    $results_records=array();
+    for ($j=0;$j<count($records);$j++)
     {
-      $where_params=array();
-      $where_params["where_items"]=$conditions;
-      $query_params["selected_filter_sql"]=\webdb\utils\sql_fill("where_clause",$where_params);
+      $record=$records[$j];
+      for ($k=0;$k<count($form_config["basic_search_fields"]);$k++)
+      {
+        $search_field_name=$form_config["basic_search_fields"][$k];
+        $control_type=$form_config["control_types"][$search_field_name];
+        if ($control_type=="checkbox")
+        {
+          continue;
+        }
+        $search_field_value="";
+        if (isset($record[$search_field_name])==true)
+        {
+          $search_field_value=$record[$search_field_name];
+        }
+        $search_field_value=strtolower($search_field_value);
+        $skip=false;
+        switch ($control_type)
+        {
+          case "lookup":
+          case "combobox":
+          case "listbox":
+          case "radiogroup":
+            $search_field_value=\webdb\forms\get_lookup_field_value($search_field_name,$form_config,$lookup_records,$record);
+            break;
+        }
+        if (strpos($search_field_value,$query)!==false)
+        {
+          $results_records[]=$record;
+          continue 2;
+        }
+      }
     }
-    else
-    {
-      $query_params["selected_filter_sql"].=" AND (".$conditions.")";
-    }
-
-    $sql=\webdb\utils\sql_fill("basic_search",$query_params);
-    $records=\webdb\sql\fetch_prepare($sql,$sql_params);
-    $results.=\webdb\forms\list_form_content($form_config,$records);
+    $group_params=array();
+    $group_params["title"]=$form_config["title"];
+    $group_params["page_id"]=$form_config["page_id"];
+    $group_params["subform"]=\webdb\forms\list_form_content($form_config,$results_records);
+    $results.=\webdb\utils\template_fill("basic_search/result_group",$group_params);
   }
   $page_params["results"]=$results;
+  $page_params["form_script_modified"]=\webdb\utils\resource_modified_timestamp("list.js");
+  $page_params["form_styles_modified"]=\webdb\utils\resource_modified_timestamp("list.css");
+  $page_params["form_styles_print_modified"]=\webdb\utils\resource_modified_timestamp("list_print.css");
   $content=\webdb\utils\template_fill("basic_search/results",$page_params);
   $title="basic search";
   \webdb\utils\output_page($content,$title);

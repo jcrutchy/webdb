@@ -1,0 +1,21 @@
+
+/************************************************************************/
+
+.group_title
+  {
+    width: 100%;
+    background-color: #e1e1f3;
+    text-align: center;
+  }
+
+.group_title_inside
+  {
+    padding: 5px;
+    font-weight: bold;
+    text-shadow: 0 0 4px #999999;
+    font-size: 16px;
+    display: inline-block;
+    text-align: center;
+  }
+
+/************************************************************************/
