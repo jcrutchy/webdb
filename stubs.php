@@ -232,6 +232,7 @@ function list_edit($id,$form_config,$post_override=false)
   $merged_record=false;
   if ((isset($_GET["parent_form"])==true) and (isset($_GET["parent_id"])==true))
   {
+    $form_config=\webdb\forms\override_delete_config($form_config);
     \webdb\stubs\subform_edit($data,$form_config,$id,$_GET["parent_form"],$_GET["parent_id"],$post_override,$record,$link_record,$merged_record);
   }
   if ($post_override===false)
