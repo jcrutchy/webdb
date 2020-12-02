@@ -352,7 +352,7 @@ input.date_edit_field
 
 #editor_pane
   {
-    min-width: 30%;
+    min-width: 650px;
   }
 
 #subforms
