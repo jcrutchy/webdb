@@ -154,6 +154,10 @@ function get_base_url()
 function get_ajax_load_data(response)
 {
   var response_text=response.responseText;
+  if (response_text==="cancel_ajax_load")
+  {
+    return false;
+  }
   if (response_text==="redirect_to_login_form")
   {
     window.location.href=get_base_url();

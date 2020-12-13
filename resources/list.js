@@ -113,7 +113,19 @@ function confirm_status_fadeout()
 
 function list_edit_row_button_click(page_id,id)
 {
-  window.location=document.getElementById("edit_page:"+page_id).value+id;
+  var href=document.getElementById("edit_page:"+page_id).value+id;
+  open_link_new_tab(href);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function open_link_new_tab(href)
+{
+  var a=document.createElement("a");
+  a.href=href;
+  a.setAttribute("target","_blank");
+  a.click();
+  a.remove();
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////

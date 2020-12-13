@@ -155,6 +155,9 @@ $settings["auth_log_path"]="";
 $settings["sql_log_enabled"]=true;
 $settings["auth_log_enabled"]=true;
 
+$settings["ssl_cafile"]=$settings["env_root_path"]."cacert.pem";
+$settings["http_user_agent"]="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36";
+
 $settings["test_settings_file"]="webdb_test.conf";
 
 $settings["admin_remote_address_whitelist"][]="192.168.0.50"; # add as required

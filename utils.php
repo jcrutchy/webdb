@@ -1102,6 +1102,7 @@ function extract_params($template,$data)
     if ($k===false)
     {
       return false;
+      #return $next;
     }
     $params[$key]=trim(substr($data,0,$k));
     $data=substr($data,$k);

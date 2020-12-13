@@ -25,6 +25,7 @@ require_once("stubs.php");
 require_once("chat.php");
 require_once("manage.php");
 require_once("cli.php");
+require_once("http.php");
 require_once("tools".DIRECTORY_SEPARATOR."dxf.php");
 require_once("tools".DIRECTORY_SEPARATOR."graphics.php");
 require_once("tools".DIRECTORY_SEPARATOR."tree.php");

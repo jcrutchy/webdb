@@ -24,6 +24,11 @@ td
     min-width: 33px;
   }
 
+textarea
+  {
+    width: calc(100% - 10px);
+  }
+
 .list_field_scroll
   {
     width: 100%;

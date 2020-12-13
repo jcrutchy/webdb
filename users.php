@@ -654,6 +654,11 @@ function send_reset_password_message()
 function change_password()
 {
   global $settings;
+  if (isset($_GET["update_oul"])==true)
+  {
+    $settings["ignore_ob_postprocess"]=true;
+    die("cancel_ajax_load");
+  }
   if (isset($_POST["change_password"])==true)
   {
     if (isset($_COOKIE[$settings["username_cookie"]])==false)

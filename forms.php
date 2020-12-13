@@ -2286,20 +2286,20 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
   $form_params["sort_field_control"]="";
   $form_params["insert_control"]="";
   $form_params["delete_selected_control"]="";
-  if (($form_config["records_sql"]=="") or ($form_config["checklist"]==true))
+  if (($form_config["records_sql"]=="") or ($form_config["checklist"]==false))
   {
     if ($form_config["advanced_search"]==true)
     {
       $form_params["advanced_search_control"]=\webdb\forms\form_template_fill("list_advanced_search",$form_config);
     }
-    if ($form_config["insert_new"]==true)
-    {
-      $form_params["insert_control"]=\webdb\forms\form_template_fill("list_insert",$form_config);
-    }
     if ($form_config["multi_row_delete"]==true)
     {
       $form_params["delete_selected_control"]=\webdb\forms\form_template_fill("list_del_selected",$form_config);
     }
+  }
+  if (($form_config["insert_new"]==true) and ($form_config["checklist"]==false))
+  {
+    $form_params["insert_control"]=\webdb\forms\form_template_fill("list_insert",$form_config);
   }
   $form_params["row_edit_mode"]=$form_config["edit_cmd"];
   $form_params["custom_form_above"]="";
@@ -2666,6 +2666,10 @@ function default_values($form_config)
 function insert_form($form_config)
 {
   global $settings;
+  if (\webdb\utils\check_user_form_permission($form_config["page_id"],"i")==false)
+  {
+    \webdb\utils\error_message("error: record insert permission denied for form '".$form_config["page_id"]."'");
+  }
   $record=\webdb\forms\default_values($form_config);
   $url_params=\webdb\forms\insert_default_url_params();
   foreach ($url_params as $name => $value)
@@ -2709,7 +2713,6 @@ function output_editor($form_config,$record,$command,$verb,$id=false)
   $form_params["form_styles_print_modified"]=\webdb\utils\resource_modified_timestamp("list_print.css");
   $form_params["command"]=$command;
   $form_params["command_caption_noun"]=$form_config["command_caption_noun"];
-  $form_params["title"]=$command." ".$form_config["command_caption_noun"];
   $form_params["cmd"]=$cmd;
   $form_params["id_url_param"]="";
   $form_params["id_cmd_name"]="";
@@ -2873,6 +2876,7 @@ function output_editor($form_config,$record,$command,$verb,$id=false)
   {
     $form_params["custom_form_below"]=$event_params["content"];
   }
+  \webdb\forms\editor_command_button($form_config,$command,$form_params);
   $content=\webdb\forms\form_template_fill("editor_page",$form_params);
   $title=$form_config["title"].": ".$command;
   $result=array();
@@ -2880,6 +2884,30 @@ function output_editor($form_config,$record,$command,$verb,$id=false)
   $result["content"]=$content;
   $result["record"]=$record;
   return $result;
+}
+
+#####################################################################################################
+
+function editor_command_button($form_config,$command,&$form_params)
+{
+  $form_params["edit_form_controls"]="";
+  $form_params["title"]=$form_config["command_caption_noun"];
+  if ($command==="Edit")
+  {
+    if (\webdb\utils\check_user_form_permission($form_config["page_id"],"u")==false)
+    {
+      return;
+    }
+  }
+  else
+  {
+    if (\webdb\utils\check_user_form_permission($form_config["page_id"],"i")==false)
+    {
+      return;
+    }
+  }
+  $form_params["edit_form_controls"]=\webdb\forms\form_template_fill("edit_form_controls",$form_params);
+  $form_params["title"]=$command." ".$form_config["command_caption_noun"];
 }
 
 #####################################################################################################
@@ -3455,6 +3483,10 @@ function get_record_by_id($form_config,$id,$config_key,$error_none=true)
 function delete_confirmation($form_config,$id)
 {
   global $settings;
+  if (\webdb\utils\check_user_form_permission($form_config["page_id"],"d")==false)
+  {
+    \webdb\utils\error_message("error: record delete permission denied for form '".$form_config["page_id"]."'");
+  }
   $record=\webdb\forms\get_record_by_id($form_config,$id,"primary_key");
   $form_params=array();
   $records=array();
@@ -3594,6 +3626,10 @@ function delete_record($form_config,$id,$redirect=true)
 function delete_selected_confirmation($form_config)
 {
   global $settings;
+  if (\webdb\utils\check_user_form_permission($form_config["page_id"],"d")==false)
+  {
+    \webdb\utils\error_message("error: record delete permission denied for form '".$form_config["page_id"]."'");
+  }
   $list_select_name=$form_config["page_id"].":list_select";
   if (isset($_POST[$list_select_name])==false)
   {
