@@ -137,11 +137,11 @@ function wikitext_to_html__internal_article_link($content)
     }
     $link=explode("|",$tokens[0]);
     $link_params=array();
-    $link_params["url_title"]=urlencode($link[0]);
-    $link_params["caption"]=$link[0];
-    if (count($link)==2)
+    $link_params["url_title"]=array_shift($link);
+    $link_params["caption"]=$link_params["url"];
+    if (count($link)>0)
     {
-      $link_params["caption"]=$link[1];
+      $link_params["caption"]=implode(" ",$link);
     }
     $link=\webdb\utils\template_fill("wiki/internal_article_link",$link_params);
     $parts[$i]=$link.$tokens[1];
@@ -164,11 +164,11 @@ function wikitext_to_html__external_article_link($content)
     }
     $link=explode(" ",$tokens[0]);
     $link_params=array();
-    $link_params["url"]=$link[0];
-    $link_params["caption"]=$link[0];
-    if (count($link)==2)
+    $link_params["url"]=array_shift($link);
+    $link_params["caption"]=$link_params["url"];
+    if (count($link)>0)
     {
-      $link_params["caption"]=$link[1];
+      $link_params["caption"]=implode(" ",$link);
     }
     $link=\webdb\utils\template_fill("wiki/external_article_link",$link_params);
     $parts[$i]=$link.$tokens[1];
