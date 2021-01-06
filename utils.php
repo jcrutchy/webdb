@@ -1178,9 +1178,13 @@ function exception_handler($exception)
 
 #####################################################################################################
 
-function redirect($url,$clean_buffer=true)
+function redirect($url="",$clean_buffer=true)
 {
   global $settings;
+  if ($url=="")
+  {
+    $url=\webdb\utils\get_url();
+  }
   $settings["ignore_ob_postprocess"]=true;
   if ($clean_buffer==true)
   {

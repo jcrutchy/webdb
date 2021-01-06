@@ -122,8 +122,8 @@ function list_insert($form_config)
     \webdb\utils\error_message("error: record update permission denied for form '".$form_config["page_id"]."'");
   }
   $data=array();
-  $params=\webdb\forms\process_form_data_fields($form_config,"");
-  if (count($params)==0)
+  $value_items=\webdb\forms\process_form_data_fields($form_config,"");
+  if (count($value_items)==0)
   {
     \webdb\stubs\stub_error("error: no field data to insert");
   }
@@ -132,10 +132,21 @@ function list_insert($form_config)
   {
     foreach ($insert_default_params as $param_name => $param_value)
     {
-      $params[$param_name]=$param_value;
+      $value_items[$param_name]=$param_value;
     }
-    \webdb\forms\check_required_values($form_config,$params);
-    \webdb\sql\sql_insert($params,$form_config["table"],$form_config["database"],false,$form_config);
+    $event_params=array();
+    $event_params["handled"]=false;
+    $event_params["value_items"]=$value_items;
+    $event_params["new_record_id"]=0;
+    $event_params=\webdb\forms\handle_form_config_event($form_config,$event_params,"on_insert_record");
+    $value_items=$event_params["value_items"];
+    if ($event_params["handled"]===false)
+    {
+      \webdb\forms\check_required_values($form_config,$value_items);
+      \webdb\sql\sql_insert($value_items,$form_config["table"],$form_config["database"],false,$form_config);
+      $id=\webdb\sql\sql_last_insert_autoinc_id();
+      \webdb\forms\upload_files($form_config,$id);
+    }
     $parent_form_config=false;
     if (isset($form_config["parent_form_config"])==true)
     {
@@ -146,8 +157,19 @@ function list_insert($form_config)
   }
   else
   {
-    \webdb\forms\check_required_values($form_config,$params);
-    \webdb\sql\sql_insert($params,$form_config["table"],$form_config["database"],false,$form_config);
+    $event_params=array();
+    $event_params["handled"]=false;
+    $event_params["value_items"]=$value_items;
+    $event_params["new_record_id"]=0;
+    $event_params=\webdb\forms\handle_form_config_event($form_config,$event_params,"on_insert_record");
+    $value_items=$event_params["value_items"];
+    if ($event_params["handled"]===false)
+    {
+      \webdb\forms\check_required_values($form_config,$value_items);
+      \webdb\sql\sql_insert($value_items,$form_config["table"],$form_config["database"],false,$form_config);
+      $id=\webdb\sql\sql_last_insert_autoinc_id();
+      \webdb\forms\upload_files($form_config,$id);
+    }
     $data["html"]=\webdb\forms\list_form_content($form_config);
     $data["div_id"]="list_content";
   }
@@ -158,9 +180,8 @@ function list_insert($form_config)
 
 #####################################################################################################
 
-function subform_edit($data,$subform_config,$subform_id,$parent_form,$parent_id,$post_override,$record,&$link_record,&$merged_record)
+function subform_edit($data,$subform_config,$subform_id,$parent_form_config,$parent_id,$post_override,$record,&$link_record,&$merged_record)
 {
-  $parent_form_config=\webdb\forms\get_form_config($parent_form);
   $data["div_id"]="subform_table_".$subform_config["page_id"];
   $subform_config=\webdb\forms\override_delete_config($subform_config);
   $primary_key_items=\webdb\forms\config_id_conditions($subform_config,$subform_id,"primary_key");
@@ -233,7 +254,10 @@ function list_edit($id,$form_config,$post_override=false)
   if ((isset($_GET["parent_form"])==true) and (isset($_GET["parent_id"])==true))
   {
     $form_config=\webdb\forms\override_delete_config($form_config);
-    \webdb\stubs\subform_edit($data,$form_config,$id,$_GET["parent_form"],$_GET["parent_id"],$post_override,$record,$link_record,$merged_record);
+    $parent_form_config=\webdb\forms\get_form_config($_GET["parent_form"]);
+    $form_config["parent_form_id"]=$_GET["parent_id"];
+    $form_config["parent_form_config"]=$parent_form_config;
+    \webdb\stubs\subform_edit($data,$form_config,$id,$parent_form_config,$_GET["parent_id"],$post_override,$record,$link_record,$merged_record);
   }
   if ($post_override===false)
   {
@@ -243,7 +267,21 @@ function list_edit($id,$form_config,$post_override=false)
   {
     $value_items=\webdb\forms\process_form_data_fields($form_config,$id,$post_override);
     $where_items=\webdb\forms\config_id_conditions($form_config,$id,"primary_key");
-    \webdb\forms\update_record($form_config,$id,$value_items,$where_items,true);
+    $event_params=array();
+    $event_params["handled"]=false;
+    $event_params["form_config"]=$form_config;
+    $event_params["record_id"]=$id;
+    $event_params["where_items"]=$where_items;
+    $event_params["value_items"]=$value_items;
+    $event_params=\webdb\forms\handle_form_config_event($form_config,$event_params,"on_update_record");
+    $where_items=$event_params["where_items"];
+    $value_items=$event_params["value_items"];
+    if ($event_params["handled"]==false)
+    {
+      \webdb\forms\check_required_values($form_config,$value_items);
+      \webdb\sql\sql_update($value_items,$where_items,$form_config["table"],$form_config["database"],false,$form_config);
+      \webdb\forms\upload_files($form_config,$id,$value_items);
+    }
     $data=json_encode($data);
     die($data);
   }

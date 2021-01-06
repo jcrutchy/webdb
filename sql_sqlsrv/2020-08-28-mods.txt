@@ -1,5 +1,3 @@
-USE RISK_MDO;
-GO
-ALTER TABLE dbo.users
+ALTER TABLE $$database_webdb$$.users
 ADD CONSTRAINT [fullname] UNIQUE ([fullname] ASC)
 GO

@@ -1,3 +1,3 @@
-ALTER TABLE RISK_MDO.dbo.sql_changes ADD
+ALTER TABLE $$database_webdb$$.sql_changes ADD
 	insert_id VARCHAR(255) DEFAULT NULL
 GO

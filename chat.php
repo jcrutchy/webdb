@@ -205,6 +205,7 @@ function get_stripped_url($ignore_ajax=false)
   $result["page_id"]="";
   $result["record_id"]="";
   $result["skip"]=false;
+  # keep params: page,cmd,id,article,file
   $strip_params=array("update_oul","chat_break","redirect","filters","sort","dir","home","basic_search");
   $skip_params=array("subform","parent_form","parent_id","format");
   if ($ignore_ajax==true)

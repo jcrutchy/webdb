@@ -1,0 +1,8 @@
+{
+    "form_version": "20190829.1",
+    "form_type": "list",
+    "enabled": true,
+    "title": "Wiki",
+    "page_id": "wiki",
+    "generate_stub": "\\webdb\\wiki\\wiki_page_stub"
+}

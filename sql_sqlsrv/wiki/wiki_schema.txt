@@ -1,0 +1,94 @@
+USE [RISK_MDO];
+
+CREATE TABLE wiki_articles (
+  [article_id] INT CHECK ([article_id] > 0) NOT NULL IDENTITY,
+  [created_timestamp] DATETIME2(0) NOT NULL DEFAULT GETDATE(),
+  [title] VARCHAR(255) DEFAULT NULL,
+  [content] VARCHAR(max) DEFAULT NULL,
+  [user_id] INT CHECK ([user_id] > 0) NOT NULL,
+  [description] VARCHAR(max) DEFAULT NULL,
+  PRIMARY KEY ([article_id]),
+  CONSTRAINT [wiki_articles_title] UNIQUE ([title] ASC),
+  CONSTRAINT [fk_wiki_articles_users1]
+    FOREIGN KEY ([user_id])
+    REFERENCES users ([user_id])
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION
+);
+
+CREATE TABLE wiki_article_oldversions (
+  [article_revision_id] INT CHECK ([article_revision_id] > 0) NOT NULL IDENTITY,
+  [created_timestamp] DATETIME2(0) NOT NULL DEFAULT GETDATE(),
+  [article_id] INT CHECK ([article_id] > 0) NOT NULL,
+  [title] VARCHAR(255) DEFAULT NULL,
+  [content] VARCHAR(max) DEFAULT NULL,
+  [user_id] INT CHECK ([user_id] > 0) NOT NULL,
+  [description] VARCHAR(max) DEFAULT NULL,
+  PRIMARY KEY ([article_revision_id]),
+  CONSTRAINT [fk_wiki_article_oldversions_articles1]
+    FOREIGN KEY ([article_id])
+    REFERENCES wiki_articles ([article_id])
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT [fk_wiki_article_oldversions_users1]
+    FOREIGN KEY ([user_id])
+    REFERENCES users ([user_id])
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION
+);
+
+CREATE TABLE wiki_file_types (
+  [file_type_id] INT CHECK ([file_type_id] > 0) NOT NULL IDENTITY,
+  [created_timestamp] DATETIME2(0) NOT NULL DEFAULT GETDATE(),
+  [description] VARCHAR(255) NOT NULL,
+  PRIMARY KEY ([file_type_id]),
+  CONSTRAINT [wiki_file_types_description] UNIQUE ([description] ASC))
+;
+
+CREATE TABLE wiki_files (
+  [file_id] INT CHECK ([file_id] > 0) NOT NULL IDENTITY,
+  [created_timestamp] DATETIME2(0) NOT NULL DEFAULT GETDATE(),
+  [title] VARCHAR(255) DEFAULT NULL,
+  [notes] VARCHAR(max) DEFAULT NULL,
+  [user_id] INT CHECK ([user_id] > 0) NOT NULL,
+  [file_type_id] INT CHECK ([file_type_id] > 0) DEFAULT NULL,
+  PRIMARY KEY ([file_id]),
+  CONSTRAINT [wiki_files_title] UNIQUE ([title] ASC),
+  CONSTRAINT [fk_wiki_files_file_types1]
+    FOREIGN KEY ([file_type_id])
+    REFERENCES wiki_file_types ([file_type_id])
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT [fk_wiki_files_users1]
+    FOREIGN KEY ([user_id])
+    REFERENCES users ([user_id])
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+);
+
+CREATE TABLE wiki_file_oldversions (
+  [file_revision_id] INT CHECK ([file_revision_id] > 0) NOT NULL IDENTITY,
+  [created_timestamp] DATETIME2(0) NOT NULL DEFAULT GETDATE(),
+  [title] VARCHAR(255) DEFAULT NULL,
+  [notes] VARCHAR(max) DEFAULT NULL,
+  [file_id] INT CHECK ([file_id] > 0) NOT NULL,
+  [user_id] INT CHECK ([user_id] > 0) NOT NULL,
+  [description] VARCHAR(max) DEFAULT NULL,
+  [file_type_id] INT CHECK ([file_type_id] > 0) DEFAULT NULL,
+  PRIMARY KEY ([file_revision_id]),
+  CONSTRAINT [fk_wiki_file_oldversions_files1]
+    FOREIGN KEY ([file_id])
+    REFERENCES wiki_files ([file_id])
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT [fk_wiki_file_oldversions_users1]
+    FOREIGN KEY ([user_id])
+    REFERENCES users ([user_id])
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT [fk_wiki_file_oldversions_file_types1]
+    FOREIGN KEY ([file_type_id])
+    REFERENCES wiki_file_types ([file_type_id])
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION
+);
