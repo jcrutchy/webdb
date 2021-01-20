@@ -7,13 +7,45 @@ namespace webdb\wiki;
 function wiki_page_stub($form_config)
 {
   global $settings;
-  $user_wiki_settings=\webdb\wiki\get_user_wiki_settings();
+  $user_wiki_settings=\webdb\wiki_utils\get_user_wiki_settings();
+  $content_type="article";
+  if (isset($_GET["file"])==true)
+  {
+    $title=$_GET["file"];
+    $file_record=\webdb\wiki_utils\get_file_record_by_title($title);
+    if (isset($_GET["cmd"])==true)
+    {
+      if ($_GET["cmd"]=="edit")
+      {
+        if (isset($_POST["wiki_file_edit_confirm"])==true)
+        {
+          \webdb\wiki\confirm_file_edit($form_config,$title,$file_record);
+        }
+        else
+        {
+          if ($file_record===false)
+          {
+            \webdb\wiki\edit_new_file($form_config,$title);
+          }
+          else
+          {
+            \webdb\wiki\edit_exist_file($form_config,$file_record);
+          }
+        }
+      }
+    }
+    if ($file_record===false)
+    {
+      \webdb\wiki\edit_new_file($form_config,$title);
+    }
+    \webdb\wiki\view_exist_file($form_config,$file_record);
+  }
   $title=$user_wiki_settings["home_article"];
   if (isset($_GET["article"])==true)
   {
     $title=$_GET["article"];
   }
-  $article_record=\webdb\wiki\get_article_record_by_title($title);
+  $article_record=\webdb\wiki_utils\get_article_record_by_title($title);
   if (isset($_GET["cmd"])==true)
   {
     if ($_GET["cmd"]=="edit")
@@ -78,6 +110,8 @@ function confirm_article_edit($form_config,$title,$article_record)
 function edit_new_article($form_config,$title)
 {
   $page_params=array();
+  $page_params["wiki_styles_modified"]=\webdb\utils\resource_modified_timestamp("wiki/wiki.css");
+  $page_params["wiki_styles_print_modified"]=\webdb\utils\resource_modified_timestamp("wiki/wiki_print.css");
   $page_params["url_title"]=urlencode($title);
   $page_params["title"]=$title;
   $page_params["content"]="";
@@ -92,6 +126,8 @@ function edit_new_article($form_config,$title)
 function edit_exist_article($form_config,$article_record)
 {
   $page_params=$article_record;
+  $page_params["wiki_styles_modified"]=\webdb\utils\resource_modified_timestamp("wiki/wiki.css");
+  $page_params["wiki_styles_print_modified"]=\webdb\utils\resource_modified_timestamp("wiki/wiki_print.css");
   $page_params["description"]="";
   $page_params["url_title"]=urlencode($article_record["title"]);
   $page_params["submit_caption"]="Update Article";
@@ -103,113 +139,92 @@ function edit_exist_article($form_config,$article_record)
 
 function view_exist_article($form_config,$article_record)
 {
-  $article_record["url_title"]=urlencode($article_record["title"]);
-  $article_record["content"]=\webdb\wiki\wikitext_to_html($article_record["content"]);
-  $content=\webdb\utils\template_fill("wiki/article_view",$article_record);
+  $page_params=$article_record;
+  $page_params["wiki_styles_modified"]=\webdb\utils\resource_modified_timestamp("wiki/wiki.css");
+  $page_params["wiki_styles_print_modified"]=\webdb\utils\resource_modified_timestamp("wiki/wiki_print.css");
+  $page_params["url_title"]=urlencode($article_record["title"]);
+  $page_params["content"]=\webdb\wiki_utils\wikitext_to_html($article_record["content"]);
+  $content=\webdb\utils\template_fill("wiki/article_view",$page_params);
   \webdb\utils\output_page($content,$form_config["title"].": ".$article_record["title"]);
 }
 
 #####################################################################################################
 
-function wikitext_to_html($content)
-{
-  $break=\webdb\utils\template_fill("break");
-  $content=str_replace(PHP_EOL,$break,$content);
-  $content=str_replace("\r",$break,$content);
-  $content=str_replace("\n",$break,$content);
-  $content=\webdb\wiki\wikitext_to_html__internal_article_link($content);
-  $content=\webdb\wiki\wikitext_to_html__external_article_link($content);
-  return $content;
-}
-
-#####################################################################################################
-
-function wikitext_to_html__internal_article_link($content)
-{
-  $parts=explode("[[",$content);
-  for ($i=1;$i<count($parts);$i++)
-  {
-    $part=$parts[$i];
-    $tokens=explode("]]",$part);
-    if (count($tokens)<>2)
-    {
-      continue;
-    }
-    $link=explode("|",$tokens[0]);
-    $link_params=array();
-    $link_params["url_title"]=array_shift($link);
-    $link_params["caption"]=$link_params["url"];
-    if (count($link)>0)
-    {
-      $link_params["caption"]=implode(" ",$link);
-    }
-    $link=\webdb\utils\template_fill("wiki/internal_article_link",$link_params);
-    $parts[$i]=$link.$tokens[1];
-  }
-  return implode("",$parts);
-}
-
-#####################################################################################################
-
-function wikitext_to_html__external_article_link($content)
-{
-  $parts=explode("[",$content);
-  for ($i=1;$i<count($parts);$i++)
-  {
-    $part=$parts[$i];
-    $tokens=explode("]",$part);
-    if (count($tokens)<>2)
-    {
-      continue;
-    }
-    $link=explode(" ",$tokens[0]);
-    $link_params=array();
-    $link_params["url"]=array_shift($link);
-    $link_params["caption"]=$link_params["url"];
-    if (count($link)>0)
-    {
-      $link_params["caption"]=implode(" ",$link);
-    }
-    $link=\webdb\utils\template_fill("wiki/external_article_link",$link_params);
-    $parts[$i]=$link.$tokens[1];
-  }
-  return implode("",$parts);
-}
-
-#####################################################################################################
-
-function get_article_record_by_title($title)
-{
-  $where_items=array();
-  $where_items["title"]=$title;
-  $records=\webdb\sql\file_fetch_prepare("wiki/get_article_record_by_title",$where_items);
-  if (count($records)==1)
-  {
-    return $records[0];
-  }
-  return false;
-}
-
-#####################################################################################################
-
-function get_user_wiki_settings()
+function confirm_file_edit($form_config,$title,$file_record)
 {
   global $settings;
-  $user_record=\webdb\chat\chat_initialize();
-  $data=array();
-  if ($user_record["json_data"]<>"")
+  $value_items=array();
+  $value_items["title"]=trim($_POST["wiki_file_edit_title"]);
+
+
+
+  $value_items["description"]=$_POST["wiki_file_edit_description"];
+  $value_items["user_id"]=$settings["logged_in_user_id"];
+  if ($file_record===false)
   {
-    $data=json_decode($user_record["json_data"],true);
-    if (isset($data["wiki"])==true)
-    {
-      return $data["wiki"];
-    }
+    \webdb\sql\sql_insert($value_items,"wiki_files",$settings["database_webdb"]);
   }
-  $data["wiki"]=array();
-  $data["wiki"]["home_article"]=$settings["wiki_home_article"];
-  $user_record["json_data"]=json_encode($data);
-  \webdb\chat\update_user($user_record);
-  return $data["wiki"];
+  else
+  {
+    $oldversion_values=array();
+    $oldversion_values["file_id"]=$file_record["file_id"];
+    $oldversion_values["title"]=$file_record["title"];
+    $oldversion_values["content"]=$file_record["content"];
+    $oldversion_values["user_id"]=$file_record["user_id"];
+    $oldversion_values["description"]=$file_record["description"];
+    \webdb\sql\sql_insert($oldversion_values,"wiki_file_oldversions",$settings["database_webdb"]);
+    $where_items=array("title"=>$title);
+    \webdb\sql\sql_update($value_items,$where_items,"wiki_files",$settings["database_webdb"]);
+  }
+  $url=\webdb\utils\get_base_url();
+  $url.="?page=wiki&file=".urlencode($value_items["title"]);
+  \webdb\utils\redirect($url);
+}
+
+#####################################################################################################
+
+function edit_new_file($form_config,$title)
+{
+  $page_params=array();
+  $page_params["wiki_styles_modified"]=\webdb\utils\resource_modified_timestamp("wiki/wiki.css");
+  $page_params["wiki_styles_print_modified"]=\webdb\utils\resource_modified_timestamp("wiki/wiki_print.css");
+  $page_params["url_title"]=urlencode($title);
+  $page_params["title"]=$title;
+  $page_params["content"]="";
+  $page_params["description"]="Initial file creation.";
+  $page_params["submit_caption"]="Create File";
+  $content=\webdb\utils\template_fill("wiki/file_edit",$page_params);
+  \webdb\utils\output_page($content,$form_config["title"].": ".$title." [edit]");
+}
+
+#####################################################################################################
+
+function edit_exist_file($form_config,$file_record)
+{
+  $page_params=$file_record;
+  $page_params["wiki_styles_modified"]=\webdb\utils\resource_modified_timestamp("wiki/wiki.css");
+  $page_params["wiki_styles_print_modified"]=\webdb\utils\resource_modified_timestamp("wiki/wiki_print.css");
+  $page_params["description"]="";
+  $page_params["url_title"]=urlencode($file_record["title"]);
+  $page_params["submit_caption"]="Update File";
+  $content=\webdb\utils\template_fill("wiki/file_edit",$page_params);
+  \webdb\utils\output_page($content,$form_config["title"].": ".$file_record["title"]." [edit]");
+}
+
+#####################################################################################################
+
+function view_exist_file($form_config,$file_record)
+{
+  $page_params=$file_record;
+  $page_params["wiki_styles_modified"]=\webdb\utils\resource_modified_timestamp("wiki/wiki.css");
+  $page_params["wiki_styles_print_modified"]=\webdb\utils\resource_modified_timestamp("wiki/wiki_print.css");
+  $page_params["url_title"]=urlencode($file_record["title"]);
+
+  $target_filename="";
+  \webdb\wiki\upload_file("wiki_file_upload",$target_filename);
+
+  $content=\webdb\utils\template_fill("wiki/file_view",$page_params);
+  \webdb\utils\output_page($content,$form_config["title"].": ".$file_record["title"]);
 }
 
 #####################################################################################################

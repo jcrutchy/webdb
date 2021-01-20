@@ -17,14 +17,14 @@
   
   <div>
     <div>Article content (wikitext):</div>
-    <textarea name="wiki_article_edit_content" wrap="soft">%%content%%</textarea>
+    <textarea id="wiki_article_edit_content" name="wiki_article_edit_content" wrap="soft">%%content%%</textarea>
   </div>
 
   <hr>
   
   <div>
     <div>Change description:</div>
-    <textarea name="wiki_article_edit_description" wrap="soft">%%description%%</textarea>
+    <textarea id="wiki_article_edit_description" name="wiki_article_edit_description" wrap="soft">%%description%%</textarea>
   </div>
 
   <hr>
@@ -36,9 +36,9 @@
   </form>
 </div>
 
-<div class="wiki_article_control_box">
+<div class="wiki_article_edit_control_box">
   <div class="wiki_link_divider"></div>
-  <a href="$$app_web_index$$?page=wiki&cmd=edit&article=">New Article</a>
+  <a href="$$app_web_index$$?page=wiki">Home</a>
   <div class="wiki_link_divider"></div>
   <a href="$$app_web_index$$?page=wiki&article=%%url_title%%">View Article</a>
   <div class="wiki_link_divider"></div>

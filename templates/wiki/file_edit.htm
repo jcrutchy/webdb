@@ -1,0 +1,49 @@
+@@wiki/common@@
+
+<div class="wiki_top_white_box"></div>
+<div class="wiki_top_fade_box"></div>
+
+<div class="wiki_file_title">%%title%%</div>
+<div class="wiki_content_box">
+  <form action="$$app_web_index$$?page=wiki&cmd=edit&file=%%url_title%%" method="post" enctype="multipart/form-data">
+  <input type="hidden" name="csrf_token" value="%%csrf_token%%">
+  <input type="hidden" name="MAX_FILE_SIZE" value="41943040"> <!-- 40 Mb -->
+  
+  <div>
+    <div>New file title:</div>
+    <input type="text" id="wiki_file_edit_title" name="wiki_file_edit_title" value="%%title%%">
+  </div>
+
+  <hr>
+  
+  <div>
+    <div>Upload file:</div>
+    <input type="file" id="wiki_file_upload" name="wiki_file_upload" onchange="update_file_title(); return false;">
+  </div>
+
+  <hr>
+  
+  <div>
+    <div>Change description:</div>
+    <textarea id="wiki_file_edit_description" name="wiki_file_edit_description" wrap="soft">%%description%%</textarea>
+  </div>
+
+  <hr>
+  
+  <div>
+    <input type="submit" name="wiki_file_edit_confirm" value="%%submit_caption%%">
+  </div>
+  
+  </form>
+</div>
+
+<div class="wiki_file_edit_control_box">
+  <div class="wiki_link_divider"></div>
+  <a href="$$app_web_index$$?page=wiki">Home</a>
+  <div class="wiki_link_divider"></div>
+  <a href="$$app_web_index$$?page=wiki&file=%%url_title%%">View File</a>
+  <div class="wiki_link_divider"></div>
+</div>
+
+<div class="wiki_footer_alert">UNCONTROLLED - INFORMATION ONLY</div>
+<div class="wiki_footer_user">logged in as <span class="logged_in_user">$$logged_in_username$$</span></div>

@@ -1,0 +1,52 @@
+.wiki_article_title
+  {
+    font-family: "Times New Roman", Times, serif;
+    font-size: 27px;
+  }
+
+.wiki_top_white_box
+  {
+    display: none;
+  }
+
+.wiki_top_fade_box
+  {
+    display: none;
+  }
+
+.wiki_content_box
+  {
+    border: 0;
+    padding: 0;
+    width: 100%;
+    font-family: "Times New Roman", Times, serif;
+    font-size: 12pt;
+  }
+
+.wiki_article_view_control_box
+  {
+    display: none;
+  }
+
+.wiki_file_view_control_box
+  {
+    display: none;
+  }
+
+.wiki_footer_alert
+  {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    text-align: center;
+    color: red;
+    font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    font-size: 15px;
+  }
+
+.wiki_footer_user
+  {
+    display: none;
+  }

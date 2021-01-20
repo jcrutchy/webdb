@@ -128,7 +128,7 @@ $settings["chat_channel_prefix"]="webdb";
 $settings["enable_pwd_file_encrypt"]=true;
 $settings["encrypt_key_file"]=dirname($settings["webdb_parent_path"]).DIRECTORY_SEPARATOR."webdb_pwd_key.txt";
 
-$settings["file_upload_mode"]="ftp"; # rename | ftp
+$settings["file_upload_mode"]="rename"; # rename | ftp
 $settings["app_file_uploads_path"]=$settings["webdb_parent_path"]."file_uploads".DIRECTORY_SEPARATOR;
 $settings["ftp_app_target_path"]="";
 $settings["ftp_credentials_file"]="";

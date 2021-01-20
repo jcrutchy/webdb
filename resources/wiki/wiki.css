@@ -1,0 +1,209 @@
+body
+  {
+    background-color: #f6f6f6;
+  }
+
+#wiki_article_edit_content
+  {
+    width: calc(100% - 5px);
+    height: 300px;
+  }
+
+#wiki_article_edit_description
+  {
+    width: calc(100% - 5px);
+    height: 100px;
+  }
+
+#wiki_file_edit_description
+  {
+    width: calc(100% - 5px);
+    height: 100px;
+  }
+
+.wiki_article_title
+  {
+    position: fixed;
+    top: 5px;
+    left: 5px;
+    font-family: "Times New Roman", Times, serif;
+    font-size: 27px;
+  }
+
+.wiki_file_title
+  {
+    position: fixed;
+    top: 5px;
+    left: 5px;
+    font-family: "Times New Roman", Times, serif;
+    font-size: 27px;
+  }
+
+.wiki_top_white_box
+  {
+    position: fixed;
+    top: 0px;
+    right: 0px;
+    left: 0px;
+    height: 10px;
+    background-color: white;
+  }
+
+.wiki_top_fade_box
+  {
+    position: fixed;
+    top: 10px;
+    right: 0px;
+    left: 0px;
+    height: 30px;
+    background: linear-gradient(to bottom,white 0,#f6f6f6 100%);
+  }
+
+.wiki_content_box
+  {
+    position: fixed;
+    top: 40px;
+    right: 5px;
+    left: 5px;
+    bottom: 26px;
+    overflow: auto;
+    padding: 5px;
+    border: 1px solid #a7d7f9;
+    font-family: "Times New Roman", Times, serif;
+    font-size: 12pt;
+    background-color: white;
+  }
+
+.wiki_article_view_control_box
+  {
+    position: fixed;
+    top: 10px;
+    right: 5px;
+    height: 30px;
+    width: 361px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: stretch;
+  }
+
+.wiki_article_view_control_box a
+  {
+    display: inline-block;
+    text-align: center;
+    line-height: 25px;
+    width: 90px;
+    background: linear-gradient(to bottom,white 0,#e8f2f8 100%);
+  }
+
+.wiki_file_view_control_box
+  {
+    position: fixed;
+    top: 10px;
+    right: 5px;
+    height: 30px;
+    width: 271px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: stretch;
+  }
+
+.wiki_file_view_control_box a
+  {
+    display: inline-block;
+    text-align: center;
+    line-height: 25px;
+    width: 90px;
+    background: linear-gradient(to bottom,white 0,#e8f2f8 100%);
+  }
+
+.wiki_article_edit_control_box
+  {
+    position: fixed;
+    top: 10px;
+    right: 5px;
+    height: 30px;
+    width: 181px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: stretch;
+  }
+
+.wiki_article_edit_control_box a
+  {
+    display: inline-block;
+    text-align: center;
+    line-height: 25px;
+    width: 90px;
+    background: linear-gradient(to bottom,white 0,#e8f2f8 100%);
+  }
+
+.wiki_file_edit_control_box
+  {
+    position: fixed;
+    top: 10px;
+    right: 5px;
+    height: 30px;
+    width: 181px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: stretch;
+  }
+
+.wiki_file_edit_control_box a
+  {
+    display: inline-block;
+    text-align: center;
+    line-height: 25px;
+    width: 90px;
+    background: linear-gradient(to bottom,white 0,#e8f2f8 100%);
+  }
+
+.wiki_link_divider
+  {
+    display: inline-block;
+    width: 1px;
+    background: linear-gradient(to bottom,white 0,#a7d7f9 100%);
+  }
+
+.wiki_footer_alert
+  {
+    position: fixed;
+    left: 5px;
+    bottom: 5px;
+    color: red;
+    font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    font-size: 15px;
+  }
+
+.wiki_footer_user
+  {
+    position: fixed;
+    right: 5px;
+    bottom: 6px;
+    font-size: 13px;
+  }
+
+.logged_in_user
+  {
+    color: green;
+    font-weight: bold;
+  }
+
+.code_block
+  {
+    font-family: "Courier New", Courier, monospace;
+    background-color: #FFFFCC;
+    padding: 5px;
+    margin: 0;
+    color: #d93900;
+    white-space: pre;
+  }

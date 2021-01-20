@@ -44,6 +44,7 @@ function webdb_decrypt(string $encrypted,string $key): string
   {
     \webdb\utils\system_message("webdb_decrypt: invalid MAC");
   }
+  #\webdb\utils\system_message($plain);
   sodium_memzero($ciphertext);
   sodium_memzero($key);
   return $plain;

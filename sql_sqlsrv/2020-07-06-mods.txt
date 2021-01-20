@@ -1,0 +1,12 @@
+USE xxxx;
+
+ALTER TABLE dbo.messenger_users
+DROP CONSTRAINT CK__messenger__selec__***COPY_FROM_STUDIO***;
+GO
+
+ALTER TABLE dbo.messenger_users
+DROP CONSTRAINT fk_users_channels1;
+GO
+
+ALTER TABLE dbo.messenger_users
+DROP COLUMN selected_channel_id;
