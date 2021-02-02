@@ -163,6 +163,7 @@ $settings["test_settings_file"]="webdb_test.conf";
 $settings["admin_remote_address_whitelist"][]="192.168.0.50"; # add as required
 
 $settings["wiki_home_article"]="Home";
+$settings["wiki_file_subdirectory"]="wiki";
 
 $settings["irregular_plurals"]=array(); # singular => plural
 

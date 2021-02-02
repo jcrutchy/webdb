@@ -8,6 +8,13 @@
   <form action="$$app_web_index$$?page=wiki&cmd=edit&file=%%url_title%%" method="post" enctype="multipart/form-data">
   <input type="hidden" name="csrf_token" value="%%csrf_token%%">
   <input type="hidden" name="MAX_FILE_SIZE" value="41943040"> <!-- 40 Mb -->
+
+  <div>
+    <div>Upload file:</div>
+    <input type="file" id="wiki_file_upload" name="wiki_file_upload" onchange="update_file_title(); return false;">
+  </div>
+
+  <hr>
   
   <div>
     <div>New file title:</div>
@@ -17,8 +24,8 @@
   <hr>
   
   <div>
-    <div>Upload file:</div>
-    <input type="file" id="wiki_file_upload" name="wiki_file_upload" onchange="update_file_title(); return false;">
+    <div>File notes:</div>
+    <textarea id="wiki_file_edit_notes" name="wiki_file_edit_notes" wrap="soft">%%notes%%</textarea>
   </div>
 
   <hr>

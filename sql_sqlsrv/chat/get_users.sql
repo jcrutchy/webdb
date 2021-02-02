@@ -1,4 +1,4 @@
-SELECT * FROM RISK_MDO.dbo.messenger_users
+SELECT * FROM $$database_webdb$$.messenger_users
 
 WHERE
 enabled=1

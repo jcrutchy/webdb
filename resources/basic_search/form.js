@@ -14,3 +14,17 @@ function basic_search()
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function basic_search_keypress(event)
+{
+  if (event.keyCode==13)
+  {
+    var login_submit=document.getElementById("basic_search_button");
+    login_submit.click();
+    login_submit.disabled=true;
+    return false;
+  }
+  return true;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////

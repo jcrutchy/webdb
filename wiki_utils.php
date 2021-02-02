@@ -4,6 +4,26 @@ namespace webdb\wiki_utils;
 
 #####################################################################################################
 
+function view_fixed_article_file($form_config,$title)
+{
+  global $settings;
+  $filename=strtolower(str_replace(":","_",$title));
+  $template="wiki/fixed_articles/".$filename;
+  if (isset($settings["templates"][$template])==false)
+  {
+    return;
+  }
+  $page_params["wiki_styles_modified"]=\webdb\utils\resource_modified_timestamp("wiki/wiki.css");
+  $page_params["wiki_styles_print_modified"]=\webdb\utils\resource_modified_timestamp("wiki/wiki_print.css");
+  $page_params["url_title"]=urlencode($filename);
+  $page_params["content"]=\webdb\wiki_utils\wikitext_to_html($settings["templates"][$template]);
+  $page_params["title"]=$title;
+  $content=\webdb\utils\template_fill("wiki/locked_article_view",$page_params);
+  \webdb\utils\output_page($content,$form_config["title"].": ".$title);
+}
+
+#####################################################################################################
+
 function get_article_record_by_title($title)
 {
   $where_items=array();
@@ -47,7 +67,7 @@ function wikitext_to_html($content)
     $content=\webdb\wiki_utils\wikitext_escape_pair($content,$pair[0],$pair[1]);
   }
 
-  $content=str_replace(PHP_EOL,$break,$content);
+  $content=str_replace("\r\n",$break,$content);
   $content=str_replace("\r",$break,$content);
   $content=str_replace("\n",$break,$content);
   $content=\webdb\wiki_utils\wikitext_to_html__file($content);
@@ -64,6 +84,8 @@ function wikitext_to_html($content)
 
   $pair=$escape_pairs["comment"];
   $content=\webdb\wiki_utils\wikitext_unescape_pair($content,$pair[0],$pair[1]);
+
+  $content=\webdb\utils\string_template_fill($content);
 
   return $content;
 }
@@ -139,6 +161,17 @@ function wikitext_to_html__code_block($content)
       continue;
     }
     $code=array_shift($tokens);
+    $firstchar=substr($code,0,1);
+    switch ($firstchar)
+    {
+      case "\r\n":
+        $code=substr($code,2);
+        break;
+      case "\r":
+      case "\n":
+        $code=substr($code,1);
+        break;
+    }
     $code_params=array();
     $code_params["code"]=$code;
     $code=\webdb\utils\template_fill("wiki/code_block",$code_params);
@@ -291,20 +324,12 @@ function get_user_wiki_settings()
 function upload_file($submit_name,$target_filename)
 {
   global $settings;
-  if (isset($_FILES)==false)
-  {
-    return;
-  }
   if (isset($_FILES[$submit_name])==false)
   {
     return;
   }
   $upload_data=$_FILES[$submit_name];
   $upload_filename=$upload_data["tmp_name"];
-  if ($upload_filename=="")
-  {
-    return;
-  }
   if (file_exists($upload_filename)==false)
   {
     \webdb\utils\error_message("error: uploaded file not found");
@@ -312,13 +337,14 @@ function upload_file($submit_name,$target_filename)
   switch ($settings["file_upload_mode"])
   {
     case "rename":
-      $target_filename=$settings["app_file_uploads_path"].$target_filename;
       rename($upload_filename,$target_filename);
       return;
     case "ftp":
-      $target_filename=$settings["ftp_app_target_path"].$target_filename;
       $connection=\webdb\utils\webdb_ftp_login();
-      ftp_put($connection,$target_filename,$upload_filename,FTP_BINARY);
+      if (ftp_put($connection,$target_filename,$upload_filename,FTP_BINARY)==false)
+      {
+        \webdb\utils\error_message("error: unable to upload file to FTP server");
+      }
       ftp_close($connection);
       return;
   }

@@ -17,5 +17,5 @@ settings available include any setting in the framework or application settings.
 
 
 you can also specify a default value using a url parameter, such as:
-http://localhost/mdo_risks/index.php?page=events&cmd=insert&description=line1\nline2 with spaces\nline3
+http://localhost/app/index.php?page=events&cmd=insert&description=line1\nline2 with spaces\nline3
 note that values will be run through htmlspecialchars so things like html tags will be converted to entity form

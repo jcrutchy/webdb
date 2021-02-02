@@ -3067,14 +3067,10 @@ function upload_file($form_config,$field_name,$record_id)
   $submit_name=$page_id.":edit_control:".$record_id.":".$field_name;
   if (isset($_FILES[$submit_name])==false)
   {
-    return;
+    \webdb\utils\error_message("error: file upload submit name not found: ".$submit_name);
   }
   $upload_data=$_FILES[$submit_name];
   $upload_filename=$upload_data["tmp_name"];
-  if ($upload_filename=="")
-  {
-    return;
-  }
   if (file_exists($upload_filename)==false)
   {
     \webdb\utils\error_message("error: uploaded file not found");
@@ -3091,7 +3087,10 @@ function upload_file($form_config,$field_name,$record_id)
       return;
     case "ftp":
       $connection=\webdb\utils\webdb_ftp_login();
-      ftp_put($connection,$target_filename,$upload_filename,FTP_BINARY);
+      if (ftp_put($connection,$target_filename,$upload_filename,FTP_BINARY)==false)
+      {
+        \webdb\utils\error_message("error: unable to upload file to FTP server");
+      }
       ftp_close($connection);
       return;
   }
@@ -3104,14 +3103,8 @@ function get_uploaded_full_filename($form_config,$record_id,$field_name)
 {
   global $settings;
   $filename=\webdb\forms\get_uploaded_filename($form_config,$record_id,$field_name);
-  switch ($settings["file_upload_mode"])
-  {
-    case "rename":
-      return $settings["app_file_uploads_path"].$filename;
-    case "ftp":
-      return $settings["ftp_app_target_path"].$filename;
-  }
-  \webdb\utils\error_message("error: invalid file upload mode");
+  $path=\webdb\utils\get_upload_path();
+  return $path.$filename;
 }
 
 #####################################################################################################
@@ -3320,7 +3313,7 @@ function insert_record($form_config)
     \webdb\forms\check_required_values($form_config,$value_items);
     \webdb\sql\sql_insert($value_items,$form_config["table"],$form_config["database"],false,$form_config);
     $id=\webdb\sql\sql_last_insert_autoinc_id();
-    \webdb\forms\upload_files($form_config,$id);
+    \webdb\forms\upload_files($form_config,"");
   }
   else
   {

@@ -5,7 +5,9 @@ function login_password_keypress(event)
 {
   if (event.keyCode==13)
   {
-    document.getElementById("login_submit").click();
+    var login_submit=document.getElementById("login_submit");
+    login_submit.click();
+    login_submit.disabled=true;
     return false;
   }
   login_check_caps(event);

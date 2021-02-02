@@ -48,6 +48,8 @@ function check_settings()
 {
   global $settings;
   $required_settings=array(
+    "wiki_home_article",
+    "wiki_file_subdirectory",
     "basic_search_forms",
     "fpdf_path",
     "sql_change_event_handler",

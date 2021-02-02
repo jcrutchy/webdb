@@ -1288,6 +1288,21 @@ function is_app_mode()
 
 #####################################################################################################
 
+function get_upload_path()
+{
+  global $settings;
+  switch ($settings["file_upload_mode"])
+  {
+    case "rename":
+      return $settings["app_file_uploads_path"];
+    case "ftp":
+      return $settings["ftp_app_target_path"];
+  }
+  \webdb\utils\error_message("error: invalid file upload mode");
+}
+
+#####################################################################################################
+
 function resource_modified_timestamp($resource_file,$source="webdb")
 {
   global $settings;
@@ -1330,8 +1345,18 @@ function webdb_ftp_login()
 {
   global $settings;
   $connection=ftp_connect($settings["ftp_address"],$settings["ftp_port"],$settings["ftp_timeout"]);
-  ftp_login($connection,$settings["ftp_credentials_username"],$settings["ftp_credentials_password"]);
-  ftp_pasv($connection,true);
+  if ($connection===false)
+  {
+    \webdb\utils\error_message("error: unable to connect to the FTP server");
+  }
+  if (ftp_login($connection,$settings["ftp_credentials_username"],$settings["ftp_credentials_password"])==false)
+  {
+    \webdb\utils\error_message("error: unable to login to the FTP server");
+  }
+  if (ftp_pasv($connection,true)==false)
+  {
+    \webdb\utils\error_message("error: unable to enable FTP passive mode");
+  }
   return $connection;
 }
 
