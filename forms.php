@@ -651,7 +651,6 @@ function get_subform_content($subform_config,$subform_link_field,$id,$list_only=
       $subform_config["multi_row_delete"]=false;
       $subform_config["delete_cmd"]=false;
       $subform_config["insert_row"]=false;
-      $subform_config["edit_cmd"]="inline";
       if ($subform_config["records_sql"]=="")
       {
         \webdb\forms\process_sort_sql($subform_config);
@@ -1032,6 +1031,13 @@ function list_row($form_config,$record,$column_format,$row_spans,$lookup_records
       $control_type="span";
     }
     $field_params=array();
+    $field_params["border_right_width"]="0";
+    $field_params["border_right_color"]="initial";
+    if (($checklist_row_linked==false) and ($form_config["checklist"]==true))
+    {
+      $field_params["border_right_width"]=$settings["list_border_width"];
+      $field_params["border_right_color"]=$settings["list_border_color"];
+    }
     $field_params["primary_key"]=$row_params["primary_key"];
     $field_params["page_id"]=$row_params["page_id"];
     $display_record=$record;
@@ -1144,7 +1150,12 @@ function list_row($form_config,$record,$column_format,$row_spans,$lookup_records
   $row_params["group_span"]="";
   $row_params["controls_min_width"]=$column_format["controls_min_width"];
   $skip_controls=false;
-  if (in_array($form_config["edit_cmd_id"],$form_config["group_by"])==true)
+  if (($checklist_row_linked==false) and ($form_config["checklist"]==true))
+  {
+    $skip_controls=true;
+    $row_params["list_row_controls"]=\webdb\forms\form_template_fill("list_row_controls",$row_params);
+  }
+  elseif (in_array($form_config["edit_cmd_id"],$form_config["group_by"])==true)
   {
     if ($row_spans[$record_index]==0)
     {
@@ -2238,6 +2249,7 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
       $records=array_merge($checked_records,$unchecked_records);
     }
   }
+  $form_params["record_count"]=count($records);
   $rows=array();
   for ($i=0;$i<count($records);$i++)
   {
@@ -2269,7 +2281,6 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
     die($content);
   }
   $rows=implode("",$rows);
-  $form_params["record_count"]=count($records);
   $form_params["insert_row_controls"]="";
   $show_insert_row=false;
   if ($form_config["insert_row"]==true)
@@ -3067,13 +3078,15 @@ function upload_file($form_config,$field_name,$record_id)
   $submit_name=$page_id.":edit_control:".$record_id.":".$field_name;
   if (isset($_FILES[$submit_name])==false)
   {
-    \webdb\utils\error_message("error: file upload submit name not found: ".$submit_name);
+    #\webdb\utils\error_message("error: file upload submit name not found: ".$submit_name);
+    return;
   }
   $upload_data=$_FILES[$submit_name];
   $upload_filename=$upload_data["tmp_name"];
   if (file_exists($upload_filename)==false)
   {
-    \webdb\utils\error_message("error: uploaded file not found");
+    #\webdb\utils\error_message("error: uploaded file not found");
+    return;
   }
   if ($record_id=="")
   {

@@ -4,5 +4,7 @@
     "enabled": true,
     "title": "Wiki",
     "page_id": "wiki",
+    "user_list_fields": "title",
+    "user_list_format": "%s",
     "generate_stub": "\\webdb\\wiki\\wiki_page_stub"
 }

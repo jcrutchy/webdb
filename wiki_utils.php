@@ -182,6 +182,28 @@ function wikitext_to_html__code_block($content)
 
 #####################################################################################################
 
+function wikitext_to_html__file($content)
+{
+  $parts=explode("[[File:",$content);
+  for ($i=1;$i<count($parts);$i++)
+  {
+    $part=$parts[$i];
+    $tokens=explode("]]",$part);
+    if (count($tokens)<2)
+    {
+      continue;
+    }
+    $token=array_shift($tokens);
+    $content_params=array();
+    $content_params["url_title"]=urlencode($token);
+    $token=\webdb\utils\template_fill("wiki/file_content",$content_params);
+    $parts[$i]=$token.implode("]]",$tokens);
+  }
+  return implode("",$parts);
+}
+
+#####################################################################################################
+
 function wikitext_to_html__internal_article_link($content)
 {
   $parts=explode("[[",$content);
@@ -210,7 +232,7 @@ function wikitext_to_html__internal_article_link($content)
 
 #####################################################################################################
 
-function wikitext_to_html__file($content)
+/*function wikitext_to_html__file($content)
 {
   # todo: \webdb\graphics\scale_img($buffer,$scale,$w,$h);
   # see https://en.wikipedia.org/wiki/Help:Wikitext#Images
@@ -229,13 +251,13 @@ function wikitext_to_html__file($content)
     $file_record=\webdb\wiki_utils\get_file_record_by_title($title);
     if ($file_record!==false)
     {
-      /*
-      $buffer=imagecreatetruecolor($w,$h);
-      $bg_color=imagecolorallocate($buffer,255,0,255); # magenta
-      imagecolortransparent($buffer,$bg_color);
-      imagefill($buffer,0,0,$bg_color);
-      $line_color=imagecolorallocate($buffer,0,0,0); # black
-      */
+
+      #$buffer=imagecreatetruecolor($w,$h);
+      #$bg_color=imagecolorallocate($buffer,255,0,255); # magenta
+      #imagecolortransparent($buffer,$bg_color);
+      #imagefill($buffer,0,0,$bg_color);
+      #$line_color=imagecolorallocate($buffer,0,0,0); # black
+
     }
     else
     {
@@ -267,7 +289,7 @@ function wikitext_to_html__file($content)
     $parts[$i]=$file.implode("]]",$tokens);
   }
   return implode("",$parts);
-}
+}*/
 
 #####################################################################################################
 
@@ -317,6 +339,42 @@ function get_user_wiki_settings()
   $user_record["json_data"]=json_encode($data);
   \webdb\chat\update_user($user_record);
   return $data["wiki"];
+}
+
+#####################################################################################################
+
+function get_target_filename($file_id,$file_ext)
+{
+  global $settings;
+  $file_path=\webdb\utils\get_upload_path().$settings["wiki_file_subdirectory"].DIRECTORY_SEPARATOR;
+  return $file_path."file_".$file_id.".".$file_ext;
+}
+
+#####################################################################################################
+
+function get_file_data($file_record)
+{
+  global $settings;
+  $file_ext=$file_record["file_ext"]; # excludes period
+  $file_id=$file_record["file_id"];
+  $target_filename=\webdb\wiki_utils\get_target_filename($file_id,$file_ext);
+  switch ($settings["file_upload_mode"])
+  {
+    case "rename":
+      return file_get_contents($target_filename);
+    case "ftp":
+      $connection=\webdb\utils\webdb_ftp_login();
+      $size=ftp_size($connection,$target_filename);
+      $stream=fopen("php://temp","r+");
+      ftp_fget($connection,$stream,$target_filename,FTP_BINARY);
+      $fstats=fstat($stream);
+      rewind($stream);
+      $file_data=fread($stream,$fstats["size"]);
+      fclose($stream);
+      ftp_close($connection);
+      return $file_data;
+  }
+  \webdb\utils\error_message("error: invalid file upload mode");
 }
 
 #####################################################################################################
