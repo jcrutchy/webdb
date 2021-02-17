@@ -19,6 +19,10 @@ function wiki_page_stub($form_config)
       {
         \webdb\wiki\output_file($form_config,$file_record,$title);
       }
+      if ($_GET["cmd"]=="history")
+      {
+        \webdb\wiki\file_history($form_config,$file_record);
+      }
       if ($_GET["cmd"]=="edit")
       {
         if (isset($_POST["wiki_file_edit_confirm"])==true)
@@ -53,6 +57,10 @@ function wiki_page_stub($form_config)
   $article_record=\webdb\wiki_utils\get_article_record_by_title($title);
   if (isset($_GET["cmd"])==true)
   {
+    if ($_GET["cmd"]=="history")
+    {
+      \webdb\wiki\article_history($form_config,$article_record);
+    }
     if ($_GET["cmd"]=="edit")
     {
       if (isset($_POST["wiki_article_edit_confirm"])==true)
@@ -77,6 +85,20 @@ function wiki_page_stub($form_config)
     \webdb\wiki\edit_new_article($form_config,$title);
   }
   \webdb\wiki\view_exist_article($form_config,$article_record);
+}
+
+#####################################################################################################
+
+function article_history($form_config,$article_record)
+{
+  die("todo");
+}
+
+#####################################################################################################
+
+function file_history($form_config,$file_record)
+{
+  die("todo");
 }
 
 #####################################################################################################
@@ -196,30 +218,28 @@ function confirm_file_edit($form_config,$title,$file_record)
     \webdb\sql\sql_insert($value_items,"wiki_files",$settings["database_webdb"]);
     $file_id=\webdb\sql\sql_last_insert_autoinc_id();
     $target_filename=\webdb\wiki_utils\get_target_filename($file_id,$file_ext);
-    \webdb\wiki_utils\upload_file("wiki_file_upload",$target_filename);
+    \webdb\wiki_utils\wiki_upload_file("wiki_file_upload",$target_filename);
   }
   else
   {
     $oldversion_values=array();
     $oldversion_values["file_id"]=$file_record["file_id"];
     $oldversion_values["title"]=$file_record["title"];
-    $oldversion_values["content"]=$file_record["content"];
     $oldversion_values["user_id"]=$file_record["user_id"];
     $oldversion_values["notes"]=$file_record["notes"];
     $oldversion_values["description"]=$file_record["description"];
     $oldversion_values["file_ext"]=$file_record["file_ext"];
-    \webdb\sql\sql_insert($oldversion_values,"wiki_file_oldversions",$settings["database_webdb"]);
     $where_items=array("file_id"=>$file_record["file_id"]);
     \webdb\sql\sql_update($value_items,$where_items,"wiki_files",$settings["database_webdb"]);
-
-    $file_ext=$file_record["file_ext"]; # excludes period
+    \webdb\sql\sql_insert($oldversion_values,"wiki_file_oldversions",$settings["database_webdb"]);
+    $old_file_ext=$file_record["file_ext"]; # excludes period
     $file_id=$file_record["file_id"];
+    $target_filename=\webdb\wiki_utils\get_target_filename($file_id,$old_file_ext);
+    $file_revision_id=\webdb\sql\sql_last_insert_autoinc_id();
+    $oldversion_filename=\webdb\wiki_utils\get_oldversion_filename($file_revision_id,$old_file_ext);
+    \webdb\wiki_utils\wiki_rename_file($target_filename,$oldversion_filename);
     $target_filename=\webdb\wiki_utils\get_target_filename($file_id,$file_ext);
-
-    # todo: copy $target_filename to some old version filename
-
-    \webdb\wiki_utils\upload_file("wiki_file_upload",$target_filename);
-
+    \webdb\wiki_utils\wiki_upload_file("wiki_file_upload",$target_filename);
   }
   $url=\webdb\utils\get_base_url();
   $url.="?page=".$form_config["page_id"]."&file=".urlencode($value_items["title"]);
@@ -253,9 +273,14 @@ function edit_exist_file($form_config,$file_record)
   $page_params["description"]="";
   $page_params["url_title"]=urlencode($file_record["title"]);
   $page_params["submit_caption"]="Update File";
-  $content_params=array();
-  $content_params["url_title"]=urlencode($file_record["title"]);
-  $page_params["content"]=\webdb\utils\template_fill("wiki/file_content",$content_params);
+  $params=array();
+  $params["title"]=$file_record["title"];
+  $params["url_title"]=$page_params["url_title"];
+  $params["width"]="";
+  $params["height"]="";
+  $params["align"]="";
+  $params["handlers"]=\webdb\utils\template_fill("wiki/file_content_handlers");
+  $page_params["content"]=\webdb\utils\template_fill("wiki/file_content",$params);
   $content=\webdb\utils\template_fill("wiki/file_edit",$page_params);
   \webdb\utils\output_page($content,$form_config["title"].": ".$file_record["title"]." [edit]");
 }
@@ -269,9 +294,14 @@ function view_exist_file($form_config,$file_record)
   $page_params["wiki_styles_print_modified"]=\webdb\utils\resource_modified_timestamp("wiki/wiki_print.css");
   $page_params["url_title"]=urlencode($file_record["title"]);
   $page_params["notes"]=$file_record["notes"];
-  $content_params=array();
-  $content_params["url_title"]=$page_params["url_title"];
-  $page_params["content"]=\webdb\utils\template_fill("wiki/file_content",$content_params);
+  $params=array();
+  $params["title"]=$file_record["title"];
+  $params["url_title"]=$page_params["url_title"];
+  $params["width"]="";
+  $params["height"]="";
+  $params["align"]="";
+  $params["handlers"]=\webdb\utils\template_fill("wiki/file_content_handlers");
+  $page_params["content"]=\webdb\utils\template_fill("wiki/file_content",$params);
   $content=\webdb\utils\template_fill("wiki/file_view",$page_params);
   \webdb\utils\output_page($content,$form_config["title"].": ".$file_record["title"]);
 }

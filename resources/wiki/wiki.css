@@ -109,7 +109,7 @@ body
     top: 10px;
     right: 5px;
     height: 30px;
-    width: 361px;
+    width: 541px;
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
@@ -178,7 +178,7 @@ body
     top: 10px;
     right: 5px;
     height: 30px;
-    width: 181px;
+    width: 271px;
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
@@ -193,6 +193,17 @@ body
     line-height: 25px;
     width: 90px;
     background: linear-gradient(to bottom,white 0,#e8f2f8 100%);
+  }
+
+.image_view_link
+  {
+    display: inline-block;
+  }
+
+.wiki_file_content_frame
+  {
+    width: 1000px;
+    height: 500px;
   }
 
 .wiki_link_divider
@@ -235,4 +246,60 @@ body
     margin: 0;
     color: #d93900;
     white-space: pre;
+  }
+
+.file_not_found
+  {
+    color: red;
+    font-weight: bold;
+    border: 1px solid red;
+  }
+
+.wiki_heading
+  {
+    font-size: 18pt;
+    font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    width: 100%;
+    border-bottom: 1px #aaaaaa solid;
+  }
+
+.wiki_subheading
+  {
+    font-size: 14pt;
+    font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+  }
+
+.wiki_toc
+  {
+    border: 1px #a2a9b1 solid;
+    background-color: #f8f9fa;
+    display: inline-block;
+    padding: 5px;
+  }
+
+.wiki_toc_title
+  {
+    font-weight: bold;
+  }
+
+.wiki_toc td
+  {
+    border: 0;
+    vertical-align: middle;
+    font-size: 12pt;
+  }
+
+.wiki_toc_heading_bullet
+  {
+    font-size: 9pt;
+    padding-right: 5px;
+  }
+
+.wiki_toc_subheading_bullet
+  {
+    font-size: 8pt;
+    padding-left: 15px;
+    padding-right: 5px;
   }

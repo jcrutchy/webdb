@@ -21,6 +21,8 @@
     width: 100%;
     font-family: "Times New Roman", Times, serif;
     font-size: 12pt;
+    position: absolute;
+    overflow: visible;
   }
 
 .wiki_article_view_control_box

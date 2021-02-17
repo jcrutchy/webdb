@@ -429,6 +429,7 @@ function file_field_view(event,page_id,field_name,filename)
   var parts=field_name.split(":");
   field_name=parts[0]+":"+parts[2]+":"+parts[3];
   var url=window.location.href;
+  url=remove_url_anchor(url);
   url=remove_url_param("cmd",url);
   url=remove_url_param("id",url);
   url+="&file_view="+encodeURIComponent(field_name);

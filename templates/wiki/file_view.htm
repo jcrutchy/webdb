@@ -4,8 +4,13 @@
 <div class="wiki_top_fade_box"></div>
 
 <div class="wiki_file_title">File: %%title%%</div>
-<div class="wiki_content_box">%%content%%</div>
-<div>%%notes%%</div>
+<div class="wiki_content_box">
+
+<div>%%content%%</div>
+<div><a href="$$app_web_index$$?page=wiki&cmd=output&file=%%url_title%%" target="_blank">File Output</a></div>
+<div>Notes: %%notes%%</div>
+
+</div>
 
 <div class="wiki_file_view_control_box">
   <div class="wiki_link_divider"></div>
@@ -14,6 +19,8 @@
   <a href="$$app_web_index$$?page=wiki&cmd=edit&file=">New File</a>
   <div class="wiki_link_divider"></div>
   <a href="$$app_web_index$$?page=wiki&cmd=edit&file=%%url_title%%">Edit File</a>
+  <div class="wiki_link_divider"></div>
+  <a href="$$app_web_index$$?page=wiki&cmd=history&file=%%url_title%%">History</a>
   <div class="wiki_link_divider"></div>
 </div>
 

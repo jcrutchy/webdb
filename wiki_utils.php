@@ -70,6 +70,12 @@ function wikitext_to_html($content)
   $content=str_replace("\r\n",$break,$content);
   $content=str_replace("\r",$break,$content);
   $content=str_replace("\n",$break,$content);
+
+  $content=\webdb\wiki_utils\wikitext_to_html__toc($content);
+
+  $content=\webdb\wiki_utils\wikitext_to_html__subheadings($content);
+  $content=\webdb\wiki_utils\wikitext_to_html__headings($content);
+
   $content=\webdb\wiki_utils\wikitext_to_html__file($content);
   $content=\webdb\wiki_utils\wikitext_to_html__internal_article_link($content);
   $content=\webdb\wiki_utils\wikitext_to_html__external_article_link($content);
@@ -149,6 +155,96 @@ function wikitext_to_html__nowiki_block($content)
 
 #####################################################################################################
 
+function wikitext_to_html__toc($content)
+{
+  $toc_parts=explode("<toc>",$content);
+  $toc_data=array();
+  $levels=array("2"=>"===","1"=>"==");
+  $caption="";
+  $active_level="";
+  for ($i=0;$i<strlen($content);$i++)
+  {
+    foreach ($levels as $level => $delim)
+    {
+      $test=substr($content,$i,strlen($delim));
+      if ($test==$delim)
+      {
+        if ($active_level==$level)
+        {
+          $data=array();
+          $data["caption"]=$caption;
+          $data["level"]=$level;
+          $toc_data[]=$data;
+          $caption="";
+          $level="";
+        }
+        $i+=strlen($delim)-1;
+        $active_level=$level;
+        continue;
+      }
+      if ($active_level==$level)
+      {
+        $caption.=$content[$i];
+        continue;
+      }
+    }
+  }
+  $toc_html="";
+  for ($i=0;$i<count($toc_data);$i++)
+  {
+    $data=$toc_data[$i];
+    switch ($data["level"])
+    {
+      case "1":
+        $toc_html.=\webdb\utils\template_fill("wiki/toc_heading",$data);
+        break;
+      case "2":
+        $toc_html.=\webdb\utils\template_fill("wiki/toc_subheading",$data);
+        break;
+    }
+  }
+  $params=array();
+  $params["list_rows"]= $toc_html;
+  $toc_html=\webdb\utils\template_fill("wiki/toc",$params);
+  return implode($toc_html,$toc_parts);
+}
+
+#####################################################################################################
+
+function wikitext_to_html__headings($content)
+{
+  $parts=explode("==",$content);
+  for ($i=1;$i<count($parts);$i++)
+  {
+    $heading=$parts[$i];
+    $params=array();
+    $params["heading"]=$heading;
+    $heading=\webdb\utils\template_fill("wiki/heading",$params);
+    $parts[$i]=$heading;
+    $i++;
+  }
+  return implode("",$parts);
+}
+
+#####################################################################################################
+
+function wikitext_to_html__subheadings($content)
+{
+  $parts=explode("===",$content);
+  for ($i=1;$i<count($parts);$i++)
+  {
+    $subheading=$parts[$i];
+    $params=array();
+    $params["subheading"]=$subheading;
+    $subheading=\webdb\utils\template_fill("wiki/subheading",$params);
+    $parts[$i]=$subheading;
+    $i++;
+  }
+  return implode("",$parts);
+}
+
+#####################################################################################################
+
 function wikitext_to_html__code_block($content)
 {
   $parts=explode("<code>",$content);
@@ -193,11 +289,58 @@ function wikitext_to_html__file($content)
     {
       continue;
     }
-    $token=array_shift($tokens);
-    $content_params=array();
-    $content_params["url_title"]=urlencode($token);
-    $token=\webdb\utils\template_fill("wiki/file_content",$content_params);
-    $parts[$i]=$token.implode("]]",$tokens);
+    $args=array_shift($tokens);
+    $args=explode("|",$args);
+    $params=array();
+    $title=array_shift($args); # first arg is always title, remaining args can be in any order
+    $params["title"]=$title;
+    $params["url_title"]=urlencode($title);
+    $params["width"]="";
+    $params["height"]="";
+    $params["align"]="";
+    $params["handlers"]="";
+    for ($j=0;$j<count($args);$j++)
+    {
+      $arg=$args[$j];
+      $arg=explode(":",$arg);
+      $arg_key=trim(array_shift($arg));
+      $arg_val=trim(implode(":",$arg));
+      $params[$arg_key]=$arg_val;
+    }
+    if ($params["width"]<>"")
+    {
+      $params["width"]="width: ".$params["width"].";";
+    }
+    if ($params["height"]<>"")
+    {
+      $params["height"]="height: ".$params["height"].";";
+    }
+    if ($params["align"]<>"")
+    {
+      $params["align"]="text-align: ".$params["align"].";";
+    }
+    $html=\webdb\utils\template_fill("wiki/file_not_found",$params);
+    $file_record=\webdb\wiki_utils\get_file_record_by_title($title);
+    if ($file_record!==false)
+    {
+      $file_data=\webdb\wiki_utils\get_file_data($file_record);
+      $file_ext=$file_record["file_ext"];
+      switch ($file_ext)
+      {
+        case "png":
+        case "gif":
+        case "jpg":
+        case "jpeg":
+          $params["type"]=$file_ext;
+          $params["image_html"]=\webdb\wiki_utils\base64_image_encode($file_data,$params);
+          $html=\webdb\utils\template_fill("wiki/image_view_link",$params);
+          break;
+        default:
+          $params["content_html"]=\webdb\utils\template_fill("wiki/file_content",$params);
+          $html=\webdb\utils\template_fill("wiki/file_content_view_link",$params);
+      }
+    }
+    $parts[$i]=$html.implode("]]",$tokens);
   }
   return implode("",$parts);
 }
@@ -321,6 +464,14 @@ function wikitext_to_html__external_article_link($content)
 
 #####################################################################################################
 
+function base64_image_encode($image_data,$params)
+{
+  $params["data"]=base64_encode($image_data);
+  return \webdb\utils\template_fill("wiki/base64_image",$params);
+}
+
+#####################################################################################################
+
 function get_user_wiki_settings()
 {
   global $settings;
@@ -352,6 +503,15 @@ function get_target_filename($file_id,$file_ext)
 
 #####################################################################################################
 
+function get_oldversion_filename($file_revision_id,$file_ext)
+{
+  global $settings;
+  $file_path=\webdb\utils\get_upload_path().$settings["wiki_file_subdirectory"].DIRECTORY_SEPARATOR;
+  return $file_path."file_revision_".$file_revision_id.".".$file_ext;
+}
+
+#####################################################################################################
+
 function get_file_data($file_record)
 {
   global $settings;
@@ -365,8 +525,15 @@ function get_file_data($file_record)
     case "ftp":
       $connection=\webdb\utils\webdb_ftp_login();
       $size=ftp_size($connection,$target_filename);
+      if ($size==-1)
+      {
+        \webdb\utils\error_message("error: file not found: ".$target_filename);
+      }
       $stream=fopen("php://temp","r+");
-      ftp_fget($connection,$stream,$target_filename,FTP_BINARY);
+      if (ftp_fget($connection,$stream,$target_filename,FTP_BINARY)==false)
+      {
+        \webdb\utils\error_message("error: unable to get file: ".$target_filename);
+      }
       $fstats=fstat($stream);
       rewind($stream);
       $file_data=fread($stream,$fstats["size"]);
@@ -379,7 +546,29 @@ function get_file_data($file_record)
 
 #####################################################################################################
 
-function upload_file($submit_name,$target_filename)
+function wiki_rename_file($target_filename,$oldversion_filename)
+{
+  global $settings;
+  switch ($settings["file_upload_mode"])
+  {
+    case "rename":
+      rename($target_filename,$oldversion_filename);
+      return;
+    case "ftp":
+      $connection=\webdb\utils\webdb_ftp_login();
+      if (ftp_rename($connection,$target_filename,$oldversion_filename)==false)
+      {
+        \webdb\utils\error_message("error: unable to rename file on FTP server");
+      }
+      ftp_close($connection);
+      return;
+  }
+  \webdb\utils\error_message("error: invalid file upload mode");
+}
+
+#####################################################################################################
+
+function wiki_upload_file($submit_name,$target_filename)
 {
   global $settings;
   if (isset($_FILES[$submit_name])==false)

@@ -20,6 +20,7 @@ function update_online_user_list()
     return;
   }
   var url=window.location.href;
+  url=remove_url_anchor(url);
   if (url.includes("?")==true)
   {
     url+="&update_oul";
@@ -188,6 +189,7 @@ function ajax(url,method,load,error,timeout,params={},timeout_sec=false)
   {
     timeout_sec=default_ajax_timeout_sec;
   }
+  url=remove_url_anchor(url);
   var xhttp=new XMLHttpRequest();
   xhttp.onerror=error;
   xhttp.onload=load;
@@ -220,8 +222,17 @@ function ajax(url,method,load,error,timeout,params={},timeout_sec=false)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
+function remove_url_anchor(url)
+{
+  var parts=url.split("#");
+  return parts[0];
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
 function remove_url_param(key,url)
 {
+  url=remove_url_anchor(url);
   var url_parts=url.split("?");
   var result=url_parts[0];
   if (url_parts.length>1)

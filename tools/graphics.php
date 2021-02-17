@@ -4,6 +4,16 @@ namespace webdb\graphics;
 
 #####################################################################################################
 
+function base64_image_encode($image_data,$type,$template="base64_image")
+{
+  $params=array();
+  $params["type"]=$type;
+  $params["data"]=base64_encode($image_data);
+  return \webdb\utils\template_fill("base64_image",$params);
+}
+
+#####################################################################################################
+
 function base64_image($image,$type)
 {
   ob_start();
@@ -25,13 +35,9 @@ function base64_image($image,$type)
         break;
       }
   }
-  $data=ob_get_contents();
+  $image_data=ob_get_contents();
   ob_end_clean();
-  $params=array();
-  $params["type"]=$type;
-  $params["data"]=base64_encode($data);
-  $data=\webdb\utils\template_fill("base64_image",$params);
-  return $data;
+  return \webdb\graphics\base64_image_encode($image_data,$type);
 }
 
 #####################################################################################################

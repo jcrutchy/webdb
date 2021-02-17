@@ -4,6 +4,20 @@ When editing, you can just type text into the article content box as you would n
 
 Wiki content editing is based on [https://meta.wikimedia.org/wiki/Help:Wikitext_examples MediaWiki's Wikitext].
 
+Any wikitext inside HTML comments (<pre style="display: inline; color: red;">&lt;!-- commented text --&gt;</pre>) is ignored.
+
+<code>
+==heading==
+</code>
+
+<code>
+===subheading===
+</code>
+
+<code>
+&lt;toc&gt;
+</code>
+
 <code>
 &lt;code&gt;&lt;/code&gt;
 </code>
@@ -26,4 +40,22 @@ Wiki content editing is based on [https://meta.wikimedia.org/wiki/Help:Wikitext_
 
 <code>
 [http://somedomain.com/ Link Caption]
+</code>
+
+<code>
+[[File:title|%file_params%]]
+</code>
+
+%file_params% can be in any order (title must be first), and can consist of the following, delimited by pipes (|):
+width:1000px
+height:500px (doesn't apply to images)
+align:left
+align:center
+align:right
+
+images are inserted directly into the page encoded as base64; every other permitted file type (such as PDF) is inserted into the page as an iframe
+
+example:
+<code>
+[[File:test image|width:1000px|height:500px|align:right]]
 </code>
