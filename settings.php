@@ -107,6 +107,7 @@ $settings["permitted_upload_types"]["htm"]="text/html";
 $settings["permitted_upload_types"]["html"]="text/html";
 $settings["permitted_upload_types"]["doc"]="application/msword";
 $settings["permitted_upload_types"]["docx"]="application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+$settings["permitted_upload_types"]["pptx"]="application/vnd.openxmlformats-officedocument.presentationml.presentation";
 $settings["permitted_upload_types"]["xls"]="application/vnd.ms-excel";
 $settings["permitted_upload_types"]["xlsx"]="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 $settings["permitted_upload_types"]["jpg"]="image/jpeg";
