@@ -319,6 +319,10 @@ input.date_edit_field
 #global_page_body_content
   {
     padding: 10px;
+    /*****/
+    padding: 0;
+    height: 100%;
+    /*****/
   }
 
 #global_page_footer
@@ -351,25 +355,60 @@ input.date_edit_field
     padding-bottom: 10px;
   }
 
+#list_content
+  {
+    padding: 10px;
+  }
+
 #flex_columns
   {
     display: flex;
     justify-content: space-between;
     overflow: hidden;
+    /*****/
+    overflow: hidden;
+    height: 100%;
+    /*****/
+  }
+
+#editor_pane_scroll
+  {
+    min-width: 650px;
+    max-width: 65%;
+    /*****/
+    overflow-y: scroll;
+    padding: 0;
+    height: 100%;
+    box-shadow: 1px 0 3px #aaaaaa;
+    border-right: 1px solid #aaaaaa;
+    /*****/
   }
 
 #editor_pane
   {
-    min-width: 650px;
+    padding: 10px;
+    position: relative;
   }
 
-#subforms
+#subforms_scroll
   {
     flex-grow: 1;
     overflow: hidden;
     margin: 0;
     padding: 0;
     max-width: 65%;
+    /*****/
+    overflow-y: scroll;
+    padding: 0;
+    height: 100%;
+    /*****/
+  }
+
+#subforms
+  {
+    padding: 10px;
+    padding-bottom: 0;
+    position: relative;
   }
 
 .subform_outer
@@ -411,6 +450,7 @@ input.date_edit_field
 .list_data_table
   {
     padding-bottom: 10px;
+    margin-top: -2px;
   }
 
 .list_data_table table
