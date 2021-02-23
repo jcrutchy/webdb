@@ -375,6 +375,7 @@ input.date_edit_field
   {
     min-width: 650px;
     max-width: 65%;
+    flex-grow: 1;
     /*****/
     overflow-y: scroll;
     padding: 0;
