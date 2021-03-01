@@ -123,6 +123,20 @@ function update_online_user_list()
 
 #####################################################################################################
 
+function replace_favourite_url_host($url)
+{
+  global $settings;
+  $parts=parse_url($url);
+  $result=$settings["app_web_index"];
+  if (isset($parts["query"])==true)
+  {
+    $result.="?".$parts["query"];
+  }
+  return $result;
+}
+
+#####################################################################################################
+
 function output_user_favorites_list()
 {
   global $settings;
@@ -140,7 +154,7 @@ function output_user_favorites_list()
   foreach ($data["favorites"] as $url => $url_data)
   {
     $row_params=array();
-    $row_params["url"]=$url;
+    $row_params["url"]=\webdb\chat\replace_favourite_url_host($url);
     $row_params["caption"]=\webdb\chat\get_user_list_caption($url,$url_data);
     if ($row_params["caption"]=="")
     {

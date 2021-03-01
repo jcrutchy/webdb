@@ -597,6 +597,24 @@ function sql_change($old_records,$sql,$where_items,$value_items,$table,$database
   {
     return;
   }
+  if (is_array($settings["sql_change_exclude_tables"])==true)
+  {
+    if (in_array($table,$settings["sql_change_exclude_tables"])==true)
+    {
+      return;
+    }
+  }
+  elseif ($settings["sql_change_exclude_tables"]===true)
+  {
+    return;
+  }
+  if (is_array($settings["sql_change_include_tables"])==true)
+  {
+    if (in_array($table,$settings["sql_change_include_tables"])==false)
+    {
+      return;
+    }
+  }
   $items=array();
   $items["user_id"]=$user["user_id"];
   $tmp_sql=array("temp_sql"=>$sql);

@@ -51,6 +51,8 @@ function check_settings()
     "wiki_home_article",
     "wiki_file_subdirectory",
     "basic_search_forms",
+    "sql_change_exclude_tables",
+    "sql_change_include_tables",
     "fpdf_path",
     "sql_change_event_handler",
     "env_root_path",

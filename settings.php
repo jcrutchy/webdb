@@ -20,6 +20,11 @@ $settings["app_home_template"]="home";
 $settings["app_date_format"]="Y-m-d";
 $settings["app_logo_filename"]="logo.png";
 
+$settings["sql_change_exclude_tables"]=array();
+#$settings["sql_change_exclude_tables"]=true;
+#$settings["sql_change_include_tables"]=array();
+$settings["sql_change_include_tables"]=true;
+
 $settings["basic_search_forms"]=array();
 
 $settings["fpdf_path"]=$settings["webdb_parent_path"]."fpdf".DIRECTORY_SEPARATOR."fpdf182".DIRECTORY_SEPARATOR;
