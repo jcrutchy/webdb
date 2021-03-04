@@ -1,6 +1,12 @@
 
 /************************************************************************/
 
+.basic_search_results
+  {
+    padding: 10px;
+    padding-bottom: 0;
+  }
+
 .group_title
   {
     width: 100%;
