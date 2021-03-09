@@ -83,6 +83,12 @@ function error_message($message)
   {
     $message.=\webdb\utils\webdb_debug_backtrace();
   }
+  $username="";
+  if (isset($settings["logged_in_username"])==true)
+  {
+    $username=$settings["logged_in_username"];
+  }
+  $message="username: ".$username.PHP_EOL.PHP_EOL.$message;
   $subject=$settings["app_name"]." \\webdb\\utils\\error_message";
   \webdb\utils\send_email($settings["admin_email"],"",$subject,$message);
   \webdb\utils\info_message($message,true);
@@ -1146,7 +1152,14 @@ function check_csrf_error($response)
 
 function error_handler($errno,$errstr,$errfile,$errline)
 {
-  $message="[".date("Y-m-d, H:i:s T",time())."] ".$errstr." in \"".$errfile."\" on line ".$errline;
+  global $settings;
+  $username="";
+  if (isset($settings["logged_in_username"])==true)
+  {
+    $username=$settings["logged_in_username"];
+  }
+  $message="username: ".$username.PHP_EOL.PHP_EOL;
+  $message.="[".date("Y-m-d, H:i:s T",time())."] ".$errstr." in \"".$errfile."\" on line ".$errline;
   \webdb\utils\email_admin($message,"error_handler");
   \webdb\utils\system_message($message);
 }
