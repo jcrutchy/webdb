@@ -55,6 +55,7 @@ function check_settings()
     "sql_change_include_tables",
     "fpdf_path",
     "sql_change_event_handler",
+    "error_event_handler",
     "env_root_path",
     "app_root_path",
     "app_directory_name",

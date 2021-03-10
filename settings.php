@@ -30,6 +30,7 @@ $settings["basic_search_forms"]=array();
 $settings["fpdf_path"]=$settings["webdb_parent_path"]."fpdf".DIRECTORY_SEPARATOR."fpdf182".DIRECTORY_SEPARATOR;
 
 $settings["sql_change_event_handler"]="";
+$settings["error_event_handler"]="";
 
 $settings["online_user_list_update_interval_sec"]=60;
 

@@ -88,6 +88,11 @@ function error_message($message)
   {
     $username=$settings["logged_in_username"];
   }
+  $func_name=$settings["error_event_handler"];
+  if (function_exists($func_name)==true)
+  {
+    call_user_func($func_name,$username,$message);
+  }
   $message="username: ".$username.PHP_EOL.PHP_EOL.$message;
   $subject=$settings["app_name"]." \\webdb\\utils\\error_message";
   \webdb\utils\send_email($settings["admin_email"],"",$subject,$message);
@@ -1158,8 +1163,13 @@ function error_handler($errno,$errstr,$errfile,$errline)
   {
     $username=$settings["logged_in_username"];
   }
-  $message="username: ".$username.PHP_EOL.PHP_EOL;
-  $message.="[".date("Y-m-d, H:i:s T",time())."] ".$errstr." in \"".$errfile."\" on line ".$errline;
+  $message="[".date("Y-m-d, H:i:s T",time())."] ".$errstr." in \"".$errfile."\" on line ".$errline;
+  $func_name=$settings["error_event_handler"];
+  if (function_exists($func_name)==true)
+  {
+    call_user_func($func_name,$username,$message);
+  }
+  $message="username: ".$username.PHP_EOL.PHP_EOL.$message;
   \webdb\utils\email_admin($message,"error_handler");
   \webdb\utils\system_message($message);
 }
@@ -1184,7 +1194,19 @@ function email_admin($message,$type)
 
 function exception_handler($exception)
 {
+  global $settings;
   $message="[".date("Y-m-d, H:i:s T",time())."] ".$exception->getMessage()." in \"".$exception->getFile()."\" on line ".$exception->getLine();
+  $username="";
+  if (isset($settings["logged_in_username"])==true)
+  {
+    $username=$settings["logged_in_username"];
+  }
+  $func_name=$settings["error_event_handler"];
+  if (function_exists($func_name)==true)
+  {
+    call_user_func($func_name,$username,$message);
+  }
+  $message="username: ".$username.PHP_EOL.PHP_EOL.$message;
   \webdb\utils\email_admin($message,"exception_handler");
   \webdb\utils\system_message($message);
 }
