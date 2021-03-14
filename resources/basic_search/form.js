@@ -9,6 +9,8 @@ function basic_search()
     custom_alert("Error: Empty query.");
     return;
   }
+  var login_submit=document.getElementById("basic_search_button");
+  login_submit.disabled=true;
   var url=document.getElementById("basic_search_target").value+query;
   window.location.href=url;
 }
@@ -21,7 +23,6 @@ function basic_search_keypress(event)
   {
     var login_submit=document.getElementById("basic_search_button");
     login_submit.click();
-    login_submit.disabled=true;
     return false;
   }
   return true;

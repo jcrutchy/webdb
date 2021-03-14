@@ -4,6 +4,24 @@ namespace webdb\stubs;
 
 #####################################################################################################
 
+function update_user_details($form_config,$event_params,$event_name)
+{
+  global $settings;
+  # entire event handler not really needed as process_form_data_fields only loads fields contained in list file anyway, but just in case
+  $permitted_fields=array("user_rank_id","organisation_position_id","subject_matter_id","initials","notes");
+  foreach ($event_params["value_items"] as $field_name => $value)
+  {
+    if (in_array($field_name,$permitted_fields)==false)
+    {
+      $event_params["handled"]=true; # <= not really needed as \webdb\utils\error_message kills script anyway
+      \webdb\utils\error_message("error: invalid update request (unexpected/forbidden field name encountered)");
+    }
+  }
+  return $event_params;
+}
+
+#####################################################################################################
+
 function output_filter_select($form_config,$filter_select_template,$blank_option,$active_template,$select_all_template,$deselect_all_template)
 {
   $params=array();

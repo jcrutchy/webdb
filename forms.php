@@ -2259,6 +2259,23 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
       $records=array_merge($checked_records,$unchecked_records);
     }
   }
+  # ~~~~~~~~~~~~~~~~~~~~~~~
+  $event_params=array();
+  $event_params["form_config"]=$form_config;
+  $event_params["records"]=$records;
+  $event_params["link_records"]=$link_records;
+  if (isset($form_config["event_handlers"]["on_before_rows"])==true)
+  {
+    $func_name=$form_config["event_handlers"]["on_before_rows"];
+    if (function_exists($func_name)==true)
+    {
+      $event_params=call_user_func($func_name,$event_params);
+      $records=$event_params["records"];
+      $link_records=$event_params["link_records"];
+      $form_config=$event_params["form_config"];
+    }
+  }
+  # ~~~~~~~~~~~~~~~~~~~~~~~
   $form_params["record_count"]=count($records);
   $rows=array();
   for ($i=0;$i<count($records);$i++)

@@ -37,11 +37,20 @@ app/index.php?page=page_id&id=x => app/index.php?page=page_id&cmd=edit&id=x
         "on_delete_record": "\\my_app\\stubs\\my_delete_record_php_stub",
         "on_custom_form_above": "\\my_app\\stubs\\my_custom_form_above_php_stub",
         "on_custom_form_below": "\\my_app\\stubs\\my_custom_form_below_php_stub",
-        "on_checklist_insert": "\\my_app\\stubs\\my_checklist_insert_php_stub"
+        "on_checklist_insert": "\\my_app\\stubs\\my_checklist_insert_php_stub",
+        "on_before_rows": "\\my_app\\stubs\\my_before_rows_php_stub"
     },
 
 
-* general form of event handler stub with required function arguments and returned value (except for on_list):
+# triggered immediately prior to the for-loop where \webdb\forms\list_row function is called
+function my_before_rows_event($event_params)
+{
+  global $settings;
+  # modify $event_params["records"], $event_params["link_records"] & $event_params["form_config"] as required
+  return $event_params;
+}
+
+* general form of event handler stub with required function arguments and returned value (except for on_list & on_before_rows):
 
 function my_event_php_stub($form_config,$event_params,$event_name)
 {
@@ -52,7 +61,7 @@ function my_event_php_stub($form_config,$event_params,$event_name)
 
 * general form of on_list event handler:
 
-function my_list_event()
+function my_list_event($event_params)
 {
   global $settings;
   $event_params["custom_list_content"]=false;
@@ -83,6 +92,7 @@ following are event-specific $event_params elements, with an indication of initi
 
 
 "on_list": (parent form)
+  $event_params["page_id"]="";
   $event_params["custom_list_content"]=false;
   $event_params["content"]="";
   $event_params["parent_form_config"]=array();
