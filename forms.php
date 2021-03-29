@@ -1084,7 +1084,7 @@ function list_row($form_config,$record,$column_format,$row_spans,$lookup_records
       $field_params["field_name"].="[".$form_config["parent_form_id"].\webdb\index\CONFIG_ID_DELIMITER.$field_params["primary_key"]."]";
     }
     $field_params["page_id"]=$form_config["page_id"];
-    $field_params["group_span"]="";
+    $field_params["group_span_style"]="";
     $field_params["handlers"]="";
     $field_params["table_cell_style"]="";
     if (isset($form_config["table_cell_styles"][$field_name])==true)
@@ -1131,14 +1131,16 @@ function list_row($form_config,$record,$column_format,$row_spans,$lookup_records
       }
       else
       {
-        $group_span_params=array();
-        $group_span_params["row_span"]=$row_spans[$record_index];
-        $field_params["group_span"]=\webdb\forms\form_template_fill("group_span",$group_span_params);
+        $field_params["group_span_style"]=\webdb\forms\form_template_fill("group_style_first");
       }
     }
     if ($skip_field==false)
     {
       $fields[]=\webdb\forms\output_readonly_field($field_params,$control_type,$form_config,$field_name,$lookup_records,$display_record,$link_record);
+    }
+    else
+    {
+      $fields[]=\webdb\forms\form_template_fill("list_field_group",$field_params);
     }
   }
   if (isset($_GET["format"])==true)
@@ -1156,8 +1158,8 @@ function list_row($form_config,$record,$column_format,$row_spans,$lookup_records
   $fields=implode("",$fields);
   $row_params["list_row_controls"]="";
   $row_params["default_checked"]="";
+  $row_params["group_span_style"]="";
   $row_params["controls"]="";
-  $row_params["group_span"]="";
   $row_params["controls_min_width"]=$column_format["controls_min_width"];
   $skip_controls=false;
   if (($checklist_row_linked==false) and ($form_config["checklist"]==true))
@@ -1170,12 +1172,11 @@ function list_row($form_config,$record,$column_format,$row_spans,$lookup_records
     if ($row_spans[$record_index]==0)
     {
       $skip_controls=true;
+      $row_params["group_span_style"]=\webdb\forms\form_template_fill("group_style_next");
     }
     else
     {
-      $group_span_params=array();
-      $group_span_params["row_span"]=$row_spans[$record_index];
-      $row_params["group_span"]=\webdb\forms\form_template_fill("group_span",$group_span_params);
+      $row_params["group_span_style"]=\webdb\forms\form_template_fill("group_style_first");
     }
   }
   if ($skip_controls==false)
@@ -1199,8 +1200,8 @@ function list_row($form_config,$record,$column_format,$row_spans,$lookup_records
       $row_params["delete_button_caption"]=$form_config["delete_button_caption"];
       $row_params["controls"].=\webdb\forms\form_template_fill("list_row_del",$row_params);
     }
-    $row_params["list_row_controls"]=\webdb\forms\form_template_fill("list_row_controls",$row_params);
   }
+  $row_params["list_row_controls"]=\webdb\forms\form_template_fill("list_row_controls",$row_params);
   $row_params["check"]=\webdb\forms\check_column($form_config,"list_check",$row_params);
   $row_params["fields"]=$fields;
   $row_params["last_group_border_width"]=$settings["list_border_width"];
@@ -1210,6 +1211,22 @@ function list_row($form_config,$record,$column_format,$row_spans,$lookup_records
     $row_params["last_group_border_width"]=$settings["list_group_border_width"];
     $row_params["last_group_border_color"]=$settings["list_group_border_color"];
   }
+  # ~~~~~~~~~~~~~~~~~~~~~~~
+  $event_params=array();
+  $event_params["form_config"]=$form_config;
+  $event_params["record"]=$record;
+  $event_params["link_record"]=$link_record;
+  $event_params["row_params"]=$row_params;
+  if (isset($form_config["event_handlers"]["on_list_row"])==true)
+  {
+    $func_name=$form_config["event_handlers"]["on_list_row"];
+    if (function_exists($func_name)==true)
+    {
+      $event_params=call_user_func($func_name,$event_params);
+      $row_params=$event_params["row_params"];
+    }
+  }
+  # ~~~~~~~~~~~~~~~~~~~~~~~
   return \webdb\forms\form_template_fill("list_row",$row_params);
 }
 
@@ -1532,6 +1549,9 @@ function list_row_controls($form_config,&$submit_fields,$operation,$column_forma
     $field_params["primary_key"]=$row_params["primary_key"];
     $field_params["page_id"]=$row_params["page_id"];
     $field_params["handlers"]="";
+    $field_params["group_span_style"]="";
+    $field_params["border_right_width"]="0";
+    $field_params["border_right_color"]="initial";
     $field_params["border_color"]=$settings["list_border_color"];
     $field_params["border_width"]=$settings["list_border_width"];
     if (isset($rotate_group_borders[$field_name])==true)

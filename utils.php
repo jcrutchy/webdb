@@ -88,6 +88,10 @@ function error_message($message)
   {
     $username=$settings["logged_in_username"];
   }
+  elseif (isset($_COOKIE[$settings["username_cookie"]])==true)
+  {
+    $username=$_COOKIE[$settings["username_cookie"]];
+  }
   $func_name=$settings["error_event_handler"];
   if (function_exists($func_name)==true)
   {
@@ -1163,6 +1167,10 @@ function error_handler($errno,$errstr,$errfile,$errline)
   {
     $username=$settings["logged_in_username"];
   }
+  elseif (isset($_COOKIE[$settings["username_cookie"]])==true)
+  {
+    $username=$_COOKIE[$settings["username_cookie"]];
+  }
   $message="[".date("Y-m-d, H:i:s T",time())."] ".$errstr." in \"".$errfile."\" on line ".$errline;
   $func_name=$settings["error_event_handler"];
   if (function_exists($func_name)==true)
@@ -1200,6 +1208,10 @@ function exception_handler($exception)
   if (isset($settings["logged_in_username"])==true)
   {
     $username=$settings["logged_in_username"];
+  }
+  elseif (isset($_COOKIE[$settings["username_cookie"]])==true)
+  {
+    $username=$_COOKIE[$settings["username_cookie"]];
   }
   $func_name=$settings["error_event_handler"];
   if (function_exists($func_name)==true)

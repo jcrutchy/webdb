@@ -8,6 +8,8 @@ var waiting_edit_row_element=null;
 
 @@data_page_head@@
 
+<div id="list_content">
+
 <form action="$$app_web_index$$?page=%%page_id%%%%redirect%%" method="post">
 
 <input type="hidden" name="csrf_token" value="%%csrf_token%%">
@@ -19,5 +21,7 @@ var waiting_edit_row_element=null;
 </form>
 
 %%list%%
+
+</div>
 
 @@data_page_foot@@

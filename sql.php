@@ -508,6 +508,20 @@ function fetch_all_records($table,$database,$sort_field="",$sort_dir="",$is_admi
 
 #####################################################################################################
 
+function record_exists_in_array($records,$id_key,$id)
+{
+  for ($i=0;$i<count($records);$i++)
+  {
+    if ($records[$i][$id_key]===$id)
+    {
+      return true;
+    }
+  }
+  return false;
+}
+
+#####################################################################################################
+
 function sql_log($status,$sql,$params=array(),$table="",$database="")
 {
   global $settings;

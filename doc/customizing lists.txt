@@ -1,4 +1,4 @@
-also refer to: field ja events
+also refer to: field js events
 
 
 
@@ -38,11 +38,12 @@ app/index.php?page=page_id&id=x => app/index.php?page=page_id&cmd=edit&id=x
         "on_custom_form_above": "\\my_app\\stubs\\my_custom_form_above_php_stub",
         "on_custom_form_below": "\\my_app\\stubs\\my_custom_form_below_php_stub",
         "on_checklist_insert": "\\my_app\\stubs\\my_checklist_insert_php_stub",
-        "on_before_rows": "\\my_app\\stubs\\my_before_rows_php_stub"
+        "on_before_rows": "\\my_app\\stubs\\my_before_rows_php_stub",
+        "on_list_row": "\\my_app\\stubs\\my_list_row_php_stub"
     },
 
 
-# triggered immediately prior to the for-loop where \webdb\forms\list_row function is called
+# triggered immediately prior to the for-loop where \webdb\forms\list_row function is called in the \webdb\forms\list_form_content function
 function my_before_rows_event($event_params)
 {
   global $settings;
@@ -50,7 +51,16 @@ function my_before_rows_event($event_params)
   return $event_params;
 }
 
-* general form of event handler stub with required function arguments and returned value (except for on_list & on_before_rows):
+# triggered immediately prior to row output in the \webdb\forms\list_row function
+function my_list_row_event($event_params)
+{
+  global $settings;
+  # read $event_params["record"], $event_params["link_record"] & $event_params["form_config"]
+  # modify $event_params["row_params"] as required
+  return $event_params;
+}
+
+* general form of event handler stub with required function arguments and returned value (except for on_list, on_before_rows & on_list_row):
 
 function my_event_php_stub($form_config,$event_params,$event_name)
 {

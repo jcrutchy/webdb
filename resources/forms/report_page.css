@@ -44,6 +44,11 @@ td
     background-color: transparent;
   }
 
+.list_row_controls td
+  {
+    border: 0;
+  }
+
 .group_caption_div_first
   {
     background-color: white;
