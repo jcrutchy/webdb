@@ -345,6 +345,14 @@ function form_dispatch($page_id)
             $data=\webdb\forms\insert_form($form_config);
             $data["content"].=\webdb\forms\output_html_includes($form_config);
             \webdb\utils\output_page($data["content"],$data["title"]);
+          case "delete":
+            if (isset($_GET["id"])==false)
+            {
+              \webdb\utils\error_message("error: missing id parameter");
+            }
+            $data=\webdb\forms\delete_confirmation($form_config,$_GET["id"]);
+            $data["content"].=\webdb\forms\output_html_includes($form_config);
+            \webdb\utils\output_page($data["content"],$data["title"]);
           case "advanced_search":
             $data=\webdb\forms\advanced_search($form_config);
             $data["content"].=\webdb\forms\output_html_includes($form_config);
@@ -2382,13 +2390,31 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
   $form_params["row_edit_mode"]=$form_config["edit_cmd"];
   $form_params["custom_form_above"]="";
   $form_params["custom_form_below"]="";
-  if ($form_config["custom_form_above_template"]<>"")
+  $delete_flag=false;
+  if (isset($_POST["form_cmd"])==true)
   {
-    $form_params["custom_form_above"]=\webdb\utils\template_fill($form_config["custom_form_above_template"],$form_params);
+    if ($_POST["form_cmd"]=="delete")
+    {
+      $delete_flag=true;
+    }
   }
-  if ($form_config["custom_form_below_template"]<>"")
+  if (isset($_GET["cmd"])==true)
   {
-    $form_params["custom_form_below"]=\webdb\utils\template_fill($form_config["custom_form_below_template"],$form_params);
+    if ($_GET["cmd"]=="delete")
+    {
+      $delete_flag=true;
+    }
+  }
+  if ($delete_flag==false)
+  {
+    if ($form_config["custom_form_above_template"]<>"")
+    {
+      $form_params["custom_form_above"]=\webdb\utils\template_fill($form_config["custom_form_above_template"],$form_params);
+    }
+    if ($form_config["custom_form_below_template"]<>"")
+    {
+      $form_params["custom_form_below"]=\webdb\utils\template_fill($form_config["custom_form_below_template"],$form_params);
+    }
   }
   $event_params=array();
   $event_params["handled"]=false;
