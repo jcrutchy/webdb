@@ -22,6 +22,7 @@ td
     border: solid 1px #888;
     padding: 5px;
     min-width: 33px;
+    vertical-align: top;
   }
 
 textarea

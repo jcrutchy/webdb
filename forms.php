@@ -1136,10 +1136,25 @@ function list_row($form_config,$record,$column_format,$row_spans,$lookup_records
           continue;
         }
         $skip_field=true;
+        if ($record_index>=(count($row_spans)-1))
+        {
+          $field_params["group_span_style"]=\webdb\forms\form_template_fill("group_style_last");
+        }
+        else
+        {
+          $field_params["group_span_style"]=\webdb\forms\form_template_fill("group_style_next");
+        }
       }
       else
       {
-        $field_params["group_span_style"]=\webdb\forms\form_template_fill("group_style_first");
+        if ($record_index>=(count($row_spans)-1))
+        {
+          $field_params["group_span_style"]=\webdb\forms\form_template_fill("group_style_last");
+        }
+        else
+        {
+          $field_params["group_span_style"]=\webdb\forms\form_template_fill("group_style_first");
+        }
       }
     }
     if ($skip_field==false)
@@ -1180,11 +1195,6 @@ function list_row($form_config,$record,$column_format,$row_spans,$lookup_records
     if ($row_spans[$record_index]==0)
     {
       $skip_controls=true;
-      $row_params["group_span_style"]=\webdb\forms\form_template_fill("group_style_next");
-    }
-    else
-    {
-      $row_params["group_span_style"]=\webdb\forms\form_template_fill("group_style_first");
     }
   }
   if ($skip_controls==false)
