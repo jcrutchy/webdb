@@ -3891,8 +3891,6 @@ function basic_search()
         {
           $search_field_value=$record[$search_field_name];
         }
-        $search_field_value=strtolower($search_field_value);
-        $skip=false;
         switch ($control_type)
         {
           case "lookup":
@@ -3902,6 +3900,7 @@ function basic_search()
             $search_field_value=\webdb\forms\get_lookup_field_value($search_field_name,$form_config,$lookup_records,$record);
             break;
         }
+        $search_field_value=strtolower($search_field_value);
         if (strpos($search_field_value,$query)!==false)
         {
           $results_records[]=$record;
