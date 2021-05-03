@@ -125,6 +125,7 @@ $settings["permitted_upload_types"]["wav"]="audio/wav";
 $settings["permitted_upload_types"]["mp3"]="audio/mpeg";
 $settings["permitted_upload_types"]["mpeg"]="video/mpeg";
 $settings["permitted_upload_types"]["msg"]="application/vnd.ms-outlook";
+$settings["permitted_upload_types"]["csv"]="text/csv";
 
 $settings["chat_global_enable"]=true;
 $settings["chat_update_interval_sec"]=10;
