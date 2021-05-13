@@ -25,6 +25,10 @@ $settings["sql_change_exclude_tables"]=array();
 #$settings["sql_change_include_tables"]=array();
 $settings["sql_change_include_tables"]=true;
 
+$settings["sql_change_table"]=""; # sql_changes
+$settings["sql_change_log_path"]="";
+$settings["sql_change_log_enabled"]=true;
+
 $settings["basic_search_forms"]=array();
 
 $settings["fpdf_path"]=$settings["webdb_parent_path"]."fpdf".DIRECTORY_SEPARATOR."fpdf182".DIRECTORY_SEPARATOR;

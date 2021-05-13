@@ -48,6 +48,9 @@ function check_settings()
 {
   global $settings;
   $required_settings=array(
+    "sql_change_table",
+    "sql_change_log_path",
+    "sql_change_log_enabled",
     "wiki_home_article",
     "wiki_file_subdirectory",
     "basic_search_forms",

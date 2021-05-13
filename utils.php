@@ -204,6 +204,7 @@ function initialize_settings()
   $settings["logs"]=array();
   $settings["logs"]["sql"]=array();
   $settings["logs"]["auth"]=array();
+  $settings["logs"]["sql_change"]=array();
   $settings["login_cookie_unset"]=false;
   $settings["sql_check_post_params_override"]=false;
   $settings["sql_database_change"]=false;
@@ -462,6 +463,14 @@ function ob_postprocess($buffer)
   {
     $buffer="error: authentication failure";
   }
+  if (\webdb\cli\is_cli_mode()==false)
+  {
+    $msg="REQUEST_COMPLETED";
+    $settings["logs"]["auth"][]=$msg;
+    $settings["logs"]["sql"][]=$msg;
+    #$settings["logs"]["sql_change"][]=$msg;
+  }
+  \webdb\utils\save_logs();
   # TODO: CALL AUTOMATED W3C VALIDATION HERE
   global $start_time; # debug
   global $stop_time; # debug
@@ -475,13 +484,6 @@ function ob_postprocess($buffer)
       header("Content-Encoding: gzip");
     }
   }
-  if (\webdb\cli\is_cli_mode()==false)
-  {
-    $msg="REQUEST_COMPLETED";
-    $settings["logs"]["auth"][]=$msg;
-    $settings["logs"]["sql"][]=$msg;
-  }
-  \webdb\utils\save_logs();
   return $buffer;
 }
 
@@ -1457,25 +1459,33 @@ function wildcard_compare($compare_value,$wildcard_value)
 
 #####################################################################################################
 
+function append_file($fn,$data)
+{
+  $fp=fopen($fn,"a");
+  stream_set_blocking($fp,false);
+  if (flock($fp,LOCK_EX)==true)
+  {
+    fwrite($fp,$data);
+  }
+  flock($fp,LOCK_UN);
+  fclose($fp);
+  #file_put_contents($fn,$data,FILE_APPEND);
+}
+
+#####################################################################################################
+
 function save_log($key)
 {
   global $settings;
-  $lines=$settings["logs"][$key];
   $path=$settings[$key."_log_path"];
   if ((file_exists($path)==false) or (is_dir($path)==false))
   {
     return;
   }
+  $lines=$settings["logs"][$key];
+  $data=PHP_EOL.PHP_EOL.trim(implode(PHP_EOL,$lines));
   $fn=$path.$key."_".date("Ymd").".log";
-  $fp=fopen($fn,"a");
-  stream_set_blocking($fp,false);
-  if (flock($fp,LOCK_EX)==true)
-  {
-    $data=PHP_EOL.PHP_EOL.trim(implode(PHP_EOL,$lines));
-    fwrite($fp,$data);
-  }
-  flock($fp,LOCK_UN);
-  fclose($fp);
+  \webdb\utils\append_file($fn,$data);
 }
 
 #####################################################################################################
@@ -1485,7 +1495,7 @@ function save_logs()
   global $settings;
   foreach ($settings["logs"] as $key => $lines)
   {
-    if ($settings[$key."_log_enabled"]==true)
+    if (($settings[$key."_log_enabled"]==true) and (count($lines)>0))
     {
       \webdb\utils\save_log($key);
     }

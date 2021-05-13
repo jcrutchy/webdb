@@ -68,6 +68,8 @@ $settings["request_base_url"]=\webdb\utils\get_base_url();
 $msg="REQUEST_RECEIVED: ".\webdb\utils\get_url();
 $settings["logs"]["auth"][]=$msg;
 $settings["logs"]["sql"][]=$msg;
+#$settings["logs"]["sql_change"][]=$msg;
+
 if ($settings["ip_blacklist_enabled"]==true)
 {
   if (\webdb\users\remote_address_listed($_SERVER["REMOTE_ADDR"],"black")==true)

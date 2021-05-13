@@ -590,16 +590,14 @@ function sql_change($old_records,$sql,$where_items,$value_items,$table,$database
   }
   if ($is_admin==true)
   {
-    return;
+    #return;
   }
-  if ($database=="webdb")
+  switch ($table)
   {
-    switch ($table)
-    {
-      case "sql_changes":
-      case "auth_log":
-        return;
-    }
+    case "sql_changes":
+    case "auth_log":
+    case "users":
+      return;
   }
   \webdb\users\obfuscate_hashes($value_items);
   for ($i=0;$i<count($old_records);$i++)
@@ -644,13 +642,30 @@ function sql_change($old_records,$sql,$where_items,$value_items,$table,$database
   $items["old_records"]=json_encode($old_records);
   # note that insert_id may not always be set for insert records (from before field was added in aug-2020)
   $items["insert_id"]=$insert_id;
-  $settings["sql_check_post_params_override"]=true;
-  \webdb\sql\sql_insert($items,"sql_changes",$settings["database_webdb"],true);
+  if ($settings["sql_change_table"]<>"")
+  {
+    $settings["sql_check_post_params_override"]=true;
+    \webdb\sql\sql_insert($items,$settings["sql_change_table"],$settings["database_webdb"],true);
+  }
   $items["username"]=$user["username"];
   if (function_exists($settings["sql_change_event_handler"])==true)
   {
     call_user_func($settings["sql_change_event_handler"],$items);
   }
+  $items["sql_statement"]=str_replace(PHP_EOL," ",$items["sql_statement"]);
+  $content=date("Y-m-d H:i:s").PHP_EOL.json_encode($items,JSON_PRETTY_PRINT);
+  #$settings["logs"]["sql_change"][]=$content;
+
+  $path=$settings["sql_change_log_path"];
+  if ((file_exists($path)==false) or (is_dir($path)==false))
+  {
+    return;
+  }
+  $data=PHP_EOL.PHP_EOL.trim($content);
+  $fn=$path."sql_change_".date("Ymd").".log";
+  #file_put_contents($fn,$data,FILE_APPEND);
+  \webdb\utils\append_file($fn,$data);
+
 }
 
 #####################################################################################################
