@@ -1534,6 +1534,14 @@ function strip_text($value,$additional_valid_chars="")
 
 #####################################################################################################
 
+function filename_replace_chars($filename)
+{
+  # TODO
+  return $filename;
+}
+
+#####################################################################################################
+
 function contains_number($value)
 {
   $num_chars="0123456789";

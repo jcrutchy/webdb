@@ -655,17 +655,15 @@ function sql_change($old_records,$sql,$where_items,$value_items,$table,$database
   $items["sql_statement"]=str_replace(PHP_EOL," ",$items["sql_statement"]);
   $content=date("Y-m-d H:i:s").PHP_EOL.json_encode($items,JSON_PRETTY_PRINT);
   #$settings["logs"]["sql_change"][]=$content;
-
   $path=$settings["sql_change_log_path"];
   if ((file_exists($path)==false) or (is_dir($path)==false))
   {
     return;
   }
   $data=PHP_EOL.PHP_EOL.trim($content);
-  $fn=$path."sql_change_".date("Ymd").".log";
+  $fn=$path."sql_change_".date("Ymd")."_".\webdb\utils\filename_replace_chars($items["username"]).".log";
   #file_put_contents($fn,$data,FILE_APPEND);
   \webdb\utils\append_file($fn,$data);
-
 }
 
 #####################################################################################################
