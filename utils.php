@@ -1576,6 +1576,33 @@ function color_value_blend($a,$b,$t)
 
 #####################################################################################################
 
+function force_rmdir($dir)
+{
+  if (is_dir($dir)==true)
+  {
+    $objects=scandir($dir);
+    foreach ($objects as $object)
+    {
+      if (($object==".") or ($object==".."))
+      {
+        continue;
+      }
+      $child=$dir.DIRECTORY_SEPARATOR.$object;
+      if (is_dir($child)==true)
+      {
+        force_rmdir($child);
+      }
+      else
+      {
+        unlink($child);
+      }
+    }
+    rmdir($dir);
+  }
+}
+
+#####################################################################################################
+
 function is_row_locked($schema,$table,$key_field,$key_value)
 {
   global $settings;
