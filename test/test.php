@@ -48,6 +48,7 @@ function check_settings()
 {
   global $settings;
   $required_settings=array(
+    "ua_error",
     "sql_change_table",
     "sql_change_log_path",
     "sql_change_log_enabled",

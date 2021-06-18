@@ -136,7 +136,7 @@ function load_settings()
     $settings_cache_data=file_get_contents($settings_cache_filename);
     $settings=json_decode($settings_cache_data,true);
   }*/
-  \webdb\utils\load_test_settings();
+  #\webdb\utils\load_test_settings();
 }
 
 #####################################################################################################
@@ -180,6 +180,8 @@ function build_settings()
       $settings["templates"]=array_merge($settings["templates"],$settings["env_templates"]);
     }
   }
+  $settings["initialized_templates"]=array();
+  \webdb\utils\initialize_format_tags();
   $settings["webdb_sql_common"]=\webdb\utils\load_files($settings["webdb_sql_common_path"],"","sql",true);
   $settings["webdb_sql_engine"]=\webdb\utils\load_files($settings["webdb_sql_engine_path"],"","sql",true);
   $settings["webdb_sql"]=array_merge($settings["webdb_sql_common"],$settings["webdb_sql_engine"]);
@@ -438,23 +440,22 @@ function ob_postprocess($buffer)
   $buffer=\webdb\csrf\fill_csrf_token($buffer);
   $buffer=\webdb\utils\output_resource_links($buffer,"css");
   $buffer=\webdb\utils\output_resource_links($buffer,"js");
+  $buffer=\webdb\utils\string_template_fill($buffer);
   if ($settings["check_templates"]==true)
   {
-    foreach ($settings["templates"] as $template_name => $template_content)
+    foreach ($settings as $key => $value)
     {
-      if (strpos($buffer,"%%".$template_name."%%")!==false)
+      if (strpos($buffer,'$$'.$key.'$$')!==false)
       {
-        $buffer="error: unassigned % template '".$template_name."' found: ".htmlspecialchars($buffer);
+        $buffer="error: unassigned $ template '".$key."' found: ".htmlspecialchars($buffer);
         break;
       }
-      if (strpos($buffer,"$$".$template_name."$$")!==false)
+    }
+    foreach ($settings["templates"] as $key => $value)
+    {
+      if (strpos($buffer,'@@'.$key.'@@')!==false)
       {
-        $buffer="error: unassigned $ template '".$template_name."' found: ".htmlspecialchars($buffer);
-        break;
-      }
-      if (strpos($buffer,"@@".$template_name."@@")!==false)
-      {
-        $buffer="error: unassigned @ template '".$template_name."' found: ".htmlspecialchars($buffer);
+        $buffer="error: unassigned @ template '".$key."' found: ".htmlspecialchars($buffer);
         break;
       }
     }
@@ -745,12 +746,12 @@ function replace_suffix($subject,$replaces,$unchanged,$default_append=false)
 function sql_fill($sql_key,$params=false)
 {
   global $settings;
-  return \webdb\utils\template_fill($sql_key,$params,array(),$settings["sql"]);
+  return \webdb\utils\custom_template_fill($sql_key,$params,array(),$settings["sql"]);
 }
 
 #####################################################################################################
 
-function search_sql_records(&$records,$find_column,$find_value)
+function search_sql_records(&$records,$find_column,$find_value) # warning: use sparingly for small datasets only - not very efficient compared to SQL query
 {
   $results=array();
   for ($i=0;$i<count($records);$i++)
@@ -941,15 +942,77 @@ function check_user_template_permission($template_name)
 
 #####################################################################################################
 
-function string_template_fill($input)
+function initialize_format_tags()
 {
-  $tmp=array("tmp"=>$input);
-  return \webdb\utils\template_fill("tmp",false,array(),$tmp);
+  global $settings;
+  $settings["format_tag_templates"]=array();
+  $subdir=$settings["format_tag_templates_subdirectory"];
+  $template_prefix=$subdir.DIRECTORY_SEPARATOR;
+  $format_tag_templates=array();
+  foreach ($settings["templates"] as $name => $content)
+  {
+    if (substr($name,0,strlen($template_prefix))==$template_prefix)
+    {
+      $name=substr($name,strlen($template_prefix));
+      $name_parts=explode("_",$name);
+      $position=array_pop($name_parts);
+      $tag=trim(implode("_",$name_parts));
+      if (($position<>"open") and ($position<>"close"))
+      {
+        continue;
+      }
+      if ($tag=="")
+      {
+        continue;
+      }
+      if (isset($settings["format_tag_templates"][$tag])==false)
+      {
+        $settings["format_tag_templates"][$tag]=array();
+      }
+      $settings["format_tag_templates"][$tag][$position]=$content;
+    }
+  }
 }
 
 #####################################################################################################
 
-function template_fill($template_key,$params=false,$tracking=array(),$custom_templates=false) # tracking array is used internally to limit recursion and should not be manually passed
+function string_template_fill($input)
+{
+  global $settings;
+  $key="string_template_fill.tmp";
+  $templates=$settings["templates"];
+  $templates[$key]=$input;
+  return \webdb\utils\custom_template_fill($key,false,array(),$templates);
+}
+
+#####################################################################################################
+
+function template_fill($template_key,$params=false)
+{
+  global $settings;
+  if (isset($settings["initialized_templates"][$template_key])==false)
+  {
+    $settings["templates"][$template_key]=\webdb\utils\custom_template_fill($template_key);
+    $settings["initialized_templates"][$template_key]=true;
+  }
+  $result=$settings["templates"][$template_key];
+  if ($params===false)
+  {
+    return $result;
+  }
+  foreach ($params as $key => $value)
+  {
+    if (is_array($value)==false)
+    {
+      $result=str_replace('%%'.$key.'%%',$value,$result);
+    }
+  }
+  return $result;
+}
+
+#####################################################################################################
+
+function custom_template_fill($template_key,$params=false,$tracking=array(),$custom_templates=false) # tracking array is used internally to limit recursion and should not be manually passed
 {
   global $settings;
   if ($template_key=="")
@@ -976,37 +1039,28 @@ function template_fill($template_key,$params=false,$tracking=array(),$custom_tem
   }
   if ($substitute_template<>$template_key)
   {
-    return template_fill($substitute_template,$params,$tracking,$custom_templates);
+    return custom_template_fill($substitute_template,$params,$tracking,$custom_templates);
   }
   $tracking[]=$template_key;
   $result=$template_array[$template_key];
   foreach ($settings["constants"] as $key => $value)
   {
     $placeholder='??'.$key.'??';
-    if (strpos($result,$placeholder)===false)
-    {
-      continue;
-    }
     $result=str_replace($placeholder,$value,$result);
   }
   foreach ($settings as $key => $value)
   {
     $placeholder='$$'.$key.'$$';
-    if (strpos($result,$placeholder)===false)
+    if (is_scalar($value)==true)
     {
-      continue;
+      $result=str_replace($placeholder,$value,$result);
     }
-    $result=str_replace($placeholder,$value,$result);
   }
   if ($params!==false)
   {
     foreach ($params as $key => $value)
     {
       $placeholder='%%'.$key.'%%';
-      if (strpos($result,$placeholder)===false)
-      {
-        continue;
-      }
       if (is_array($value)==false)
       {
         $result=str_replace($placeholder,$value,$result);
@@ -1024,7 +1078,7 @@ function template_fill($template_key,$params=false,$tracking=array(),$custom_tem
     {
       continue;
     }
-    $value=\webdb\utils\template_fill($key,$params,$tracking,$custom_templates);
+    $value=\webdb\utils\custom_template_fill($key,$params,$tracking,$custom_templates);
     $result=str_replace($placeholder,$value,$result);
   }
   return $result;

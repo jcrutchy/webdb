@@ -9,6 +9,8 @@ if (isset($settings["app_root_path"])==false)
 }
 $settings["app_directory_name"]=basename($settings["app_root_path"]);
 
+$settings["ua_error"]="This application requires a recent version of Google Chrome or Mozilla Firefox on a desktop operating system.";
+
 $settings["app_web_root"]="/".$settings["app_directory_name"]."/";
 $settings["app_web_resources"]=$settings["app_web_root"]."resources/";
 $settings["app_web_index"]=$settings["app_web_root"]."index.php";

@@ -84,6 +84,7 @@ function filter_select_change($form_config)
     $form_config["default_filter"]=$new_filter;
     $data["html"]=\webdb\forms\list_form_content($form_config);
   }
+  $data["html"]=\webdb\utils\string_template_fill($data["html"]);
   $data=json_encode($data);
   die($data);
 }
@@ -192,6 +193,7 @@ function list_insert($form_config)
     $data["div_id"]="list_content";
   }
   \webdb\forms\upload_files($form_config,"");
+  $data["html"]=\webdb\utils\string_template_fill($data["html"]);
   $data=json_encode($data);
   die($data);
 }
@@ -247,6 +249,7 @@ function subform_edit($data,$subform_config,$subform_id,$parent_form_config,$par
       \webdb\forms\update_record($subform_config,$subform_id,$value_items,$primary_key_items,true);
       $data["html"]=\webdb\forms\get_subform_content($subform_config,$fieldname,$parent_id,true,$parent_form_config);
     }
+    $data["html"]=\webdb\utils\string_template_fill($data["html"]);
     $data=json_encode($data);
     die($data);
   }
@@ -308,6 +311,7 @@ function list_edit($id,$form_config,$post_override=false)
     $row_spans=array();
     $lookup_records=\webdb\forms\lookup_records($form_config);
     $data["html"]=\webdb\forms\list_row($form_config,$record,$column_format,$row_spans,$lookup_records,0,$link_record);
+    $data["html"]=\webdb\utils\string_template_fill($data["html"]);
     $data["calendar_fields"]=json_encode(array());
     $data["edit_fields"]=json_encode(array());
     $data=json_encode($data);
@@ -319,6 +323,7 @@ function list_edit($id,$form_config,$post_override=false)
   }
   $edit_fields=array();
   $data["html"]=\webdb\forms\list_row_controls($form_config,$edit_fields,"edit",$column_format,$record);
+  $data["html"]=\webdb\utils\string_template_fill($data["html"]);
   for ($i=0;$i<count($settings["calendar_fields"]);$i++)
   {
     $settings["calendar_fields"][$i]=\webdb\forms\js_date_field($settings["calendar_fields"][$i]);

@@ -575,9 +575,11 @@ function chat_dispatch($record_id,$form_config,$record=false,$template="chat/pop
     }
   }
   \webdb\chat\update_last_read_message($user_record,$channel_record);
-  $form_config["id"]=$record_id;
-  $form_config["favourite_caption"]=\webdb\chat\get_favorite_button_caption();
-  return \webdb\utils\template_fill($template,$form_config);
+  $params=array();
+  $params["id"]=$record_id;
+  $params["favourite_caption"]=\webdb\chat\get_favorite_button_caption();
+  $params["page_id"]=$form_config["page_id"];
+  return \webdb\utils\template_fill($template,$params);
 }
 
 #####################################################################################################

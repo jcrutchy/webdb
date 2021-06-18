@@ -96,7 +96,7 @@ function test_login_redirect()
 function test_user_agent()
 {
   global $settings;
-  $user_agent_error=trim(\webdb\utils\template_fill("user_agent_error"));
+  $user_agent_error=$settings["ua_error"];
   $test_agents=array(); # agent => error_expected
   # unacceptable agents
   $test_agents[""]=true;

@@ -37,7 +37,7 @@ function check_post_params($sql)
 
 function lookup($table,$database,$lookup_field,$query_value,$is_admin=false)
 {
-  $records=\webdb\sql\fetch_all_records($table,$database);
+  /*$records=\webdb\sql\fetch_all_records($table,$database);
   for ($i=0;$i<count($records);$i++)
   {
     $record=$records[$i];
@@ -48,6 +48,14 @@ function lookup($table,$database,$lookup_field,$query_value,$is_admin=false)
         return $record;
       }
     }
+  }
+  return false;*/
+  $where_items=array();
+  $where_items[$lookup_field]=$query_value;
+  $found=\webdb\sql\get_exist_records($database,$table,$where_items,$is_admin);
+  if (count($found)==1)
+  {
+    return $found[0];
   }
   return false;
 }
@@ -76,7 +84,7 @@ function query_error($sql,$source="",$filename="",$params=array(),$form_config=f
             if (\webdb\utils\wildcard_compare($source_error,$key)==true)
             {
               $custom_templates=array("sql_error"=>$value);
-              $message=\webdb\utils\template_fill("sql_error",$params,array(),$custom_templates);
+              $message=\webdb\utils\custom_template_fill("sql_error",$params,array(),$custom_templates);
               \webdb\utils\info_message($message);
             }
           }
@@ -211,7 +219,7 @@ function sql_delete($items,$table,$database,$is_admin=false,$form_config=false)
 
 #####################################################################################################
 
-function get_exist_records($database,$table,$where_items,$is_admin)
+function get_exist_records($database,$table,$where_items,$is_admin=false)
 {
   $sql_params=array();
   $sql_params["database"]=$database;
@@ -630,10 +638,10 @@ function sql_change($old_records,$sql,$where_items,$value_items,$table,$database
   $items=array();
   $items["user_id"]=$user["user_id"];
   $tmp_sql=array("temp_sql"=>$sql);
-  $sql=\webdb\utils\template_fill("temp_sql",false,array(),$tmp_sql);
+  $sql=\webdb\utils\custom_template_fill("temp_sql",false,array(),$tmp_sql);
   $items["sql_statement"]=$sql;
   $tmp_sql=array("temp_sql"=>$database);
-  $database=\webdb\utils\template_fill("temp_sql",false,array(),$tmp_sql);
+  $database=\webdb\utils\custom_template_fill("temp_sql",false,array(),$tmp_sql);
   $items["change_database"]=$database;
   $items["change_table"]=$table;
   $items["change_type"]=\webdb\sql\get_statement_type($sql);

@@ -11,6 +11,11 @@ ini_set("display_errors","on");
 ini_set("error_reporting",E_ALL);
 ini_set("max_execution_time",120);
 ini_set("memory_limit","512M");
+
+ini_set("xdebug.var_display_max_children",-1);
+ini_set("xdebug.var_display_max_data",-1);
+ini_set("xdebug.var_display_max_depth",-1);
+
 date_default_timezone_set("UTC");
 
 chdir(__DIR__);
@@ -109,7 +114,7 @@ $settings["browser_info"]["browser"]="chrome"; # default to chrome settings if u
 
 if ($settings["check_ua"]==true)
 {
-  $ua_error=\webdb\utils\template_fill("user_agent_error");
+  $ua_error=$settings["ua_error"];
   if ($settings["user_agent"]<>"")
   {
     $settings["browser_info"]=get_browser($_SERVER["HTTP_USER_AGENT"],true);

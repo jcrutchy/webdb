@@ -422,7 +422,9 @@ function process_sort_sql(&$form_config)
   }
   if ($form_config["sort_sql"]<>"")
   {
-    $form_config["sort_sql"]=\webdb\utils\sql_fill("sort_clause",$form_config);
+    $sql_params=array();
+    $sql_params["sort_sql"]=$form_config["sort_sql"];
+    $form_config["sort_sql"]=\webdb\utils\sql_fill("sort_clause",$sql_params);
   }
 }
 
@@ -441,15 +443,17 @@ function checklist_update($form_config,$parent_id)
   $list_records=array();
   \webdb\forms\process_filter_sql($form_config);
   \webdb\forms\process_sort_sql($form_config);
-  $sql=\webdb\utils\sql_fill("form_list_fetch_all",$form_config);
-  $list_records=\webdb\sql\fetch_prepare($sql,array(),"form_list_fetch_all",false,$form_config["table"],$form_config["database"],$form_config);
   $sql_params=array();
+  $sql_params["database"]=$form_config["database"];
+  $sql_params["table"]=$form_config["table"];
+  $sql_params["selected_filter_sql"]=$form_config["selected_filter_sql"];
+  $sql_params["sort_sql"]=$form_config["sort_sql"];
+  $sql=\webdb\utils\sql_fill("form_list_fetch_all",$sql_params);
+  $list_records=\webdb\sql\fetch_prepare($sql,array(),"form_list_fetch_all",false,$form_config["table"],$form_config["database"],$form_config);
   $sql_params["link_database"]=$link_database;
   $sql_params["link_table"]=$link_table;
   $sql_params["parent_key"]=$parent_key;
   $sql_params["link_key"]=$link_key;
-  $sql_params["database"]=$form_config["database"];
-  $sql_params["table"]=$form_config["table"];
   $sql_params["selected_filter_condition"]=$form_config["selected_filter_condition"];
   $sql=\webdb\utils\sql_fill("link_records",$sql_params);
   $sql_params=array();
@@ -1428,10 +1432,10 @@ function output_readonly_field($field_params,$control_type,$form_config,$field_n
       for ($i=0;$i<count($lookup_records[$field_name]);$i++)
       {
         $key_field_name=$lookup_config["key_field"];
-        $display_value=\webdb\forms\lookup_field_display_value($lookup_config,$lookup_records[$field_name][$i]);
         $key_value=$lookup_records[$field_name][$i][$key_field_name];
         if ($display_record[$field_name]==$key_value)
         {
+          $display_value=\webdb\forms\lookup_field_display_value($lookup_config,$lookup_records[$field_name][$i]);
           $field_params["value"]=htmlspecialchars($display_value);
           break;
         }
@@ -1456,23 +1460,24 @@ function output_readonly_field($field_params,$control_type,$form_config,$field_n
       }
       return \webdb\forms\form_template_fill("list_field",$field_params);
     case "checkbox":
+      $params=array();
       if ($display_record[$field_name]==true)
       {
-        $field_params["check_tick_class"]="check_tick";
+        $params["check_tick_class"]="check_tick";
         if (isset($form_config["table_cell_styles"][$field_name])==true)
         {
-          $field_params["check_tick_class"]="check_tick_override";
+          $params["check_tick_class"]="check_tick_override";
         }
-        $field_params["value"]=\webdb\forms\form_template_fill("check_tick",$field_params);
+        $field_params["value"]=\webdb\forms\form_template_fill("check_tick",$params);
       }
       else
       {
-        $field_params["check_cross_class"]="check_cross";
+        $params["check_cross_class"]="check_cross";
         if (isset($form_config["table_cell_styles"][$field_name])==true)
         {
-          $field_params["check_cross_class"]="check_cross_override";
+          $params["check_cross_class"]="check_cross_override";
         }
-        $field_params["value"]=\webdb\forms\form_template_fill("check_cross",$field_params);
+        $field_params["value"]=\webdb\forms\form_template_fill("check_cross",$params);
       }
       return \webdb\forms\form_template_fill("list_field_raw",$field_params);
   }
@@ -1484,33 +1489,7 @@ function output_readonly_field($field_params,$control_type,$form_config,$field_n
 function memo_field_formatting($value)
 {
   global $settings;
-  $subdir=$settings["format_tag_templates_subdirectory"];
-  $template_prefix=$subdir.DIRECTORY_SEPARATOR;
-  $format_tag_templates=array();
-  foreach ($settings["templates"] as $name => $content)
-  {
-    if (substr($name,0,strlen($template_prefix))==$template_prefix)
-    {
-      $name=substr($name,strlen($template_prefix));
-      $name_parts=explode("_",$name);
-      $position=array_pop($name_parts);
-      $tag=trim(implode("_",$name_parts));
-      if (($position<>"open") and ($position<>"close"))
-      {
-        continue;
-      }
-      if ($tag=="")
-      {
-        continue;
-      }
-      if (isset($format_tag_templates[$tag])==false)
-      {
-        $format_tag_templates[$tag]=array();
-      }
-      $format_tag_templates[$tag][$position]=$content;
-    }
-  }
-  foreach ($format_tag_templates as $tag => $positions)
+  foreach ($settings["format_tag_templates"] as $tag => $positions)
   {
     if ((isset($positions["open"])==false) or (isset($positions["close"])==false))
     {
@@ -2207,13 +2186,17 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
   \webdb\forms\process_filter_sql($form_config);
   if (count($form_config["filter_options"])>0)
   {
-    $form_config["insert_row"]=false;
-    $form_params["filter_cookie_value"]=0;
+    #$form_config["insert_row"]=false; # may be needed if filter would not include inserted row (newly inserted row not appearing due to filtering) but generally shouldn't be needed if form config is done carefully - commented out to allow inserting in a subform whose inverse is a checklist with an enabled field (filter needed to hide disabled rows from subform with insert row)
+    $form_config["filter_cookie_value"]=0;
     if ($form_config["filter_cookie"]==true)
     {
-      $form_params["filter_cookie_value"]=1;
+      $form_config["filter_cookie_value"]=1;
     }
-    $form_params["selected_filter_input"]=\webdb\forms\form_template_fill("selected_filter_input",$form_config);
+    $params=array();
+    $params["page_id"]=$form_config["page_id"];
+    $params["selected_filter"]=$form_config["selected_filter"];
+    $params["filter_cookie_value"]=$form_config["filter_cookie_value"];
+    $form_params["selected_filter_input"]=\webdb\forms\form_template_fill("selected_filter_input",$params);
   }
   if ($records===false)
   {
@@ -2238,7 +2221,12 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
       }
     }
     \webdb\forms\process_sort_sql($form_config);
-    $sql=\webdb\utils\sql_fill("form_list_fetch_all",$form_config);
+    $sql_params=array();
+    $sql_params["database"]=$form_config["database"];
+    $sql_params["table"]=$form_config["table"];
+    $sql_params["selected_filter_sql"]=$form_config["selected_filter_sql"];
+    $sql_params["sort_sql"]=$form_config["sort_sql"];
+    $sql=\webdb\utils\sql_fill("form_list_fetch_all",$sql_params);
     $records=\webdb\sql\fetch_prepare($sql,array(),"form_list_fetch_all",false,"","",$form_config);
   }
   $previous_group_by_fields=false;
@@ -2382,20 +2370,23 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
   $form_params["sort_field_control"]="";
   $form_params["insert_control"]="";
   $form_params["delete_selected_control"]="";
+  $control_params=array();
+  $control_params["page_id"]=$form_config["page_id"];
   if (($form_config["records_sql"]=="") or ($form_config["checklist"]==false))
   {
     if ($form_config["advanced_search"]==true)
     {
-      $form_params["advanced_search_control"]=\webdb\forms\form_template_fill("list_advanced_search",$form_config);
+      $form_params["advanced_search_control"]=\webdb\forms\form_template_fill("list_advanced_search",$control_params);
     }
     if ($form_config["multi_row_delete"]==true)
     {
-      $form_params["delete_selected_control"]=\webdb\forms\form_template_fill("list_del_selected",$form_config);
+      $control_params["multi_row_delete_button_caption"]=$form_config["multi_row_delete_button_caption"];
+      $form_params["delete_selected_control"]=\webdb\forms\form_template_fill("list_del_selected",$control_params);
     }
   }
   if (($form_config["insert_new"]==true) and ($form_config["checklist"]==false))
   {
-    $form_params["insert_control"]=\webdb\forms\form_template_fill("list_insert",$form_config);
+    $form_params["insert_control"]=\webdb\forms\form_template_fill("list_insert",$control_params);
   }
   $form_params["row_edit_mode"]=$form_config["edit_cmd"];
   $form_params["custom_form_above"]="";
@@ -3422,8 +3413,10 @@ function insert_record($form_config)
   if ($form_config["edit_cmd_page_id"]<>"")
   {
     $record=\webdb\forms\get_record_by_id($form_config,$id,"primary_key");
-    $form_config["id"]=\webdb\forms\config_id_url_value($form_config,$record,"edit_cmd_id");
-    $url=trim(\webdb\forms\form_template_fill("edit_redirect_url",$form_config));
+    $params=array();
+    $params["id"]=\webdb\forms\config_id_url_value($form_config,$record,"edit_cmd_id");
+    $params["edit_cmd_page_id"]=$form_config["edit_cmd_page_id"];
+    $url=trim(\webdb\forms\form_template_fill("edit_redirect_url",$params));
     \webdb\utils\redirect($url);
   }
   \webdb\forms\page_redirect(false,false,$id);
@@ -3509,8 +3502,10 @@ function update_record($form_config,$id,$value_items=false,$where_items=false,$r
   if ($form_config["edit_cmd_page_id"]<>"")
   {
     $record=\webdb\forms\get_record_by_id($form_config,$id,"primary_key");
-    $form_config["id"]=\webdb\forms\config_id_url_value($form_config,$record,"edit_cmd_id");
-    $url=trim(\webdb\forms\form_template_fill("edit_redirect_url",$form_config));
+    $params=array();
+    $params["id"]=\webdb\forms\config_id_url_value($form_config,$record,"edit_cmd_id");
+    $params["edit_cmd_page_id"]=$form_config["edit_cmd_page_id"];
+    $url=trim(\webdb\forms\form_template_fill("edit_redirect_url",$params));
     \webdb\utils\redirect($url);
   }
   \webdb\forms\page_redirect(false,$params);
@@ -3569,7 +3564,11 @@ function get_record_by_id($form_config,$id,$config_key,$error_none=true)
   }
   $items=\webdb\forms\config_id_conditions($form_config,$id,$config_key);
   $form_config["where_conditions"]=\webdb\sql\build_prepared_where($items);
-  $sql=\webdb\utils\sql_fill("form_list_fetch_by_id",$form_config);
+  $sql_params=array();
+  $sql_params["database"]=$form_config["database"];
+  $sql_params["table"]=$form_config["table"];
+  $sql_params["where_conditions"]=$form_config["where_conditions"];
+  $sql=\webdb\utils\sql_fill("form_list_fetch_by_id",$sql_params);
   $records=\webdb\sql\fetch_prepare($sql,$items,"form_list_fetch_by_id",false,$form_config["table"],$form_config["database"],$form_config);
   if (count($records)==0)
   {
@@ -3871,7 +3870,12 @@ function basic_search()
     $form_config["sort_enabled"]=false;
     \webdb\forms\process_sort_sql($form_config);
     \webdb\forms\process_filter_sql($form_config);
-    $sql=\webdb\utils\sql_fill("form_list_fetch_all",$form_config);
+    $sql_params=array();
+    $sql_params["database"]=$form_config["database"];
+    $sql_params["table"]=$form_config["table"];
+    $sql_params["selected_filter_sql"]=$form_config["selected_filter_sql"];
+    $sql_params["sort_sql"]=$form_config["sort_sql"];
+    $sql=\webdb\utils\sql_fill("form_list_fetch_all",$sql_params);
     $records=\webdb\sql\fetch_prepare($sql,array(),"form_list_fetch_all",false,"","",$form_config);
     $lookup_records=\webdb\forms\lookup_records($form_config);
     $results_records=array();
