@@ -37,19 +37,6 @@ function check_post_params($sql)
 
 function lookup($table,$database,$lookup_field,$query_value,$is_admin=false)
 {
-  /*$records=\webdb\sql\fetch_all_records($table,$database);
-  for ($i=0;$i<count($records);$i++)
-  {
-    $record=$records[$i];
-    if (array_key_exists($lookup_field,$record)==true)
-    {
-      if ($record[$lookup_field]==$query_value)
-      {
-        return $record;
-      }
-    }
-  }
-  return false;*/
   $where_items=array();
   $where_items[$lookup_field]=$query_value;
   $found=\webdb\sql\get_exist_records($database,$table,$where_items,$is_admin);

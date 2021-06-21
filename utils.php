@@ -1002,7 +1002,7 @@ function template_fill($template_key,$params=false)
   }
   foreach ($params as $key => $value)
   {
-    if (is_array($value)==false)
+    if (is_scalar($value)==true)
     {
       $result=str_replace('%%'.$key.'%%',$value,$result);
     }

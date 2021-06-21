@@ -1309,7 +1309,8 @@ function get_lookup_field_value($field_name,$form_config,$lookup_records,$displa
   $sibling_field_name=$lookup_config["sibling_field"];
   if (($form_config["checklist"]==false) or (array_key_exists($sibling_field_name,$display_record)==true))
   {
-    for ($i=0;$i<count($lookup_records[$field_name]);$i++)
+    $n=count($lookup_records[$field_name]);
+    for ($i=0;$i<$n;$i++)
     {
       $lookup_record=$lookup_records[$field_name][$i];
       $key_value=$lookup_record[$key_field_name];
@@ -1326,7 +1327,8 @@ function get_lookup_field_value($field_name,$form_config,$lookup_records,$displa
     {
       $key_value=$link_record[$key_field_name];
       $sibling_value=$display_record[$sibling_field_name];
-      for ($i=0;$i<count($lookup_records[$field_name]);$i++)
+      $n=count($lookup_records[$field_name]);
+      for ($i=0;$i<$n;$i++)
       {
         $lookup_record=$lookup_records[$field_name][$i];
         if (($lookup_record[$key_field_name]==$key_value) and ($lookup_record[$sibling_field_name]==$sibling_value))
@@ -1429,7 +1431,8 @@ function output_readonly_field($field_params,$control_type,$form_config,$field_n
     case "radiogroup":
       $field_params["value"]=htmlspecialchars($display_record[$field_name]);
       $lookup_config=$form_config["lookups"][$field_name];
-      for ($i=0;$i<count($lookup_records[$field_name]);$i++)
+      $n=count($lookup_records[$field_name]);
+      for ($i=0;$i<$n;$i++)
       {
         $key_field_name=$lookup_config["key_field"];
         $key_value=$lookup_records[$field_name][$i][$key_field_name];

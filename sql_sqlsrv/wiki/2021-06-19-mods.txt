@@ -1,0 +1,8 @@
+USE [];
+
+add permission_type to article and file 
+
+
+ALTER TABLE $$database_webdb$$.users
+ADD CONSTRAINT [fullname] UNIQUE ([fullname] ASC)
+GO
