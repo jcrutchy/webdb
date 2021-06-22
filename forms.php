@@ -3888,6 +3888,10 @@ function basic_search()
       for ($k=0;$k<count($form_config["basic_search_fields"]);$k++)
       {
         $search_field_name=$form_config["basic_search_fields"][$k];
+        if (isset($form_config["control_types"][$search_field_name])==false)
+        {
+          \webdb\utils\error_message("basic search error: field '".$search_field_name."' not found in control_types of form config with page_id '".$form_config["page_id"]."'");
+        }
         $control_type=$form_config["control_types"][$search_field_name];
         if ($control_type=="checkbox")
         {
