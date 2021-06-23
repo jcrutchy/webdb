@@ -9,7 +9,7 @@ $stop_time=microtime(true); # debug
 
 ini_set("display_errors","on");
 ini_set("error_reporting",E_ALL);
-ini_set("max_execution_time",120);
+ini_set("max_execution_time","360");
 ini_set("memory_limit","512M");
 
 ini_set("xdebug.var_display_max_children",-1);

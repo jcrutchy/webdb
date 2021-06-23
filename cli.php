@@ -68,6 +68,7 @@ function cli_dispatch()
 {
   global $settings;
   global $argv;
+  ini_set("max_execution_time","0");
   switch ($argv[1])
   {
     /*case "run_tests":
@@ -153,6 +154,14 @@ function cli_dispatch()
       }
       \webdb\cli\generate_form($argv[2],$argv[3],$argv[4]);
       die;*/
+  }
+  foreach ($settings["cli_dispatch_includes"] as $include_filename => $dispatch_function)
+  {
+    require_once($include_filename);
+    if (function_exists($dispatch_function)==true)
+    {
+      call_user_func($dispatch_function);
+    }
   }
 }
 

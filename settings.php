@@ -22,6 +22,8 @@ $settings["app_home_template"]="home";
 $settings["app_date_format"]="Y-m-d";
 $settings["app_logo_filename"]="logo.png";
 
+$settings["cli_dispatch_includes"]=array();
+
 $settings["sql_change_exclude_tables"]=array();
 #$settings["sql_change_exclude_tables"]=true;
 #$settings["sql_change_include_tables"]=array();

@@ -21,8 +21,8 @@ function basic_search_keypress(event)
 {
   if (event.keyCode==13)
   {
-    var login_submit=document.getElementById("basic_search_button");
-    login_submit.click();
+    var submit_button=document.getElementById("basic_search_button");
+    submit_button.click();
     return false;
   }
   return true;
