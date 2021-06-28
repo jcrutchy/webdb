@@ -976,13 +976,13 @@ function initialize_format_tags()
 
 #####################################################################################################
 
-function string_template_fill($input)
+function string_template_fill($input,$params=false)
 {
   global $settings;
   $key="string_template_fill.tmp";
   $templates=$settings["templates"];
   $templates[$key]=$input;
-  return \webdb\utils\custom_template_fill($key,false,array(),$templates);
+  return \webdb\utils\custom_template_fill($key,$params,array(),$templates);
 }
 
 #####################################################################################################
@@ -1275,7 +1275,7 @@ function exception_handler($exception)
     call_user_func($func_name,$username,$message);
   }
   $message="username: ".$username.PHP_EOL.PHP_EOL.$message;
-  \webdb\utils\email_admin($message,"exception_handler");
+  #\webdb\utils\email_admin($message,"exception_handler");
   \webdb\utils\system_message($message);
 }
 

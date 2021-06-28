@@ -3,6 +3,18 @@ body
     background-color: #f6f6f6;
   }
 
+td
+  {
+    border: 1px solid #a2a9b1;
+    background-color: #f8f9fa;
+  }
+
+th
+  {
+    border: 1px solid #a2a9b1;
+    background-color: #eaecf0;
+  }
+
 #wiki_article_edit_content
   {
     width: calc(100% - 5px);
@@ -164,6 +176,29 @@ body
   }
 
 .wiki_article_edit_control_box a
+  {
+    display: inline-block;
+    text-align: center;
+    line-height: 25px;
+    width: 90px;
+    background: linear-gradient(to bottom,white 0,#e8f2f8 100%);
+  }
+
+.wiki_article_history_control_box
+  {
+    position: fixed;
+    top: 10px;
+    right: 5px;
+    height: 30px;
+    width: 271px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: stretch;
+  }
+
+.wiki_article_history_control_box a
   {
     display: inline-block;
     text-align: center;

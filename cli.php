@@ -155,9 +155,15 @@ function cli_dispatch()
       \webdb\cli\generate_form($argv[2],$argv[3],$argv[4]);
       die;*/
   }
+  \webdb\utils\load_settings();
+  \webdb\utils\database_connect();
   foreach ($settings["cli_dispatch_includes"] as $include_filename => $dispatch_function)
   {
-    require_once($include_filename);
+    $includes=get_included_files();
+    if (in_array($include_filename,$includes)==false)
+    {
+      require_once($include_filename);
+    }
     if (function_exists($dispatch_function)==true)
     {
       call_user_func($dispatch_function);

@@ -3253,6 +3253,7 @@ function insert_default_url_params()
       case "basic_search":
       case "file":
       case "article":
+      case "rev":
         break;
       default:
         $params[$param_name]=$param_value;

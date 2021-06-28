@@ -91,7 +91,33 @@ function wiki_page_stub($form_config)
 
 function article_history($form_config,$article_record)
 {
-  die("todo");
+  global $settings;
+  if (isset($_GET["rev"])==true)
+  {
+    $page_params=\webdb\sql\lookup("wiki_article_oldversions",$settings["database_webdb"],"article_revision_id",$_GET["rev"]);
+    $page_params["content"]=\webdb\wiki_utils\wikitext_to_html($page_params["content"]);
+  }
+  else
+  {
+    $page_params=$article_record;
+    $article_user=\webdb\sql\lookup("users",$settings["database_webdb"],"user_id",$article_record["user_id"]);
+    $page_params["fullname"]=$article_user["fullname"];
+    $records=\webdb\wiki_utils\get_article_history($article_record["article_id"]);
+    $rows="";
+    for ($i=0;$i<count($records);$i++)
+    {
+      $record=$records[$i];
+      $record["url_title"]=urlencode($article_record["title"]);
+      $rows.=\webdb\utils\template_fill("wiki/article_history_row",$record);
+    }
+    $page_params["rows"]=$rows;
+    $page_params["content"]=\webdb\utils\template_fill("wiki/article_history_table",$page_params);
+  }
+  $page_params["wiki_styles_modified"]=\webdb\utils\resource_modified_timestamp("wiki/wiki.css");
+  $page_params["wiki_styles_print_modified"]=\webdb\utils\resource_modified_timestamp("wiki/wiki_print.css");
+  $page_params["url_title"]=urlencode($page_params["title"]);
+  $content=\webdb\utils\template_fill("wiki/article_history",$page_params);
+  \webdb\utils\output_page($content,$form_config["title"].": ".$article_record["title"]." [history]");
 }
 
 #####################################################################################################

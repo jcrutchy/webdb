@@ -24,6 +24,15 @@ function view_fixed_article_file($form_config,$title)
 
 #####################################################################################################
 
+function get_article_history($article_id)
+{
+  $where_items=array();
+  $where_items["article_id"]=$article_id;
+  return \webdb\sql\file_fetch_prepare("wiki/get_article_history",$where_items);
+}
+
+#####################################################################################################
+
 function get_article_record_by_title($title)
 {
   $where_items=array();
