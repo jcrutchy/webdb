@@ -115,6 +115,44 @@ th
     background: linear-gradient(to bottom,white 0,#e8f2f8 100%);
   }
 
+.wiki_article_view_search_box
+  {
+    position: fixed;
+    top: 11px;
+    right: 570px;
+    height: 29px;
+    width: 250px;
+    text-align: right;
+  }
+
+#wiki_search_query
+  {
+    width: 120px;
+  }
+
+.wiki_search_results_control_box
+  {
+    position: fixed;
+    top: 10px;
+    right: 5px;
+    height: 30px;
+    width: 91px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: stretch;
+  }
+
+.wiki_search_results_control_box a
+  {
+    display: inline-block;
+    text-align: center;
+    line-height: 25px;
+    width: 90px;
+    background: linear-gradient(to bottom,white 0,#e8f2f8 100%);
+  }
+
 .wiki_article_view_control_box
   {
     position: fixed;

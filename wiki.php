@@ -8,6 +8,10 @@ function wiki_page_stub($form_config)
 {
   global $settings;
   $user_wiki_settings=\webdb\wiki_utils\get_user_wiki_settings();
+  if (isset($_GET["search"])==true)
+  {
+    \webdb\wiki\search_results($form_config,$_GET["search"]);
+  }
   $content_type="article";
   if (isset($_GET["file"])==true)
   {
@@ -85,6 +89,20 @@ function wiki_page_stub($form_config)
     \webdb\wiki\edit_new_article($form_config,$title);
   }
   \webdb\wiki\view_exist_article($form_config,$article_record);
+}
+
+#####################################################################################################
+
+function search_results($form_config,$query)
+{
+  global $settings;
+  $page_params=array();
+  $page_params["query"]=htmlspecialchars($query);
+  $page_params["content"]="todo";
+  $page_params["wiki_styles_modified"]=\webdb\utils\resource_modified_timestamp("wiki/wiki.css");
+  $page_params["wiki_styles_print_modified"]=\webdb\utils\resource_modified_timestamp("wiki/wiki_print.css");
+  $content=\webdb\utils\template_fill("wiki/search_results",$page_params);
+  \webdb\utils\output_page($content,$form_config["title"]." [search: \"".htmlspecialchars($query)."\"]");
 }
 
 #####################################################################################################

@@ -1002,6 +1002,10 @@ function template_fill($template_key,$params=false)
   }
   foreach ($params as $key => $value)
   {
+    if (is_null($value)==true)
+    {
+      $value="";
+    }
     if (is_scalar($value)==true)
     {
       $result=str_replace('%%'.$key.'%%',$value,$result);
@@ -1051,6 +1055,10 @@ function custom_template_fill($template_key,$params=false,$tracking=array(),$cus
   foreach ($settings as $key => $value)
   {
     $placeholder='$$'.$key.'$$';
+    if (is_null($value)==true)
+    {
+      $value="";
+    }
     if (is_scalar($value)==true)
     {
       $result=str_replace($placeholder,$value,$result);
@@ -1061,7 +1069,11 @@ function custom_template_fill($template_key,$params=false,$tracking=array(),$cus
     foreach ($params as $key => $value)
     {
       $placeholder='%%'.$key.'%%';
-      if (is_array($value)==false)
+      if (is_null($value)==true)
+      {
+        $value="";
+      }
+      if (is_scalar($value)==true)
       {
         $result=str_replace($placeholder,$value,$result);
       }

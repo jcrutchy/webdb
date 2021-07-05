@@ -25,6 +25,11 @@
     overflow: visible;
   }
 
+.wiki_article_view_search_box
+  {
+    display: none;
+  }
+
 .wiki_article_view_control_box
   {
     display: none;
