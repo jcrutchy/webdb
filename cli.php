@@ -68,8 +68,13 @@ function cli_dispatch()
 {
   global $settings;
   global $argv;
+  if (isset($argv[1])==false)
+  {
+    die;
+  }
+  $arg=$argv[1];
   ini_set("max_execution_time","0");
-  switch ($argv[1])
+  switch ($arg)
   {
     /*case "run_tests":
       \webdb\utils\load_settings();
@@ -157,7 +162,11 @@ function cli_dispatch()
   }
   \webdb\utils\load_settings();
   \webdb\utils\database_connect();
-  foreach ($settings["cli_dispatch_includes"] as $include_filename => $dispatch_function)
+  if (isset($settings["cli_dispatch"][$arg])==false)
+  {
+    die;
+  }
+  foreach ($settings["cli_dispatch"][$arg] as $include_filename => $dispatch_function)
   {
     $includes=get_included_files();
     if (in_array($include_filename,$includes)==false)
@@ -166,7 +175,7 @@ function cli_dispatch()
     }
     if (function_exists($dispatch_function)==true)
     {
-      call_user_func($dispatch_function);
+      call_user_func($dispatch_function,$arg);
     }
   }
 }

@@ -98,7 +98,53 @@ function search_results($form_config,$query)
   global $settings;
   $page_params=array();
   $page_params["query"]=htmlspecialchars($query);
-  $page_params["content"]="todo";
+  $compare_query=strtolower($query);
+  $sql_params=array();
+  $sql_params["query"]=$compare_query;
+  $records=\webdb\sql\file_fetch_prepare("wiki/search_articles",$sql_params);
+  $rows="";
+  $n=count($records);
+  for ($i=0;$i<$n;$i++)
+  {
+    $record=$records[$i];
+    $result=false;
+    if (strpos(strtolower($record["title"]),$compare_query)!==false)
+    {
+      $result=true;
+    }
+    if (strpos(strtolower($record["content"]),$compare_query)!==false)
+    {
+      $result=true;
+    }
+    if ($result==true)
+    {
+      $record["url_title"]=urlencode($record["title"]);
+      $rows.=\webdb\utils\template_fill("wiki/search_results_row_article",$record);
+    }
+  }
+  $page_params["article_rows"]=$rows;
+  $records=\webdb\sql\file_fetch_prepare("wiki/search_files",$sql_params);
+  $rows="";
+  $n=count($records);
+  for ($i=0;$i<$n;$i++)
+  {
+    $record=$records[$i];
+    $result=false;
+    if (strpos(strtolower($record["title"]),$compare_query)!==false)
+    {
+      $result=true;
+    }
+    if (strpos(strtolower($record["notes"]),$compare_query)!==false)
+    {
+      $result=true;
+    }
+    if ($result==true)
+    {
+      $record["url_title"]=urlencode($record["title"]);
+      $rows.=\webdb\utils\template_fill("wiki/search_results_row_file",$record);
+    }
+  }
+  $page_params["file_rows"]=$rows;
   $page_params["wiki_styles_modified"]=\webdb\utils\resource_modified_timestamp("wiki/wiki.css");
   $page_params["wiki_styles_print_modified"]=\webdb\utils\resource_modified_timestamp("wiki/wiki_print.css");
   $content=\webdb\utils\template_fill("wiki/search_results",$page_params);

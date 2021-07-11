@@ -48,7 +48,7 @@ function check_settings()
 {
   global $settings;
   $required_settings=array(
-    "cli_dispatch_includes",
+    "cli_dispatch",
     "ua_error",
     "sql_change_table",
     "sql_change_log_path",

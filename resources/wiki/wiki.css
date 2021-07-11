@@ -328,6 +328,13 @@ th
     border: 1px solid red;
   }
 
+.wiki_search_heading
+  {
+    font-size: 18pt;
+    font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+  }
+
 .wiki_heading
   {
     font-size: 18pt;
