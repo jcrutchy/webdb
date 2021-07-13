@@ -98,15 +98,26 @@ function wget($url,$peer_name,&$cookie_jar)
 
 #####################################################################################################
 
-function wpost($url,$params,$peer_name,&$cookie_jar)
+function wpost($url,$content,$peer_name,&$cookie_jar)
 {
   global $settings;
-  $encoded_params=array();
-  foreach ($params as $key => $value)
+  $content_type="application/x-www-form-urlencoded";
+  if (is_array($content)==true)
   {
-    $encoded_params[]=$key."=".rawurlencode($value);
+    $encoded_params=array();
+    foreach ($content as $key => $value)
+    {
+      $encoded_params[]=$key."=".rawurlencode($value);
+    }
+    $content=implode("&",$encoded_params);
   }
-  $content=implode("&",$encoded_params);
+  else
+  {
+    if (json_decode($content,true)!==false)
+    {
+      $content_type="application/json";
+    }
+  }
   $url_parts=parse_url($url);
   $host=$url_parts["host"];
   $uri=$url_parts["path"];
@@ -118,7 +129,7 @@ function wpost($url,$params,$peer_name,&$cookie_jar)
   $request.="Host: ".$host."\r\n";
   $request.="User-Agent: ".$settings["http_user_agent"]."\r\n";
   $request.="Accept: text/html; charset=utf-8\r\n";
-  $request.="Content-Type: application/x-www-form-urlencoded\r\n";
+  $request.="Content-Type: ".$content_type."\r\n";
   $request=\webdb\http\cookie_header($request,$cookie_jar);
   $request.="Content-Length: ".strlen($content)."\r\n";
   $request.="Connection: Close\r\n\r\n";
