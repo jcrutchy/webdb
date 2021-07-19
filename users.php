@@ -262,11 +262,12 @@ function login()
       \webdb\users\auth_log($user_record,"PASSWORD_LOGIN","");
       \webdb\users\initialise_login_cookie($user_record);
       $target_url=$_POST["target_url"];
-      if (($target_url<>"") and ($target_url<>$settings["app_web_root"]) and ($target_url<>$settings["app_web_index"]))
+      if ($target_url=="")
       {
-        \webdb\utils\redirect($target_url);
+        $target_url=$settings["app_web_index"];
       }
-      \webdb\utils\redirect($settings["app_web_index"]);
+      header("Location: ".$target_url);
+      die;
     }
     else
     {
@@ -440,6 +441,7 @@ function initialise_login_cookie(&$user_record)
 function logout()
 {
   global $settings;
+  \webdb\csrf\unset_authenticated_csrf(false);
   \webdb\users\auth_log(false,"LOGOUT","");
   \webdb\users\unset_login_cookie();
   $url=$settings["app_web_index"];

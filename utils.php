@@ -419,6 +419,7 @@ function output_resource_links($buffer,$type)
 function ob_postprocess($buffer)
 {
   global $settings;
+  #\webdb\utils\email_admin(print_r($_COOKIE,true),"ob_postprocess"); # DEBUG
   if (isset($settings["system_message"])==true)
   {
     return $settings["system_message"];
@@ -843,7 +844,7 @@ function check_user_app_permission()
       }
     }
   }
-  \webdb\utils\error_message("You do not have required permission to access this application.");
+  \webdb\utils\error_message(\webdb\utils\template_fill("app_permission_error"));
 }
 
 #####################################################################################################
@@ -862,7 +863,12 @@ function check_user_form_permission($page_id,$permission)
   }
   if ($whitelisted==false)
   {
-    return true;
+    # allow view-only
+    if ($permission=="r")
+    {
+      return true;
+    }
+    return false;
   }
   if (isset($settings["logged_in_user_groups"])==false)
   {
@@ -1479,6 +1485,11 @@ function webdb_ftp_login()
 
 function wildcard_compare($compare_value,$wildcard_value)
 {
+  if ($compare_value=="hpsm_dta/auth_20200310")
+  {
+    var_dump($compare_value);
+    var_dump($wildcard_value);
+  }
   $wildcard_parts=explode("*",$wildcard_value);
   $compare_parts=array();
   for ($i=0;$i<count($wildcard_parts);$i++)
@@ -1519,6 +1530,12 @@ function wildcard_compare($compare_value,$wildcard_value)
       $compare_index++;
       continue;
     }
+  }
+  if ($compare_value=="hpsm_dta/auth_20200310")
+  {
+    var_dump($compare_parts);
+    var_dump($wildcard_parts);
+    die;
   }
   return true;
 }
