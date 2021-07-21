@@ -262,6 +262,8 @@ function edit_new_article($form_config,$title)
 
 function edit_exist_article($form_config,$article_record)
 {
+  # TODO: BEFORE ENABLING LOCKS, IMPLEMENT LOCK DELETE ON UPDATE/VIEW & CHECK ONLINE USER LIST (DETECT BROWSER CLOSE)
+  #\webdb\wiki_utils\check_article_edit_lock($article_record);
   $page_params=$article_record;
   $page_params["wiki_styles_modified"]=\webdb\utils\resource_modified_timestamp("wiki/wiki.css");
   $page_params["wiki_styles_print_modified"]=\webdb\utils\resource_modified_timestamp("wiki/wiki_print.css");

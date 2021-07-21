@@ -73,7 +73,7 @@ $settings["max_cookie_age"]=60*60*24*365;
 $settings["password_reset_timeout"]=60*60*24;
 $settings["password_bcrypt_cost"]=11; # 10 is a good baseline, 13 is very difficult to crack (but slower to hash) - eventually replace with Argon2id (requires PHP 7.3)
 $settings["admin_password_bcrypt_cost"]=13;
-$settings["row_lock_expiration"]=60*5;
+$settings["row_lock_expiration"]=60*15; # seconds
 
 $settings["prohibited_passwords"]=array("password");
 $settings["min_password_length"]=8;

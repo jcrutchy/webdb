@@ -473,6 +473,24 @@ function wikitext_to_html__external_article_link($content)
 
 #####################################################################################################
 
+function check_article_edit_lock($article_record)
+{
+  global $settings;
+  $locked=\webdb\utils\is_row_locked($settings["database_webdb"],"wiki_articles","article_id",$article_record["article_id"]);
+  if ($locked!==false)
+  {
+    $msg_params=$locked;
+    $msg_params["locked_time"]=date($settings["app_date_format"]." H:i:s",$locked["locked_time"]);
+    $expiry=$locked["locked_time"]+$settings["row_lock_expiration"];
+    $msg_params["expiry_minutes"]=round(($expiry-$locked["locked_time"])/60);
+    $msg_params["expiry_minutes"]=round(($expiry-time())/60);
+    $msg_params["expiry_time"]=date($settings["app_date_format"]." H:i:s",$expiry);
+    \webdb\utils\info_message(\webdb\utils\template_fill("wiki/article_locked",$msg_params));
+  }
+}
+
+#####################################################################################################
+
 function base64_image_encode($image_data,$params)
 {
   $params["data"]=base64_encode($image_data);

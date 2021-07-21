@@ -63,7 +63,7 @@ function request($url,$peer_name,$request)
 
 #####################################################################################################
 
-function wget($url,$peer_name,&$cookie_jar)
+function wget($url,$peer_name,&$cookie_jar,$headers=false)
 {
   global $settings;
   $url_parts=parse_url($url);
@@ -76,7 +76,14 @@ function wget($url,$peer_name,&$cookie_jar)
   $request="GET ".$uri." HTTP/1.0\r\n";
   $request.="Host: ".$host."\r\n";
   $request.="User-Agent: ".$settings["http_user_agent"]."\r\n";
-  $request.="Accept: text/html; charset=utf-8\r\n";
+  if ($headers===false)
+  {
+    $request.="Accept: text/html; charset=utf-8\r\n";
+  }
+  else
+  {
+    $request.=implode("\r\n",$headers)."\r\n";
+  }
   $request=\webdb\http\cookie_header($request,$cookie_jar);
   $request.="Connection: Close\r\n\r\n";
   $response=\webdb\http\request($url,$peer_name,$request);
@@ -98,7 +105,7 @@ function wget($url,$peer_name,&$cookie_jar)
 
 #####################################################################################################
 
-function wpost($url,$content,$peer_name,&$cookie_jar)
+function wpost($url,$content,$peer_name,&$cookie_jar,$headers=false)
 {
   global $settings;
   $content_type="application/x-www-form-urlencoded";
@@ -128,8 +135,15 @@ function wpost($url,$content,$peer_name,&$cookie_jar)
   $request="POST ".$uri." HTTP/1.0\r\n";
   $request.="Host: ".$host."\r\n";
   $request.="User-Agent: ".$settings["http_user_agent"]."\r\n";
-  $request.="Accept: text/html; charset=utf-8\r\n";
-  $request.="Content-Type: ".$content_type."\r\n";
+  if ($headers===false)
+  {
+    $request.="Accept: text/html; charset=utf-8\r\n";
+    $request.="Content-Type: ".$content_type."\r\n";
+  }
+  else
+  {
+    $request.=implode("\r\n",$headers)."\r\n";
+  }
   $request=\webdb\http\cookie_header($request,$cookie_jar);
   $request.="Content-Length: ".strlen($content)."\r\n";
   $request.="Connection: Close\r\n\r\n";

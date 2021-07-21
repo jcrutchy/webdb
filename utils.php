@@ -863,12 +863,48 @@ function check_user_form_permission($page_id,$permission)
   }
   if ($whitelisted==false)
   {
-    # allow view-only
-    if ($permission=="r")
+    if (isset($_GET["page"])==true)
     {
-      return true;
+      if ($_GET["page"]<>$page_id)
+      {
+        # check that $page_id is a subform of $_GET["page"] and if so use parent permission
+        $parent=\webdb\forms\get_form_config($_GET["page"]);
+        if (isset($parent["edit_subforms"][$page_id])==true)
+        {
+          $page_id=$_GET["page"];
+        }
+      }
     }
-    return false;
+    if (isset($_GET["parent_form"])==true)
+    {
+      if ($_GET["parent_form"]<>$page_id)
+      {
+        # check that $page_id is a subform of $_GET["parent_form"] and if so use parent permission
+        $parent=\webdb\forms\get_form_config($_GET["parent_form"]);
+        if (isset($parent["edit_subforms"][$page_id])==true)
+        {
+          $page_id=$_GET["parent_form"];
+        }
+      }
+    }
+    $whitelisted=false;
+    foreach ($settings["permissions"] as $group_name_iterator => $group_permissions)
+    {
+      if (isset($group_permissions["forms"][$page_id])==true)
+      {
+        $whitelisted=true;
+        break;
+      }
+    }
+    if ($whitelisted==false)
+    {
+      # allow view-only
+      if ($permission=="r")
+      {
+        return true;
+      }
+      return false;
+    }
   }
   if (isset($settings["logged_in_user_groups"])==false)
   {
@@ -1686,11 +1722,81 @@ function force_rmdir($dir)
 
 #####################################################################################################
 
-function is_row_locked($schema,$table,$key_field,$key_value)
+function is_row_locked($schema,$table,$key_field,$key_value,$auto_insert=true)
 {
   global $settings;
-  # $settings["user_record"]
-  # delete expired locks
+  $records=\webdb\sql\fetch_all_records("row_locks",$settings["database_webdb"]);
+  for ($i=0;$i<count($records);$i++)
+  {
+    $record=$records[$i];
+    $t=strtotime($record["created_timestamp"]);
+    $delta=time()-$t;
+    if ($delta>$settings["row_lock_expiration"])
+    {
+      $where_items=array();
+      $where_items["lock_id"]=$record["lock_id"];
+      $settings["sql_check_post_params_override"]=true;
+      \webdb\sql\sql_delete($where_items,"row_locks",$settings["database_webdb"]);
+      unset($records[$i]);
+      continue;
+    }
+  }
+  $records=array_values($records);
+  for ($i=0;$i<count($records);$i++)
+  {
+    $record=$records[$i];
+    if ($record["lock_schema"]<>$schema)
+    {
+      continue;
+    }
+    if ($record["lock_table"]<>$table)
+    {
+      continue;
+    }
+    if ($record["lock_key_field"]<>$key_field)
+    {
+      continue;
+    }
+    if ($record["lock_key_value"]<>$key_value)
+    {
+      continue;
+    }
+    if ($settings["user_record"]["user_id"]==$record["user_id"])
+    {
+      $where_items=array();
+      $where_items["lock_id"]=$record["lock_id"];
+      $value_items=array();
+      $value_items["created_timestamp"]=\webdb\sql\current_sql_timestamp();
+      $settings["sql_check_post_params_override"]=true;
+      \webdb\sql\sql_update($value_items,$where_items,"row_locks",$settings["database_webdb"]);
+      continue;
+    }
+    $record["locked_time"]=strtotime($record["created_timestamp"]);
+    $record["username"]="";
+    $record["fullname"]="";
+    $where_items=array();
+    $where_items["user_id"]=$record["user_id"];
+    $users=\webdb\sql\get_exist_records($settings["database_webdb"],"users",$where_items);
+    if (count($users)==1)
+    {
+      $user=$users[0];
+      $record["username"]=$user["username"];
+      $record["fullname"]=$user["fullname"];
+    }
+    return $record;
+  }
+  if ($auto_insert==true)
+  {
+    $items=array();
+    $items["user_id"]=$settings["user_record"]["user_id"];
+    $items["lock_schema"]=$schema;
+    $items["lock_table"]=$table;
+    $items["lock_key_field"]=$key_field;
+    $items["lock_key_value"]=$key_value;
+    $settings["sql_check_post_params_override"]=true;
+    \webdb\sql\sql_insert($items,"row_locks",$settings["database_webdb"]);
+  }
+  return false;
 }
 
 #####################################################################################################
