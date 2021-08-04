@@ -202,6 +202,7 @@ function list_insert($form_config)
 
 function subform_edit($data,$subform_config,$subform_id,$parent_form_config,$parent_id,$post_override,$record,&$link_record,&$merged_record)
 {
+  # TODO: HANDLE ROW LOCKING
   $data["div_id"]="subform_table_".$subform_config["page_id"];
   $subform_config=\webdb\forms\override_delete_config($subform_config);
   $primary_key_items=\webdb\forms\config_id_conditions($subform_config,$subform_id,"primary_key");
@@ -264,6 +265,7 @@ function list_edit($id,$form_config,$post_override=false)
   {
     \webdb\utils\error_message("error: record update permission denied for form '".$form_config["page_id"]."'");
   }
+  # TODO: HANDLE ROW LOCKING
   $data=array();
   $data["page_id"]=$form_config["page_id"];
   $data["primary_key"]=$id;

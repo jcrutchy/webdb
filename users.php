@@ -64,6 +64,7 @@ function get_user_record($username)
   if (count($records)<>1)
   {
     \webdb\users\unset_login_cookie();
+    \webdb\csrf\unset_authenticated_csrf(false);
     \webdb\utils\error_message("error: username not found: ".htmlspecialchars($username));
   }
   return $records[0];
@@ -179,6 +180,7 @@ function login_lockout($user_record)
   \webdb\sql\sql_update($value_items,$where_items,"users",$settings["database_webdb"],true);
   unset($settings["user_record"]);
   \webdb\users\unset_login_cookie();
+  \webdb\csrf\unset_authenticated_csrf(false);
   \webdb\users\auth_log($user_record,"LOCKOUT","");
   \webdb\utils\error_message(\webdb\utils\template_fill("lockout_error"));
 }

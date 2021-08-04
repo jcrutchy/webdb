@@ -4,6 +4,20 @@ namespace webdb\wiki_utils;
 
 #####################################################################################################
 
+function get_article_record()
+{
+  global $settings;
+  $user_wiki_settings=\webdb\wiki_utils\get_user_wiki_settings();
+  $title=$user_wiki_settings["home_article"];
+  if (isset($_GET["article"])==true)
+  {
+    $title=$_GET["article"];
+  }
+  return \webdb\wiki_utils\get_article_record_by_title($title);
+}
+
+#####################################################################################################
+
 function view_fixed_article_file($form_config,$title)
 {
   global $settings;
@@ -473,16 +487,16 @@ function wikitext_to_html__external_article_link($content)
 
 #####################################################################################################
 
-function check_article_edit_lock($article_record)
+function lock_article($article_record)
 {
   global $settings;
-  $locked=\webdb\utils\is_row_locked($settings["database_webdb"],"wiki_articles","article_id",$article_record["article_id"]);
-  if ($locked!==false)
+  $lock=\webdb\utils\get_lock($settings["database_webdb"],"wiki_articles","article_id",$article_record["article_id"]);
+  if ($lock!==false)
   {
-    $msg_params=$locked;
-    $msg_params["locked_time"]=date($settings["app_date_format"]." H:i:s",$locked["locked_time"]);
-    $expiry=$locked["locked_time"]+$settings["row_lock_expiration"];
-    $msg_params["expiry_minutes"]=round(($expiry-$locked["locked_time"])/60);
+    $msg_params=$lock;
+    $msg_params["locked_time"]=date($settings["app_date_format"]." H:i:s",$lock["locked_time"]);
+    $expiry=$lock["locked_time"]+$settings["row_lock_expiration"];
+    $msg_params["expiry_minutes"]=round(($expiry-$lock["locked_time"])/60);
     $msg_params["expiry_minutes"]=round(($expiry-time())/60);
     $msg_params["expiry_time"]=date($settings["app_date_format"]." H:i:s",$expiry);
     \webdb\utils\info_message(\webdb\utils\template_fill("wiki/article_locked",$msg_params));

@@ -2310,7 +2310,7 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
   for ($i=0;$i<count($records);$i++)
   {
     $record=$records[$i];
-    # TODO: is_row_locked($schema,$table,$key_field,$key_value)
+    # TODO: \webdb\utils\get_lock($schema,$table,$key_field,$key_value)
     $link_record=false;
     if ($link_records!==false)
     {

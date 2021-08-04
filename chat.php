@@ -93,6 +93,7 @@ function update_online_user_list()
     }
   }
   $data=array();
+  $data["lock"]=\webdb\utils\purge_closed_page_row_locks($online_users);
   $rows="";
   foreach ($online_users as $nick => $urls)
   {

@@ -46,6 +46,18 @@ function update_online_user_list_load()
   {
     status.innerHTML="";
   }
+  var page_lock_status=document.getElementById("page_lock_status");
+  if ((data.hasOwnProperty("page_locked")==true) && (page_lock_status))
+  {
+    if (data.page_locked==false)
+    {
+      page_lock_status.innerHTML="UNLOCKED";
+    }
+    else
+    {
+      page_lock_status.innerHTML="LOCKED";
+    }
+  }
   if (data.hasOwnProperty("html")==true)
   {
     var oul=document.getElementById("online_user_list_content");

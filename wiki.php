@@ -57,8 +57,10 @@ function wiki_page_stub($form_config)
   {
     $title=$_GET["article"];
   }
+  $article_record=\webdb\wiki_utils\get_article_record();
+  $title=$article_record["title"];
   \webdb\wiki_utils\view_fixed_article_file($form_config,$title);
-  $article_record=\webdb\wiki_utils\get_article_record_by_title($title);
+  $lock=\webdb\utils\get_lock($settings["database_webdb"],"wiki_articles","article_id",$article_record["article_id"]);
   if (isset($_GET["cmd"])==true)
   {
     if ($_GET["cmd"]=="history")
@@ -216,6 +218,7 @@ function output_file($form_config,$file_record,$title)
 function confirm_article_edit($form_config,$title,$article_record)
 {
   global $settings;
+  # TODO: DELETE ROW LOCK
   $value_items=array();
   $value_items["title"]=trim($_POST["wiki_article_edit_title"]);
   $value_items["content"]=$_POST["wiki_article_edit_content"];
@@ -262,8 +265,7 @@ function edit_new_article($form_config,$title)
 
 function edit_exist_article($form_config,$article_record)
 {
-  # TODO: BEFORE ENABLING LOCKS, IMPLEMENT LOCK DELETE ON UPDATE/VIEW & CHECK ONLINE USER LIST (DETECT BROWSER CLOSE)
-  #\webdb\wiki_utils\check_article_edit_lock($article_record);
+  #\webdb\wiki_utils\lock_article($article_record);
   $page_params=$article_record;
   $page_params["wiki_styles_modified"]=\webdb\utils\resource_modified_timestamp("wiki/wiki.css");
   $page_params["wiki_styles_print_modified"]=\webdb\utils\resource_modified_timestamp("wiki/wiki_print.css");

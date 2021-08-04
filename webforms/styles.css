@@ -1,0 +1,56 @@
+html
+  {
+    font-size: 10pt;
+    font-family: sans-serif;
+    border: none;
+  }
+
+body
+  {
+    font-size: 10pt;
+    border: none;
+    padding: 10px;
+    margin: 0;
+  }
+
+table
+  {
+    empty-cells: show;
+    border-collapse: collapse;
+  }
+
+input
+  {
+    font-size: 10pt;
+  }
+
+select
+  {
+    font-size: 10pt;
+    background-image: none;
+  }
+
+th
+  {
+    font-size: 10pt;
+    font-weight: bold;
+    border: solid 1px black;
+    padding: 5px;
+  }
+
+td
+  {
+    font-size: 10pt;
+    border: solid 1px black;
+    padding: 5px;
+    vertical-align: top;
+  }
+
+textarea
+  {
+    width: 250px;
+    height: 100px;
+    overflow: auto;
+    word-wrap: normal;
+    overflow-wrap: normal;
+  }

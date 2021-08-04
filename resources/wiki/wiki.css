@@ -15,6 +15,15 @@ th
     background-color: #eaecf0;
   }
 
+#page_lock_status
+  {
+    display: block;
+    position: absolute;
+    z-index: 600;
+    right: 40px;
+    top: 60px;
+  }
+
 #wiki_article_edit_content
   {
     width: calc(100% - 5px);

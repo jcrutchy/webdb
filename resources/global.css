@@ -81,6 +81,11 @@ textarea
     overflow: auto;
   }
 
+#page_lock_status
+  {
+    display: none;
+  }
+
 #global_page_header
   {
     position: absolute;

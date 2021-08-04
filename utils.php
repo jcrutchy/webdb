@@ -887,6 +887,22 @@ function check_user_form_permission($page_id,$permission)
         }
       }
     }
+    if (isset($_GET["redirect"])==true)
+    {
+      $redirect_url=$_GET["redirect"];
+      $query=parse_url($redirect_url,PHP_URL_QUERY);
+      $query_params=explode("&",$query);
+      for ($i=0;$i<count($query_params);$i++)
+      {
+        $query_param=$query_params[$i];
+        $parts=explode("=",$query_param);
+        $param_key=array_shift($parts);
+        if ($param_key=="page")
+        {
+          $page_id=implode("=",$parts);
+        }
+      }
+    }
     $whitelisted=false;
     foreach ($settings["permissions"] as $group_name_iterator => $group_permissions)
     {
@@ -1404,6 +1420,10 @@ function load_credentials($prefix,$optional=false)
 function send_email($recipient,$cc,$subject,$message,$from="",$reply_to="",$bounce_to="")
 {
   global $settings;
+  if ($recipient=="")
+  {
+    return;
+  }
   if ($from=="")
   {
     $from=$settings["server_email_from"];
@@ -1418,8 +1438,11 @@ function send_email($recipient,$cc,$subject,$message,$from="",$reply_to="",$boun
   }
   $headers=array();
   $headers[]="From: ".$from;
-  /*$headers[]="Cc: ".$cc;
-  $headers[]="Reply-To: ".$reply_to;
+  if ($cc<>"")
+  {
+    $headers[]="Cc: ".$cc;
+  }
+  /*$headers[]="Reply-To: ".$reply_to;
   $headers[]="X-Sender: ".$from;
   $headers[]="X-Mailer: PHP/".phpversion();*/
   $headers[]="MIME-Version: 1.0";
@@ -1722,7 +1745,104 @@ function force_rmdir($dir)
 
 #####################################################################################################
 
-function is_row_locked($schema,$table,$key_field,$key_value,$auto_insert=true)
+function purge_closed_page_row_locks($online_users)
+{
+  global $settings;
+  $this_user=$settings["user_record"];
+  $active_row_locks=array();
+  $lock_records=\webdb\utils\purge_expired_row_locks();
+  foreach ($online_users as $nick => $urls)
+  {
+    $sql_params=array();
+    $sql_params["username"]=$nick;
+    $user_records=\webdb\sql\file_fetch_prepare("user_get_by_username",$sql_params);
+    if (count($user_records)<>1)
+    {
+      continue;
+    }
+    $user_record=$user_records[0];
+    foreach ($urls as $url => $page_data)
+    {
+      $form_config=\webdb\forms\get_form_config($page_data["page_id"],true);
+      if ($form_config===false)
+      {
+        continue;
+      }
+      $id=$page_data["record_id"];
+      for ($i=0;$i<count($lock_records);$i++)
+      {
+        $lock_record=$lock_records[$i];
+        if (in_array($lock_record["lock_id"],$active_row_locks)==true)
+        {
+          continue;
+        }
+        if (($lock_record["user_id"]==$user_record["user_id"]) and ($lock_record["lock_table"]==$form_config["table"]) and ($lock_record["lock_key_value"]==$id))
+        {
+          $lock_id=$lock_record["lock_id"];
+          $lock_record["page_id"]=$page_data["page_id"];
+          $active_row_locks[$lock_id]=$lock_record;
+          break;
+        }        
+      }
+    }
+  }
+  for ($i=0;$i<count($lock_records);$i++)
+  {
+    $lock_record=$lock_records[$i];
+    $lock_id=$lock_record["lock_id"];
+    if (isset($active_row_locks[$lock_id])==false)
+    {
+      $where_items=array();
+      $where_items["lock_id"]=$lock_record["lock_id"];
+      $settings["sql_check_post_params_override"]=true;
+      \webdb\sql\sql_delete($where_items,"row_locks",$settings["database_webdb"]);
+    }
+  }
+  if (isset($_GET["page"])==false)
+  {
+    return false; # current page unlocked for editing (unknown page_id)
+  }
+  if (isset($_GET["id"])==false)
+  {
+    if ($_GET["page"]=="wiki")
+    {
+      $article_record=\webdb\wiki_utils\get_article_record();
+      $id=$article_record["article_id"];
+    }
+    else
+    {
+      return false; # current page unlocked for editing (unknown record id)
+    }
+  }
+  else
+  {
+    $id=$_GET["id"];
+  }
+  for ($i=0;$i<count($active_row_locks);$i++)
+  {
+    $lock_record=$active_row_locks[$i];
+    /*if ($lock_record["user_id"]==$this_user["user_id"])
+    {
+      continue;
+    }*/
+    if ($lock_record["page_id"]<>$_GET["page"])
+    {
+      continue;
+    }
+    if ($lock_record["lock_key_value"]<>$id)
+    {
+      continue;
+    }
+    return true; # current page still locked for editing
+  }
+  return false; # current page unlocked for editing
+
+  return \webdb\utils\get_lock($schema,$table,$key_field,$key_value);
+}
+
+#####################################################################################################
+
+function purge_expired_row_locks()
 {
   global $settings;
   $records=\webdb\sql\fetch_all_records("row_locks",$settings["database_webdb"]);
@@ -1738,10 +1858,17 @@ function is_row_locked($schema,$table,$key_field,$key_value,$auto_insert=true)
       $settings["sql_check_post_params_override"]=true;
       \webdb\sql\sql_delete($where_items,"row_locks",$settings["database_webdb"]);
       unset($records[$i]);
-      continue;
     }
   }
-  $records=array_values($records);
+  return array_values($records);
+}
+
+#####################################################################################################
+
+function get_lock($schema,$table,$key_field,$key_value)
+{
+  global $settings;
+  $records=\webdb\utils\purge_expired_row_locks();
   for ($i=0;$i<count($records);$i++)
   {
     $record=$records[$i];
@@ -1765,38 +1892,47 @@ function is_row_locked($schema,$table,$key_field,$key_value,$auto_insert=true)
     {
       $where_items=array();
       $where_items["lock_id"]=$record["lock_id"];
-      $value_items=array();
-      $value_items["created_timestamp"]=\webdb\sql\current_sql_timestamp();
       $settings["sql_check_post_params_override"]=true;
-      \webdb\sql\sql_update($value_items,$where_items,"row_locks",$settings["database_webdb"]);
+      \webdb\sql\sql_delete($where_items,"row_locks",$settings["database_webdb"]);
       continue;
     }
-    $record["locked_time"]=strtotime($record["created_timestamp"]);
-    $record["username"]="";
-    $record["fullname"]="";
-    $where_items=array();
-    $where_items["user_id"]=$record["user_id"];
-    $users=\webdb\sql\get_exist_records($settings["database_webdb"],"users",$where_items);
-    if (count($users)==1)
-    {
-      $user=$users[0];
-      $record["username"]=$user["username"];
-      $record["fullname"]=$user["fullname"];
-    }
-    return $record;
+    return \webdb\utils\append_lock_details($record);
   }
-  if ($auto_insert==true)
+  $items=array();
+  $items["user_id"]=$settings["user_record"]["user_id"];
+  $items["lock_schema"]=$schema;
+  $items["lock_table"]=$table;
+  $items["lock_key_field"]=$key_field;
+  $items["lock_key_value"]=$key_value;
+  $settings["sql_check_post_params_override"]=true;
+  \webdb\sql\sql_insert($items,"row_locks",$settings["database_webdb"]);
+  $where_items=array();
+  $where_items["lock_id"]=\webdb\sql\sql_last_insert_autoinc_id();
+  $records=\webdb\sql\get_exist_records($settings["database_webdb"],"row_locks",$where_items);
+  if (count($records)==1)
   {
-    $items=array();
-    $items["user_id"]=$settings["user_record"]["user_id"];
-    $items["lock_schema"]=$schema;
-    $items["lock_table"]=$table;
-    $items["lock_key_field"]=$key_field;
-    $items["lock_key_value"]=$key_value;
-    $settings["sql_check_post_params_override"]=true;
-    \webdb\sql\sql_insert($items,"row_locks",$settings["database_webdb"]);
+    return \webdb\utils\append_lock_details($records[0]);
   }
   return false;
+}
+
+#####################################################################################################
+
+function append_lock_details($lock)
+{
+  global $settings;
+  $lock["locked_time"]=strtotime($lock["created_timestamp"]);
+  $where_items=array();
+  $where_items["user_id"]=$lock["user_id"];
+  $users=\webdb\sql\get_exist_records($settings["database_webdb"],"users",$where_items);
+  if (count($users)<>1)
+  {
+    return false;
+  }
+  $user=$users[0];
+  $lock["username"]=$user["username"];
+  $lock["fullname"]=$user["fullname"];
+  return $lock;
 }
 
 #####################################################################################################
