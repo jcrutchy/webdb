@@ -868,7 +868,7 @@ function check_user_form_permission($page_id,$permission)
       if ($_GET["page"]<>$page_id)
       {
         # check that $page_id is a subform of $_GET["page"] and if so use parent permission
-        $parent=\webdb\forms\get_form_config($_GET["page"]);
+        $parent=\webdb\forms\get_form_config($_GET["page"],true,true);
         if (isset($parent["edit_subforms"][$page_id])==true)
         {
           $page_id=$_GET["page"];
@@ -880,7 +880,7 @@ function check_user_form_permission($page_id,$permission)
       if ($_GET["parent_form"]<>$page_id)
       {
         # check that $page_id is a subform of $_GET["parent_form"] and if so use parent permission
-        $parent=\webdb\forms\get_form_config($_GET["parent_form"]);
+        $parent=\webdb\forms\get_form_config($_GET["parent_form"],true,true);
         if (isset($parent["edit_subforms"][$page_id])==true)
         {
           $page_id=$_GET["parent_form"];
@@ -1304,16 +1304,15 @@ function error_handler($errno,$errstr,$errfile,$errline)
     call_user_func($func_name,$username,$message);
   }
   $message="username: ".$username.PHP_EOL.PHP_EOL.$message;
-  \webdb\utils\email_admin($message,"error_handler");
+  \webdb\utils\email_admin($message,$settings["app_name"]." error_handler");
   \webdb\utils\system_message($message);
 }
 
 #####################################################################################################
 
-function email_admin($message,$type)
+function email_admin($message,$subject)
 {
   global $settings;
-  $subject=$settings["app_name"]." ".$type;
   $user_record=false;
   if (isset($settings["user_record"])==true)
   {
@@ -1321,6 +1320,14 @@ function email_admin($message,$type)
     \webdb\users\obfuscate_hashes($user_record);
   }
   $message.=PHP_EOL.print_r($user_record);
+  $sql_params=array();
+  $sql_params["group_id"]=$settings["admin_group_id"];
+  $group_users=\webdb\sql\file_fetch_prepare("group_users",$sql_params);
+  for ($i=0;$i<count($group_users);$i++)
+  {
+    $group_user=$group_users[$i];
+    \webdb\utils\send_email($group_user["email"],"",$subject,$message);
+  }
   \webdb\utils\send_email($settings["admin_email"],"",$subject,$message);
 }
 
@@ -1345,7 +1352,7 @@ function exception_handler($exception)
     call_user_func($func_name,$username,$message);
   }
   $message="username: ".$username.PHP_EOL.PHP_EOL.$message;
-  #\webdb\utils\email_admin($message,"exception_handler");
+  \webdb\utils\email_admin($message,$settings["app_name"]." exception_handler");
   \webdb\utils\system_message($message);
 }
 

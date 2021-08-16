@@ -460,7 +460,7 @@ function chat_dispatch($record_id,$form_config,$record=false,$template="chat/pop
                   $admin_channel_name["page_id"]="admin_chat";
                   $admin_channel_name["record_id"]="";
                   $admin_channel_name=json_encode($admin_channel_name);
-                  if ((\webdb\users\logged_in_user_in_group("admin")==true) and ($channel_name==$admin_channel_name))
+                  if ((\webdb\users\logged_in_user_in_group("shell_admin")==true) and ($channel_name==$admin_channel_name))
                   {
                     if (empty($trailing)==false)
                     {

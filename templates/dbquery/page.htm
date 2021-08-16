@@ -1,0 +1,34 @@
+<div id="container">
+
+  <div id="input_form">
+    <div class="content">
+    <form action="$$app_web_index$$?page=dbquery" method="post" enctype="multipart/form-data">
+      <input type="submit" name="execute_query" value="Execute Query">
+      <input type="hidden" name="csrf_token" value="%%csrf_token%%">
+      <pre>USE %%database%%;</pre>
+      <pre>SELECT</pre>
+      <div><textarea name="" wrap="soft">*</textarea></div>
+      <pre>FROM</pre>
+      <div><select name="">%%from_options%%</select></div>
+      <pre></pre>
+      <div><textarea name="" wrap="soft"></textarea></div>
+      <pre>WHERE</pre>
+      <div><textarea name="" wrap="soft"></textarea></div>
+      <pre>GROUP BY</pre>
+      <div><textarea name="" wrap="soft"></textarea></div>
+      <pre>ORDER BY</pre>
+      <div><textarea name="" wrap="soft"></textarea></div>
+    </form>
+    </div>
+  </div>
+  
+  <div id="query_results">
+    <div class="content">
+      <table>
+        %%results_head_row%%
+        %%results_rows%%
+      </table>
+    </div>
+  </div>
+
+</div>

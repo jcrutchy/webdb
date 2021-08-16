@@ -1,0 +1,63 @@
+*
+  {
+  }
+
+html
+  {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    overflow: hidden;
+  }
+
+body
+  {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    overflow: hidden;
+  }
+
+textarea
+  {
+    height: 48px;
+  }
+
+.content
+  {
+    padding: 10px;
+  }
+
+#container
+  {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    overflow: hidden;
+  }
+
+#input_form
+  {
+    background-color: #D8E9F7;
+    color: #eb361f;
+    overflow-x: auto;
+    overflow-y: auto;
+    height: 100%;
+    font-weight: bold;
+  }
+
+#query_results
+  {
+    flex-grow: 1;
+    overflow-x: auto;
+    overflow-y: auto;
+    height: 100%;
+    background-color: #FCF8F7;
+    color: #85A8BA;
+  }

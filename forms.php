@@ -4,7 +4,7 @@ namespace webdb\forms;
 
 #####################################################################################################
 
-function get_form_config($page_id,$return=false)
+function get_form_config($page_id,$return=false,$bypass_auth=false)
 {
   global $settings;
   foreach ($settings["forms"] as $key => $form_config)
@@ -15,13 +15,16 @@ function get_form_config($page_id,$return=false)
     }
     if ($page_id===$form_config["page_id"])
     {
-      if (\webdb\utils\check_user_form_permission($page_id,"r")==false)
+      if ($bypass_auth==false)
       {
-        if ($return!==false)
+        if (\webdb\utils\check_user_form_permission($page_id,"r")==false)
         {
-          return false;
+          if ($return!==false)
+          {
+            return false;
+          }
+          \webdb\utils\error_message("error: form read permission denied");
         }
-        \webdb\utils\error_message("error: form read permission denied");
       }
       return $form_config;
     }

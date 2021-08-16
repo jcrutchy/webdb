@@ -1,0 +1,10 @@
+{
+    "form_version": "20190829.1",
+    "form_type": "list",
+    "enabled": true,
+    "title": "dbquery",
+    "page_id": "dbquery",
+    "user_list_fields": "title",
+    "user_list_format": "%s",
+    "generate_stub": "\\webdb\\dbquery\\dbquery_page_stub"
+}

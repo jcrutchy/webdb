@@ -83,6 +83,7 @@ $settings["max_login_attempts"]=7;
 $settings["admin_remote_address_whitelist"]=array("127.0.0.1","::1");
 
 $settings["admin_email"]="";
+$settings["admin_group_id"]=1;
 
 $settings["db_host"]="host=localhost";
 $settings["db_engine"]="mysql";
@@ -191,6 +192,10 @@ $settings["list_border_color"]="888";
 $settings["list_border_width"]=1;
 $settings["list_group_border_color"]="000";
 $settings["list_group_border_width"]=2;
+
+#########################################################
+
+$settings["dbquery_database"]="";
 
 #########################################################
 ################### WEBDB PERMISSIONS ###################
