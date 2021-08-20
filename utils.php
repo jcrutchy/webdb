@@ -601,6 +601,40 @@ function load_files($path,$root="",$ext="",$trim_ext=true) # path (and root) mus
 
 #####################################################################################################
 
+function list_files($path,$root="") # path (and root) must have trailing delimiter
+{
+  if ($root=="")
+  {
+    $root=$path;
+  }
+  $result=array();
+  $file_list=scandir($path);
+  for ($i=0;$i<count($file_list);$i++)
+  {
+    $fn=$file_list[$i];
+    if (($fn==".") or ($fn=="..") or ($fn==".git"))
+    {
+      continue;
+    }
+    $full=$path.$fn;
+    if ($path<>$root)
+    {
+      $fn=substr($full,strlen($root));
+    }
+    if (is_dir($full)==false)
+    {
+      $result[]=$full;
+    }
+    else
+    {
+      $result=$result+\webdb\utils\list_files($full.DIRECTORY_SEPARATOR,$root);
+    }
+  }
+  return $result;
+}
+
+#####################################################################################################
+
 function trim_suffix($value,$suffix)
 {
   $suffix_len=strlen($suffix);
@@ -1940,6 +1974,21 @@ function append_lock_details($lock)
   $lock["username"]=$user["username"];
   $lock["fullname"]=$user["fullname"];
   return $lock;
+}
+
+#####################################################################################################
+
+function net_path_connect($path,$domain,$username,$password)
+{
+  $cmd='net use "'.$path.'" /u:'.$domain.'\\'.$username." ".$password.' 2>&1';
+  return shell_exec($cmd);
+}
+
+#####################################################################################################
+
+function net_path_disconnect($path)
+{
+  return shell_exec('net use "'.$path.'" /delete 2>&1');
 }
 
 #####################################################################################################

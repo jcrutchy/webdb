@@ -21,6 +21,61 @@ function chart_colors()
 
 #####################################################################################################
 
+function assign_plot_data($chart_data,$series_data,$x_key,$y_key,$color_key)
+{
+  $series=array();
+  $series["color"]=$color_key;
+  $series["type"]="plot";
+  $series["marker"]="";
+  $series["x_values"]=array();
+  $series["y_values"]=array();
+  $min_x=PHP_INT_MAX;
+  $max_x=0;
+  $min_y=PHP_INT_MAX;
+  $max_y=0;
+  $n=count($series_data);
+  for ($i=0;$i<$n;$i++)
+  {
+    $coord=$series_data[$i];
+    $x=$coord[$x_key];
+    $y=$coord[$y_key];
+    $series["x_values"][]=$x;
+    $series["y_values"][]=$y;
+    if ($x<$min_x)
+    {
+      $min_x=$x;
+    }
+    if ($x>$max_x)
+    {
+      $max_x=$x;
+    }
+    if ($y<$min_y)
+    {
+      $min_y=$y;
+    }
+    if ($y>$max_y)
+    {
+      $max_y=$y;
+    }
+  }
+  $chart_data["series"][]=$series;
+  if ($min_x>$max_x)
+  {
+    $min_x=$max_x;
+  }
+  if ($min_y>$max_y)
+  {
+    $min_y=$max_y;
+  }
+  $chart_data["x_min"]=$min_x;
+  $chart_data["x_max"]=$max_x;
+  $chart_data["y_min"]=$min_y;
+  $chart_data["y_max"]=$max_y;
+  return $chart_data;
+}
+
+#####################################################################################################
+
 function initilize_chart()
 {
   $data=array();
@@ -155,12 +210,18 @@ function output_chart($data)
         {
           $x1=\webdb\chart\real_to_pixel_x($w,$left,$right,$min_x,$max_x,$x_values[$j]);
           $y1=\webdb\chart\real_to_pixel_y($h,$top,$bottom,$min_y,$max_y,$y_values[$j]);
-          imagerectangle($buffer,$x1-2,$y1-2,$x1+2,$y1+2,$line_color);
+          if ($series["marker"]=="box")
+          {
+            imagerectangle($buffer,$x1-2,$y1-2,$x1+2,$y1+2,$line_color);
+          }
           $x2=\webdb\chart\real_to_pixel_x($w,$left,$right,$min_x,$max_x,$x_values[$j+1]);
           $y2=\webdb\chart\real_to_pixel_y($h,$top,$bottom,$min_y,$max_y,$y_values[$j+1]);
           imageline($buffer,$x1,$y1,$x2,$y2,$line_color);
         }
-        imagerectangle($buffer,$x2-2,$y2-2,$x2+2,$y2+2,$line_color);
+        if ($series["marker"]=="box")
+        {
+          imagerectangle($buffer,$x2-2,$y2-2,$x2+2,$y2+2,$line_color);
+        }
         break;
       case "step":
         $x2=false;

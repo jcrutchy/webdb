@@ -53,9 +53,9 @@ function request($url,$peer_name,$request)
   fwrite($fp,$request);
   $chunksize=1024;
   $response="";
-  while (!feof($fp))
+  while (feof($fp)===false)
   {
-    $response=$response.fgets($fp,$chunksize);
+    $response.=fgets($fp,$chunksize);
   }
   fclose($fp);
   return $response;
