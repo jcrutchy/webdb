@@ -151,7 +151,7 @@ function output_legend_line($series)
 
 #####################################################################################################
 
-function output_chart($data)
+function output_chart($data,$filename=false)
 {
   global $settings;
   $chart_colors=\webdb\chart\chart_colors();
@@ -338,6 +338,10 @@ function output_chart($data)
     $text_x=$x-round($text_w/sqrt(2))-$tick_length;
     $text_y=$y+round($text_w/sqrt(2))+2*$tick_length+$label_space+2;
     imagettftext($buffer,$font_size,45,$text_x,$text_y,$line_color,$text_file,$caption);
+  }
+  if ($filename!==false)
+  {
+    imagepng($buffer,$filename);
   }
   return \webdb\graphics\base64_image($buffer,"png");
 }

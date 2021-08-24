@@ -1354,13 +1354,20 @@ function email_admin($message,$subject)
     \webdb\users\obfuscate_hashes($user_record);
   }
   $message.=PHP_EOL.print_r($user_record);
+  \webdb\utils\email_group($settings["admin_group_id"],$subject,$message);
+}
+
+#####################################################################################################
+
+function email_group($group_id,$subject,$message)
+{
+  global $settings;
   $sql_params=array();
-  $sql_params["group_id"]=$settings["admin_group_id"];
+  $sql_params["group_id"]=$group_id;
   $group_users=\webdb\sql\file_fetch_prepare("group_users",$sql_params);
   for ($i=0;$i<count($group_users);$i++)
   {
-    $group_user=$group_users[$i];
-    \webdb\utils\send_email($group_user["email"],"",$subject,$message);
+    \webdb\utils\send_email($group_users[$i]["email"],"",$subject,$message);
   }
   \webdb\utils\send_email($settings["admin_email"],"",$subject,$message);
 }
