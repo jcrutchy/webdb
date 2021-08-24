@@ -490,6 +490,7 @@ function wikitext_to_html__external_article_link($content)
 function lock_article($article_record)
 {
   global $settings;
+  return;
   $lock=\webdb\utils\get_lock($settings["database_webdb"],"wiki_articles","article_id",$article_record["article_id"]);
   if ($lock!==false)
   {

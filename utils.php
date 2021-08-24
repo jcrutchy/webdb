@@ -1796,6 +1796,7 @@ function force_rmdir($dir)
 function purge_closed_page_row_locks($online_users)
 {
   global $settings;
+  return false;
   $this_user=$settings["user_record"];
   $active_row_locks=array();
   $lock_records=\webdb\utils\purge_expired_row_locks();
@@ -1893,6 +1894,7 @@ function purge_closed_page_row_locks($online_users)
 function purge_expired_row_locks()
 {
   global $settings;
+  return false;
   $records=\webdb\sql\fetch_all_records("row_locks",$settings["database_webdb"]);
   for ($i=0;$i<count($records);$i++)
   {
@@ -1916,6 +1918,7 @@ function purge_expired_row_locks()
 function get_lock($schema,$table,$key_field,$key_value)
 {
   global $settings;
+  return false;
   $records=\webdb\utils\purge_expired_row_locks();
   for ($i=0;$i<count($records);$i++)
   {
@@ -1969,6 +1972,7 @@ function get_lock($schema,$table,$key_field,$key_value)
 function append_lock_details($lock)
 {
   global $settings;
+  return false;
   $lock["locked_time"]=strtotime($lock["created_timestamp"]);
   $where_items=array();
   $where_items["user_id"]=$lock["user_id"];
