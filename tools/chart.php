@@ -4,6 +4,23 @@ namespace webdb\chart;
 
 #####################################################################################################
 
+function perpendicular_distance($x,$y,$L1x,$L1y,$L2x,$L2y)
+{
+  # https://www.loughrigg.org/rdp/viewsource.php
+  if ($L1x==$L2x)
+  {
+    return abs($x-$L2x);
+  }
+  else
+  {
+    $m=(($L2y-$L1y)/($L2x-$L1x));
+    $c=(0-$L1x)*$m+$L1y;
+    return (abs($m*$x-$y+$c))/(sqrt($m*$m+1));
+  }
+}
+
+#####################################################################################################
+
 function chart_colors()
 {
   $colors=array();
@@ -21,7 +38,7 @@ function chart_colors()
 
 #####################################################################################################
 
-function assign_plot_data($chart_data,$series_data,$x_key,$y_key,$color_key,$marker="")
+function assign_plot_data($chart_data,$series_data,$x_key,$y_key,$color_key,$marker="",$assign_limits=true)
 {
   $series=array();
   $series["color"]=$color_key;
@@ -59,12 +76,15 @@ function assign_plot_data($chart_data,$series_data,$x_key,$y_key,$color_key,$mar
     }
   }
   $chart_data["series"][]=$series;
-  if (($min_x<$max_x) and ($min_y<$max_y))
+  if ($assign_limits==true)
   {
-    $chart_data["x_min"]=$min_x;
-    $chart_data["x_max"]=$max_x;
-    $chart_data["y_min"]=$min_y;
-    $chart_data["y_max"]=$max_y;
+    if (($min_x<$max_x) and ($min_y<$max_y))
+    {
+      $chart_data["x_min"]=$min_x;
+      $chart_data["x_max"]=$max_x;
+      $chart_data["y_min"]=$min_y;
+      $chart_data["y_max"]=$max_y;
+    }
   }
   return $chart_data;
 }
