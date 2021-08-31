@@ -281,7 +281,8 @@ function list_record_cell_click(element,page_id,id,field_name,edit_cmd_id)
   var row_edit_mode=document.getElementById("row_edit_mode:"+page_id).innerHTML;
   if (row_edit_mode=="row")
   {
-    window.location=document.getElementById("edit_page:"+page_id).value+edit_cmd_id;
+    url=document.getElementById("edit_page:"+page_id).value+edit_cmd_id;
+    open_link_new_tab(url);
     return;
   }
   if (row_edit_mode=="inline")
