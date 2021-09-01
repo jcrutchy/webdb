@@ -886,6 +886,18 @@ function check_user_app_permission()
 function check_user_form_permission($page_id,$permission)
 {
   global $settings;
+  $admin_user_locked=array("groups");
+  if (in_array($page_id,$admin_user_locked)==true)
+  {
+    if (isset($settings["user_record"])==false)
+    {
+      return false;
+    }
+    if (in_array($settings["user_record"]["user_id"],$settings["group_admin_user_id"])==false)
+    {
+      return false;
+    }
+  }
   $whitelisted=false;
   foreach ($settings["permissions"] as $group_name_iterator => $group_permissions)
   {

@@ -49,6 +49,7 @@ function check_settings()
   global $settings;
   $required_settings=array(
     "cli_dispatch",
+    "group_admin_user_id",
     "ua_error",
     "sql_change_table",
     "sql_change_log_path",

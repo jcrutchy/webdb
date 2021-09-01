@@ -84,6 +84,7 @@ $settings["admin_remote_address_whitelist"]=array("127.0.0.1","::1");
 
 $settings["admin_email"]="";
 $settings["admin_group_id"]=1;
+$settings["group_admin_user_id"]=array(1);
 
 $settings["db_host"]="host=localhost";
 $settings["db_engine"]="mysql";
