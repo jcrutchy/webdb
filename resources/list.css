@@ -19,7 +19,7 @@ th
 td
   {
     font-size: 10pt;
-    border: solid 1px #888;
+    border: solid thin #888;
     padding: 5px;
     min-width: 33px;
     vertical-align: top;
@@ -57,7 +57,7 @@ textarea
     left: 142px;
     /*top: -1px;*/
     top: 0px;
-    border: 1px solid #888;
+    border: thin solid #888;
     padding: 3px;
     background-color: rgba(250,250,253,0.75);
   }
@@ -68,7 +68,7 @@ textarea
     left: 141px;
     /*top: -1px;*/
     top: 0px;
-    border: 1px solid #888;
+    border: thin solid #888;
     padding: 3px;
     background-color: rgba(250,250,253,0.75);
   }
@@ -153,7 +153,7 @@ input.date_edit_field
     font-size: 1px;
     height: 20px;
     width: 40px;
-    border-left: 1px solid #888;
+    border-left: thin solid #888;
     padding: 0;
     margin: 0;
     bottom: -1px;
@@ -180,7 +180,7 @@ input.date_edit_field
     padding: 5px;
     padding-top: 2px;
     font-size: 10pt;
-    border-top: 1px solid #666;
+    border-top: thin solid #666;
     width: 190px;
     display: inline-block;
   }
@@ -292,7 +292,7 @@ input.date_edit_field
     padding: 0;
     overflow: hidden;
     border-style: solid;
-    border-width: 1px;
+    border-width: thin;
     border-top-color: #999999;
     border-left-color: #999999;
     border-bottom-color: #FFFFFF;
@@ -310,7 +310,7 @@ input.date_edit_field
     padding: 0;
     overflow: auto;
     border-style: solid;
-    border-width: 1px;
+    border-width: thin;
     border-top-color: #555555;
     border-left-color: #555555;
     border-bottom-color: #CCCCCC;
@@ -382,7 +382,7 @@ input.date_edit_field
     padding: 0;
     height: 100%;
     box-shadow: 1px 0 3px #aaaaaa;
-    border-right: 1px solid #aaaaaa;
+    border-right: thin solid #aaaaaa;
     /*****/
   }
 
@@ -419,7 +419,7 @@ input.date_edit_field
     width: calc(100% - 8px);
     padding: 3px;
     overflow: hidden;
-    border: solid 1px #999999;
+    border: solid thin #999999;
     box-shadow: inset 0 0 3px #444444;
     margin-bottom: 10px;
   }
@@ -467,12 +467,12 @@ input.date_edit_field
 
 .edit_record_table td
   {
-    border: solid 1px #e4e4f4;
+    border: solid thin #e4e4f4;
   }
 
 .insert_record_table td
   {
-    border: solid 1px #e4e4f4;
+    border: solid thin #e4e4f4;
   }
 
 /* advanced search */
@@ -487,7 +487,7 @@ input.date_edit_field
     padding: 0;
     overflow: hidden;
     border-style: solid;
-    border-width: 1px;
+    border-width: thin;
     border-top-color: #999999;
     border-left-color: #999999;
     border-bottom-color: #FFFFFF;
@@ -505,7 +505,7 @@ input.date_edit_field
     padding: 0;
     overflow: hidden;
     border-style: solid;
-    border-width: 1px;
+    border-width: thin;
     border-top-color: #999999;
     border-left-color: #999999;
     border-bottom-color: #FFFFFF;
@@ -522,7 +522,7 @@ input.date_edit_field
     padding: 0;
     overflow: hidden;
     border-style: solid;
-    border-width: 1px;
+    border-width: thin;
     border-top-color: #999999;
     border-left-color: #999999;
     border-bottom-color: #FFFFFF;
@@ -537,7 +537,7 @@ input.date_edit_field
     height: 130px;
     overflow: auto;
     border-style: solid;
-    border-width: 1px;
+    border-width: thin;
     border-top-color: #555555;
     border-left-color: #555555;
     border-bottom-color: #CCCCCC;
@@ -563,7 +563,7 @@ input.date_edit_field
     padding: 0;
     overflow: auto;
     border-style: solid;
-    border-width: 1px;
+    border-width: thin;
     border-top-color: #555555;
     border-left-color: #555555;
     border-bottom-color: #CCCCCC;

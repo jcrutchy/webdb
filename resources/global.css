@@ -50,14 +50,14 @@ th
   {
     font-size: 10pt;
     font-weight: bold;
-    border: solid 1px black;
+    border: solid thin black;
     padding: 5px;
   }
 
 td
   {
     font-size: 10pt;
-    border: solid 1px black;
+    border: solid thin black;
     padding: 5px;
   }
 
@@ -113,7 +113,7 @@ textarea
     padding: 0;
     overflow: hidden;
     border-style: solid;
-    border-width: 1px;
+    border-width: thin;
     border-top-color: #999999;
     border-left-color: #999999;
     border-bottom-color: #FFFFFF;
@@ -131,7 +131,7 @@ textarea
     padding: 0;
     overflow: auto;
     border-style: solid;
-    border-width: 1px;
+    border-width: thin;
     border-top-color: #555555;
     border-left-color: #555555;
     border-bottom-color: #CCCCCC;
@@ -190,7 +190,7 @@ textarea
     margin-top: -200px;
     margin-left: -350px;
     border-style: solid;
-    border-width: 1px;
+    border-width: thin;
     border-top-color: #CCCCCC;
     border-left-color: #CCCCCC;
     border-bottom-color: #555555;
@@ -209,7 +209,7 @@ textarea
     bottom: 0;
     background-color: #EEEEFF;
     border-style: solid;
-    border-width: 1px;
+    border-width: thin;
     border-top-color: #FFFFFF;
     border-left-color: #FFFFFF;
     border-bottom-color: #999999;
@@ -252,7 +252,7 @@ textarea
     right: 0;
     overflow: auto;
     padding: 5px;
-    border: 1px solid #999;
+    border: thin solid #999;
     white-space: pre;
     font-family: "Courier New", Courier, monospace;
   }
@@ -266,7 +266,7 @@ textarea
     right: 0;
     overflow: auto;
     padding: 5px;
-    border: 1px solid #999;
+    border: thin solid #999;
   }
 
 #custom_alert_home_box
@@ -301,7 +301,7 @@ textarea
     height: 100px;
     margin-top: -50px;
     margin-left: -250px;
-    border: solid 1px #555599;
+    border: solid thin #555599;
     -webkit-box-shadow: 5px 5px 15px 1px rgba(0,0,0,0.67);
     -moz-box-shadow: 5px 5px 15px 1px rgba(0,0,0,0.67);
     box-shadow: 5px 5px 15px 1px rgba(0,0,0,0.67);
