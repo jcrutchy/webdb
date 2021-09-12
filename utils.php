@@ -1381,7 +1381,7 @@ function email_group($group_id,$subject,$message)
   {
     \webdb\utils\send_email($group_users[$i]["email"],"",$subject,$message);
   }
-  \webdb\utils\send_email($settings["admin_email"],"",$subject,$message);
+  #\webdb\utils\send_email($settings["admin_email"],"",$subject,$message);
 }
 
 #####################################################################################################

@@ -23,7 +23,7 @@ function get_form_config($page_id,$return=false,$bypass_auth=false)
           {
             return false;
           }
-          \webdb\utils\error_message("error: form read permission denied");
+          \webdb\utils\error_message("error: form read permission denied: ".$page_id);
         }
       }
       return $form_config;
@@ -33,7 +33,7 @@ function get_form_config($page_id,$return=false,$bypass_auth=false)
   {
     return false;
   }
-  \webdb\utils\error_message("error: form config not found");
+  \webdb\utils\error_message("error: form config not found: ".$page_id);
 }
 
 #####################################################################################################
@@ -537,7 +537,7 @@ function checklist_update($form_config,$parent_id)
         {
           if (\webdb\utils\check_user_form_permission($page_id,"u")==false)
           {
-            \webdb\utils\error_message("error: form record(s) update permission denied");
+            \webdb\utils\error_message("error: form record(s) update permission denied: ".$page_id);
           }
           \webdb\forms\check_required_values($form_config,$value_items);
           \webdb\sql\sql_update($value_items,$where_items,$link_table,$link_database,false,$form_config);
@@ -547,7 +547,7 @@ function checklist_update($form_config,$parent_id)
       {
         if (\webdb\utils\check_user_form_permission($page_id,"i")==false)
         {
-          \webdb\utils\error_message("error: form record(s) insert permission denied");
+          \webdb\utils\error_message("error: form record(s) insert permission denied: ".$page_id);
         }
         $value_items+=$where_items;
         $event_params=array();
