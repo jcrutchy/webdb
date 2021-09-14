@@ -241,7 +241,7 @@ function output_chart($data,$filename=false)
           $y2=\webdb\chart\real_to_pixel_y($h,$top,$bottom,$min_y,$max_y,$y_values[$j+1]);
           imageline($buffer,$x1,$y1,$x2,$y2,$line_color);
         }
-        if ($series["marker"]=="box")
+        if (($series["marker"]=="box") and ($n>1))
         {
           imagerectangle($buffer,$x2-2,$y2-2,$x2+2,$y2+2,$line_color);
         }
