@@ -1496,6 +1496,12 @@ function send_email($recipient,$cc,$subject,$message,$from="",$reply_to="",$boun
   {
     $bounce_to=$settings["server_email_bounce_to"];
   }
+  if ($settings["dev_env"]==true)
+  {
+    $recipient=$settings["dev_env_email"];
+    $cc="";
+    $bounce_to="";
+  }
   $headers=array();
   $headers[]="From: ".$from;
   if ($cc<>"")
@@ -2004,6 +2010,7 @@ function append_lock_details($lock)
 function net_path_connect($path,$domain,$username,$password)
 {
   $cmd='net use "'.$path.'" /u:'.$domain.'\\'.$username." ".$password.' 2>&1';
+  var_dump($cmd);
   return shell_exec($cmd);
 }
 

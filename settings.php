@@ -3,6 +3,9 @@
 $settings["app_name"]="WebDB";
 $settings["app_title"]=$settings["app_name"];
 
+$settings["dev_env"]=false;
+$settings["dev_env_email"]="";
+
 if (isset($settings["app_root_path"])==false)
 {
   $settings["app_root_path"]=$settings["env_root_path"];
