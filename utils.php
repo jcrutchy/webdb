@@ -2016,6 +2016,36 @@ function net_path_connect($path,$domain,$username,$password)
 
 #####################################################################################################
 
+function webdb_array_key_first($a) # for PHP version < 7.3
+{
+  if (is_array($a)==false)
+  {
+    return null;
+  }
+  if (count($a)==0)
+  {
+    return null;
+  }
+  return array_keys($a)[0];
+}
+
+#####################################################################################################
+
+function webdb_array_key_last($a) # for PHP version < 7.3
+{
+  if (is_array($a)==false)
+  {
+    return null;
+  }
+  if (count($a)==0)
+  {
+    return null;
+  }
+  return array_keys($a)[count($a)-1];
+}
+
+#####################################################################################################
+
 function net_path_disconnect($path)
 {
   return shell_exec('net use "'.$path.'" /delete 2>&1');
