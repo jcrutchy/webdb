@@ -593,7 +593,7 @@ function load_files($path,$root="",$ext="",$trim_ext=true) # path (and root) mus
     }
     else
     {
-      $result=$result+\webdb\utils\load_files($full.DIRECTORY_SEPARATOR,$root,$ext,$trim_ext);
+      $result=array_merge($result,\webdb\utils\load_files($full.DIRECTORY_SEPARATOR,$root,$ext,$trim_ext));
     }
   }
   return $result;
@@ -627,7 +627,7 @@ function list_files($path,$root="") # path (and root) must have trailing delimit
     }
     else
     {
-      $result=$result+\webdb\utils\list_files($full.DIRECTORY_SEPARATOR,$root);
+      $result=array_merge($result,\webdb\utils\list_files($full.DIRECTORY_SEPARATOR,$root));
     }
   }
   return $result;
