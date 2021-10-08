@@ -160,7 +160,6 @@ function article_history($form_config,$article_record)
   global $settings;
   if (isset($_GET["rev"])==true)
   {
-    $page_params=\webdb\sql\lookup("wiki_article_oldversions",$settings["database_webdb"],"article_revision_id",$_GET["rev"]);
     $page_params["content"]=\webdb\wiki_utils\wikitext_to_html($page_params["content"]);
   }
   else
