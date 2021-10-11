@@ -111,6 +111,14 @@ function initilize_chart()
   $data["y_range_override"]=false;
   $data["x_title"]="";
   $data["y_title"]="";
+  $data["scale"]=1;
+  $data["show_grid_x"]=true;
+  $data["show_grid_y"]=true;
+  $data["show_x_axis"]=true;
+  $data["show_y_axis"]=true;
+  $data["bg_color_r"]=253;
+  $data["bg_color_g"]=253;
+  $data["bg_color_b"]=253;
   return $data;
 }
 
@@ -198,24 +206,30 @@ function output_chart($data,$filename=false)
   $dy=$max_y-$min_y;
   $buffer=imagecreatetruecolor($w,$h);
   imageantialias($buffer,true);
-  $bg_color=imagecolorallocate($buffer,253,253,253);
+  $bg_color=imagecolorallocate($buffer,$data["bg_color_r"],$data["bg_color_g"],$data["bg_color_b"]);
   imagefill($buffer,0,0,$bg_color);
   $line_color=imagecolorallocate($buffer,230,230,250);
   imagerectangle($buffer,0,0,$w-1,$h-1,$line_color);
   $line_color=imagecolorallocate($buffer,230,230,230);
-  $n=round($dx/$grid_x);
-  for ($i=0;$i<=$n;$i++)
+  if ($data["show_grid_x"]==true)
   {
-    $rx=$grid_x*$i+$min_x;
-    $x=\webdb\chart\real_to_pixel_x($w,$left,$right,$min_x,$max_x,$rx);
-    imageline($buffer,$x,$top,$x,$h-$bottom-1,$line_color);
+    $n=round($dx/$grid_x);
+    for ($i=0;$i<=$n;$i++)
+    {
+      $rx=$grid_x*$i+$min_x;
+      $x=\webdb\chart\real_to_pixel_x($w,$left,$right,$min_x,$max_x,$rx);
+      imageline($buffer,$x,$top,$x,$h-$bottom-1,$line_color);
+    }
   }
-  $n=round($dy/$grid_y);
-  for ($i=0;$i<=$n;$i++)
+  if ($data["show_grid_y"]==true)
   {
-    $ry=$grid_y*$i+$min_y;
-    $y=\webdb\chart\real_to_pixel_y($h,$top,$bottom,$min_y,$max_y,$ry);
-    imageline($buffer,$left,$y,$w-$right-1,$y,$line_color);
+    $n=round($dy/$grid_y);
+    for ($i=0;$i<=$n;$i++)
+    {
+      $ry=$grid_y*$i+$min_y;
+      $y=\webdb\chart\real_to_pixel_y($h,$top,$bottom,$min_y,$max_y,$ry);
+      imageline($buffer,$left,$y,$w-$right-1,$y,$line_color);
+    }
   }
   for ($i=0;$i<count($data["series"]);$i++)
   {
@@ -317,65 +331,71 @@ function output_chart($data,$filename=false)
       imageline($buffer,$x,$y1,$x,$y2,$line_color);
     }
   }
-  $line_color=imagecolorallocate($buffer,50,50,50);
-  $x=\webdb\chart\real_to_pixel_x($w,$left,$right,$min_x,$max_x,$min_x);
-  imageline($buffer,$x,$top,$x,$h-$bottom-1,$line_color);
-  $n=round($dy/$grid_y);
-  for ($i=0;$i<=$n;$i++)
+  if ($data["show_y_axis"]==true)
   {
-    $ry=$grid_y*$i+$min_y;
-    $y=\webdb\chart\real_to_pixel_y($h,$top,$bottom,$min_y,$max_y,$ry);
-    $caption=$ry;
-    if (isset($data["y_axis_format"])==true)
+    $line_color=imagecolorallocate($buffer,50,50,50);
+    $x=\webdb\chart\real_to_pixel_x($w,$left,$right,$min_x,$max_x,$min_x);
+    imageline($buffer,$x,$top,$x,$h-$bottom-1,$line_color);
+    $n=round($dy/$grid_y);
+    for ($i=0;$i<=$n;$i++)
     {
-      $caption=sprintf($data["y_axis_format"],$ry);
-    }
-    if (isset($data["y_captions"][$i])==true)
-    {
-      $caption=$data["y_captions"][$i];
-    }
-    imageline($buffer,$x,$y,$x-$tick_length,$y,$line_color);
-    $bbox=imagettfbbox($font_size,0,$text_file,$caption);
-    $text_w=$bbox[2]-$bbox[0];
-    $text_h=$bbox[1]-$bbox[7];
-    $text_x=$x-$text_w-$tick_length-$label_space;
-    $text_y=$y+round($text_h/2);
-    imagettftext($buffer,$font_size,0,$text_x,$text_y,$line_color,$text_file,$caption);
-  }
-  $y=\webdb\chart\real_to_pixel_y($h,$top,$bottom,$min_y,$max_y,$min_y);
-  imageline($buffer,$left,$y,$w-$right-1,$y,$line_color);
-  $grid_x_pixels=\webdb\chart\real_to_pixel_x($w,$left,$right,$min_x,$max_x,$grid_x);
-  $n=round($dx/$grid_x);
-  for ($i=0;$i<=$n;$i++)
-  {
-    $rx=$grid_x*$i+$min_x;
-    $x=\webdb\chart\real_to_pixel_x($w,$left,$right,$min_x,$max_x,$rx);
-    $caption=$rx;
-    if (isset($data["x_axis_format"])==true)
-    {
-      $caption=sprintf($data["x_axis_format"],$rx);
-    }
-    if (isset($data["x_captions"][$i])==true)
-    {
-      $caption=$data["x_captions"][$i];
-    }
-    $bbox=imagettfbbox($font_size,0,$text_file,$caption);
-    $text_w=$bbox[2]-$bbox[0];
-    $text_h=$bbox[1]-$bbox[7];
-    if ($grid_x_pixels<($text_h*2))
-    {
-      if (($i%2)>0)
+      $ry=$grid_y*$i+$min_y;
+      $y=\webdb\chart\real_to_pixel_y($h,$top,$bottom,$min_y,$max_y,$ry);
+      $caption=$ry;
+      if (isset($data["y_axis_format"])==true)
       {
-        continue;
+        $caption=sprintf($data["y_axis_format"],$ry);
       }
+      if (isset($data["y_captions"][$i])==true)
+      {
+        $caption=$data["y_captions"][$i];
+      }
+      imageline($buffer,$x,$y,$x-$tick_length,$y,$line_color);
+      $bbox=imagettfbbox($font_size,0,$text_file,$caption);
+      $text_w=$bbox[2]-$bbox[0];
+      $text_h=$bbox[1]-$bbox[7];
+      $text_x=$x-$text_w-$tick_length-$label_space;
+      $text_y=$y+round($text_h/2);
+      imagettftext($buffer,$font_size,0,$text_x,$text_y,$line_color,$text_file,$caption);
     }
-    imageline($buffer,$x,$y,$x,$y+$tick_length,$line_color);
-    imageline($buffer,$x,$y+$tick_length,$x-$tick_length,$y+2*$tick_length,$line_color);
-    $text_x=$x-round($text_w/sqrt(2))-$tick_length;
-    $text_y=$y+round($text_w/sqrt(2))+2*$tick_length+$label_space+2;
-    imagettftext($buffer,$font_size,45,$text_x,$text_y,$line_color,$text_file,$caption);
   }
-  if ($data["x_title"]<>"")
+  if ($data["show_x_axis"]==true)
+  {
+    $y=\webdb\chart\real_to_pixel_y($h,$top,$bottom,$min_y,$max_y,$min_y);
+    imageline($buffer,$left,$y,$w-$right-1,$y,$line_color);
+    $grid_x_pixels=\webdb\chart\real_to_pixel_x($w,$left,$right,$min_x,$max_x,$grid_x);
+    $n=round($dx/$grid_x);
+    for ($i=0;$i<=$n;$i++)
+    {
+      $rx=$grid_x*$i+$min_x;
+      $x=\webdb\chart\real_to_pixel_x($w,$left,$right,$min_x,$max_x,$rx);
+      $caption=$rx;
+      if (isset($data["x_axis_format"])==true)
+      {
+        $caption=sprintf($data["x_axis_format"],$rx);
+      }
+      if (isset($data["x_captions"][$i])==true)
+      {
+        $caption=$data["x_captions"][$i];
+      }
+      $bbox=imagettfbbox($font_size,0,$text_file,$caption);
+      $text_w=$bbox[2]-$bbox[0];
+      $text_h=$bbox[1]-$bbox[7];
+      if ($grid_x_pixels<($text_h*2))
+      {
+        if (($i%2)>0)
+        {
+          continue;
+        }
+      }
+      imageline($buffer,$x,$y,$x,$y+$tick_length,$line_color);
+      imageline($buffer,$x,$y+$tick_length,$x-$tick_length,$y+2*$tick_length,$line_color);
+      $text_x=$x-round($text_w/sqrt(2))-$tick_length;
+      $text_y=$y+round($text_w/sqrt(2))+2*$tick_length+$label_space+2;
+      imagettftext($buffer,$font_size,45,$text_x,$text_y,$line_color,$text_file,$caption);
+    }
+  }
+  if ($data["x_title"]!=="")
   {
     $title=$data["x_title"];
     $cx=($w-$left-$right)/2+$left;
@@ -386,7 +406,7 @@ function output_chart($data,$filename=false)
     $text_y=$h-$title_margin;
     imagettftext($buffer,$title_font_size,0,$text_x,$text_y,$line_color,$text_file,$title);
   }
-  if ($data["y_title"]<>"")
+  if ($data["y_title"]!=="")
   {
     $title=$data["y_title"];
     $cy=($h-$bottom-$top)/2+$top;
@@ -396,6 +416,10 @@ function output_chart($data,$filename=false)
     $text_x=$title_margin+$text_h;
     $text_y=$cy+round($text_w/2);
     imagettftext($buffer,$title_font_size,90,$text_x,$text_y,$line_color,$text_file,$title);
+  }
+  if (($data["scale"]!=="") and ($data["scale"]<>1))
+  {
+    \webdb\graphics\scale_img($buffer,$data["scale"],$w,$h);
   }
   if ($filename!==false)
   {
