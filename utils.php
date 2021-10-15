@@ -963,7 +963,7 @@ function check_user_form_permission($page_id,$permission)
       # allow view-only
       if ($permission=="r")
       {
-        return true;
+        #return true;
       }
       return false;
     }
