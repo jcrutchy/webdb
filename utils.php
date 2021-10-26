@@ -2010,7 +2010,6 @@ function append_lock_details($lock)
 function net_path_connect($path,$domain,$username,$password)
 {
   $cmd='net use "'.$path.'" /u:'.$domain.'\\'.$username." ".$password.' 2>&1';
-  var_dump($cmd);
   return shell_exec($cmd);
 }
 

@@ -3257,6 +3257,7 @@ function insert_default_url_params()
       case "file":
       case "article":
       case "rev":
+      case "mod":
       case "search":
         break;
       default:
