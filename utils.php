@@ -2015,6 +2015,22 @@ function net_path_connect($path,$domain,$username,$password)
 
 #####################################################################################################
 
+function net_path_disconnect($path)
+{
+  return shell_exec('net use "'.$path.'" /delete 2>&1');
+}
+
+#####################################################################################################
+
+function change_filename_ext($filename,$new_ext,$delim=".")
+{
+  $parts=explode($delim,$filename);
+  array_pop($parts);
+  return implode($delim,$parts).$delim.$new_ext;
+}
+
+#####################################################################################################
+
 function webdb_array_key_first($a) # for PHP version < 7.3
 {
   if (is_array($a)==false)
@@ -2041,13 +2057,6 @@ function webdb_array_key_last($a) # for PHP version < 7.3
     return null;
   }
   return array_keys($a)[count($a)-1];
-}
-
-#####################################################################################################
-
-function net_path_disconnect($path)
-{
-  return shell_exec('net use "'.$path.'" /delete 2>&1');
 }
 
 #####################################################################################################

@@ -29,6 +29,7 @@ function chart_colors()
   $colors["purple"]=array(111,78,124);
   $colors["light_green"]=array(157,216,102);
   $colors["red"]=array(202,71,47);
+  $colors["light_red"]=array(254,200,216);
   $colors["orange"]=array(255,160,86);
   $colors["sky_blue"]=array(141,221,208);
   $colors["magenta"]=array(211,54,130);
@@ -38,8 +39,91 @@ function chart_colors()
 
 #####################################################################################################
 
+function assign_discontinuous_plot_data($chart_data,$plot_data,$x_key,$y_key,$color_key,$marker="",$limits="update")
+{
+  # $segment_data[$i]["p1|2"][$x|y_key]
+  $plot=array();
+  $plot["color"]=$color_key;
+  $plot["marker"]=$marker;
+  $plot["segments"]=array();
+  if ($limits=="assign")
+  {
+    $min_x=PHP_INT_MAX;
+    $max_x=0;
+    $min_y=PHP_INT_MAX;
+    $max_y=0;
+  }
+  else
+  {
+    $min_x=$chart_data["x_min"];
+    $max_x=$chart_data["x_max"];
+    $min_y=$chart_data["y_min"];
+    $max_y=$chart_data["y_max"];
+  }
+  $n=count($plot_data);
+  for ($i=0;$i<$n;$i++)
+  {
+    $data=$plot_data[$i];
+    $x1=$data["p1"][$x_key];
+    $y1=$data["p1"][$y_key];
+    $x2=$data["p2"][$x_key];
+    $y2=$data["p2"][$y_key];
+    $segment=array();
+    $segment["p1"]=array("x"=>$x1,"y"=>$y1);
+    $segment["p2"]=array("x"=>$x2,"y"=>$y2);
+    $plot["segments"][]=$segment;
+    if ($x1<$min_x)
+    {
+      $min_x=$x1;
+    }
+    if ($x1>$max_x)
+    {
+      $max_x=$x1;
+    }
+    if ($y1<$min_y)
+    {
+      $min_y=$y1;
+    }
+    if ($y1>$max_y)
+    {
+      $max_y=$y1;
+    }
+    if ($x2<$min_x)
+    {
+      $min_x=$x2;
+    }
+    if ($x2>$max_x)
+    {
+      $max_x=$x2;
+    }
+    if ($y2<$min_y)
+    {
+      $min_y=$y2;
+    }
+    if ($y2>$max_y)
+    {
+      $max_y=$y2;
+    }
+  }
+  $chart_data["discontinuous_plots"][]=$plot;
+  if (($limits=="update") or ($limits=="assign"))
+  {
+    if (($min_x<$max_x) and ($min_y<$max_y))
+    {
+      $chart_data["x_min"]=$min_x;
+      $chart_data["x_max"]=$max_x;
+      $chart_data["y_min"]=$min_y;
+      $chart_data["y_max"]=$max_y;
+    }
+  }
+  return $chart_data;
+}
+
+#####################################################################################################
+
 function assign_plot_data($chart_data,$series_data,$x_key,$y_key,$color_key,$marker="",$assign_limits=true)
 {
+  # $series_data[$i][$x|y_key] (continuous)
   $series=array();
   $series["color"]=$color_key;
   $series["type"]="plot";
@@ -101,6 +185,7 @@ function initilize_chart()
   $data["bottom"]=60;
   $data["top"]=10;
   $data["series"]=array();
+  $data["discontinuous_plots"]=array();
   $data["grid_x"]=1;
   $data["grid_y"]=1;
   $data["x_min"]=0;
@@ -231,6 +316,39 @@ function output_chart($data,$filename=false)
       imageline($buffer,$left,$y,$w-$right-1,$y,$line_color);
     }
   }
+  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  for ($i=0;$i<count($data["discontinuous_plots"]);$i++)
+  {
+    # $data["discontinuous_plots"][$i]["p1|2"]["x|y_values"]
+    $plot=$data["discontinuous_plots"][$i];
+    $color=$plot["color"];
+    $color=$chart_colors[$color];
+    $line_color=imagecolorallocate($buffer,$color[0],$color[1],$color[2]);
+    $segments=$plot["segments"];
+    $n=count($segments);
+    for ($j=0;$j<$n;$j++)
+    {
+      $segment=$segments[$j];
+      $x1=$segment["p1"]["x"];
+      $y1=$segment["p1"]["y"];
+      $x2=$segment["p2"]["x"];
+      $y2=$segment["p2"]["y"];
+      $x1=\webdb\chart\real_to_pixel_x($w,$left,$right,$min_x,$max_x,$x1);
+      $y1=\webdb\chart\real_to_pixel_y($h,$top,$bottom,$min_y,$max_y,$y1);
+      $x2=\webdb\chart\real_to_pixel_x($w,$left,$right,$min_x,$max_x,$x2);
+      $y2=\webdb\chart\real_to_pixel_y($h,$top,$bottom,$min_y,$max_y,$y2);
+      if ($plot["marker"]=="box")
+      {
+        imagerectangle($buffer,$x1-2,$y1-2,$x1+2,$y1+2,$line_color);
+      }
+      imageline($buffer,$x1,$y1,$x2,$y2,$line_color);
+    }
+    if (($plot["marker"]=="box") and ($n>0))
+    {
+      imagerectangle($buffer,$x2-2,$y2-2,$x2+2,$y2+2,$line_color);
+    }
+  }
+  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   for ($i=0;$i<count($data["series"]);$i++)
   {
     $series=$data["series"][$i];
