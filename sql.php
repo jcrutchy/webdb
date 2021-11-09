@@ -208,6 +208,11 @@ function sql_delete($items,$table,$database,$is_admin=false,$form_config=false)
 
 function get_exist_records($database,$table,$where_items,$is_admin=false)
 {
+  global $settings;
+  if (($database==="") or ($database===false))
+  {
+    $database=$settings["database_app"];
+  }
   $sql_params=array();
   $sql_params["database"]=$database;
   $sql_params["table"]=$table;
