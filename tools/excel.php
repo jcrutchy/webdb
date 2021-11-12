@@ -6,7 +6,7 @@ namespace webdb\excel;
 
 function excel_to_unix_timetamp($excel_timestamp)
 {
-  return ($excel_timestamp-25569)*60*60*24; # 25569 days between 1970-01-01 and 1900-01-01
+  return sprintf("%.8f",($excel_timestamp-25569)*60*60*24); # 25569 days between 1970-01-01 and 1900-01-01
 }
 
 #####################################################################################################

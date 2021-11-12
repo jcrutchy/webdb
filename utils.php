@@ -1805,7 +1805,12 @@ function force_rmdir($dir)
         unlink($child);
       }
     }
-    rmdir($dir);
+    sleep(1);
+    $objects=scandir($dir);
+    if (count($objects)==0)
+    {
+      rmdir($dir);
+    }
   }
 }
 
