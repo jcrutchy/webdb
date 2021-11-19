@@ -176,6 +176,9 @@ $settings["auth_log_path"]="";
 $settings["sql_log_enabled"]=true;
 $settings["auth_log_enabled"]=true;
 
+$settings["email_file_log_enabled"]=false;
+$settings["email_file_log_path"]="";
+
 $settings["report_proprietary_notice"]="";
 
 $settings["ssl_cafile"]=$settings["env_root_path"]."cacert.pem";

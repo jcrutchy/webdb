@@ -1515,6 +1515,23 @@ function send_email($recipient,$cc,$subject,$message,$from="",$reply_to="",$boun
   $headers[]="Content-Type: text/html; charset=iso-8859-1";
   #mail($recipient,$subject,$message,implode(PHP_EOL,$headers),"-f".$bounce_to);
   mail($recipient,$subject,$message,implode(PHP_EOL,$headers));
+  if ($settings["email_file_log_enabled"]==true)
+  {
+    $i=1;
+    do
+    {
+      $filename=$settings["email_file_log_path"].date("Ymd_His")."_".sprintf("%02d",$i)."_".\webdb\utils\strip_text($subject).".txt";
+      $i++;
+    }
+    while (file_exists($filename)==true);
+    $log_params=array();
+    $log_params["recipient"]=$recipient;
+    $log_params["cc"]=$cc;
+    $log_params["subject"]=$subject;
+    $log_params["message"]=$message;
+    $log_data=\webdb\utils\template_fill("email_log",$log_params);
+    file_put_contents($filename,$log_data);
+  }
 }
 
 #####################################################################################################

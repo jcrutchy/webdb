@@ -50,6 +50,8 @@ function check_settings()
   $required_settings=array(
     "dev_env",
     "dev_env_email",
+    "email_file_log_enabled",
+    "email_file_log_path",
     "cli_dispatch",
     "group_admin_user_id",
     "ua_error",
