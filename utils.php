@@ -1513,8 +1513,8 @@ function send_email($recipient,$cc,$subject,$message,$from="",$reply_to="",$boun
   $headers[]="X-Mailer: PHP/".phpversion();*/
   $headers[]="MIME-Version: 1.0";
   $headers[]="Content-Type: text/html; charset=iso-8859-1";
-  #mail($recipient,$subject,$message,implode(PHP_EOL,$headers),"-f".$bounce_to);
-  mail($recipient,$subject,$message,implode(PHP_EOL,$headers));
+  #mail($recipient,$subject,$message,implode(PHP_EOL,$headers),"-f".$bounce_to); # LINUX
+  mail($recipient,$subject,$message,implode(PHP_EOL,$headers)); # WINDOWS PROD
   if ($settings["email_file_log_enabled"]==true)
   {
     $i=1;
