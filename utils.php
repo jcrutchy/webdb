@@ -259,6 +259,7 @@ function database_connect()
   {
     $db_database=";".$settings["db_database"];
   }
+  $settings["unauthenticated_content"]=true;
   $settings["pdo_admin"]=new \PDO($settings["db_engine"].":".$settings["db_host"].$db_database,$settings["db_admin_username"],$settings["db_admin_password"]);
   if ($settings["pdo_admin"]===false)
   {
@@ -485,6 +486,10 @@ function ob_postprocess($buffer)
       $buffer=gzencode($buffer);
       header("Content-Encoding: gzip");
     }
+  }
+  if ($buffer=="")
+  {
+    return "[buffer empty]";
   }
   return $buffer;
 }
@@ -1513,8 +1518,11 @@ function send_email($recipient,$cc,$subject,$message,$from="",$reply_to="",$boun
   $headers[]="X-Mailer: PHP/".phpversion();*/
   $headers[]="MIME-Version: 1.0";
   $headers[]="Content-Type: text/html; charset=iso-8859-1";
-  #mail($recipient,$subject,$message,implode(PHP_EOL,$headers),"-f".$bounce_to); # LINUX
-  mail($recipient,$subject,$message,implode(PHP_EOL,$headers)); # WINDOWS PROD
+  if ($settings["email_enabled"]==true)
+  {
+    #mail($recipient,$subject,$message,implode(PHP_EOL,$headers),"-f".$bounce_to); # LINUX
+    mail($recipient,$subject,$message,implode(PHP_EOL,$headers)); # WINDOWS PROD
+  }
   if ($settings["email_file_log_enabled"]==true)
   {
     $i=1;
@@ -2079,6 +2087,30 @@ function webdb_array_key_last($a) # for PHP version < 7.3
     return null;
   }
   return array_keys($a)[count($a)-1];
+}
+
+#####################################################################################################
+
+function webdb_file_put_contents($filename,$content)
+{
+  return file_put_contents($filename,"\xEF\xBB\xBF".$content); # force utf8
+}
+
+#####################################################################################################
+
+function webdb_file_get_contents($filename)
+{
+  $content=file_get_contents($filename);
+  $needle="\xEF\xBB\xBF";
+  $i=strpos($content,$needle);
+  if ($i!==false)
+  {
+    if ($i===0)
+    {
+      $content=substr($content,strlen($needle));
+    }
+  }
+  return trim($content);
 }
 
 #####################################################################################################

@@ -1071,6 +1071,10 @@ function list_row($form_config,$record,$column_format,$row_spans,$lookup_records
       $display_record=$link_record;
       $field_params["primary_key"]=\webdb\forms\config_id_url_value($form_config,$link_record,"link_key");
     }
+    if (is_array($display_record)==false)
+    {
+      $display_record[$field_name]="";
+    }
     $field_params["border_color"]=$settings["list_border_color"];
     $field_params["border_width"]=$settings["list_border_width"];
     if (isset($rotate_group_borders[$field_name])==true)

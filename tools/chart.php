@@ -541,12 +541,14 @@ function output_chart($data,$filename=false)
   }
   if ($filename!==false)
   {
-    imagepng($buffer,$filename);
+    $result=imagepng($buffer,$filename);
   }
   else
   {
-    return \webdb\graphics\base64_image($buffer,"png");
+    $result=\webdb\graphics\base64_image($buffer,"png");
   }
+  imagedestroy($buffer);
+  return $result;
 }
 
 #####################################################################################################
