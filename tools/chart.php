@@ -296,6 +296,28 @@ function auto_range(&$data)
       }
     }
   }
+  if ($min_x==$max_x)
+  {
+    if ($min_x>PHP_INT_MIN)
+    {
+      $min_x=$min_x-1;
+    }
+    if ($max_x<PHP_INT_MAX)
+    {
+      $max_x=$max_x+1;
+    }
+  }
+  if ($min_y==$max_y)
+  {
+    if ($min_y>PHP_INT_MIN)
+    {
+      $min_y=$min_y-1;
+    }
+    if ($max_y<PHP_INT_MAX)
+    {
+      $max_y=$max_y+1;
+    }
+  }
   $data["x_min"]=$min_x;
   $data["x_max"]=$max_x;
   $data["y_min"]=$min_y;
