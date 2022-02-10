@@ -123,7 +123,7 @@ function assign_discontinuous_plot_data($chart_data,$plot_data,$x_key,$y_key,$co
 
 #####################################################################################################
 
-function assign_plot_data($chart_data,$series_data,$x_key,$y_key,$color_key,$marker="",$assign_limits=true,$line_enabled=true,$name="")
+function assign_plot_data($chart_data,$series_data,$x_key,$y_key,$color_key,$marker="",$assign_limits=true,$line_enabled=true,$name="",$style="solid")
 {
   # $series_data[$i][$x|y_key] (continuous)
   $series=array();
@@ -134,6 +134,7 @@ function assign_plot_data($chart_data,$series_data,$x_key,$y_key,$color_key,$mar
   $series["line_enabled"]=$line_enabled;
   $series["x_values"]=array();
   $series["y_values"]=array();
+  $series["style"]=$style;
   $min_x=PHP_INT_MAX;
   $max_x=0;
   $min_y=PHP_INT_MAX;
@@ -623,7 +624,15 @@ function chart_draw_continuous_plot(&$data,$series)
     $y2=\webdb\chart\chart_to_pixel_y($y_values[$i+1],$data);
     if ($series["line_enabled"]==true)
     {
-      imageline($data["buffer"],$x1,$y1,$x2,$y2,$line_color);
+      switch ($series["style"])
+      {
+        case "solid":
+          imageline($data["buffer"],$x1,$y1,$x2,$y2,$line_color);
+          break;
+        case "dash":
+          imagedashedline($data["buffer"],$x1,$y1,$x2,$y2,$line_color);
+          break;
+      }
     }
   }
   if (($series["marker"]=="box") and ($n>0))
