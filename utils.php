@@ -1132,6 +1132,10 @@ function custom_template_fill($template_key,$params=false,$tracking=array(),$cus
   {
     return "";
   }
+  if (isset($settings["templates"])==false)
+  {
+    \webdb\utils\system_message("error: template '".$template_key."' could not be filled before loading templates");
+  }
   $template_array=$settings["templates"];
   if ($custom_templates!==false)
   {
@@ -1364,6 +1368,10 @@ function error_handler($errno,$errstr,$errfile,$errline)
 function email_admin($message,$subject)
 {
   global $settings;
+  if (isset($settings["templates"])==false)
+  {
+    return;
+  }
   $user_record=false;
   if (isset($settings["user_record"])==true)
   {
@@ -1523,7 +1531,7 @@ function send_email($recipient,$cc,$subject,$message,$from="",$reply_to="",$boun
     #mail($recipient,$subject,$message,implode(PHP_EOL,$headers),"-f".$bounce_to); # LINUX
     mail($recipient,$subject,$message,implode(PHP_EOL,$headers)); # WINDOWS PROD
   }
-  if ($settings["email_file_log_enabled"]==true)
+  if (($settings["email_file_log_enabled"]==true) and (isset($settings["templates"])==true))
   {
     $i=1;
     do
