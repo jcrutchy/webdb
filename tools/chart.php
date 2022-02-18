@@ -376,6 +376,15 @@ function output_legend_line($data,$series)
   $color=$chart_colors[$color];
   $w=60;
   $h=20;
+  return \webdb\chart\chart_legend_line($w,$h,$color);
+}
+
+#####################################################################################################
+
+function chart_legend_line($w,$h,$color)
+{
+  $w=60;
+  $h=20;
   $buffer=imagecreatetruecolor($w,$h);
   $bg_color=imagecolorallocate($buffer,255,0,255); # magenta
   imagecolortransparent($buffer,$bg_color);
