@@ -180,7 +180,7 @@ function assign_plot_data($chart_data,$series_data,$x_key,$y_key,$color_key,$mar
 
 #####################################################################################################
 
-function initilize_chart()
+function initilize_chart($copy_source=false)
 {
   $data=array();
   $data["colors"]=\webdb\chart\chart_colors();
@@ -212,6 +212,13 @@ function initilize_chart()
   $data["bg_color_b"]=253;
   $data["auto_grid_x_pix"]=30;
   $data["auto_grid_y_pix"]=30;
+  if ($copy_source!==false)
+  {
+    foreach ($copy_source as $key => $value)
+    {
+      $data[$key]=$value;
+    }
+  }
   return $data;
 }
 
@@ -396,7 +403,7 @@ function chart_legend_line($w,$h,$color)
 
 #####################################################################################################
 
-function output_chart($data,$filename=false,$no_output=false)
+function output_chart($data,$filename=false,$no_output=false,$rhs_data=false)
 {
   global $settings;
   \webdb\chart\chart_draw_create($data);
@@ -425,7 +432,7 @@ function output_chart($data,$filename=false,$no_output=false)
   }
   if ($data["show_y_axis"]==true)
   {
-    \webdb\chart\chart_draw_axis_y($data);
+    \webdb\chart\chart_draw_axis_y($data,$rhs_data);
   }
   if ($data["show_x_axis"]==true)
   {
@@ -437,7 +444,7 @@ function output_chart($data,$filename=false,$no_output=false)
   }
   if ($data["y_title"]!=="")
   {
-    \webdb\chart\chart_draw_title_y($data);
+    \webdb\chart\chart_draw_title_y($data,$rhs_data);
   }
   if (($data["scale"]!=="") and ($data["scale"]<>1))
   {
@@ -826,7 +833,7 @@ function chart_draw_axis_x(&$data)
 
 #####################################################################################################
 
-function chart_draw_axis_y(&$data)
+function chart_draw_axis_y(&$data,$rhs_data=false)
 {
   global $settings;
   $font_size=10;
@@ -860,6 +867,39 @@ function chart_draw_axis_y(&$data)
     $text_y=$y+round($text_h/2);
     imagettftext($data["buffer"],$font_size,0,$text_x,$text_y,$text_color,$text_file,$caption);
   }
+  if ($rhs_data===false)
+  {
+    return;
+  }
+  $x=\webdb\chart\chart_to_pixel_x($data["x_max"],$data);
+  imageline($data["buffer"],$x,$data["top"],$x,$data["h"]-$data["bottom"]-1,$line_color);
+  $dy=$rhs_data["y_max"]-$rhs_data["y_min"];
+  $rhs_data["grid_y"]=ceil($dy/$n);
+  for ($i=0;$i<=$n;$i++)
+  {
+    $ry=$rhs_data["grid_y"]*$i+$rhs_data["y_min"];
+    $y=\webdb\chart\chart_to_pixel_y($ry,$rhs_data);
+    $caption=$ry;
+    if (isset($rhs_data["y_axis_format"])==true)
+    {
+      $caption=sprintf($rhs_data["y_axis_format"],$ry);
+    }
+    if (isset($rhs_data["y_captions"][$i])==true)
+    {
+      $caption=$rhs_data["y_captions"][$i];
+      if ($caption=="")
+      {
+        continue;
+      }
+    }
+    imageline($data["buffer"],$x,$y,$x-$tick_length,$y,$line_color);
+    $bbox=imagettfbbox($font_size,0,$text_file,$caption);
+    $text_w=$bbox[2]-$bbox[0];
+    $text_h=$bbox[1]-$bbox[7];
+    $text_x=$x-$text_w-$tick_length-$label_space;
+    $text_y=$y+round($text_h/2);
+    imagettftext($data["buffer"],$font_size,0,$text_x,$text_y,$text_color,$text_file,$caption);
+  }
 }
 
 #####################################################################################################
@@ -882,7 +922,7 @@ function chart_draw_title_x(&$data)
 
 #####################################################################################################
 
-function chart_draw_title_y(&$data)
+function chart_draw_title_y(&$data,$rhs_data=false)
 {
   global $settings;
   $title_font_size=12;
@@ -896,6 +936,21 @@ function chart_draw_title_y(&$data)
   $text_x=$title_margin+$text_h;
   $text_y=$cy+round($text_w/2);
   imagettftext($data["buffer"],$title_font_size,90,$text_x,$text_y,$text_color,$text_file,$data["y_title"]);
+  if ($rhs_data===false)
+  {
+    return;
+  }
+  $bbox=imagettfbbox($title_font_size,0,$text_file,$rhs_data["y_title"]);
+  $text_w=$bbox[2]-$bbox[0];
+  $text_h=$bbox[1]-$bbox[7];
+  $title_rhs_margin=25;
+  if (isset($rhs_data["title_rhs_margin"])==true)
+  {
+    $title_rhs_margin=$rhs_data["title_rhs_margin"];
+  }
+  $text_x=$data["w"]-$data["right"]-$title_rhs_margin-$text_h;
+  $text_y=$cy+round($text_w/2);
+  imagettftext($data["buffer"],$title_font_size,90,$text_x,$text_y,$text_color,$text_file,$rhs_data["y_title"]);
 }
 
 #####################################################################################################
