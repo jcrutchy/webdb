@@ -203,6 +203,8 @@ function initilize_chart($copy_source=false)
   $data["x_title"]="";
   $data["y_title"]="";
   $data["scale"]=1;
+  $data["x_axis_scale"]="linear"; # or log10
+  $data["y_axis_scale"]="linear"; # or log10
   $data["show_grid_x"]=true;
   $data["show_grid_y"]=true;
   $data["show_x_axis"]=true;
@@ -325,6 +327,16 @@ function auto_range(&$data)
     {
       $max_y=$max_y+1;
     }
+  }
+  if ($data["x_axis_scale"]=="log10")
+  {
+    $min_x=log($min_x);
+    $max_x=log($max_x);
+  }
+  if ($data["y_axis_scale"]=="log10")
+  {
+    $min_y=log($min_y);
+    $max_y=log($max_y);
   }
   $data["x_min"]=$min_x;
   $data["x_max"]=$max_x;
@@ -526,9 +538,14 @@ function pixel_to_chart_x($pix,$data)
   $left=$data["left"];
   $min=$data["x_min"];
   $max=$data["x_max"];
-  $ppu=\webdb\chart\pixels_per_unit($pix,$min,$max);
+  $ppu=\webdb\chart\pixels_per_unit($pix,$min,$max,$data["x_axis_scale"]);
   $chart_w=$w-$left-$right;
-  return ($pix-$left)/$ppu+$min_x;
+  $val=($pix-$left)/$ppu+$min_x;
+  if ($data["x_axis_scale"]=="log10")
+  {
+    return log($val);
+  }
+  return $val;
 }
 
 #####################################################################################################
@@ -539,39 +556,40 @@ function pixel_to_chart_y($pix,$data)
   $bottom=$data["bottom"];
   $min=$data["y_min"];
   $max=$data["y_max"];
-  $ppu=\webdb\chart\pixels_per_unit($pix,$min,$max);
+  $ppu=\webdb\chart\pixels_per_unit($pix,$min,$max,$data["y_axis_scale"]);
   $chart_h=$h-$top-$bottom;
-  return ($chart_h-$pix+$top-1)/$ppu+$min_y;
+  $val=($chart_h-$pix+$top-1)/$ppu+$min_y;
+  if ($data["y_axis_scale"]=="log10")
+  {
+    return log($val);
+  }
+  return $val;
 }
 
 #####################################################################################################
 
-function chart_to_pixel_x($val,$data)
+function chart_to_pixel_x($val,$data,$force_linear=false)
 {
-  return \webdb\chart\real_to_pixel_x($data["w"],$data["left"],$data["right"],$data["x_min"],$data["x_max"],$val);
+  if (($data["x_axis_scale"]=="log10") and ($force_linear==false))
+  {
+    $val=log($val);
+  }
+  $chart_w_pix=$data["w"]-$data["left"]-$data["right"];
+  $chart_w_val=\webdb\chart\pixels_per_unit($chart_w_pix,$data["x_min"],$data["x_max"],$data["x_axis_scale"]);
+  return intval(round(($val-$data["x_min"])*$chart_w_val)+$data["left"]);
 }
 
 #####################################################################################################
 
-function chart_to_pixel_y($val,$data)
+function chart_to_pixel_y($val,$data,$force_linear=false)
 {
-  return \webdb\chart\real_to_pixel_y($data["h"],$data["top"],$data["bottom"],$data["y_min"],$data["y_max"],$val);
-}
-
-#####################################################################################################
-
-function real_to_pixel_x($w,$left,$right,$min_x,$max_x,$rx)
-{
-  $chart_w=$w-$left-$right;
-  return round(($rx-$min_x)*\webdb\chart\pixels_per_unit($chart_w,$min_x,$max_x))+$left;
-}
-
-#####################################################################################################
-
-function real_to_pixel_y($h,$top,$bottom,$min_y,$max_y,$ry)
-{
-  $chart_h=$h-$top-$bottom;
-  return ($chart_h-1-round(($ry-$min_y)*\webdb\chart\pixels_per_unit($chart_h,$min_y,$max_y)))+$top;
+  if (($data["y_axis_scale"]=="log10") and ($force_linear==false))
+  {
+    $val=log($val);
+  }
+  $chart_h_pix=$data["h"]-$data["top"]-$data["bottom"];
+  $chart_h_val=\webdb\chart\pixels_per_unit($chart_h_pix,$data["y_min"],$data["y_max"],$data["y_axis_scale"]);
+  return intval(($chart_h_pix-1-round(($val-$data["y_min"])*$chart_h_val))+$data["top"]);
 }
 
 #####################################################################################################
@@ -764,22 +782,50 @@ function chart_draw_grid(&$data)
   $dy=$data["y_max"]-$data["y_min"];
   if ($data["show_grid_x"]==true)
   {
-    $n=round($dx/$data["grid_x"]);
-    for ($i=0;$i<=$n;$i++)
+    switch ($data["x_axis_scale"])
     {
-      $rx=$data["grid_x"]*$i+$data["x_min"];
-      $px=\webdb\chart\chart_to_pixel_x($rx,$data);
-      imageline($data["buffer"],$px,$data["top"],$px,$data["h"]-$data["bottom"]-1,$line_color);
+      case "linear":
+        $n=round($dx/$data["grid_x"]);
+        for ($i=0;$i<=$n;$i++)
+        {
+          $rx=$data["grid_x"]*$i+$data["x_min"];
+          $px=\webdb\chart\chart_to_pixel_x($rx,$data);
+          imageline($data["buffer"],$px,$data["top"],$px,$data["h"]-$data["bottom"]-1,$line_color);
+        }
+        break;
+      case "log10":
+        $n=round($dx/$data["grid_x"]);
+        for ($i=0;$i<=$n;$i++)
+        {
+          $rx=$data["grid_x"]*$i+$data["x_min"];
+          $px=\webdb\chart\chart_to_pixel_x($rx,$data,true);
+          imageline($data["buffer"],$px,$data["top"],$px,$data["h"]-$data["bottom"]-1,$line_color);
+        }
+        break;
     }
   }
   if ($data["show_grid_y"]==true)
   {
-    $n=round($dy/$data["grid_y"]);
-    for ($i=0;$i<=$n;$i++)
+    switch ($data["x_axis_scale"])
     {
-      $ry=$data["grid_y"]*$i+$data["y_min"];
-      $py=\webdb\chart\chart_to_pixel_y($ry,$data);
-      imageline($data["buffer"],$data["left"],$py,$data["w"]-$data["right"]-1,$py,$line_color);
+      case "linear":
+        $n=round($dy/$data["grid_y"]);
+        for ($i=0;$i<=$n;$i++)
+        {
+          $ry=$data["grid_y"]*$i+$data["y_min"];
+          $py=\webdb\chart\chart_to_pixel_y($ry,$data);
+          imageline($data["buffer"],$data["left"],$py,$data["w"]-$data["right"]-1,$py,$line_color);
+        }
+        break;
+      case "log10":
+        $n=round($dy/$data["grid_y"]);
+        for ($i=0;$i<=$n;$i++)
+        {
+          $ry=$data["grid_y"]*$i+$data["y_min"];
+          $py=\webdb\chart\chart_to_pixel_y($ry,$data,true);
+          imageline($data["buffer"],$data["left"],$py,$data["w"]-$data["right"]-1,$py,$line_color);
+        }
+        break;
     }
   }
 }
