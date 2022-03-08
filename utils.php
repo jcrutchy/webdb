@@ -1819,31 +1819,36 @@ function color_value_blend($a,$b,$t)
 
 function force_rmdir($dir)
 {
-  if (is_dir($dir)==true)
+  if (substr($dir,-1)==DIRECTORY_SEPARATOR)
   {
-    $objects=scandir($dir);
-    foreach ($objects as $object)
+    $dir=substr($dir,0,-1);
+  }
+  if (is_dir($dir)==false)
+  {
+    return;
+  }
+  $objects=scandir($dir);
+  foreach ($objects as $object)
+  {
+    if (($object==".") or ($object==".."))
     {
-      if (($object==".") or ($object==".."))
-      {
-        continue;
-      }
-      $child=$dir.DIRECTORY_SEPARATOR.$object;
-      if (is_dir($child)==true)
-      {
-        force_rmdir($child);
-      }
-      else
-      {
-        unlink($child);
-      }
+      continue;
     }
-    sleep(1);
-    $objects=scandir($dir);
-    if (count($objects)==0)
+    $child=$dir.DIRECTORY_SEPARATOR.$object;
+    if (is_dir($child)==true)
     {
-      rmdir($dir);
+      \webdb\utils\force_rmdir($child);
     }
+    else
+    {
+      unlink($child);
+    }
+  }
+  usleep(500);
+  $objects=scandir($dir);
+  if (count($objects)==2)
+  {
+    rmdir($dir);
   }
 }
 
