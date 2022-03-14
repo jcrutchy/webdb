@@ -21,6 +21,17 @@ function perpendicular_distance($x,$y,$L1x,$L1y,$L2x,$L2y)
 
 #####################################################################################################
 
+function zero_value($value)
+{
+  if (abs($value)<=1e-15)
+  {
+    return 0.0;
+  }
+  return $value;
+}
+
+#####################################################################################################
+
 function chart_colors()
 {
   $colors=array();
@@ -330,22 +341,28 @@ function auto_range(&$data)
   }
   if ($data["x_axis_scale"]=="log10")
   {
-    $min_x=log($min_x);
-    $max_x=log($max_x);
+    $min_x=floor(log10($min_x));
+    $max_x=ceil(log10($max_x));
   }
   if ($data["y_axis_scale"]=="log10")
   {
-    $min_y=log($min_y);
-    $max_y=log($max_y);
+    $min_y=floor(log10($min_y));
+    $max_y=ceil(log10($max_y));
   }
   $data["x_min"]=$min_x;
   $data["x_max"]=$max_x;
   $data["y_min"]=$min_y;
   $data["y_max"]=$max_y;
-  $dx=$max_x-$min_x;
-  $dy=$max_y-$min_y;
-  $data["grid_x"]=max(1,floor($data["auto_grid_x_pix"]/$data["w"]*$dx/10)*10);
-  $data["grid_y"]=max(1,floor($data["auto_grid_y_pix"]/$data["h"]*$dy/10)*10);
+  if ($data["x_axis_scale"]=="linear")
+  {
+    $dx=$max_x-$min_x;
+    $data["grid_x"]=max(1,floor($data["auto_grid_x_pix"]/$data["w"]*$dx/10)*10);
+  }
+  if ($data["y_axis_scale"]=="linear")
+  {
+    $dy=$max_y-$min_y;
+    $data["grid_y"]=max(1,floor($data["auto_grid_y_pix"]/$data["h"]*$dy/10)*10);
+  }
 }
 
 #####################################################################################################
@@ -543,7 +560,7 @@ function pixel_to_chart_x($pix,$data)
   $val=($pix-$left)/$ppu+$min_x;
   if ($data["x_axis_scale"]=="log10")
   {
-    return log($val);
+    return log10($val);
   }
   return $val;
 }
@@ -561,18 +578,18 @@ function pixel_to_chart_y($pix,$data)
   $val=($chart_h-$pix+$top-1)/$ppu+$min_y;
   if ($data["y_axis_scale"]=="log10")
   {
-    return log($val);
+    return log10($val);
   }
   return $val;
 }
 
 #####################################################################################################
 
-function chart_to_pixel_x($val,$data,$force_linear=false)
+function chart_to_pixel_x($val,$data)
 {
-  if (($data["x_axis_scale"]=="log10") and ($force_linear==false))
+  if ($data["x_axis_scale"]=="log10")
   {
-    $val=log($val);
+    $val=log10($val);
   }
   $chart_w_pix=$data["w"]-$data["left"]-$data["right"];
   $chart_w_val=\webdb\chart\pixels_per_unit($chart_w_pix,$data["x_min"],$data["x_max"],$data["x_axis_scale"]);
@@ -581,11 +598,11 @@ function chart_to_pixel_x($val,$data,$force_linear=false)
 
 #####################################################################################################
 
-function chart_to_pixel_y($val,$data,$force_linear=false)
+function chart_to_pixel_y($val,$data)
 {
-  if (($data["y_axis_scale"]=="log10") and ($force_linear==false))
+  if ($data["y_axis_scale"]=="log10")
   {
-    $val=log($val);
+    $val=log10($val);
   }
   $chart_h_pix=$data["h"]-$data["top"]-$data["bottom"];
   $chart_h_val=\webdb\chart\pixels_per_unit($chart_h_pix,$data["y_min"],$data["y_max"],$data["y_axis_scale"]);
@@ -778,13 +795,12 @@ function chart_draw_grid(&$data)
 {
   $color=$data["colors"]["grid"];
   $line_color=imagecolorallocate($data["buffer"],$color[0],$color[1],$color[2]);
-  $dx=$data["x_max"]-$data["x_min"];
-  $dy=$data["y_max"]-$data["y_min"];
   if ($data["show_grid_x"]==true)
   {
     switch ($data["x_axis_scale"])
     {
       case "linear":
+        $dx=$data["x_max"]-$data["x_min"];
         $n=round($dx/$data["grid_x"]);
         for ($i=0;$i<=$n;$i++)
         {
@@ -794,21 +810,28 @@ function chart_draw_grid(&$data)
         }
         break;
       case "log10":
-        $n=round($dx/$data["grid_x"]);
-        for ($i=0;$i<=$n;$i++)
+        $dx=$data["x_max"]-$data["x_min"]; # major grids (eg: -1 to 3 => 0.1 to 1000)
+        for ($i=0;$i<=$dx;$i++)
         {
-          $rx=$data["grid_x"]*$i+$data["x_min"];
-          $px=\webdb\chart\chart_to_pixel_x($rx,$data,true);
-          imageline($data["buffer"],$px,$data["top"],$px,$data["h"]-$data["bottom"]-1,$line_color);
+          for ($j=1;$j<=$data["grid_x"];$j++) # 9 spaces typ.
+          {
+            # log10(0.1)=-1
+            # 10^-1=0.1
+            $rx=pow(10,$data["x_min"]+$i)*$j;
+            #var_dump($rx);
+            $px=\webdb\chart\chart_to_pixel_x($rx,$data);
+            imageline($data["buffer"],$px,$data["top"],$px,$data["h"]-$data["bottom"]-1,$line_color);
+          }
         }
         break;
     }
   }
   if ($data["show_grid_y"]==true)
   {
-    switch ($data["x_axis_scale"])
+    switch ($data["y_axis_scale"])
     {
       case "linear":
+        $dy=$data["y_max"]-$data["y_min"];
         $n=round($dy/$data["grid_y"]);
         for ($i=0;$i<=$n;$i++)
         {
@@ -818,12 +841,18 @@ function chart_draw_grid(&$data)
         }
         break;
       case "log10":
-        $n=round($dy/$data["grid_y"]);
-        for ($i=0;$i<=$n;$i++)
+        $dy=$data["y_max"]-$data["y_min"]; # major grids (eg: -1 to 3 => 0.1 to 1000)
+        for ($i=0;$i<=$dy;$i++)
         {
-          $ry=$data["grid_y"]*$i+$data["y_min"];
-          $py=\webdb\chart\chart_to_pixel_y($ry,$data,true);
-          imageline($data["buffer"],$data["left"],$py,$data["w"]-$data["right"]-1,$py,$line_color);
+          for ($j=1;$j<=$data["grid_y"];$j++) # 9 spaces typ.
+          {
+            # log10(0.1)=-1
+            # 10^-1=0.1
+            $ry=pow(10,$data["y_min"]+$i)*$j;
+            #var_dump($ry);
+            $py=\webdb\chart\chart_to_pixel_y($ry,$data);
+            imageline($data["buffer"],$data["left"],$py,$data["w"]-$data["right"]-1,$py,$line_color);
+          }
         }
         break;
     }
@@ -841,39 +870,79 @@ function chart_draw_axis_x(&$data)
   $text_file=$settings["gd_ttf"];
   $line_color=imagecolorallocate($data["buffer"],50,50,50);
   $text_color=imagecolorallocate($data["buffer"],50,50,50);
-  $y=\webdb\chart\chart_to_pixel_y($data["y_min"],$data);
+  $y=$data["h"]-$data["bottom"]-1;
   imageline($data["buffer"],$data["left"],$y,$data["w"]-$data["right"]-1,$y,$line_color);
-  $grid_x_pixels=\webdb\chart\chart_to_pixel_x($data["grid_x"],$data);
-  $dx=$data["x_max"]-$data["x_min"];
-  $n=round($dx/$data["grid_x"]);
-  for ($i=0;$i<=$n;$i++)
+  switch ($data["x_axis_scale"])
   {
-    $rx=$data["grid_x"]*$i+$data["x_min"];
-    $x=\webdb\chart\chart_to_pixel_x($rx,$data);
-    $caption=$rx;
-    if (isset($data["x_axis_format"])==true)
-    {
-      $caption=sprintf($data["x_axis_format"],$rx);
-    }
-    if (isset($data["x_captions"][$i])==true)
-    {
-      $caption=$data["x_captions"][$i];
-    }
-    $bbox=imagettfbbox($font_size,0,$text_file,$caption);
-    $text_w=$bbox[2]-$bbox[0];
-    $text_h=$bbox[1]-$bbox[7];
-    if ($grid_x_pixels<($text_h*2))
-    {
-      if (($i%2)>0)
+    case "linear":
+      $grid_x_pixels=\webdb\chart\chart_to_pixel_x($data["grid_x"],$data);
+      $dx=$data["x_max"]-$data["x_min"];
+      $n=round($dx/$data["grid_x"]);
+      for ($i=0;$i<=$n;$i++)
       {
-        continue;
+        $rx=$data["grid_x"]*$i+$data["x_min"];
+        $rx=\webdb\chart\zero_value($rx);
+        $x=\webdb\chart\chart_to_pixel_x($rx,$data);
+        $caption=$rx;
+        if (isset($data["x_axis_format"])==true)
+        {
+          $caption=sprintf($data["x_axis_format"],$rx);
+        }
+        if (isset($data["x_captions"][$i])==true)
+        {
+          $caption=$data["x_captions"][$i];
+        }
+        $bbox=imagettfbbox($font_size,0,$text_file,$caption);
+        $text_w=$bbox[2]-$bbox[0];
+        $text_h=$bbox[1]-$bbox[7];
+        if ($grid_x_pixels<($text_h*2))
+        {
+          if (($i%2)>0)
+          {
+            continue;
+          }
+        }
+        imageline($data["buffer"],$x,$y,$x,$y+$tick_length,$line_color);
+        imageline($data["buffer"],$x,$y+$tick_length,$x-$tick_length,$y+2*$tick_length,$line_color);
+        $text_x=$x-round($text_w/sqrt(2))-$tick_length;
+        $text_y=$y+round($text_w/sqrt(2))+2*$tick_length+$label_space+2;
+        imagettftext($data["buffer"],$font_size,45,$text_x,$text_y,$text_color,$text_file,$caption);
       }
-    }
-    imageline($data["buffer"],$x,$y,$x,$y+$tick_length,$line_color);
-    imageline($data["buffer"],$x,$y+$tick_length,$x-$tick_length,$y+2*$tick_length,$line_color);
-    $text_x=$x-round($text_w/sqrt(2))-$tick_length;
-    $text_y=$y+round($text_w/sqrt(2))+2*$tick_length+$label_space+2;
-    imagettftext($data["buffer"],$font_size,45,$text_x,$text_y,$text_color,$text_file,$caption);
+      break;
+    case "log10":
+      $dx=$data["x_max"]-$data["x_min"]; # major grids (eg: -1 to 3 => 0.1 to 1000)
+      for ($i=0;$i<=$dx;$i++)
+      {
+        for ($j=1;$j<=$data["grid_x"];$j++) # 9 spaces typ.
+        {
+          # log10(0.1)=-1
+          # 10^-1=0.1
+          $rx=pow(10,$data["x_min"]+$i)*$j;
+          #var_dump($rx);
+          $px=\webdb\chart\chart_to_pixel_x($rx,$data);
+          imageline($data["buffer"],$px,$y,$px,$y+$tick_length,$line_color);
+        }
+        $rx=pow(10,$data["x_min"]+$i);
+        $x=\webdb\chart\chart_to_pixel_x($rx,$data);
+        $caption=$rx;
+        if (isset($data["x_axis_format"])==true)
+        {
+          $caption=sprintf($data["x_axis_format"],$rx);
+        }
+        if (isset($data["x_captions"][$i])==true)
+        {
+          $caption=$data["x_captions"][$i];
+        }
+        $bbox=imagettfbbox($font_size,0,$text_file,$caption);
+        $text_w=$bbox[2]-$bbox[0];
+        $text_h=$bbox[1]-$bbox[7];
+        imageline($data["buffer"],$x,$y,$x,$y+$tick_length,$line_color);
+        imageline($data["buffer"],$x,$y+$tick_length,$x-$tick_length,$y+2*$tick_length,$line_color);
+        $text_x=$x-round($text_w/sqrt(2))-$tick_length;
+        $text_y=$y+round($text_w/sqrt(2))+2*$tick_length+$label_space+2;
+        imagettftext($data["buffer"],$font_size,45,$text_x,$text_y,$text_color,$text_file,$caption);
+      }
+      break;
   }
 }
 
@@ -888,63 +957,101 @@ function chart_draw_axis_y(&$data,$rhs_data=false)
   $text_file=$settings["gd_ttf"];
   $line_color=imagecolorallocate($data["buffer"],50,50,50);
   $text_color=imagecolorallocate($data["buffer"],50,50,50);
-  $x=\webdb\chart\chart_to_pixel_x($data["x_min"],$data);
-  imageline($data["buffer"],$x,$data["top"],$x,$data["h"]-$data["bottom"]-1,$line_color);
-  $dy=$data["y_max"]-$data["y_min"];
-  $n=round($dy/$data["grid_y"]);
-  for ($i=0;$i<=$n;$i++)
+  imageline($data["buffer"],$data["left"],$data["top"],$data["left"],$data["h"]-$data["bottom"]-1,$line_color);
+  switch ($data["y_axis_scale"])
   {
-    $ry=$data["grid_y"]*$i+$data["y_min"];
-    $y=\webdb\chart\chart_to_pixel_y($ry,$data);
-    $caption=$ry;
-    if (isset($data["y_axis_format"])==true)
-    {
-      $caption=sprintf($data["y_axis_format"],$ry);
-    }
-    if (isset($data["y_captions"][$i])==true)
-    {
-      $caption=$data["y_captions"][$i];
-    }
-    imageline($data["buffer"],$x,$y,$x-$tick_length,$y,$line_color);
-    $bbox=imagettfbbox($font_size,0,$text_file,$caption);
-    $text_w=$bbox[2]-$bbox[0];
-    $text_h=$bbox[1]-$bbox[7];
-    $text_x=$x-$text_w-$tick_length-$label_space;
-    $text_y=$y+round($text_h/2);
-    imagettftext($data["buffer"],$font_size,0,$text_x,$text_y,$text_color,$text_file,$caption);
-  }
-  if ($rhs_data===false)
-  {
-    return;
-  }
-  $x=\webdb\chart\chart_to_pixel_x($data["x_max"],$data);
-  imageline($data["buffer"],$x,$data["top"],$x,$data["h"]-$data["bottom"]-1,$line_color);
-  $dy=$rhs_data["y_max"]-$rhs_data["y_min"];
-  $rhs_data["grid_y"]=ceil($dy/$n);
-  for ($i=0;$i<=$n;$i++)
-  {
-    $ry=$rhs_data["grid_y"]*$i+$rhs_data["y_min"];
-    $y=\webdb\chart\chart_to_pixel_y($ry,$rhs_data);
-    $caption=$ry;
-    if (isset($rhs_data["y_axis_format"])==true)
-    {
-      $caption=sprintf($rhs_data["y_axis_format"],$ry);
-    }
-    if (isset($rhs_data["y_captions"][$i])==true)
-    {
-      $caption=$rhs_data["y_captions"][$i];
-      if ($caption=="")
+    case "linear":
+      $dy=$data["y_max"]-$data["y_min"];
+      $n=round($dy/$data["grid_y"]);
+      for ($i=0;$i<=$n;$i++)
       {
-        continue;
+        $ry=$data["grid_y"]*$i+$data["y_min"];
+        $ry=\webdb\chart\zero_value($ry);
+        $y=\webdb\chart\chart_to_pixel_y($ry,$data);
+        $caption=$ry;
+        if (isset($data["y_axis_format"])==true)
+        {
+          $caption=sprintf($data["y_axis_format"],$ry);
+        }
+        if (isset($data["y_captions"][$i])==true)
+        {
+          $caption=$data["y_captions"][$i];
+        }
+        imageline($data["buffer"],$data["left"],$y,$data["left"]-$tick_length,$y,$line_color);
+        $bbox=imagettfbbox($font_size,0,$text_file,$caption);
+        $text_w=$bbox[2]-$bbox[0];
+        $text_h=$bbox[1]-$bbox[7];
+        $text_x=$data["left"]-$text_w-$tick_length-$label_space;
+        $text_y=$y+round($text_h/2);
+        imagettftext($data["buffer"],$font_size,0,$text_x,$text_y,$text_color,$text_file,$caption);
       }
-    }
-    imageline($data["buffer"],$x,$y,$x-$tick_length,$y,$line_color);
-    $bbox=imagettfbbox($font_size,0,$text_file,$caption);
-    $text_w=$bbox[2]-$bbox[0];
-    $text_h=$bbox[1]-$bbox[7];
-    $text_x=$x-$text_w-$tick_length-$label_space;
-    $text_y=$y+round($text_h/2);
-    imagettftext($data["buffer"],$font_size,0,$text_x,$text_y,$text_color,$text_file,$caption);
+      if ($rhs_data===false)
+      {
+        return;
+      }
+      $x=$data["w"]-$data["right"]-1;
+      imageline($data["buffer"],$x,$data["top"],$x,$data["h"]-$data["bottom"]-1,$line_color);
+      $dy=$rhs_data["y_max"]-$rhs_data["y_min"];
+      $rhs_data["grid_y"]=ceil($dy/$n);
+      for ($i=0;$i<=$n;$i++)
+      {
+        $ry=$rhs_data["grid_y"]*$i+$rhs_data["y_min"];
+        $y=\webdb\chart\chart_to_pixel_y($ry,$rhs_data);
+        $caption=$ry;
+        if (isset($rhs_data["y_axis_format"])==true)
+        {
+          $caption=sprintf($rhs_data["y_axis_format"],$ry);
+        }
+        if (isset($rhs_data["y_captions"][$i])==true)
+        {
+          $caption=$rhs_data["y_captions"][$i];
+          if ($caption=="")
+          {
+            continue;
+          }
+        }
+        imageline($data["buffer"],$x,$y,$x-$tick_length,$y,$line_color);
+        $bbox=imagettfbbox($font_size,0,$text_file,$caption);
+        $text_w=$bbox[2]-$bbox[0];
+        $text_h=$bbox[1]-$bbox[7];
+        $text_x=$x-$text_w-$tick_length-$label_space;
+        $text_y=$y+round($text_h/2);
+        imagettftext($data["buffer"],$font_size,0,$text_x,$text_y,$text_color,$text_file,$caption);
+      }
+      break;
+    case "log10":
+      $dy=$data["y_max"]-$data["y_min"]; # major grids (eg: -1 to 3 => 0.1 to 1000)
+      for ($i=0;$i<=$dy;$i++)
+      {
+        for ($j=1;$j<=$data["grid_y"];$j++) # 9 spaces typ.
+        {
+          # log10(0.1)=-1
+          # 10^-1=0.1
+          $ry=pow(10,$data["y_min"]+$i)*$j;
+          $y=\webdb\chart\chart_to_pixel_y($ry,$data);
+          imageline($data["buffer"],$data["left"],$y,$data["left"]-$tick_length,$y,$line_color);
+        }
+        $ry=pow(10,$data["y_min"]+$i);
+        $py=\webdb\chart\chart_to_pixel_y($ry,$data);
+        #imageline($data["buffer"],$data["left"],$py,$data["w"]-$data["right"]-1,$py,$line_color);
+        $caption=$ry;
+        if (isset($data["y_axis_format"])==true)
+        {
+          $caption=sprintf($data["y_axis_format"],$ry);
+        }
+        if (isset($data["y_captions"][$i])==true)
+        {
+          $caption=$data["y_captions"][$i];
+        }
+        imageline($data["buffer"],$data["left"],$y,$data["left"]-$tick_length,$y,$line_color);
+        $bbox=imagettfbbox($font_size,0,$text_file,$caption);
+        $text_w=$bbox[2]-$bbox[0];
+        $text_h=$bbox[1]-$bbox[7];
+        $text_x=$data["left"]-$text_w-$tick_length-$label_space;
+        $text_y=$py+round($text_h/2);
+        imagettftext($data["buffer"],$font_size,0,$text_x,$text_y,$text_color,$text_file,$caption);
+      }
+      break;
   }
 }
 
