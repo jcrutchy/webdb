@@ -232,6 +232,10 @@ function initilize_chart($copy_source=false)
       $data[$key]=$value;
     }
   }
+  # if (isset($data["x_axis_format"])==true)
+  # if (isset($data["y_axis_format"])==true)
+  # if (isset($data["x_captions"][$i])==true)
+  # if (isset($data["y_captions"][$i])==true)
   return $data;
 }
 
