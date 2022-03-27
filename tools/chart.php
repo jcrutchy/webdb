@@ -136,11 +136,12 @@ function assign_discontinuous_plot_data($chart_data,$plot_data,$x_key,$y_key,$co
 
 function assign_plot_data($chart_data,$series_data,$x_key,$y_key,$color_key,$marker="",$assign_limits=true,$line_enabled=true,$name="",$style="solid")
 {
+  # $style="solid"|"dash"
   # $series_data[$i][$x|y_key] (continuous)
   $series=array();
   $series["name"]=$name;
   $series["color"]=$color_key;
-  $series["type"]="plot";
+  $series["type"]="plot"; # plot|step|column
   $series["marker"]=$marker;
   $series["line_enabled"]=$line_enabled;
   $series["x_values"]=array();
@@ -225,6 +226,9 @@ function initilize_chart($copy_source=false)
   $data["bg_color_b"]=253;
   $data["auto_grid_x_pix"]=30;
   $data["auto_grid_y_pix"]=30;
+  $data["user_data"]=array(); # use to store any data (may be useful for events)
+  $data["on_after_background"]="";
+  $data["on_after_grid"]="";
   if ($copy_source!==false)
   {
     foreach ($copy_source as $key => $value)
@@ -436,12 +440,28 @@ function chart_legend_line($w,$h,$color)
 
 #####################################################################################################
 
+function handle_chart_event($event_name,$data)
+{
+  if ($data[$event_name]<>"")
+  {
+    if (function_exists($event_name)==true)
+    {
+      return call_user_func($event_name,$data,$event_name);
+    }
+  }
+  return $data;
+}
+
+#####################################################################################################
+
 function output_chart($data,$filename=false,$no_output=false,$rhs_data=false)
 {
   global $settings;
   \webdb\chart\chart_draw_create($data);
+  $data=\webdb\chart\handle_chart_event("on_after_background",$data);
   \webdb\chart\chart_draw_border($data);
   \webdb\chart\chart_draw_grid($data);
+  $data=\webdb\chart\handle_chart_event("on_after_grid",$data);
   for ($i=0;$i<count($data["discontinuous_plots"]);$i++)
   {
     \webdb\chart\chart_draw_discontinuous_plot($data,$data["discontinuous_plots"][$i]);
@@ -451,10 +471,13 @@ function output_chart($data,$filename=false,$no_output=false,$rhs_data=false)
     $series=$data["series"][$i];
     switch ($series["type"])
     {
+      case "column":
+        \webdb\chart\chart_draw_column_series($data,$series);
+        break;
       case "plot":
         \webdb\chart\chart_draw_continuous_plot($data,$series);
         break;
-      case "step":
+      case "step": # refer to "mdo_risks/trends/cumulative_timestamp_series" function for example
         \webdb\chart\chart_draw_step_plot($data,$series);
         break;
     }
@@ -559,7 +582,7 @@ function pixel_to_chart_x($pix,$data)
   $left=$data["left"];
   $min=$data["x_min"];
   $max=$data["x_max"];
-  $ppu=\webdb\chart\pixels_per_unit($pix,$min,$max,$data["x_axis_scale"]);
+  $ppu=\webdb\chart\pixels_per_unit($pix,$min,$max);
   $chart_w=$w-$left-$right;
   $val=($pix-$left)/$ppu+$min_x;
   if ($data["x_axis_scale"]=="log10")
@@ -577,7 +600,7 @@ function pixel_to_chart_y($pix,$data)
   $bottom=$data["bottom"];
   $min=$data["y_min"];
   $max=$data["y_max"];
-  $ppu=\webdb\chart\pixels_per_unit($pix,$min,$max,$data["y_axis_scale"]);
+  $ppu=\webdb\chart\pixels_per_unit($pix,$min,$max);
   $chart_h=$h-$top-$bottom;
   $val=($chart_h-$pix+$top-1)/$ppu+$min_y;
   if ($data["y_axis_scale"]=="log10")
@@ -596,8 +619,8 @@ function chart_to_pixel_x($val,$data)
     $val=log10($val);
   }
   $chart_w_pix=$data["w"]-$data["left"]-$data["right"];
-  $chart_w_val=\webdb\chart\pixels_per_unit($chart_w_pix,$data["x_min"],$data["x_max"],$data["x_axis_scale"]);
-  return intval(round(($val-$data["x_min"])*$chart_w_val)+$data["left"]);
+  $ppu=\webdb\chart\pixels_per_unit($chart_w_pix,$data["x_min"],$data["x_max"]);
+  return round(($val-$data["x_min"])*$ppu)+$data["left"];
 }
 
 #####################################################################################################
@@ -609,8 +632,8 @@ function chart_to_pixel_y($val,$data)
     $val=log10($val);
   }
   $chart_h_pix=$data["h"]-$data["top"]-$data["bottom"];
-  $chart_h_val=\webdb\chart\pixels_per_unit($chart_h_pix,$data["y_min"],$data["y_max"],$data["y_axis_scale"]);
-  return intval(($chart_h_pix-1-round(($val-$data["y_min"])*$chart_h_val))+$data["top"]);
+  $ppu=\webdb\chart\pixels_per_unit($chart_h_pix,$data["y_min"],$data["y_max"]);
+  return ($chart_h_pix-1-round(($val-$data["y_min"])*$ppu))+$data["top"];
 }
 
 #####################################################################################################
@@ -654,6 +677,33 @@ function chart_draw_today_mark(&$data)
     $py1=\webdb\chart\chart_to_pixel_y($data["y_max"],$data);
     $py2=\webdb\chart\chart_to_pixel_y($data["y_min"],$data);
     imageline($data["buffer"],$px,$py1,$px,$py2,$line_color);
+  }
+}
+
+#####################################################################################################
+
+function chart_draw_column_series(&$data,$series)
+{
+  $color=$series["color"];
+  $color=$data["colors"][$color];
+  $color_line=imagecolorallocate($data["buffer"],$color[0],$color[1],$color[2]);
+  $color_delta=70;
+  $color_fill=imagecolorallocate($data["buffer"],min(255,$color[0]+$color_delta),min(255,$color[1]+$color_delta),min(255,$color[2]+$color_delta));
+  $x_values=$series["x_values"];
+  $y_values=$series["y_values"];
+  $n=count($x_values);
+  $y1=\webdb\chart\chart_to_pixel_y(0,$data);
+  for ($i=0;$i<$n;$i++)
+  {
+    $x1=\webdb\chart\chart_to_pixel_x($x_values[$i]-$data["grid_x"]/3,$data);
+    $x2=\webdb\chart\chart_to_pixel_x($x_values[$i]+$data["grid_x"]/3,$data);
+    $y2=\webdb\chart\chart_to_pixel_y($y_values[$i],$data);
+    if ($y1==$y2)
+    {
+      continue;
+    }
+    imagerectangle($data["buffer"],$x1,$y1,$x2,$y2,$color_line);
+    imagefilledrectangle($data["buffer"],$x1+1,$y1,$x2-1,$y2+1,$color_fill);
   }
 }
 
