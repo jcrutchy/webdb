@@ -440,16 +440,16 @@ function chart_legend_line($w,$h,$color)
 
 #####################################################################################################
 
-function handle_chart_event($event_name,$data)
+function handle_chart_event($event_type,$chart_data)
 {
-  if ($data[$event_name]<>"")
+  if ($chart_data[$event_type]<>"")
   {
-    if (function_exists($event_name)==true)
+    if (function_exists($chart_data[$event_type])==true)
     {
-      return call_user_func($event_name,$data,$event_name);
+      return call_user_func($chart_data[$event_type],$chart_data,$event_type);
     }
   }
-  return $data;
+  return $chart_data;
 }
 
 #####################################################################################################
