@@ -620,7 +620,7 @@ function chart_to_pixel_x($val,$data)
   }
   $chart_w_pix=$data["w"]-$data["left"]-$data["right"];
   $ppu=\webdb\chart\pixels_per_unit($chart_w_pix,$data["x_min"],$data["x_max"]);
-  return round(($val-$data["x_min"])*$ppu)+$data["left"];
+  return ($val-$data["x_min"])*$ppu+$data["left"];
 }
 
 #####################################################################################################
@@ -633,7 +633,7 @@ function chart_to_pixel_y($val,$data)
   }
   $chart_h_pix=$data["h"]-$data["top"]-$data["bottom"];
   $ppu=\webdb\chart\pixels_per_unit($chart_h_pix,$data["y_min"],$data["y_max"]);
-  return ($chart_h_pix-1-round(($val-$data["y_min"])*$ppu))+$data["top"];
+  return $chart_h_pix-1-($val-$data["y_min"])*$ppu+$data["top"];
 }
 
 #####################################################################################################
@@ -691,12 +691,15 @@ function chart_draw_column_series(&$data,$series)
   $color_fill=imagecolorallocate($data["buffer"],min(255,$color[0]+$color_delta),min(255,$color[1]+$color_delta),min(255,$color[2]+$color_delta));
   $x_values=$series["x_values"];
   $y_values=$series["y_values"];
+  $chart_w_pix=$data["w"]-$data["left"]-$data["right"];
+  $ppu=\webdb\chart\pixels_per_unit($chart_w_pix,$data["x_min"],$data["x_max"]);
+  $half_col=$data["grid_x"]/2*$ppu-3;
   $n=count($x_values);
   $y1=\webdb\chart\chart_to_pixel_y(0,$data);
   for ($i=0;$i<$n;$i++)
   {
-    $x1=\webdb\chart\chart_to_pixel_x($x_values[$i]-$data["grid_x"]/3,$data);
-    $x2=\webdb\chart\chart_to_pixel_x($x_values[$i]+$data["grid_x"]/3,$data);
+    $x1=\webdb\chart\chart_to_pixel_x($x_values[$i],$data)-$half_col;
+    $x2=\webdb\chart\chart_to_pixel_x($x_values[$i],$data)+$half_col;
     $y2=\webdb\chart\chart_to_pixel_y($y_values[$i],$data);
     if ($y1==$y2)
     {
