@@ -82,8 +82,8 @@ function assign_discontinuous_plot_data($chart_data,$plot_data,$x_key,$y_key,$co
     $x2=$data["p2"][$x_key];
     $y2=$data["p2"][$y_key];
     $segment=array();
-    $segment["p1"]=array("x"=>$x1,"y"=>$y1);
-    $segment["p2"]=array("x"=>$x2,"y"=>$y2);
+    $segment["p1"]=array($x1,$y1);
+    $segment["p2"]=array($x2,$y2);
     $plot["segments"][]=$segment;
     if ($x1<$min_x)
     {
@@ -259,10 +259,10 @@ function auto_range(&$data)
     for ($j=0;$j<$n;$j++)
     {
       $segment=$segments[$j];
-      $x1=$segment["p1"]["x"];
-      $y1=$segment["p1"]["y"];
-      $x2=$segment["p2"]["x"];
-      $y2=$segment["p2"]["y"];
+      $x1=$segment["p1"][0];
+      $y1=$segment["p1"][1];
+      $x2=$segment["p2"][0];
+      $y2=$segment["p2"][1];
       if ($x1<$min_x)
       {
         $min_x=$x1;
@@ -826,10 +826,10 @@ function chart_draw_discontinuous_plot(&$data,$plot)
   for ($i=0;$i<$n;$i++)
   {
     $segment=$segments[$i];
-    $x1=$segment["p1"]["x"];
-    $y1=$segment["p1"]["y"];
-    $x2=$segment["p2"]["x"];
-    $y2=$segment["p2"]["y"];
+    $x1=$segment["p1"][0];
+    $y1=$segment["p1"][1];
+    $x2=$segment["p2"][0];
+    $y2=$segment["p2"][1];
     $x1=\webdb\chart\chart_to_pixel_x($x1,$data);
     $y1=\webdb\chart\chart_to_pixel_y($y1,$data);
     $x2=\webdb\chart\chart_to_pixel_x($x2,$data);
