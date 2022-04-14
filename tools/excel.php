@@ -41,6 +41,10 @@ function sheet_values($filename,$strings)
   $sheet=simplexml_load_file($filename);
   $sheet=json_encode($sheet);
   $sheet=json_decode($sheet,true);
+  if (isset($sheet["sheetData"])==false)
+  {
+    return $result;
+  }
   $rows=$sheet["sheetData"]["row"];
   foreach ($rows as $row)
   {
