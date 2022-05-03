@@ -97,9 +97,9 @@ function error_message($message)
   {
     call_user_func($func_name,$username,$message);
   }
-  $message="username: ".$username.PHP_EOL.PHP_EOL.$message;
+  $email_message="username: ".$username.PHP_EOL.PHP_EOL.$message;
   $subject=$settings["app_name"]." \\webdb\\utils\\error_message";
-  \webdb\utils\send_email($settings["admin_email"],"",$subject,$message);
+  \webdb\utils\send_email($settings["admin_email"],"",$subject,$email_message);
   \webdb\utils\info_message($message,true);
 }
 
