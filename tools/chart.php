@@ -134,7 +134,7 @@ function assign_discontinuous_plot_data($chart_data,$plot_data,$x_key,$y_key,$co
 
 #####################################################################################################
 
-function assign_plot_data($chart_data,$series_data,$x_key,$y_key,$color_key,$marker="",$assign_limits=true,$line_enabled=true,$name="",$style="solid")
+function assign_plot_data($chart_data,$series_data,$x_key,$y_key,$color_key,$marker="",$assign_limits=true,$line_enabled=true,$name="",$style="solid",$series_data_color_key=false)
 {
   # $style="solid"|"dash"
   # $series_data[$i][$x|y_key] (continuous)
@@ -159,6 +159,14 @@ function assign_plot_data($chart_data,$series_data,$x_key,$y_key,$color_key,$mar
     $y=$coord[$y_key];
     $series["x_values"][]=$x;
     $series["y_values"][]=$y;
+    if ($series_data_color_key!==false)
+    {
+      $series["colors"][]=$coord[$series_data_color_key]; # contains array(R,G,B)
+    }
+    else
+    {
+      $series["colors"][]=false;
+    }
     if ($x<$min_x)
     {
       $min_x=$x;
@@ -620,7 +628,7 @@ function chart_to_pixel_x($val,$data)
   }
   $chart_w_pix=$data["w"]-$data["left"]-$data["right"];
   $ppu=\webdb\chart\pixels_per_unit($chart_w_pix,$data["x_min"],$data["x_max"]);
-  return ($val-$data["x_min"])*$ppu+$data["left"];
+  return intval(round(($val-$data["x_min"])*$ppu)+$data["left"]);
 }
 
 #####################################################################################################
@@ -633,7 +641,7 @@ function chart_to_pixel_y($val,$data)
   }
   $chart_h_pix=$data["h"]-$data["top"]-$data["bottom"];
   $ppu=\webdb\chart\pixels_per_unit($chart_h_pix,$data["y_min"],$data["y_max"]);
-  return $chart_h_pix-1-($val-$data["y_min"])*$ppu+$data["top"];
+  return intval(round($chart_h_pix-1-($val-$data["y_min"])*$ppu)+$data["top"]);
 }
 
 #####################################################################################################
@@ -719,11 +727,16 @@ function chart_draw_continuous_plot(&$data,$series)
   $line_color=imagecolorallocate($data["buffer"],$color[0],$color[1],$color[2]);
   $x_values=$series["x_values"];
   $y_values=$series["y_values"];
+  $colors=$series["colors"];
   $n=count($x_values)-1;
   for ($i=0;$i<$n;$i++)
   {
     $x1=\webdb\chart\chart_to_pixel_x($x_values[$i],$data);
     $y1=\webdb\chart\chart_to_pixel_y($y_values[$i],$data);
+    if ($colors[$i]!==false)
+    {
+      $line_color=imagecolorallocate($data["buffer"],$colors[$i][0],$colors[$i][1],$colors[$i][2]);
+    }
     if ($series["marker"]=="box")
     {
       imagerectangle($data["buffer"],$x1-2,$y1-2,$x1+2,$y1+2,$line_color);
