@@ -146,6 +146,7 @@ function assign_plot_data($chart_data,$series_data,$x_key,$y_key,$color_key,$mar
   $series["line_enabled"]=$line_enabled;
   $series["x_values"]=array();
   $series["y_values"]=array();
+  $series["colors"]=array();
   $series["style"]=$style;
   $min_x=PHP_INT_MAX;
   $max_x=0;
