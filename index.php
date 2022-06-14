@@ -39,6 +39,7 @@ require_once("tools".DIRECTORY_SEPARATOR."graphics.php");
 require_once("tools".DIRECTORY_SEPARATOR."tree.php");
 require_once("tools".DIRECTORY_SEPARATOR."chart.php");
 require_once("tools".DIRECTORY_SEPARATOR."excel.php");
+require_once("tools".DIRECTORY_SEPARATOR."word.php");
 
 set_error_handler("\\webdb\\utils\\error_handler",E_ALL);
 set_exception_handler("\\webdb\\utils\\exception_handler");
