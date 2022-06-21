@@ -13,7 +13,8 @@ function request($url,$peer_name,$request,$ignore_verify=false)
   $context_options=array(
     "http"=>array(
       "user_agent"=>$settings["http_user_agent"],
-      "timeout"=>2000));
+      "max_redirects"=>10,
+      "timeout"=>20));
   if (isset($url_parts["scheme"])==false)
   {
     $url_parts["scheme"]="https";
