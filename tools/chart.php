@@ -726,6 +726,18 @@ function chart_draw_continuous_plot(&$data,$series)
   $color=$series["color"];
   $color=$data["colors"][$color];
   $line_color=imagecolorallocate($data["buffer"],$color[0],$color[1],$color[2]);
+  if (isset($series["x_values"])==false)
+  {
+    $series["x_values"]=array();
+  }
+  if (isset($series["y_values"])==false)
+  {
+    $series["y_values"]=array();
+  }
+  if (isset($series["colors"])==false)
+  {
+    $series["colors"]=array();
+  }
   $x_values=$series["x_values"];
   $y_values=$series["y_values"];
   $colors=$series["colors"];
