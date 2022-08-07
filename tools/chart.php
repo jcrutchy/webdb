@@ -463,18 +463,20 @@ function handle_chart_event($event_type,$chart_data)
 
 #####################################################################################################
 
-function output_chart($data,$filename=false,$no_output=false,$rhs_data=false)
+function draw_discontinuous_plots(&$data)
 {
   global $settings;
-  \webdb\chart\chart_draw_create($data);
-  $data=\webdb\chart\handle_chart_event("on_after_background",$data);
-  \webdb\chart\chart_draw_border($data);
-  \webdb\chart\chart_draw_grid($data);
-  $data=\webdb\chart\handle_chart_event("on_after_grid",$data);
   for ($i=0;$i<count($data["discontinuous_plots"]);$i++)
   {
     \webdb\chart\chart_draw_discontinuous_plot($data,$data["discontinuous_plots"][$i]);
   }
+}
+
+#####################################################################################################
+
+function draw_series_plots(&$data)
+{
+  global $settings;
   for ($i=0;$i<count($data["series"]);$i++)
   {
     $series=$data["series"][$i];
@@ -491,6 +493,20 @@ function output_chart($data,$filename=false,$no_output=false,$rhs_data=false)
         break;
     }
   }
+}
+
+#####################################################################################################
+
+function output_chart($data,$filename=false,$no_output=false,$rhs_data=false)
+{
+  global $settings;
+  \webdb\chart\chart_draw_create($data);
+  $data=\webdb\chart\handle_chart_event("on_after_background",$data);
+  \webdb\chart\chart_draw_border($data);
+  \webdb\chart\chart_draw_grid($data);
+  $data=\webdb\chart\handle_chart_event("on_after_grid",$data);
+  \webdb\chart\draw_discontinuous_plots($data);
+  \webdb\chart\draw_series_plots($data);
   if (isset($data["today_mark"])==true)
   {
     \webdb\chart\chart_draw_today_mark($data);
@@ -753,6 +769,10 @@ function chart_draw_continuous_plot(&$data,$series)
     if ($series["marker"]=="box")
     {
       imagerectangle($data["buffer"],$x1-2,$y1-2,$x1+2,$y1+2,$line_color);
+      if ($series["line_enabled"]==false)
+      {
+        imagesetpixel($data["buffer"],$x1,$y1,$line_color);
+      }
     }
     $x2=\webdb\chart\chart_to_pixel_x($x_values[$i+1],$data);
     $y2=\webdb\chart\chart_to_pixel_y($y_values[$i+1],$data);
