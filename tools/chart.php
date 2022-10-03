@@ -707,7 +707,7 @@ function chart_draw_today_mark(&$data)
 
 #####################################################################################################
 
-function chart_draw_column_series(&$data,$series)
+function chart_draw_column_series(&$data,$series,$y_min=0)
 {
   $color=$series["color"];
   $color=$data["colors"][$color];
@@ -720,7 +720,7 @@ function chart_draw_column_series(&$data,$series)
   $ppu=\webdb\chart\pixels_per_unit($chart_w_pix,$data["x_min"],$data["x_max"]);
   $half_col=$data["grid_x"]/2*$ppu-3;
   $n=count($x_values);
-  $y1=\webdb\chart\chart_to_pixel_y(0,$data);
+  $y1=\webdb\chart\chart_to_pixel_y($y_min,$data);
   for ($i=0;$i<$n;$i++)
   {
     $x1=\webdb\chart\chart_to_pixel_x($x_values[$i],$data)-$half_col;
