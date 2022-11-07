@@ -283,7 +283,7 @@ function login()
     {
       \webdb\users\cancel_password_reset($user_record);
     }
-    if ((\webdb\users\remote_address_changed($user_record)==false) and ($settings["user_agent"]==$user_record["user_agent"]))
+    if (\webdb\users\check_remote_client($user_record)==true)
     {
       if ($user_record["failed_login_count"]>$settings["max_login_attempts"])
       {
@@ -341,6 +341,28 @@ function login()
   $settings["unauthenticated_content"]=true;
   \webdb\users\auth_log(false,"LOGIN_FORM","");
   \webdb\utils\output_page($content,"Login");
+}
+
+#####################################################################################################
+
+function check_remote_client($user_record)
+{
+  global $settings;
+  if ($settings["login_check_address"]==true)
+  {
+    if (\webdb\users\remote_address_changed($user_record)==true)
+    {
+      return false;
+    }
+  }
+  if ($settings["login_check_agent"]==true)
+  {
+    if ($settings["user_agent"]<>$user_record["user_agent"])
+    {
+      return false;
+    }
+  }
+  return true;
 }
 
 #####################################################################################################
