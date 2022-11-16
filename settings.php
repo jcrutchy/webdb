@@ -67,6 +67,8 @@ $settings["links_template"]="";
 $settings["footer_template"]="";
 $settings["login_notice_template"]="";
 
+$settings["enable_page_links_templates"]=true;
+
 $settings["login_cookie"]="webdb_login";
 $settings["username_cookie"]="webdb_username";
 $settings["confirm_status_cookie"]="webdb_confirm_status"; # don't change - used in list.js

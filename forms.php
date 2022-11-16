@@ -394,6 +394,7 @@ function form_dispatch($page_id)
       $list_params["form_script_modified"]=\webdb\utils\resource_modified_timestamp("list.js");
       $list_params["form_styles_modified"]=\webdb\utils\resource_modified_timestamp("list.css");
       $list_params["form_styles_print_modified"]=\webdb\utils\resource_modified_timestamp("list_print.css");
+      \webdb\forms\handle_links_menu($form_config,$list_params);
       $list_params["title"]=$form_config["title"];
       if ($form_config["report_content_only"]==true)
       {
@@ -410,6 +411,31 @@ function form_dispatch($page_id)
         $title=$form_config["title"];
       }
       \webdb\utils\output_page($content,$title);
+  }
+}
+
+#####################################################################################################
+
+function handle_links_menu($form_config,&$list_params)
+{
+  global $settings;
+  if (($settings["enable_page_links_templates"]==true) and ($form_config!==false))
+  {
+    if ($form_config["links_template"]<>"")
+    {
+      $list_params["header_links_bar"]=\webdb\utils\template_fill($form_config["links_template"]);
+    }
+    elseif ($settings["links_template"]<>"")
+    {
+      $list_params["header_links_bar"]=\webdb\utils\template_fill($settings["links_template"]);
+    }
+  }
+  else
+  {
+    if ($settings["links_template"]<>"")
+    {
+      $list_params["header_links_bar"]=\webdb\utils\template_fill($settings["links_template"]);
+    }
   }
 }
 
@@ -2745,6 +2771,7 @@ function advanced_search($form_config)
   $search_page_params["form_script_modified"]=\webdb\utils\resource_modified_timestamp("list.js");
   $search_page_params["form_styles_modified"]=\webdb\utils\resource_modified_timestamp("list.css");
   $search_page_params["form_styles_print_modified"]=\webdb\utils\resource_modified_timestamp("list_print.css");
+  \webdb\forms\handle_links_menu($form_config,$search_page_params);
   $search_page_params["title"]="Advanced Search: ".$form_config["title"];
   $result=array();
   $result["title"]=$form_config["title"].": Advanced Search";
@@ -2826,6 +2853,7 @@ function output_editor($form_config,$record,$command,$verb,$id=false)
   $form_params["form_script_modified"]=\webdb\utils\resource_modified_timestamp("list.js");
   $form_params["form_styles_modified"]=\webdb\utils\resource_modified_timestamp("list.css");
   $form_params["form_styles_print_modified"]=\webdb\utils\resource_modified_timestamp("list_print.css");
+  \webdb\forms\handle_links_menu($form_config,$form_params);
   $form_params["command"]=$command;
   $form_params["command_caption_noun"]=$form_config["command_caption_noun"];
   $form_params["cmd"]=$cmd;
@@ -3657,6 +3685,7 @@ function delete_confirmation($form_config,$id)
   $form_params["form_script_modified"]=\webdb\utils\resource_modified_timestamp("list.js");
   $form_params["form_styles_modified"]=\webdb\utils\resource_modified_timestamp("list.css");
   $form_params["form_styles_print_modified"]=\webdb\utils\resource_modified_timestamp("list_print.css");
+  \webdb\forms\handle_links_menu($form_config,$form_params);
   $form_params["redirect"]="";
   if (isset($_GET["redirect"])==true)
   {
@@ -3829,6 +3858,7 @@ function delete_selected_confirmation($form_config)
   $form_params["form_script_modified"]=\webdb\utils\resource_modified_timestamp("list.js");
   $form_params["form_styles_modified"]=\webdb\utils\resource_modified_timestamp("list.css");
   $form_params["form_styles_print_modified"]=\webdb\utils\resource_modified_timestamp("list_print.css");
+  \webdb\forms\handle_links_menu($form_config,$form_params);
   $form_params["redirect"]="";
   if (isset($_GET["redirect"])==true)
   {
@@ -3939,6 +3969,7 @@ function basic_search()
   $page_params["form_script_modified"]=\webdb\utils\resource_modified_timestamp("list.js");
   $page_params["form_styles_modified"]=\webdb\utils\resource_modified_timestamp("list.css");
   $page_params["form_styles_print_modified"]=\webdb\utils\resource_modified_timestamp("list_print.css");
+  \webdb\forms\handle_links_menu(false,$page_params);
   $content=\webdb\utils\template_fill("basic_search/results",$page_params);
   $title="basic search";
   \webdb\utils\output_page($content,$title);

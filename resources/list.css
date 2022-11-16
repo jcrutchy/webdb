@@ -127,6 +127,12 @@ th.list_controls_head
 td.editor_field_name
   {
     max-width: 400px;
+    vertical-align: middle;
+  }
+
+td.editor_field_control
+  {
+    vertical-align: middle;
   }
 
 td.editor_title_field
@@ -251,6 +257,7 @@ input.date_edit_field
     font-weight: bold;
     visibility: hidden;
     padding-top: 5px;
+    display: inline-block;
   }
 
 #header_links_bar
@@ -608,8 +615,9 @@ input.date_edit_field
     border: 0;
   }
 
-.interface_button
+td.interface_button
   {
+    vertical-align: middle;
     border-top: 0 !important;
     border-bottom: 0 !important;
     border-right: 0 !important;
