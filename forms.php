@@ -188,6 +188,13 @@ function form_dispatch($page_id)
   {
     $_GET["cmd"]=$form_config["default_cmd_override"];
   }
+  if ($form_config["on_open_stub"]<>"")
+  {
+    if (function_exists($form_config["on_open_stub"])==true)
+    {
+      call_user_func($form_config["on_open_stub"],$form_config);
+    }
+  }
   if (isset($_GET["ajax"])==true)
   {
     switch ($_GET["ajax"])
@@ -1038,6 +1045,23 @@ function config_id_url_value($form_config,$record,$config_key)
 function list_row($form_config,$record,$column_format,$row_spans,$lookup_records,$record_index,$link_record=false)
 {
   global $settings;
+  # ~~~~~~~~~~~~~~~~~~~~~~~
+  $event_params=array();
+  $event_params["form_config"]=$form_config;
+  $event_params["record"]=$record;
+  $event_params["link_record"]=$link_record;
+  if (isset($form_config["event_handlers"]["on_before_list_row"])==true)
+  {
+    $func_name=$form_config["event_handlers"]["on_before_list_row"];
+    if (function_exists($func_name)==true)
+    {
+      $event_params=call_user_func($func_name,$event_params);
+      $form_config=$event_params["form_config"];
+      $record=$event_params["record"];
+      $link_record=$event_params["link_record"];
+    }
+  }
+  # ~~~~~~~~~~~~~~~~~~~~~~~
   $rotate_group_borders=$column_format["rotate_group_borders"];
   $row_params=array();
   $row_params["page_id"]=$form_config["page_id"];
@@ -1290,12 +1314,16 @@ function list_row($form_config,$record,$column_format,$row_spans,$lookup_records
 function lookup_field_display_value($lookup_config,$lookup_record)
 {
   global $settings;
+  if (isset($lookup_config["display_field"])==false)
+  {
+    $lookup_config["display_field"]=$lookup_config["key_field"];
+  }
   $display_field_names=explode(",",$lookup_config["display_field"]);
   $display_values=array();
   for ($i=0;$i<count($display_field_names);$i++)
   {
     $display_field_name=$display_field_names[$i];
-    if (array_key_exists($display_field_name,$lookup_record)==false)
+    if (array_key_exists($display_field_name,$lookup_record)==false) # JC, 28-Nov-22: this fixes a bug when fudging fields outside the basic table, but its probably a dodgy hack
     {
       \webdb\utils\error_message("error: lookup display field not found: ".$display_field_name);
     }
@@ -1316,7 +1344,29 @@ function lookup_field_display_value($lookup_config,$lookup_record)
       case "date":
         if (count($display_values)==1)
         {
-          return date($settings["app_date_format"],strtotime($display_values[0]));
+          if ($display_values[0]<>"")
+          {
+            return date($settings["app_date_format"],strtotime($display_values[0]));
+          }
+          else
+          {
+            return "";
+          }
+        }
+      case "check":
+        if (count($display_values)==1)
+        {
+          $check_params=array();
+          if ($display_values[0]==1)
+          {
+            $check_params["check_tick_class"]="check_tick";
+            return \webdb\forms\form_template_fill("check_tick",$check_params);
+          }
+          else
+          {
+            $check_params["check_cross_class"]="check_cross";
+            return \webdb\forms\form_template_fill("check_cross",$check_params);
+          }
         }
       default:
         if ($format<>"")
@@ -1334,6 +1384,10 @@ function get_lookup_field_value($field_name,$form_config,$lookup_records,$displa
 {
   $result="";
   $lookup_config=$form_config["lookups"][$field_name];
+  if (isset($lookup_config["constant_value"])==true)
+  {
+    return \webdb\utils\string_template_fill($lookup_config["constant_value"]);
+  }
   $key_field_name=$lookup_config["key_field"];
   if (isset($lookup_config["sibling_field"])==false)
   {
@@ -1347,6 +1401,10 @@ function get_lookup_field_value($field_name,$form_config,$lookup_records,$displa
     {
       $lookup_record=$lookup_records[$field_name][$i];
       $key_value=$lookup_record[$key_field_name];
+      if (isset($display_record[$sibling_field_name])==false)
+      {
+        continue;
+      }
       if ($display_record[$sibling_field_name]==$key_value)
       {
         $result=\webdb\forms\lookup_field_display_value($lookup_config,$lookup_record);
@@ -1381,7 +1439,10 @@ function get_lookup_field_value($field_name,$form_config,$lookup_records,$displa
         return $result;
     }
   }
-  $result=htmlspecialchars(str_replace(\webdb\index\LINEBREAK_DB_DELIM,\webdb\index\LINEBREAK_PLACEHOLDER,$result));
+  else
+  {
+    $result=htmlspecialchars(str_replace(\webdb\index\LINEBREAK_DB_DELIM,\webdb\index\LINEBREAK_PLACEHOLDER,$result));
+  }
   return str_replace(\webdb\index\LINEBREAK_PLACEHOLDER,\webdb\utils\template_fill("break"),$result);
 }
 
@@ -1559,6 +1620,21 @@ function check_column($form_config,$template,$params=array())
 function list_row_controls($form_config,&$submit_fields,$operation,$column_format,$record)
 {
   global $settings;
+  # ~~~~~~~~~~~~~~~~~~~~~~~
+  $event_params=array();
+  $event_params["form_config"]=$form_config;
+  $event_params["record"]=$record;
+  if (isset($form_config["event_handlers"]["on_list_row_controls"])==true)
+  {
+    $func_name=$form_config["event_handlers"]["on_list_row_controls"];
+    if (function_exists($func_name)==true)
+    {
+      $event_params=call_user_func($func_name,$event_params);
+      $form_config=$event_params["form_config"];
+      $record=$event_params["record"];
+    }
+  }
+  # ~~~~~~~~~~~~~~~~~~~~~~~
   $rotate_group_borders=$column_format["rotate_group_borders"];
   $row_params=array();
   $row_params["primary_key"]=\webdb\forms\config_id_url_value($form_config,$record,"primary_key");
@@ -1639,6 +1715,17 @@ function list_row_controls($form_config,&$submit_fields,$operation,$column_forma
     $row_params["last_group_border_width"]=$settings["list_group_border_width"];
     $row_params["last_group_border_color"]=$settings["list_group_border_color"];
   }
+  $row_params["insert_cmd_handler"]="true";
+  if ($operation=="insert")
+  {
+    $cmd_handler="insert_cmd_handler";
+    if ($form_config[$cmd_handler]<>"")
+    {
+      $handler_params=array();
+      $handler_params["function_name"]=$form_config[$cmd_handler];
+      $row_params["insert_cmd_handler"]=\webdb\forms\form_template_fill("form_cmd_handler_row",$handler_params);
+    }
+  }
   return \webdb\forms\form_template_fill("list_".$operation."_row",$row_params);
 }
 
@@ -1651,7 +1738,7 @@ function output_editable_field(&$field_params,$record,$field_name,$control_type,
   $field_params["field_value"]="";
   if (isset($record[$field_name])==true)
   {
-    $field_params["field_value"]=htmlspecialchars($record[$field_name]);
+    $field_params["field_value"]=$record[$field_name];
   }
   $field_params["page_id"]=$form_config["page_id"];
   $field_params["control_style"]="";
@@ -1692,6 +1779,8 @@ function output_editable_field(&$field_params,$record,$field_name,$control_type,
       $field_params["field_value"]=str_replace(\webdb\index\LINEBREAK_PLACEHOLDER,PHP_EOL,$field_params["field_value"]);
       break;
     case "raw":
+      $control_type="span";
+      break;
     case "text":
       if (isset($form_config["disabled"][$field_name])==true)
       {
@@ -2473,8 +2562,11 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
   $form_params["parent_form_page_id"]="";
   if ((isset($form_config["parent_form_id"])==true) and (isset($form_config["parent_form_config"])==true))
   {
-    $form_params["parent_id"]=$form_config["parent_form_id"];
-    $form_params["parent_form_page_id"]=$form_config["parent_form_config"]["page_id"];
+    if ($form_config["parent_form_config"]!==false)
+    {
+      $form_params["parent_id"]=$form_config["parent_form_id"];
+      $form_params["parent_form_page_id"]=$form_config["parent_form_config"]["page_id"];
+    }
   }
   $form_params["reset_sort_link"]="";
   if ((isset($_GET["cmd"])==false) and (isset($_GET["ajax"])==false) and ($form_config["sort_enabled"]==true))
@@ -2818,7 +2910,12 @@ function insert_form($form_config)
   {
     $record[$name]=htmlspecialchars($value);
   }
-  return \webdb\forms\output_editor($form_config,$record,"Insert","Insert");
+  $id=\webdb\forms\config_id_url_value($form_config,$record,"primary_key");
+  if ($id==="")
+  {
+    $id=false;
+  }
+  return \webdb\forms\output_editor($form_config,$record,"Insert","Insert",$id);
 }
 
 #####################################################################################################
@@ -2928,7 +3025,7 @@ function output_editor($form_config,$record,$command,$verb,$id=false)
       $field_params["disabled"]=\webdb\forms\field_disabled($form_config,$field_name);
       $field_params["js_events"]=\webdb\forms\field_js_events($form_config,$field_name,$record);
       $field_params["field_name"]=$field_name;
-      $field_params["field_value"]=htmlspecialchars($field_value);
+      $field_params["field_value"]=$field_value;
       $row_params=array();
       $row_params["field_name"]=$form_config["captions"][$field_name];
       foreach ($form_config["caption_groups"] as $group_caption => $group_fields)
@@ -3049,6 +3146,14 @@ function editor_command_button($form_config,$command,&$form_params)
       return;
     }
   }
+  $form_params["form_cmd_handler"]="";
+  $cmd_handler=strtolower($command)."_cmd_handler";
+  if ($form_config[$cmd_handler]<>"")
+  {
+    $handler_params=array();
+    $handler_params["function_name"]=$form_config[$cmd_handler];
+    $form_params["form_cmd_handler"]=\webdb\forms\form_template_fill("form_cmd_handler",$handler_params);
+  }
   $form_params["edit_form_controls"]=\webdb\forms\form_template_fill("edit_form_controls",$form_params);
   $form_params["title"]=$command." ".$form_config["command_caption_noun"];
 }
@@ -3063,6 +3168,10 @@ function lookup_field_data($form_config,$field_name)
     \webdb\utils\error_message("error: invalid lookup config for field '".$field_name."' in form '".$form_config["page_id"]."' (lookup config missing)");
   }
   $lookup_config=$form_config["lookups"][$field_name];
+  if (isset($lookup_config["constant_value"])==true)
+  {
+    return $lookup_config["constant_value"];
+  }
   if (isset($form_config["lookups"][$field_name]["value_list"])==true)
   {
     return $form_config["lookups"][$field_name]["value_list"];
@@ -3078,6 +3187,10 @@ function lookup_field_data($form_config,$field_name)
   if (isset($lookup_config["where_clause"])==false)
   {
     $lookup_config["where_clause"]="";
+  }
+  if (isset($lookup_config["display_field"])==false)
+  {
+    $lookup_config["display_field"]=$lookup_config["key_field"];
   }
   if ($lookup_config["lookup_sql_file"]=="")
   {
@@ -3096,7 +3209,14 @@ function lookup_field_data($form_config,$field_name)
       $first_display_field=array_shift($display_fields);
       $lookup_config["order_by"]=$first_display_field." ASC";
     }
-    $sql=\webdb\utils\sql_fill("form_lookup",$lookup_config);
+    if ($lookup_config["display_field"]==$lookup_config["key_field"])
+    {
+      $sql=\webdb\utils\sql_fill("form_lookup_key",$lookup_config);
+    }
+    else
+    {
+      $sql=\webdb\utils\sql_fill("form_lookup",$lookup_config);
+    }
   }
   else
   {
@@ -3429,7 +3549,12 @@ function insert_record($form_config)
   {
     \webdb\utils\error_message("error: record insert permission denied for form '".$form_config["page_id"]."'");
   }
-  $value_items=\webdb\forms\process_form_data_fields($form_config,"");
+  $id="";
+  if (isset($_GET["id"])==true)
+  {
+    $id=$_GET["id"];
+  }
+  $value_items=\webdb\forms\process_form_data_fields($form_config,$id);
   $event_params=array();
   $event_params["handled"]=false;
   $event_params["value_items"]=$value_items;
@@ -3440,7 +3565,10 @@ function insert_record($form_config)
   {
     \webdb\forms\check_required_values($form_config,$value_items);
     \webdb\sql\sql_insert($value_items,$form_config["table"],$form_config["database"],false,$form_config);
-    $id=\webdb\sql\sql_last_insert_autoinc_id();
+    if ($id==="")
+    {
+      $id=\webdb\sql\sql_last_insert_autoinc_id();
+    }
     \webdb\forms\upload_files($form_config,"");
   }
   else
@@ -3451,6 +3579,10 @@ function insert_record($form_config)
   {
     \webdb\forms\set_confirm_status_cookie($form_config,"RECORD INSERTED SUCCESSFULLY");
   }
+  if ($id=="")
+  {
+    $id=\webdb\forms\config_id_url_value($form_config,$value_items,"primary_key");
+  }
   if ($form_config["edit_cmd_page_id"]<>"")
   {
     $record=\webdb\forms\get_record_by_id($form_config,$id,"primary_key");
@@ -3460,6 +3592,10 @@ function insert_record($form_config)
     $url=trim(\webdb\forms\form_template_fill("edit_redirect_url",$params));
     \webdb\utils\redirect($url);
   }
+  $event_params=array();
+  $event_params["value_items"]=$value_items;
+  $event_params["new_record_id"]=$id;
+  $event_params=\webdb\forms\handle_form_config_event($form_config,$event_params,"on_after_insert_record");
   \webdb\forms\page_redirect(false,false,$id);
 }
 
@@ -3561,7 +3697,7 @@ function check_required_values($form_config,$value_items)
     $field_name=$form_config["required_values"][$i];
     if (empty($value_items[$field_name])==true)
     {
-      \webdb\utils\error_message("error: value required for field `".$field_name."`");
+      \webdb\utils\error_message("error: value required for field `".$form_config["captions"][$field_name]."`");
     }
   }
 }
@@ -3723,7 +3859,7 @@ function page_redirect($form_config=false,$params=false,$append="")
   if ($params!==false)
   {
     $query=parse_url($url,PHP_URL_QUERY);
-    $base_url=substr($url,0,strpos($url,$query));
+    $base_url=substr($url,0,strpos($url,$query)); # TODO: maybe use \webdb\utils\get_base_url()
     $query_params=array();
     parse_str($query,$query_params);
     foreach ($params as $param_name => $param_value)

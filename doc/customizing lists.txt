@@ -1,6 +1,6 @@
 also refer to: field js events
 
-
+"on_open_stub": "",
 
 result of stub is output in column to the right of fields in the standard edit page
 (eg: stub can output an "edit" button that calls javascript when clicked):
@@ -34,12 +34,15 @@ app/index.php?page=page_id&id=x => app/index.php?page=page_id&cmd=edit&id=x
         "on_get_record_by_id": "\\my_app\\stubs\\my_get_record_by_id_php_stub",
         "on_update_record": "\\my_app\\stubs\\my_update_record_php_stub",
         "on_insert_record": "\\my_app\\stubs\\my_insert_record_php_stub",
+        "on_after_insert_record"
         "on_delete_record": "\\my_app\\stubs\\my_delete_record_php_stub",
         "on_custom_form_above": "\\my_app\\stubs\\my_custom_form_above_php_stub",
         "on_custom_form_below": "\\my_app\\stubs\\my_custom_form_below_php_stub",
         "on_checklist_insert": "\\my_app\\stubs\\my_checklist_insert_php_stub",
         "on_before_rows": "\\my_app\\stubs\\my_before_rows_php_stub",
-        "on_list_row": "\\my_app\\stubs\\my_list_row_php_stub"
+        "on_before_list_row": "\\my_app\\stubs\\my_list_before_row_php_stub",
+        "on_list_row": "\\my_app\\stubs\\my_list_row_php_stub",
+        "on_list_row_controls": "\\my_app\\stubs\\my_list_row_controls_php_stub"
     },
 
 

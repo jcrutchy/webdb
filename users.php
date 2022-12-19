@@ -72,6 +72,21 @@ function get_user_record($username)
 
 #####################################################################################################
 
+function get_user_record_by_id($user_id)
+{
+  global $settings;
+  $sql_params=array();
+  $sql_params["user_id"]=$user_id;
+  $records=\webdb\sql\file_fetch_prepare("user_get_by_user_id",$sql_params);
+  if (count($records)<>1)
+  {
+    return false;
+  }
+  return $records[0];
+}
+
+#####################################################################################################
+
 function get_user_groups($user_id)
 {
   $sql_params=array();
@@ -120,7 +135,7 @@ function login_failure($user_record,$message)
   $settings["sql_check_post_params_override"]=true;
   $settings["user_record"]=$user_record; # allow unauthenticated change to database
   \webdb\sql\sql_update($value_items,$where_items,"users",$settings["database_webdb"],true);
-  unset($settings["user_record"]);
+  \webdb\users\user_login_settings_unset();
   \webdb\csrf\unset_authenticated_csrf(false);
   \webdb\users\unset_login_cookie();
   \webdb\users\auth_log($user_record,"LOGIN_FAILURE",$message);
@@ -178,7 +193,7 @@ function login_lockout($user_record)
   $settings["sql_check_post_params_override"]=true;
   $settings["user_record"]=$user_record; # allow unauthenticated change to database
   \webdb\sql\sql_update($value_items,$where_items,"users",$settings["database_webdb"],true);
-  unset($settings["user_record"]);
+  \webdb\users\user_login_settings_unset();
   \webdb\users\unset_login_cookie();
   \webdb\csrf\unset_authenticated_csrf(false);
   \webdb\users\auth_log($user_record,"LOCKOUT","");
@@ -372,6 +387,7 @@ function user_login_settings_set($user_record)
   global $settings;
   $settings["user_record"]=$user_record;
   $settings["logged_in_username"]=$settings["user_record"]["username"];
+  $settings["logged_in_fullname"]=$settings["user_record"]["fullname"];
   $settings["logged_in_user_id"]=$settings["user_record"]["user_id"];
   $user_id=$settings["user_record"]["user_id"];
   $settings["logged_in_user_groups"]=\webdb\users\get_user_groups($user_id);
@@ -379,11 +395,12 @@ function user_login_settings_set($user_record)
 
 #####################################################################################################
 
-function user_login_settings_unset() # used for testing
+function user_login_settings_unset()
 {
   global $settings;
   unset($settings["user_record"]);
   unset($settings["logged_in_username"]);
+  unset($settings["logged_in_fullname"]);
   unset($settings["logged_in_user_id"]);
   unset($settings["logged_in_user_groups"]);
 }

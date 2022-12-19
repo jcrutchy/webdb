@@ -1,0 +1,110 @@
+
+#custom_alert_background
+  {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    top: 0;
+    left: 0;
+    display: none;
+    background: rgba(70,70,70,0.5);
+    z-index: 999999;
+  }
+
+.custom_alert_outside
+  {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 700px;
+    height: 400px;
+    margin-top: -200px;
+    margin-left: -350px;
+    border-style: solid;
+    border-width: thin;
+    border-top-color: #CCCCCC;
+    border-left-color: #CCCCCC;
+    border-bottom-color: #555555;
+    border-right-color: #555555;
+    -webkit-box-shadow: 5px 5px 15px 1px rgba(0,0,0,0.67);
+    -moz-box-shadow: 5px 5px 15px 1px rgba(0,0,0,0.67);
+    box-shadow: 5px 5px 15px 1px rgba(0,0,0,0.67);
+  }
+
+.custom_alert_inside
+  {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #EEEEFF;
+    border-style: solid;
+    border-width: thin;
+    border-top-color: #FFFFFF;
+    border-left-color: #FFFFFF;
+    border-bottom-color: #999999;
+    border-right-color: #999999;
+    overflow: hidden;
+    background-color: #f7eaed;
+  }
+
+.custom_alert
+  {
+    padding: 0;
+    margin: 10px;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+  }
+
+.custom_alert_controls_div
+  {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+  }
+
+.custom_alert_controls_div input
+  {
+    float: right;
+    width: 100px;
+    margin-left: 10px;
+  }
+
+#custom_alert_message
+  {
+    position: absolute;
+    top: 0;
+    bottom: 30px;
+    left: 0;
+    right: 0;
+    overflow: auto;
+    padding: 5px;
+    border: thin solid #999;
+    white-space: pre;
+    font-family: "Courier New", Courier, monospace;
+  }
+
+#custom_alert_message_box
+  {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    overflow: auto;
+    padding: 5px;
+    border: thin solid #999;
+  }
+
+#custom_alert_home_box
+  {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+  }

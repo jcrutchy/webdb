@@ -42,7 +42,7 @@ function webdb_debug_backtrace()
 
 #####################################################################################################
 
-function info_message($message,$show_backtrace=false)
+function info_message($message,$show_backtrace=false,$home_link=true)
 {
   global $settings;
   if (isset($_GET["ajax"])==true)
@@ -66,7 +66,15 @@ function info_message($message,$show_backtrace=false)
   $params["global_styles_modified"]=\webdb\utils\resource_modified_timestamp("global.css");
   $params["page_title"]=$settings["app_name"];
   $params["message"]=$message;
-  $content=\webdb\utils\template_fill("error_message",$params);
+  if ($home_link==true)
+  {
+    $content=\webdb\utils\template_fill("error_message",$params);
+  }
+  else
+  {
+    $params["alert_message_styles_modified"]=\webdb\utils\resource_modified_timestamp("alert_message.css");
+    $content=\webdb\utils\template_fill("alert_message",$params);
+  }
   if ($show_backtrace==true)
   {
     $content.=\webdb\utils\webdb_debug_backtrace();

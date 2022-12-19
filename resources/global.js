@@ -161,8 +161,16 @@ function set_session_cookie(cookie_name,cookie_value)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function custom_alert(message)
+function custom_alert(message,reload_after=false)
 {
+  if (reload_after==false)
+  {
+    document.getElementById("reload_after_alert").innerHTML="0";
+  }
+  else
+  {
+    document.getElementById("reload_after_alert").innerHTML="1";
+  }
   document.getElementById("custom_alert_message").innerHTML=message;
   document.getElementById("custom_alert_background").style.display="block";
 }
@@ -171,6 +179,10 @@ function custom_alert(message)
 
 function custom_alert_close()
 {
+  if (document.getElementById("reload_after_alert").innerHTML=="1")
+  {
+    location.reload();
+  }
   document.getElementById("custom_alert_message").innerHTML="";
   document.getElementById("custom_alert_background").style.display="none";
 }

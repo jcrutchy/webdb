@@ -247,13 +247,13 @@ textarea
   {
     position: absolute;
     top: 0;
-    bottom: 30px;
+    bottom: 31px;
     left: 0;
     right: 0;
     overflow: auto;
     padding: 5px;
     border: thin solid #999;
-    white-space: pre;
+    /*white-space: pre;*/
     font-family: "Courier New", Courier, monospace;
   }
 

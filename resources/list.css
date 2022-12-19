@@ -225,6 +225,18 @@ input.date_edit_field
   {
   }
 
+#left_border_fade
+  {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 300px;
+    background-color: #041E42;
+    background: linear-gradient(to right, #041E42, #EEEEEE);
+    opacity: 0.3;
+  }
+
 #global_page_header
   {
     position: absolute;
@@ -232,8 +244,8 @@ input.date_edit_field
     left: 0;
     width: 100%;
     height: 90px;
-    background-color: #eeeeee;
     overflow: hidden;
+    background-color: transparent;
   }
 
 #global_page_header_content
@@ -340,8 +352,8 @@ input.date_edit_field
     bottom: 0;
     left: 0;
     width: 100%;
-    background-color: #eeeeee;
     overflow: hidden;
+    background-color: transparent;
   }
 
 #global_page_footer_content
@@ -379,24 +391,41 @@ input.date_edit_field
     /*****/
   }
 
-#editor_pane_scroll
+#editor_pane_parent
   {
     min-width: 650px;
     max-width: 65%;
     flex-grow: 1;
-    /*****/
-    overflow-y: scroll;
     padding: 0;
     height: 100%;
     box-shadow: 1px 0 3px #aaaaaa;
     border-right: thin solid #aaaaaa;
-    /*****/
   }
 
-#editor_pane
+#editor_pane_scroll
+  {
+    width: 100%;
+    padding: 0;
+    overflow-y: scroll;
+    height: calc(100% - 45px);
+  }
+
+#editor_pane_content
   {
     padding: 10px;
     position: relative;
+  }
+
+#editor_pane_top
+  {
+    width: 100%;
+  }
+
+#editor_pane_top_content
+  {
+    padding: 10px;
+    height: 25px;
+    border-bottom: solid 1px #aaaaaa;
   }
 
 #subforms_scroll
@@ -666,4 +695,14 @@ td.interface_button
     text-decoration: none;
     cursor: pointer;
     color: #cc0033;
+  }
+
+#parent_id
+  {
+    display: none;
+  }
+
+#parent_form
+  {
+    display: none;
   }

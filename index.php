@@ -100,6 +100,8 @@ if (\webdb\utils\is_app_mode()==false)
 
 \webdb\utils\database_connect();
 
+date_default_timezone_set($settings["default_timezone"]);
+
 $settings["user_agent"]="";
 if (isset($_SERVER["HTTP_USER_AGENT"])==true)
 {

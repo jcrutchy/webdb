@@ -7,12 +7,15 @@ the display_format value must be a value format string to be passed as the first
 
     "lookups": {
         "inventory_item_id": {
+            "constant_value": "just output this text",
             "database": "inventory_db",
             "table": "inventory_items",
             "key_field": "inventory_item_id",
             "sibling_field": "local_form_combobox_id",
             "display_field": "item_no,item_name",
             "display_format": "%s - %s",
+            "display_format": "date",
+            "display_format": "check",
             "lookup_sql_file": "inventory_item_lookup",
             "value_list": [{"key_fieldname": 1, "display_fieldname": "Yes"},{"key_fieldname": 2, "display_fieldname": "No"},{"key_fieldname": 3, "display_fieldname": "N/A"}],
             "exclude_parent": true,

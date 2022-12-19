@@ -190,8 +190,12 @@ function append_form_field_param(params,page_id,form,field_name,record_id)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function list_insert_row_click(form,page_id)
+function list_insert_row_click(form,page_id,do_run)
 {
+  if (do_run==false)
+  {
+    return;
+  }
   var params={};
   var field_names=insert_row_controls[page_id];
   for (var i=0;i<field_names.length;i++)

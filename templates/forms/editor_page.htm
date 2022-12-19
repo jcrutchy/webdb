@@ -24,19 +24,25 @@ var waiting_edit_row_element=null;
 
 <div id="flex_columns">
 
-<div id="editor_pane_scroll">
-<div id="editor_pane">
-%%custom_form_above%%
-%%edit_form_controls%%
-%%field_table%%
-</div>
-</div>
-
-<div id="subforms_scroll">
-<div id="subforms">
-%%subforms%%
-</div>
-</div>
+  <div id="editor_pane_parent">
+    <div id="editor_pane_top_static">
+      <div id="editor_pane_top_content">
+      %%edit_form_controls%%
+      %%custom_form_above%%
+      </div>
+    </div>
+    <div id="editor_pane_scroll">
+      <div id="editor_pane_content">
+      %%field_table%%
+      </div>
+    </div>
+  </div>
+  
+  <div id="subforms_scroll">
+    <div id="subforms">
+    %%subforms%%
+    </div>
+  </div>
 
 </div>
 

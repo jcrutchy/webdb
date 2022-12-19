@@ -166,6 +166,10 @@ function list_insert($form_config)
       $id=\webdb\sql\sql_last_insert_autoinc_id();
       \webdb\forms\upload_files($form_config,$id);
     }
+    else
+    {
+      $id=$event_params["new_record_id"];
+    }
     $parent_form_config=false;
     if (isset($form_config["parent_form_config"])==true)
     {
@@ -189,10 +193,18 @@ function list_insert($form_config)
       $id=\webdb\sql\sql_last_insert_autoinc_id();
       \webdb\forms\upload_files($form_config,$id);
     }
+    else
+    {
+      $id=$event_params["new_record_id"];
+    }
     $data["html"]=\webdb\forms\list_form_content($form_config);
     $data["div_id"]="list_content";
   }
   \webdb\forms\upload_files($form_config,"");
+  $event_params=array();
+  $event_params["value_items"]=$value_items;
+  $event_params["new_record_id"]=$id;
+  $event_params=\webdb\forms\handle_form_config_event($form_config,$event_params,"on_after_insert_record");
   $data["html"]=\webdb\utils\string_template_fill($data["html"]);
   $data=json_encode($data);
   die($data);

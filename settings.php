@@ -23,6 +23,7 @@ $settings["app_resources_path"]=$settings["app_root_path"]."resources".DIRECTORY
 $settings["app_forms_path"]=$settings["app_root_path"]."forms".DIRECTORY_SEPARATOR;
 $settings["app_home_template"]="home";
 $settings["app_date_format"]="Y-m-d";
+$settings["default_timezone"]="UTC";
 $settings["app_logo_filename"]="logo.png";
 
 $settings["cli_dispatch"]=array();

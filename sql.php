@@ -206,6 +206,24 @@ function sql_delete($items,$table,$database,$is_admin=false,$form_config=false)
 
 #####################################################################################################
 
+function get_id_record($database,$table,$id_field,$id,$is_admin=false)
+{
+  $where_items=array();
+  $where_items[$id_field]=$id;
+  $result=\webdb\sql\get_exist_records($database,$table,$where_items,$is_admin);
+  if (is_array($result)==false)
+  {
+    return false;
+  }
+  if (count($result)<>1)
+  {
+    return false;
+  }
+  return $result[0];
+}
+
+#####################################################################################################
+
 function get_exist_records($database,$table,$where_items,$is_admin=false)
 {
   global $settings;
@@ -322,7 +340,7 @@ function foreign_key_used($database,$table,$record,$foreign_key_defs=false)
 
 function current_sql_timestamp()
 {
-  return gmdate("Y-m-d H:i:s");
+  return date("Y-m-d H:i:s");
 }
 
 #####################################################################################################
