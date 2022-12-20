@@ -1504,12 +1504,17 @@ function output_readonly_field($field_params,$control_type,$form_config,$field_n
       }
       return \webdb\forms\form_template_fill("list_field",$field_params);
     case "file":
+      $field_params["image_preview"]="";
       $field_params["no_file_disabled"]="";
       if (array_key_exists($field_name,$display_record)==true)
       {
         if (($display_record[$field_name]=="") or ($display_record[$field_name]==null))
         {
           $field_params["no_file_disabled"]=\webdb\utils\template_fill("disabled_attribute");
+        }
+        else
+        {
+          $field_params["image_preview"]=\webdb\forms\image_file_preview($form_config,$display_record,$field_name,$settings["file_field_image_preview_max_pix"]);
         }
       }
       $field_params["field_name_basic"]=$field_name;
@@ -1577,6 +1582,68 @@ function output_readonly_field($field_params,$control_type,$form_config,$field_n
         $field_params["value"]=\webdb\forms\form_template_fill("check_cross",$params);
       }
       return \webdb\forms\form_template_fill("list_field_raw",$field_params);
+  }
+  return "";
+}
+
+#####################################################################################################
+
+function image_file_preview($form_config,$record,$field_name,$max_dim_pix=100)
+{
+  global $settings;
+  $fn=$record[$field_name];
+  $parts=explode(".",$fn);
+  $ext=array_pop($parts);
+  $id=\webdb\forms\config_id_url_value($form_config,$record,"primary_key");
+  $fn=\webdb\forms\get_uploaded_full_filename($form_config,$id,$field_name);
+  $file_exists=true;
+  if ($settings["file_upload_mode"]=="ftp")
+  {
+    $remote=$fn;
+    $fn=$settings["global_temp_path"]."preview".$settings["logged_in_user_id"].mt_rand(1,1000);
+    $connection=\webdb\utils\webdb_ftp_login();
+    $file_exists=ftp_get($connection,$fn,$remote,FTP_BINARY);
+    ftp_close($connection);
+  }
+  else
+  {
+    if (file_exists($fn)==false)
+    {
+      return "";
+    }
+  }
+  if ($file_exists==false)
+  {
+    return "";
+  }
+  switch ($ext)
+  {
+    case "jpg":
+      $image=imagecreatefromjpeg($fn);
+      break;
+    case "png":
+      $image=imagecreatefrompng($fn);
+      break;
+    case "gif":
+      $image=imagecreatefromgif($fn);
+      break;
+    default:
+      $ext=false;
+      break;
+  }
+  if ($settings["file_upload_mode"]=="ftp")
+  {
+    unlink($fn);
+  }
+  if ($ext!==false)
+  {
+    $w=imagesx($image);
+    $h=imagesy($image);
+    $scale=$max_dim_pix/max($w,$h); # 100 pixel max preview dimension (default)
+    \webdb\graphics\scale_img($image,$scale,$w,$h);
+    $result=\webdb\graphics\base64_image($image,$ext,"inline-block","inset 2px");
+    imagedestroy($image);
+    return $result;
   }
   return "";
 }
@@ -3188,6 +3255,11 @@ function lookup_field_data($form_config,$field_name)
   {
     $lookup_config["where_clause"]="";
   }
+  $db_engine=$settings["db_engine"];
+  if (isset($lookup_config["where_clause_".$db_engine])==true)
+  {
+    $lookup_config["where_clause"]=$lookup_config["where_clause_".$db_engine];
+  }
   if (isset($lookup_config["display_field"])==false)
   {
     $lookup_config["display_field"]=$lookup_config["key_field"];
@@ -3223,7 +3295,15 @@ function lookup_field_data($form_config,$field_name)
     $filename=$lookup_config["lookup_sql_file"];
     $database="";
     $table="";
+    if ($lookup_config["where_clause"]<>"")
+    {
+      $where_params=array();
+      $where_params["where_items"]=$lookup_config["where_clause"];
+      $lookup_config["where_clause"]=\webdb\utils\sql_fill("where_clause",$where_params);
+    }
     $sql=\webdb\utils\sql_fill($lookup_config["lookup_sql_file"]);
+    $sql.=" ".$lookup_config["where_clause"];
+    $sql=\webdb\utils\string_template_fill($sql);
   }
   $where_items=array();
   if ((isset($form_config["parent_form_config"])==true) and (isset($form_config["parent_form_id"])==true))

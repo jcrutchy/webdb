@@ -175,6 +175,7 @@ function list_insert($form_config)
     {
       $parent_form_config=$form_config["parent_form_config"];
     }
+    \webdb\forms\upload_files($form_config,"");
     $data["html"]=\webdb\forms\get_subform_content($form_config,$param_name,$param_value,true,$parent_form_config);
     $data["div_id"]="subform_table_".$form_config["page_id"];
   }
@@ -197,10 +198,10 @@ function list_insert($form_config)
     {
       $id=$event_params["new_record_id"];
     }
+    \webdb\forms\upload_files($form_config,"");
     $data["html"]=\webdb\forms\list_form_content($form_config);
     $data["div_id"]="list_content";
   }
-  \webdb\forms\upload_files($form_config,"");
   $event_params=array();
   $event_params["value_items"]=$value_items;
   $event_params["new_record_id"]=$id;

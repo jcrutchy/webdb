@@ -1,7 +1,8 @@
-<td id="data_cell:%%page_id%%:%%primary_key%%:%%field_name%%" data-original_style="" style="border-right: %%border_right_width%%px; border-right-color: #%%border_right_color%%; border-left-width: %%border_width%%px; border-left-color: #%%border_color%%; text-align: center; %%table_cell_style%%; %%group_span_style%%" %%handlers%%>
-<div class="list_field_content">
-%%value%%
-<div class="screen_only">
+<td id="data_cell:%%page_id%%:%%primary_key%%:%%field_name%%" data-original_style="" style="vertical-align: top; border-right: %%border_right_width%%px; border-right-color: #%%border_right_color%%; border-left-width: %%border_width%%px; border-left-color: #%%border_color%%; text-align: left; %%table_cell_style%%; %%group_span_style%%" %%handlers%%>
+<div class="list_field_content" style="vertical-align: top; padding: 0;">
+<div class="screen_only" style="display: block; vertical-align: top; padding: 0; padding-bottom: 3px;">%%value%%</div>
+<div class="file_field_preview" style="float: right; display: inline-block; vertical-align: top; padding: 0;">%%image_preview%%</div>
+<div class="screen_only" style="display: block; vertical-align: top; padding: 0;">
   <input type="button" value="View" onclick="file_field_view(event,'%%page_id%%','%%page_id%%:edit_control:%%primary_key%%:%%field_name_basic%%','%%value%%'); return false;" %%no_file_disabled%%>
 </div>
 </div>

@@ -24,9 +24,10 @@ table
     border-collapse: collapse;
   }
 
-input
+input [type="text"]
   {
     font-size: 10pt;
+    height: 13px;
     /*background-image: none;*/
   }
 
@@ -34,6 +35,7 @@ select
   {
     font-size: 10pt;
     background-image: none;
+    height: 20px;
   }
 
 form

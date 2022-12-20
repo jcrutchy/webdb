@@ -21,6 +21,11 @@ $settings["app_root_namespace"]="\\".$settings["app_directory_name"]."\\";
 $settings["app_templates_path"]=$settings["app_root_path"]."templates".DIRECTORY_SEPARATOR;
 $settings["app_resources_path"]=$settings["app_root_path"]."resources".DIRECTORY_SEPARATOR;
 $settings["app_forms_path"]=$settings["app_root_path"]."forms".DIRECTORY_SEPARATOR;
+
+$settings["global_temp_path"]="";
+
+$settings["file_field_image_preview_max_pix"]=100;
+
 $settings["app_home_template"]="home";
 $settings["app_date_format"]="Y-m-d";
 $settings["default_timezone"]="UTC";

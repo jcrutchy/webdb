@@ -20,9 +20,11 @@ function blend_rect_horz($buffer,$x1,$y1,$x2,$y2,$from_color,$to_color) # colors
 
 #####################################################################################################
 
-function base64_image_encode($image_data,$type,$template="base64_image")
+function base64_image_encode($image_data,$type,$template="base64_image",$display="block",$border="0")
 {
   $params=array();
+  $params["border"]=$border;
+  $params["display"]=$display;
   $params["type"]=$type;
   $encoded=base64_encode($image_data);
   $params["data"]=chunk_split($encoded,76,"\r\n");
@@ -31,7 +33,7 @@ function base64_image_encode($image_data,$type,$template="base64_image")
 
 #####################################################################################################
 
-function base64_image($image,$type)
+function base64_image($image,$type,$display="block",$border="0")
 {
   ob_start();
   switch ($type)
@@ -41,9 +43,10 @@ function base64_image($image,$type)
         imagegif($image);
         break;
       }
+    case "jpg":
     case "jpeg":
       {
-        imagejpg($image);
+        imagejpeg($image);
         break;
       }
     case "png":
@@ -54,7 +57,7 @@ function base64_image($image,$type)
   }
   $image_data=ob_get_contents();
   ob_end_clean();
-  return \webdb\graphics\base64_image_encode($image_data,$type);
+  return \webdb\graphics\base64_image_encode($image_data,$type,"base64_image",$display,$border);
 }
 
 #####################################################################################################
