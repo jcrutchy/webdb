@@ -5,29 +5,36 @@
     <form action="$$app_web_index$$?page=dbquery" method="post" enctype="multipart/form-data">
       <input type="submit" name="execute_query" value="Execute Query">
       <input type="hidden" name="csrf_token" value="%%csrf_token%%">
-      <pre>USE %%database%%;</pre>
       <pre>SELECT</pre>
-      <div><textarea name="" wrap="soft">*</textarea></div>
+      <div><textarea name="dbq_select" wrap="soft" style="width: 255px;">%%dbq_select%%</textarea></div>
       <pre>FROM</pre>
-      <div><select name="">%%from_options%%</select></div>
+      <pre>%%database%%.dbo.</pre>
+      <div><select name="dbq_from_list" style="width: 260px;">%%from_options%%</select></div>
       <pre></pre>
-      <div><textarea name="" wrap="soft"></textarea></div>
+      <div><textarea name="dbq_from_text" wrap="soft" style="width: 255px;">%%dbq_from_text%%</textarea></div>
       <pre>WHERE</pre>
-      <div><textarea name="" wrap="soft"></textarea></div>
+      <div><textarea name="dbq_where" wrap="soft" style="width: 255px;">%%dbq_where%%</textarea></div>
       <pre>GROUP BY</pre>
-      <div><textarea name="" wrap="soft"></textarea></div>
+      <div><textarea name="dbq_group" wrap="soft" style="width: 255px;">%%dbq_group%%</textarea></div>
       <pre>ORDER BY</pre>
-      <div><textarea name="" wrap="soft"></textarea></div>
+      <div><textarea name="dbq_order" wrap="soft" style="width: 255px;">%%dbq_order%%</textarea></div>
     </form>
     </div>
   </div>
   
   <div id="query_results">
-    <div class="content">
-      <table>
-        %%results_head_row%%
-        %%results_rows%%
-      </table>
+    <div id="query_results_head">
+      <div class="content">
+        %%sql%%
+      </div>
+    </div>
+    <div id="query_results_main">
+      <div id="results_content">
+        <table>
+          %%results_head_row%%
+          %%results_rows%%
+        </table>
+      </div>
     </div>
   </div>
 

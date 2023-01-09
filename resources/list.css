@@ -423,6 +423,7 @@ input.date_edit_field
 
 #editor_pane_top_content
   {
+    position: relative;
     padding: 10px;
     height: 25px;
     border-bottom: solid 1px #aaaaaa;

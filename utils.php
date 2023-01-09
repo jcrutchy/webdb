@@ -1397,12 +1397,18 @@ function email_group($group_id,$subject,$message)
   global $settings;
   $sql_params=array();
   $sql_params["group_id"]=$group_id;
-  $group_users=\webdb\sql\file_fetch_prepare("group_users",$sql_params);
-  for ($i=0;$i<count($group_users);$i++)
+  if (isset($settings["pdo_user"])==true)
   {
-    \webdb\utils\send_email($group_users[$i]["email"],"",$subject,$message);
+    $group_users=\webdb\sql\file_fetch_prepare("group_users",$sql_params);
+    for ($i=0;$i<count($group_users);$i++)
+    {
+      \webdb\utils\send_email($group_users[$i]["email"],"",$subject,$message);
+    }
   }
-  #\webdb\utils\send_email($settings["admin_email"],"",$subject,$message);
+  else
+  {
+    \webdb\utils\send_email($settings["admin_email"],"",$subject,$message);
+  }
 }
 
 #####################################################################################################

@@ -134,8 +134,24 @@ function get_pdo_object($is_admin)
 
 function get_statement_type($sql)
 {
-  $sql_parts=explode(" ",trim($sql));
-  return strtoupper(array_shift($sql_parts));
+  $sql_parts=strtoupper(trim($sql));
+  $sql_parts=str_replace("\n"," ",$sql_parts);
+  $sql_parts=explode(" ",$sql_parts);
+  $type=trim($sql_parts[0]);
+  switch ($type)
+  {
+    case "DECLARE":
+      return "SELECT"; # fudge to allow declare before select
+    case "SELECT":
+      return "SELECT";
+    case "INSERT":
+      return "INSERT";
+    case "UPDATE":
+      return "UPDATE";
+    case "DELETE":
+      return "DELETE";
+  }
+  \webdb\utils\error_message("error: unexpected sql statement type: ".htmlspecialchars($sql));
 }
 
 #####################################################################################################
@@ -486,10 +502,14 @@ function fetch_prepare($sql,$params=array(),$filename="",$is_admin=false,$table=
   $query_type=\webdb\sql\get_statement_type($sql);
   switch ($query_type)
   {
+    case "SELECT":
+      break;
     case "INSERT":
     case "UPDATE":
     case "DELETE":
       \webdb\utils\error_message("error: changing the database not permitted using webdb\\sql\\fetch_prepare function: ".htmlspecialchars($sql));
+    default:
+      \webdb\utils\error_message("error: unexpected sql statement type: ".htmlspecialchars($sql));
   }
   $statement=\webdb\sql\execute_return($sql,$params,$filename,$is_admin,$table,$database,$form_config);
   return $statement->fetchAll(\PDO::FETCH_ASSOC);

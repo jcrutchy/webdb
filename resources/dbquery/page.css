@@ -44,9 +44,11 @@ textarea
 
 #input_form
   {
+    flex-basis: content;
+    flex-shrink: 0;
+    flex-grow: 0;
     background-color: #D8E9F7;
     color: #eb361f;
-    overflow-x: auto;
     overflow-y: auto;
     height: 100%;
     font-weight: bold;
@@ -54,10 +56,47 @@ textarea
 
 #query_results
   {
+    flex-shrink: 1;
     flex-grow: 1;
-    overflow-x: auto;
-    overflow-y: auto;
-    height: 100%;
+    flex-basis: auto;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    min-height: 0;
+    min-width: 0;
+  }
+
+#query_results_head
+  {
+    background-color: #D8E9F7;
+    color: #eb361f;
+    flex-basis: content;
+    font-weight: bold;
+  }
+
+#query_results_main
+  {
     background-color: #FCF8F7;
     color: #85A8BA;
+    overflow-x: auto;
+    overflow-y: auto;
+    flex-grow: 1;
+  }
+
+#query_results_main td
+  {
+    color: #333366;
+    border-color: #85A8BA;
+  }
+
+#query_results_main th
+  {
+    color: #85A8BA;
+    border-color: #85A8BA;
+  }
+
+#results_content
+  {
+    padding: 10px;
   }

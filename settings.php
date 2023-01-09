@@ -243,5 +243,7 @@ $settings["permissions"]["admin"]["forms"]["admin_chat"]="riud";
 
 $settings["permissions"]["admin"]["forms"]["webdb_forms"]="riud";
 
+$settings["permissions"]["admin"]["forms"]["dbquery"]="ruid";
+
 #########################################################
 #########################################################
