@@ -3032,7 +3032,8 @@ function output_editor($form_config,$record,$command,$verb,$id=false)
     $form_params["id_url_param"]=\webdb\forms\form_template_fill("id_url_param",$id_params);
     $form_params["id_cmd_name"]=\webdb\forms\form_template_fill("id_cmd_name",$id_params);
   }
-  $form_params["confirm_caption"]=$verb." ".$form_config["command_caption_noun"];
+  #$form_params["confirm_caption"]=$verb." ".$form_config["command_caption_noun"];
+  $form_params["confirm_caption"]="Save ".$form_config["command_caption_noun"]; # replace 'insert' and 'update' with 'save'
   $hidden_fields="";
   $event_params=array();
   $event_params["handled"]=false;
