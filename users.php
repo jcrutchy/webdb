@@ -278,8 +278,15 @@ function login()
       $settings["user_record"]=$user_record;
       \webdb\users\auth_log($user_record,"PASSWORD_LOGIN","");
       \webdb\users\initialise_login_cookie($user_record);
-      $target_url=$_POST["target_url"];
-      if ($target_url=="")
+      $target_url=\webdb\users\user_default_page_url($user_record);
+      if (isset($_POST["target_url"])==true)
+      {
+        if ((empty($_POST["target_url"])==false) and ($_POST["target_url"]<>$settings["request_base_url"]))
+        {
+          $target_url=$_POST["target_url"];
+        }
+      }
+      if (empty($target_url)==true)
       {
         $target_url=$settings["app_web_index"];
       }
@@ -745,7 +752,9 @@ function change_password()
     \webdb\users\initialise_login_cookie($user_record);
     $settings["user_record"]=$user_record;
     \webdb\users\auth_log($user_record,"CHANGED_PASSWORD","");
-    \webdb\utils\info_message(\webdb\utils\template_fill("password_changed_message"));
+    $dialog_params=array();
+    $dialog_params["url"]=\webdb\users\user_default_page_url($user_record);
+    \webdb\utils\info_message(\webdb\utils\template_fill("password_changed_message"),false);
   }
   $change_password_params=array();
   $change_password_params["login_script_modified"]=\webdb\utils\resource_modified_timestamp("login.js");
@@ -757,6 +766,19 @@ function change_password()
   }
   $content=\webdb\utils\template_fill("change_password",$change_password_params);
   \webdb\utils\output_page($content,"Change Password");
+}
+
+#####################################################################################################
+
+function user_default_page_url($user_record)
+{
+  global $settings;
+  $url=$settings["request_base_url"];
+  if (empty($user_record["default_page_id"])==false)
+  {
+    $url.="?page=".$user_record["default_page_id"];
+  }
+  return $url;
 }
 
 #####################################################################################################

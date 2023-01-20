@@ -361,6 +361,13 @@ function current_sql_timestamp()
 
 #####################################################################################################
 
+function format_sql_timestamp($unix_timestamp)
+{
+  return date("Y-m-d H:i:s",$unix_timestamp);
+}
+
+#####################################################################################################
+
 function callback_quote($field)
 {
   global $settings;
