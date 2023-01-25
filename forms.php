@@ -2482,6 +2482,7 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
   $event_params["form_config"]=$form_config;
   $event_params["records"]=$records;
   $event_params["link_records"]=$link_records;
+  $event_params["lookup_records"]=$lookup_records;
   if (isset($form_config["event_handlers"]["on_before_rows"])==true)
   {
     $func_name=$form_config["event_handlers"]["on_before_rows"];
@@ -2491,6 +2492,7 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
       $records=$event_params["records"];
       $link_records=$event_params["link_records"];
       $form_config=$event_params["form_config"];
+      $lookup_records=$event_params["lookup_records"];
     }
   }
   # ~~~~~~~~~~~~~~~~~~~~~~~

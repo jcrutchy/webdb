@@ -50,7 +50,7 @@ app/index.php?page=page_id&id=x => app/index.php?page=page_id&cmd=edit&id=x
 function my_before_rows_event($event_params)
 {
   global $settings;
-  # modify $event_params["records"], $event_params["link_records"] & $event_params["form_config"] as required
+  # modify $event_params["records"], $event_params["link_records"], $event_params["lookup_records"] & $event_params["form_config"] as required
   return $event_params;
 }
 

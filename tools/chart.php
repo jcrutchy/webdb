@@ -4,6 +4,43 @@ namespace webdb\chart;
 
 #####################################################################################################
 
+function linear_regression($coords)
+{
+  # https://www.vedantu.com/maths/linear-regression
+  $n=count($coords);
+  $x_sum=0;
+  $y_sum=0;
+  $xx_sum=0;
+  $yy_sum=0;
+  $xy_sum=0;
+  foreach ($coords as $i => $p)
+  {
+    $x_sum+=$p[0];
+    $y_sum+=$p[1];
+    $xx_sum+=pow($p[0],2);
+    $yy_sum+=pow($p[1],2);
+    $xy_sum+=$p[0]*$p[1];
+  }
+  $d=$n*$xx_sum-pow($x_sum,2);
+  $a=0;
+  if ($d<>0)
+  {
+    $a=($y_sum*$xx_sum-$x_sum*$xy_sum)/$d;
+  }
+  $b=0;
+  $d=$n*$xx_sum-pow($x_sum,2);
+  if ($d<>0)
+  {
+    $b=($n*$xy_sum-$x_sum*$y_sum)/$d;
+  }
+  $result=array();
+  $result["m"]=$b;
+  $result["c"]=$a;
+  return $result;
+}
+
+#####################################################################################################
+
 function perpendicular_distance($x,$y,$L1x,$L1y,$L2x,$L2y)
 {
   # https://www.loughrigg.org/rdp/viewsource.php

@@ -256,6 +256,11 @@ function login()
   if ((isset($_POST["login_username"])==true) and (isset($_POST["login_password"])==true))
   {
     $login_username=trim(strtolower($_POST["login_username"]));
+    if (strpos($login_username,"@")!==false)
+    {
+      $parts=explode("@",$login_username);
+      $login_username=$parts[0];
+    }
     \webdb\utils\webdb_setcookie("username_cookie",$login_username);
     $login_form_params["default_username"]=$login_username;
     $user_record=\webdb\users\get_user_record($login_username);
