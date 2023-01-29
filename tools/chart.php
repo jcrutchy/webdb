@@ -84,6 +84,7 @@ function chart_colors()
   $colors["blue"]=array(38,139,210);
   $colors["grid"]=array(230,230,230);
   $colors["border"]=array(230,230,250);
+  $colors["black"]=array(0,0,0);
   return $colors;
 }
 
@@ -171,7 +172,7 @@ function assign_discontinuous_plot_data($chart_data,$plot_data,$x_key,$y_key,$co
 
 #####################################################################################################
 
-function assign_plot_data($chart_data,$series_data,$x_key,$y_key,$color_key,$marker="",$assign_limits=true,$line_enabled=true,$name="",$style="solid",$series_data_color_key=false)
+function assign_plot_data($chart_data,$series_data,$x_key,$y_key,$color_key,$marker="",$assign_limits=true,$line_enabled=true,$name="",$style="solid",$series_data_color_key=false,$line_thickness=1)
 {
   # $style="solid"|"dash"
   # $series_data[$i][$x|y_key] (continuous)
@@ -185,6 +186,10 @@ function assign_plot_data($chart_data,$series_data,$x_key,$y_key,$color_key,$mar
   $series["y_values"]=array();
   $series["colors"]=array();
   $series["style"]=$style;
+  if ($line_thickness>1)
+  {
+    $series["thickness"]=$line_thickness;
+  }
   $min_x=PHP_INT_MAX;
   $max_x=0;
   $min_y=PHP_INT_MAX;
@@ -421,7 +426,7 @@ function auto_range(&$data)
 
 #####################################################################################################
 
-function get_time_captions($scale,&$data)
+function get_time_captions($scale,&$data,$format=false)
 {
   $min_x=$data["x_min"];
   $max_x=$data["x_max"];
@@ -429,14 +434,36 @@ function get_time_captions($scale,&$data)
   switch ($scale)
   {
     case "day":
-      # TODO
+      if ($format===false)
+      {
+        $format="Y-m-d";
+      }
+      $min_x=strtotime("-1 day",$min_x);
+      $min_x=strtotime(date("Y-m-d",$min_x));
+      $data["x_min"]=$min_x;
+      $max_x=strtotime("+2 day",$max_x);
+      $max_x=strtotime(date("Y-m-d",$max_x));
+      $data["x_max"]=$max_x;
+      $diff=$max_x-$min_x;
+      $data["grid_x"]=24*60*60;
+      $n=$diff/$data["grid_x"];
+      $x=$min_x;
+      for ($i=0;$i<=$n;$i++)
+      {
+        $x_captions[]=date($format,$x);
+        $x=strtotime("+1 day",$x);
+      }
       break;
     case "month":
+      if ($format===false)
+      {
+        $format="M-Y";
+      }
       $min_x=strtotime("-1 month",$min_x);
-      $min_x=strtotime(date("M-Y",$min_x)."-01");
+      $min_x=strtotime(date("Y-m",$min_x)."-01");
       $data["x_min"]=$min_x;
       $max_x=strtotime("+2 month",$max_x);
-      $max_x=strtotime(date("M-Y",$max_x)."-01");
+      $max_x=strtotime(date("Y-m",$max_x)."-01");
       $data["x_max"]=$max_x;
       $d1=new \DateTime("@".$min_x);
       $d2=new \DateTime("@".$max_x);
@@ -445,10 +472,10 @@ function get_time_captions($scale,&$data)
       $x=$min_x;
       for ($i=0;$i<=$n;$i++)
       {
-        $x_captions[]=date("M-Y",$x);
+        $x_captions[]=date($format,$x);
         $x=strtotime("+1 month",$x);
       }
-      $data["grid_x"]=($max_x-$min_x)/$n;
+      $data["grid_x"]=($max_x-$min_x)/($n+1);
       break;
     case "year":
       # TODO
@@ -703,6 +730,8 @@ function chart_to_pixel_y($val,$data)
 function chart_draw_create(&$data)
 {
   $data["buffer"]=imagecreatetruecolor($data["w"],$data["h"]);
+  imageantialias($data["buffer"],false);
+  imagesetthickness($data["buffer"],1);
   imageantialias($data["buffer"],true);
   $bg_color=imagecolorallocate($data["buffer"],$data["bg_color_r"],$data["bg_color_g"],$data["bg_color_b"]);
   imagefill($data["buffer"],0,0,$bg_color);
@@ -730,6 +759,10 @@ function chart_draw_border(&$data)
 function chart_draw_today_mark(&$data)
 {
   $rx=time();
+  if (isset($data["today_override"])==true)
+  {
+    $rx=$data["today_override"];
+  }
   if (($rx>$data["x_min"]) and ($rx<$data["x_max"]))
   {
     $color=$data["today_mark"];
@@ -776,6 +809,7 @@ function chart_draw_column_series(&$data,$series,$y_min=0)
 
 function chart_draw_continuous_plot(&$data,$series)
 {
+  imagesetthickness($data["buffer"],1);
   $color=$series["color"];
   $color=$data["colors"][$color];
   $line_color=imagecolorallocate($data["buffer"],$color[0],$color[1],$color[2]);
@@ -813,6 +847,11 @@ function chart_draw_continuous_plot(&$data,$series)
     }
     $x2=\webdb\chart\chart_to_pixel_x($x_values[$i+1],$data);
     $y2=\webdb\chart\chart_to_pixel_y($y_values[$i+1],$data);
+    if (isset($series["thickness"])==true)
+    {
+      imageantialias($data["buffer"],false);
+      imagesetthickness($data["buffer"],$series["thickness"]);
+    }
     if ($series["line_enabled"]==true)
     {
       switch ($series["style"])
@@ -825,6 +864,8 @@ function chart_draw_continuous_plot(&$data,$series)
           break;
       }
     }
+    imagesetthickness($data["buffer"],1);
+    imageantialias($data["buffer"],true);
   }
   if (($series["marker"]=="box") and ($n>0))
   {
