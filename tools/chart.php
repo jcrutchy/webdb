@@ -470,12 +470,12 @@ function get_time_captions($scale,&$data,$format=false)
       $diff=$d1->diff($d2);
       $n=$diff->y*12+$diff->m;
       $x=$min_x;
-      for ($i=0;$i<=$n;$i++)
+      for ($i=0;$i<=($n+1);$i++)
       {
         $x_captions[]=date($format,$x);
         $x=strtotime("+1 month",$x);
       }
-      $data["grid_x"]=($max_x-$min_x)/($n+1);
+      $data["grid_x"]=($max_x-$min_x)/$n;
       break;
     case "year":
       # TODO
@@ -807,6 +807,69 @@ function chart_draw_column_series(&$data,$series,$y_min=0)
 
 #####################################################################################################
 
+function val_range_x($val,$data)
+{
+  if (($val>=$data["x_min"]) and ($val<=$data["x_max"]))
+  {
+    return true;
+  }
+  return false;
+}
+
+#####################################################################################################
+
+function val_range_y($val,$data)
+{
+  if (($val>=$data["y_min"]) and ($val<=$data["y_max"]))
+  {
+    return true;
+  }
+  return false;
+}
+
+#####################################################################################################
+
+function force_within_limits($bx,$by,$gx,$gy,$m,$c,$data) # b=bad,g=good
+{
+  $x=$bx;
+  $y=$by;
+  if ($x<$data["x_min"])
+  {
+    $x=$data["x_min"];
+    if ($m!==false)
+    {
+      $y=$m*$x+$c;
+    }
+  }
+  if ($x>$data["x_max"])
+  {
+    $x=$data["x_max"];
+    if ($m!==false)
+    {
+      $y=$m*$x+$c;
+    }
+  }
+  if ($y<$data["y_min"])
+  {
+    $y=$data["y_min"];
+    if ($m!==false)
+    {
+      $x=($y-$c)/$m;
+    }
+  }
+  if ($y>$data["y_max"])
+  {
+    $y=$data["y_max"];
+    if ($m!==false)
+    {
+      $x=($y-$c)/$m;
+    }
+  }
+  return array($x,$y);
+}
+
+#####################################################################################################
+
 function chart_draw_continuous_plot(&$data,$series)
 {
   imagesetthickness($data["buffer"],1);
@@ -828,16 +891,81 @@ function chart_draw_continuous_plot(&$data,$series)
   $x_values=$series["x_values"];
   $y_values=$series["y_values"];
   $colors=$series["colors"];
-  $n=count($x_values)-1;
+  $n=count($x_values);
+  if (($series["style"]=="bar") or ($series["style"]=="hollow_bar"))
+  {
+    if ($n==2)
+    {
+      $x1=\webdb\chart\chart_to_pixel_x($x_values[0],$data);
+      $y1=\webdb\chart\chart_to_pixel_y($y_values[0],$data);
+      $x2=\webdb\chart\chart_to_pixel_x($x_values[1],$data);
+      $y2=\webdb\chart\chart_to_pixel_y($y_values[1],$data);
+      if ($series["line_enabled"]==true)
+      {
+        if ($series["style"]=="hollow_bar")
+        {
+          imagerectangle($data["buffer"],$x1,$y1,$x2,$y2,$line_color);
+        }
+        else
+        {
+          imagefilledrectangle($data["buffer"],$x1,$y1,$x2,$y2,$line_color);
+        }
+      }
+    }
+    else
+    {
+      $series["style"]="solid";
+    }
+  }
+  $n=$n-1;
   for ($i=0;$i<$n;$i++)
   {
-    $x1=\webdb\chart\chart_to_pixel_x($x_values[$i],$data);
-    $y1=\webdb\chart\chart_to_pixel_y($y_values[$i],$data);
+    $x1r=$x_values[$i];
+    $y1r=$y_values[$i];
+    $x2r=$x_values[$i+1];
+    $y2r=$y_values[$i+1];
+    $pt1ok=(\webdb\chart\val_range_x($x1r,$data) and \webdb\chart\val_range_y($y1r,$data));
+    $pt2ok=(\webdb\chart\val_range_x($x2r,$data) and \webdb\chart\val_range_y($y2r,$data));
+    if (($pt1ok==false) and ($pt2ok==false))
+    {
+      continue;
+    }
+    $x1=\webdb\chart\chart_to_pixel_x($x1r,$data);
+    $y1=\webdb\chart\chart_to_pixel_y($y1r,$data);
+    $x2=\webdb\chart\chart_to_pixel_x($x2r,$data);
+    $y2=\webdb\chart\chart_to_pixel_y($y2r,$data);
+    if (($pt1ok==false) or ($pt2ok==false))
+    {
+      $dx=$x2r-$x1r;
+      $dy=$y2r-$y1r;
+      if ($dx==0)
+      {
+        $m=false;
+        $c=false;
+      }
+      else
+      {
+        $m=$dy/$dx;
+        $c=$y1r-$m*$x1r;
+      }
+      if ($pt1ok==false)
+      {
+        $p1=\webdb\chart\force_within_limits($x1r,$y1r,$x2r,$y2r,$m,$c,$data);
+        $x1=\webdb\chart\chart_to_pixel_x($p1[0],$data);
+        $y1=\webdb\chart\chart_to_pixel_y($p1[1],$data);
+      }
+      if ($pt2ok==false)
+      {
+        $p2=\webdb\chart\force_within_limits($x2r,$y2r,$x1r,$y1r,$m,$c,$data);
+        $x2=\webdb\chart\chart_to_pixel_x($p2[0],$data);
+        $y2=\webdb\chart\chart_to_pixel_y($p2[1],$data);
+      }
+    }
     if ($colors[$i]!==false)
     {
       $line_color=imagecolorallocate($data["buffer"],$colors[$i][0],$colors[$i][1],$colors[$i][2]);
     }
-    if ($series["marker"]=="box")
+    if (($series["marker"]=="box") and ($pt1ok==true))
     {
       imagerectangle($data["buffer"],$x1-2,$y1-2,$x1+2,$y1+2,$line_color);
       if ($series["line_enabled"]==false)
@@ -845,8 +973,6 @@ function chart_draw_continuous_plot(&$data,$series)
         imagesetpixel($data["buffer"],$x1,$y1,$line_color);
       }
     }
-    $x2=\webdb\chart\chart_to_pixel_x($x_values[$i+1],$data);
-    $y2=\webdb\chart\chart_to_pixel_y($y_values[$i+1],$data);
     if (isset($series["thickness"])==true)
     {
       imageantialias($data["buffer"],false);
@@ -867,7 +993,7 @@ function chart_draw_continuous_plot(&$data,$series)
     imagesetthickness($data["buffer"],1);
     imageantialias($data["buffer"],true);
   }
-  if (($series["marker"]=="box") and ($n>0))
+  if (($series["marker"]=="box") and ($n>0) and ($pt2ok==true))
   {
     imagerectangle($data["buffer"],$x2-2,$y2-2,$x2+2,$y2+2,$line_color);
   }
@@ -1056,7 +1182,9 @@ function chart_draw_axis_x(&$data)
   switch ($data["x_axis_scale"])
   {
     case "linear":
-      $grid_x_pixels=\webdb\chart\chart_to_pixel_x($data["grid_x"],$data);
+      $wp=$data["w"]-$data["left"]-$data["right"];
+      $ppu=\webdb\chart\pixels_per_unit($wp,$data["x_min"],$data["x_max"]);
+      $grid_x_pixels=$data["grid_x"]*$ppu;
       $dx=$data["x_max"]-$data["x_min"];
       $n=round($dx/$data["grid_x"]);
       for ($i=0;$i<=$n;$i++)
