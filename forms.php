@@ -1815,6 +1815,11 @@ function output_editable_field(&$field_params,$record,$field_name,$control_type,
   }
   $field_params["disabled"]=\webdb\forms\field_disabled($form_config,$field_name);
   $field_params["js_events"]=\webdb\forms\field_js_events($form_config,$field_name,$record);
+  $field_params["placeholder"]="";
+  if (isset($form_config["placeholders"][$field_name])==true)
+  {
+    $field_params["placeholder"]=$form_config["placeholders"][$field_name];
+  }
   switch ($control_type)
   {
     case "info":

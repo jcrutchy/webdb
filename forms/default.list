@@ -24,6 +24,7 @@
     "visible": {},
     "disabled": {},
     "default_values": {},
+    "placeholders": {},
     "required_values": [],
     "basic_search_fields": [],
     "js_events": {},
