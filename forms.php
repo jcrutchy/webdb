@@ -3118,6 +3118,11 @@ function output_editor($form_config,$record,$command,$verb,$id=false)
       }
       $row_params["field_value"]=\webdb\forms\output_editable_field($field_params,$record,$field_name,$control_type,$form_config,$lookup_records,$submit_fields);
       $row_params["interface_button"]=\webdb\forms\get_interface_button($form_config,$record,$field_name,$field_value);
+      $row_params["row_attribs"]="";
+      if (isset($form_config["editor_row_attribs"][$field_name])==true)
+      {
+        $row_params["row_attribs"]=$form_config["editor_row_attribs"][$field_name];
+      }
       if ($control_type<>"hidden")
       {
         if ($form_config["custom_".strtolower($command)."_template"]=="")

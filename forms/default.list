@@ -32,6 +32,7 @@
     "custom_interfaces": {},
     "table_cell_styles": {},
     "control_styles": {},
+    "editor_row_attribs": {},
     "lookups": {},
     "event_handlers": {},
     "mysql_errors": {},
