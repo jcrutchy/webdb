@@ -132,11 +132,39 @@ function get_excel_cell_value($cell,&$strings)
       case "s":
         if (isset($strings["si"][$v])==true)
         {
-          $v=$strings["si"][$v]["t"];
-          if (is_array($v)==true)
+          if (isset($strings["si"][$v]["t"])==true)
           {
-            $v=implode("",$v);
+            $v=$strings["si"][$v]["t"];
+            if (is_array($v)==true)
+            {
+              $v=implode("",$v);
+            }
           }
+          elseif (isset($strings["si"][$v]["r"])==true)
+          {
+            $lines=$strings["si"][$v]["r"];
+            $v=array();
+            foreach ($lines as $lk => $lv)
+            {
+              $vt=$lv["t"];
+              if (is_array($vt)==true)
+              {
+                $vt=implode("",$vt);
+              }
+              $v[]=$vt;
+            }
+            $v=implode("\n",$v);
+          }
+          else
+          {
+            var_dump($strings["si"][$v]);
+            die("error");
+          }
+        }
+        else
+        {
+          var_dump($cell);
+          die("error");
         }
         break;
       case "str":

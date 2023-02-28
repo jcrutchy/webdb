@@ -4,6 +4,97 @@ namespace webdb\chart;
 
 #####################################################################################################
 
+function gantt($data)
+{
+  global $settings;
+
+  $today=time();
+
+  /*$data=array();
+
+  $task=array();
+  $task["name"]="test task 1";
+  $task["start"]=strtotime("-1 months",$today);
+  $task["finish"]=strtotime("+1 months",$today);
+  $data[]=$task;
+
+  $task=array();
+  $task["name"]="test task 2";
+  $task["start"]=strtotime("-1 months",$today);
+  $task["finish"]=strtotime("+1 months",$today);
+  $data[]=$task;*/
+
+  $line_height=50; # pixels
+  $bar_thickness=0.5; # real y
+
+  $task_count=count($data);
+
+  $chart_data=\webdb\chart\initilize_chart();
+  $chart_data["h"]=$line_height*($task_count+1);
+
+  $chart_data["y_min"]=0;
+  $chart_data["y_max"]=$task_count+1;
+  $chart_data["grid_y"]=1;
+  $chart_data["x_title"]="";
+  $chart_data["y_title"]="";
+
+  $chart_data["y_captions"]=array();
+  $chart_data["y_captions"][]="";
+
+  $font_size=10; # pt
+  $text_file=$settings["gd_ttf"];
+  $tick_length=5; # pixels
+  $label_space=4; # pixels
+  $y_margin=10; # pixels
+
+  $max_text_w=0;
+
+  $x_min=PHP_INT_MAX;
+  $x_max=PHP_INT_MIN;
+
+  for ($i=0;$i<$task_count;$i++)
+  {
+    $task=$data[$i];
+    $y=$i+1;
+
+    $bbox=imagettfbbox($font_size,0,$text_file,$task["name"]);
+    $text_w=$bbox[2]-$bbox[0];
+    $max_text_w=max($max_text_w,$text_w);
+
+    $x_min=min($x_min,$task["start"]);
+    $x_min=min($x_min,$task["finish"]);
+
+    $x_max=max($x_max,$task["start"]);
+    $x_max=max($x_max,$task["finish"]);
+
+    $chart_data["y_captions"][$y]=$task["name"];
+
+    $records=array();
+    $records[]=array($task["start"],$y+$bar_thickness/2);
+    $records[]=array($task["finish"],$y-$bar_thickness/2);
+    $chart_data=\webdb\chart\assign_plot_data($chart_data,$records,0,1,"teal","",false,true,$task["name"],"bar");
+
+  }
+
+  $chart_data["y_captions"][]="";
+
+  $chart_data["x_min"]=$x_min;
+  $chart_data["x_max"]=$x_max;
+
+  \webdb\chart\get_time_captions("month",$chart_data,"M-y");
+
+  $records=array();
+  $records[]=array($today,$chart_data["y_min"]);
+  $records[]=array($today,$chart_data["y_max"]);
+  $chart_data=\webdb\chart\assign_plot_data($chart_data,$records,0,1,"red","",false,true);
+
+  $chart_data["left"]=$max_text_w+$tick_length+$label_space+$y_margin;
+
+  return \webdb\chart\output_chart($chart_data);
+}
+
+#####################################################################################################
+
 function linear_regression($coords)
 {
   # https://www.vedantu.com/maths/linear-regression

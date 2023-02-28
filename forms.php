@@ -1602,7 +1602,12 @@ function image_file_preview($form_config,$record,$field_name,$max_dim_pix=100)
     $remote=$fn;
     $fn=$settings["global_temp_path"]."preview".$settings["logged_in_user_id"].mt_rand(1,1000);
     $connection=\webdb\utils\webdb_ftp_login();
-    $file_exists=ftp_get($connection,$fn,$remote,FTP_BINARY); # getting an error on basic search
+    $file_list=ftp_nlist($connection,$settings["ftp_app_target_path"]);
+    $file_exists=false;
+    if (in_array(basename($remote),$file_list)==true)
+    {
+      $file_exists=ftp_get($connection,$fn,$remote,FTP_BINARY);
+    }
     ftp_close($connection);
   }
   else

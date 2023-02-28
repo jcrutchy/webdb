@@ -2141,3 +2141,15 @@ function webdb_file_get_contents($filename)
 }
 
 #####################################################################################################
+
+function formatted_date_to_unix($format,$date_str)
+{
+  $x=date_create_from_format($format,$date_str);
+  if ($x===false)
+  {
+    return false;
+  }
+  return date_timestamp_get($x);
+}
+
+#####################################################################################################

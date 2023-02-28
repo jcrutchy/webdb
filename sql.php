@@ -368,6 +368,13 @@ function format_sql_timestamp($unix_timestamp)
 
 #####################################################################################################
 
+function sql_timestamp_to_unix($sql_date_str)
+{
+  return \webdb\utils\formatted_date_to_unix("Y-m-d H:i:s",$sql_date_str);
+}
+
+#####################################################################################################
+
 function callback_quote($field)
 {
   global $settings;
