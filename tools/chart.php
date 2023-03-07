@@ -4,7 +4,7 @@ namespace webdb\chart;
 
 #####################################################################################################
 
-function gantt($data)
+function gantt($data,$callbacks=false)
 {
   global $settings;
 
@@ -24,7 +24,7 @@ function gantt($data)
   $task["finish"]=strtotime("+1 months",$today);
   $data[]=$task;*/
 
-  $line_height=50; # pixels
+  $line_height=30; # pixels
   $bar_thickness=0.5; # real y
 
   $task_count=count($data);
@@ -70,8 +70,8 @@ function gantt($data)
     $chart_data["y_captions"][$y]=$task["name"];
 
     $records=array();
-    $records[]=array($task["start"],$y+$bar_thickness/2);
-    $records[]=array($task["finish"],$y-$bar_thickness/2);
+    $records[]=array($task["start"],$y+$bar_thickness/3);
+    $records[]=array($task["finish"],$y-$bar_thickness/3);
     $chart_data=\webdb\chart\assign_plot_data($chart_data,$records,0,1,"teal","",false,true,$task["name"],"bar");
 
   }
@@ -83,12 +83,19 @@ function gantt($data)
 
   \webdb\chart\get_time_captions("month",$chart_data,"M-y");
 
-  $records=array();
-  $records[]=array($today,$chart_data["y_min"]);
-  $records[]=array($today,$chart_data["y_max"]);
-  $chart_data=\webdb\chart\assign_plot_data($chart_data,$records,0,1,"red","",false,true);
+  $chart_data["today_mark"]="red";
+  $chart_data["today_override"]=$today;
 
   $chart_data["left"]=$max_text_w+$tick_length+$label_space+$y_margin;
+
+  if ($callbacks!==false)
+  {
+    foreach ($callbacks as $event_type => $event_data)
+    {
+      $chart_data[$event_type]=$event_data["callback_function"];
+      $chart_data["user_data"][$event_type]=$event_data["user_data"];
+    }
+  }
 
   return \webdb\chart\output_chart($chart_data);
 }
@@ -144,6 +151,65 @@ function perpendicular_distance($x,$y,$L1x,$L1y,$L2x,$L2y)
     $m=(($L2y-$L1y)/($L2x-$L1x));
     $c=(0-$L1x)*$m+$L1y;
     return (abs($m*$x-$y+$c))/(sqrt($m*$m+1));
+  }
+}
+
+#####################################################################################################
+
+function auto_grid_y($pix,&$data)
+{
+  $hp=$data["h"]-$data["top"]-$data["bottom"];
+  $ppu=\webdb\chart\pixels_per_unit($hp,$data["y_min"],$data["y_max"]);
+  $d=$pix/$ppu;
+  $r=$data["y_max"]-$data["y_min"];
+  $g=$r/$d;
+  if ($g>0.1)
+  {
+    $data["grid_y"]=0.1;
+  }
+  if ($g>0.5)
+  {
+    $data["grid_y"]=0.5;
+  }
+  if ($g>1)
+  {
+    $data["grid_y"]=1;
+  }
+  if ($g>2)
+  {
+    $data["grid_y"]=2;
+  }
+  if ($g>5)
+  {
+    $data["grid_y"]=5;
+  }
+  if ($g>10)
+  {
+    $data["grid_y"]=10;
+  }
+  if ($g>20)
+  {
+    $data["grid_y"]=20;
+  }
+  if ($g>50)
+  {
+    $data["grid_y"]=50;
+  }
+  if ($g>100)
+  {
+    $data["grid_y"]=100;
+  }
+  if ($g>200)
+  {
+    $data["grid_y"]=200;
+  }
+  if ($g>500)
+  {
+    $data["grid_y"]=500;
+  }
+  if ($g>1000)
+  {
+    $data["grid_y"]=1000;
   }
 }
 
@@ -371,6 +437,7 @@ function initilize_chart($copy_source=false)
   $data["user_data"]=array(); # use to store any data (may be useful for events)
   $data["on_after_background"]="";
   $data["on_after_grid"]="";
+  $data["on_after_plots"]="";
   if ($copy_source!==false)
   {
     foreach ($copy_source as $key => $value)
@@ -656,10 +723,10 @@ function output_chart($data,$filename=false,$no_output=false,$rhs_data=false)
 {
   global $settings;
   \webdb\chart\chart_draw_create($data);
-  $data=\webdb\chart\handle_chart_event("on_after_background",$data);
+  \webdb\chart\handle_chart_event("on_after_background",$data);
   \webdb\chart\chart_draw_border($data);
   \webdb\chart\chart_draw_grid($data);
-  $data=\webdb\chart\handle_chart_event("on_after_grid",$data);
+  \webdb\chart\handle_chart_event("on_after_grid",$data);
   \webdb\chart\draw_discontinuous_plots($data);
   \webdb\chart\draw_series_plots($data);
   if (isset($data["today_mark"])==true)
@@ -682,6 +749,7 @@ function output_chart($data,$filename=false,$no_output=false,$rhs_data=false)
   {
     \webdb\chart\chart_draw_title_y($data,$rhs_data);
   }
+  \webdb\chart\handle_chart_event("on_after_plots",$data);
   if (($data["scale"]!=="") and ($data["scale"]<>1))
   {
     \webdb\graphics\scale_img($data["buffer"],$data["scale"],$data["w"],$data["h"]);
@@ -777,12 +845,13 @@ function pixel_to_chart_x($pix,$data)
 function pixel_to_chart_y($pix,$data)
 {
   $h=$data["h"];
+  $top=$data["top"];
   $bottom=$data["bottom"];
   $min=$data["y_min"];
   $max=$data["y_max"];
   $ppu=\webdb\chart\pixels_per_unit($pix,$min,$max);
   $chart_h=$h-$top-$bottom;
-  $val=($chart_h-$pix+$top-1)/$ppu+$min_y;
+  $val=($chart_h-$pix+$top-1)/$ppu+$min;
   if ($data["y_axis_scale"]=="log10")
   {
     return log10($val);
