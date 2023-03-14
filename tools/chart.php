@@ -139,6 +139,72 @@ function linear_regression($coords)
 
 #####################################################################################################
 
+function chart_draw_3d_plot(&$data,$series)
+{
+
+  $data["grid_x"]=1;
+  $data["grid_y"]=1;
+  $data["x_min"]=-10;
+  $data["x_max"]=10;
+  $data["y_min"]=-10;
+  $data["y_max"]=10;
+
+  $color=$data["colors"]["black"];
+  $line_color=imagecolorallocate($data["buffer"],$color[0],$color[1],$color[2]);
+
+  $x1=\webdb\chart\chart_to_pixel_x($data["x_min"],$data);
+  $y1=\webdb\chart\chart_to_pixel_y(0,$data);
+  $x2=\webdb\chart\chart_to_pixel_x($data["x_max"],$data);
+  $y2=\webdb\chart\chart_to_pixel_y(0,$data);
+  imageline($data["buffer"],$x1,$y1,$x2,$y2,$line_color);
+
+  $x1=\webdb\chart\chart_to_pixel_x(0,$data);
+  $y1=\webdb\chart\chart_to_pixel_y($data["y_min"],$data);
+  $x2=\webdb\chart\chart_to_pixel_x(0,$data);
+  $y2=\webdb\chart\chart_to_pixel_y($data["y_max"],$data);
+  imageline($data["buffer"],$x1,$y1,$x2,$y2,$line_color);
+
+  $color=$series["color"];
+  $color=$data["colors"][$color];
+  $line_color=imagecolorallocate($data["buffer"],$color[0],$color[1],$color[2]);
+
+  $vertices=$series["vertices"];
+  $edges=$series["edges"];
+  $f=$data["3d_focal_length"];
+
+  $zf=2*$f/($data["x_max"]-$data["x_min"]);
+
+  foreach ($vertices as $key => $coord)
+  {
+    $x=$coord[0];
+    $y=$coord[1];
+    $z=$coord[2]*$zf;
+    $x_proj=($f*$x)/($f+$z);
+    $y_proj=($f*$y)/($f+$z);
+    $x_pix=\webdb\chart\chart_to_pixel_x($x_proj,$data);
+    $y_pix=\webdb\chart\chart_to_pixel_y($y_proj,$data);
+    $vertices[$key][]=$x_pix;
+    $vertices[$key][]=$y_pix;
+    imagerectangle($data["buffer"],$x_pix-2,$y_pix-2,$x_pix+2,$y_pix+2,$line_color);
+  }
+
+  foreach ($edges as $key => $pair)
+  {
+    $vertex1=$pair[0];
+    $vertex2=$pair[1];
+    $vertex1=$vertices[$vertex1];
+    $vertex2=$vertices[$vertex2];
+    $x1=$vertex1[3];
+    $y1=$vertex1[4];
+    $x2=$vertex2[3];
+    $y2=$vertex2[4];
+    imageline($data["buffer"],$x1,$y1,$x2,$y2,$line_color);
+  }
+
+}
+
+#####################################################################################################
+
 function perpendicular_distance($x,$y,$L1x,$L1y,$L2x,$L2y)
 {
   # https://www.loughrigg.org/rdp/viewsource.php
@@ -329,6 +395,18 @@ function assign_discontinuous_plot_data($chart_data,$plot_data,$x_key,$y_key,$co
 
 #####################################################################################################
 
+function assign_3d_plot_data($chart_data,$vertices,$edges,$color_key)
+{
+  $series=array();
+  $series["color"]=$color_key;
+  $series["vertices"]=$vertices;
+  $series["edges"]=$edges;
+  $chart_data["3d_series"][]=$series;
+  return $chart_data;
+}
+
+#####################################################################################################
+
 function assign_plot_data($chart_data,$series_data,$x_key,$y_key,$color_key,$marker="",$assign_limits=true,$line_enabled=true,$name="",$style="solid",$series_data_color_key=false,$line_thickness=1)
 {
   # $style="solid"|"dash"
@@ -438,6 +516,7 @@ function initilize_chart($copy_source=false)
   $data["on_after_background"]="";
   $data["on_after_grid"]="";
   $data["on_after_plots"]="";
+  $data["3d_focal_length"]=0;
   if ($copy_source!==false)
   {
     foreach ($copy_source as $key => $value)
@@ -719,35 +798,46 @@ function draw_series_plots(&$data)
 
 #####################################################################################################
 
-function output_chart($data,$filename=false,$no_output=false,$rhs_data=false)
+function output_chart($data,$filename=false,$no_output=false,$rhs_data=false,$draw3d=false)
 {
   global $settings;
   \webdb\chart\chart_draw_create($data);
   \webdb\chart\handle_chart_event("on_after_background",$data);
   \webdb\chart\chart_draw_border($data);
-  \webdb\chart\chart_draw_grid($data);
-  \webdb\chart\handle_chart_event("on_after_grid",$data);
-  \webdb\chart\draw_discontinuous_plots($data);
-  \webdb\chart\draw_series_plots($data);
-  if (isset($data["today_mark"])==true)
+  if ($draw3d==false)
   {
-    \webdb\chart\chart_draw_today_mark($data);
+    \webdb\chart\chart_draw_grid($data);
+    \webdb\chart\handle_chart_event("on_after_grid",$data);
+    \webdb\chart\draw_discontinuous_plots($data);
+    \webdb\chart\draw_series_plots($data);
+    if (isset($data["today_mark"])==true)
+    {
+      \webdb\chart\chart_draw_today_mark($data);
+    }
+    if ($data["show_y_axis"]==true)
+    {
+      \webdb\chart\chart_draw_axis_y($data,$rhs_data);
+    }
+    if ($data["show_x_axis"]==true)
+    {
+      \webdb\chart\chart_draw_axis_x($data);
+    }
+    if ($data["x_title"]!=="")
+    {
+      \webdb\chart\chart_draw_title_x($data);
+    }
+    if ($data["y_title"]!=="")
+    {
+      \webdb\chart\chart_draw_title_y($data,$rhs_data);
+    }
   }
-  if ($data["show_y_axis"]==true)
+  else
   {
-    \webdb\chart\chart_draw_axis_y($data,$rhs_data);
-  }
-  if ($data["show_x_axis"]==true)
-  {
-    \webdb\chart\chart_draw_axis_x($data);
-  }
-  if ($data["x_title"]!=="")
-  {
-    \webdb\chart\chart_draw_title_x($data);
-  }
-  if ($data["y_title"]!=="")
-  {
-    \webdb\chart\chart_draw_title_y($data,$rhs_data);
+    for ($i=0;$i<count($data["3d_series"]);$i++)
+    {
+      $series=$data["3d_series"][$i];
+      \webdb\chart\chart_draw_3d_plot($data,$series);
+    }
   }
   \webdb\chart\handle_chart_event("on_after_plots",$data);
   if (($data["scale"]!=="") and ($data["scale"]<>1))
@@ -1588,5 +1678,9 @@ function chart_draw_html_out(&$data)
 {
   return \webdb\graphics\base64_image($data["buffer"],"png");
 }
+
+#####################################################################################################
+
+
 
 #####################################################################################################
