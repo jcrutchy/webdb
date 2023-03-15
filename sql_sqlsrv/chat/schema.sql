@@ -22,7 +22,7 @@ CREATE TABLE messenger_users (
   [enabled] SMALLINT NOT NULL DEFAULT 1,
   [last_online] DATETIME2(0) NOT NULL DEFAULT GETDATE(),
   [nick] VARCHAR(20) NOT NULL,
-  [selected_channel_id] INT CHECK ([selected_channel_id] > 0) NOT NULL,
+  [selected_channel_id] INT CHECK ([selected_channel_id] > 0) DEFAULT NULL,
   [json_data] varchar(max) DEFAULT NULL,
   PRIMARY KEY ([user_id]),
   CONSTRAINT [nick] UNIQUE  ([nick] ASC),

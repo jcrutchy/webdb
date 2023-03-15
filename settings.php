@@ -245,5 +245,7 @@ $settings["permissions"]["admin"]["forms"]["webdb_forms"]="riud";
 
 $settings["permissions"]["admin"]["forms"]["dbquery"]="ruid";
 
+$settings["permissions"]["*"]["forms"]["rps"]="r";
+
 #########################################################
 #########################################################

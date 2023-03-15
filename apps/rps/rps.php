@@ -6,26 +6,58 @@ namespace webdb\chat\rps;
 
 #####################################################################################################
 
-function play_rps($user_record,$trailing)
+function page_rps($form_config)
+{
+  global $settings;
+  $user_record=\webdb\chat\get_user_record_by_id($settings["user_record"]["user_id"]);
+  $result_params=array();
+  $result_params["response"]=implode(PHP_EOL,\webdb\chat\rps\play_rps($user_record,"",false));
+  $page_params=array();
+  $page_params["results"]=\webdb\utils\template_fill("chat/rps_results",$result_params);
+  $content=\webdb\utils\template_fill("chat/rps",$page_params);
+  $title="INFINITE ASYNCHRONOUS ROCK/PAPER/SCISSORS";
+  \webdb\utils\output_page($content,$title);
+}
+
+#####################################################################################################
+
+function ajax_rps($form_config,$field_name,$event_type,$event_data)
+{
+  global $settings;
+  $user_record=\webdb\chat\get_user_record_by_id($settings["user_record"]["user_id"]);
+  $result_params=array();
+  $result_params["response"]=implode(PHP_EOL,\webdb\chat\rps\play_rps($user_record,$_GET["id"],false));
+  $data=array();
+  $data["results"]=\webdb\utils\template_fill("chat/rps_results",$result_params);
+  $data=json_encode($data);
+  die($data);
+}
+
+#####################################################################################################
+#####################################################################################################
+
+function play_rps($user_record,$trailing,$help_out=true)
 {
   global $settings;
   $response=array();
   $ts=microtime(true);
   if ($trailing=="")
   {
-    $response[]="infinite asynchronous rock/paper/scissors help";
-    $response[]="/rps [r|p|s]";
-    $response[]="r =&gt; rock";
-    $response[]="p =&gt; paper";
-    $response[]="s =&gt; scissors";
-    $response[]="/rps reset";
-    $response[]="can submit multiple turns in one command, which is useful if you're a new player";
-    $response[]="/rps rrrrpsrpsrpssspssr";
-    $response[]="sequences will be trimmed to the current maximum sequence length of all players, plus one (to gradually advance the available turns)";
-    $response[]="ranking is based on a handicap that balances the number of wins and losses with the number of rounds played";
-    $response[]="so that a new player who gets a win doesn't secure top spot just because they have a 100% win rate";
-    \webdb\chat\insert_notice_breaks($response);
-    return $response;
+    if ($help_out==true)
+    {
+      $response[]="infinite asynchronous rock/paper/scissors help";
+      $response[]="/rps [r|p|s]";
+      $response[]="r =&gt; rock";
+      $response[]="p =&gt; paper";
+      $response[]="s =&gt; scissors";
+      $response[]="/rps reset";
+      $response[]="can submit multiple turns in one command, which is useful if you're a new player";
+      $response[]="/rps rrrrpsrpsrpssspssr";
+      $response[]="sequences will be trimmed to the current maximum sequence length of all players, plus one (to gradually advance the number of rounds)";
+      $response[]="ranking is based on a handicap that balances the number of wins and losses with the number of rounds played";
+      $response[]="so that a new player who gets a win doesn't secure top spot just because they have a 100% win rate";
+      \webdb\chat\insert_notice_breaks($response);
+    }
   }
   if ($trailing=="reset")
   {
@@ -43,6 +75,7 @@ function play_rps($user_record,$trailing)
   if (\webdb\chat\rps\valid_rps_sequence($trailing)==false)
   {
     $response[]="invalid sequence";
+    \webdb\chat\insert_notice_breaks($response);
     return $response;
   }
   $delta=$ts-strtotime($user_record["last_online"]);
@@ -99,6 +132,7 @@ function play_rps($user_record,$trailing)
   {
     $sequence=substr($sequence,0,($max_rounds+1));
     $response[]="sequence trimmed";
+    \webdb\chat\insert_notice_breaks($response);
   }
   $max_rounds=max($max_rounds,strlen($sequence));
   $player_data[$nick]["sequence"]=$sequence;
@@ -174,6 +208,7 @@ function play_rps($user_record,$trailing)
       }
     }
   }
+  $max_rounds=0;
   foreach ($player_data as $nick => $player)
   {
     $player_data[$nick]["rounds"]=$player["wins"]+$player["ties"]+$player["losses"];
@@ -189,6 +224,7 @@ function play_rps($user_record,$trailing)
         $player_data[$nick]["handicap"]=$delta/$player_data[$nick]["rounds"]*100000;
       }
     }
+    $max_rounds=max($max_rounds,$player_data[$nick]["rounds"]);
   }
   ksort($player_data);
   uasort($player_data,"\\webdb\\chat\\rps\\ranking_sort_callback");

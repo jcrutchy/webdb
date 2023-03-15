@@ -443,7 +443,6 @@ function chat_dispatch($record_id,$form_config,$record=false,$template="chat/pop
                   \webdb\chat\private_notice($response);
                   break;
                 case "/rps":
-                  require_once($settings["webdb_apps_path"]."rps".DIRECTORY_SEPARATOR."rps.php");
                   $response=\webdb\chat\rps\play_rps($user_record,$trailing);
                   if (count($response)>0)
                   {

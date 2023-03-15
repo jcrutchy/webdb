@@ -1,0 +1,18 @@
+<input id="turns_text" type="text" value="" onkeydown="return turns_text_keydown(event);">
+<input id="turns_submit" type="button" value="Submit" onclick="register_turns(); return false;">
+
+<pre>
+infinite asynchronous rock/paper/scissors help
+
+r => rock
+p => paper
+s => scissors
+
+can submit multiple turns in one command, which is useful if you're a new player. eg:
+'rrrrpsrpsrpssspssr'
+sequences will be trimmed to the current maximum sequence length of all players, plus one (to gradually advance the number of rounds)
+
+'reset' resets your own sequence (start again as a new player)
+</pre>
+
+<div id="results">%%results%%</div>

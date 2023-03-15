@@ -1,0 +1,18 @@
+{
+    "form_version": "20190829.1",
+    "form_type": "list",
+    "enabled": true,
+    "title": "INFINITE ASYNCHRONOUS ROCK/PAPER/SCISSORS",
+    "page_id": "rps",
+    "generate_stub": "\\webdb\\chat\\rps\\page_rps",
+    "js_events": {
+        "turns": {
+            "rps": {
+                "handler": "",
+                "params": "",
+                "return": "",
+                "ajax_stub": "\\webdb\\chat\\rps\\ajax_rps"
+            }
+        }
+    }
+}

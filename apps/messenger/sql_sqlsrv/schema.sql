@@ -22,19 +22,19 @@ CREATE TABLE messenger_users (
   [enabled] SMALLINT NOT NULL DEFAULT 1,
   [last_online] DATETIME2(0) NOT NULL DEFAULT GETDATE(),
   [nick] VARCHAR(20) NOT NULL,
-  [selected_channel_id] INT CHECK ([selected_channel_id] > 0) NOT NULL,
+  /*[selected_channel_id] INT CHECK ([selected_channel_id] > 0) NOT NULL,*/
   PRIMARY KEY ([user_id]),
   CONSTRAINT [nick] UNIQUE  ([nick] ASC),
   CONSTRAINT [fk_users_users1]
     FOREIGN KEY ([user_id])
     REFERENCES users ([user_id])
     ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
+    ON UPDATE NO ACTION/*,
   CONSTRAINT [fk_users_channels1]
     FOREIGN KEY ([selected_channel_id])
     REFERENCES messenger_channels ([channel_id])
     ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    ON UPDATE NO ACTION*/)
 ;
 
 CREATE TABLE messenger_messages (
