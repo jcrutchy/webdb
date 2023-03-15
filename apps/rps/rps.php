@@ -302,7 +302,7 @@ function valid_rps_sequence($trailing)
 
 function ranking_sort_callback($a,$b)
 {
-  return ($b["rank"]-$a["rank"]);
+  return ($b["handicap"]-$a["handicap"]);
 }
 
 #####################################################################################################
