@@ -224,11 +224,9 @@ function perpendicular_distance($x,$y,$L1x,$L1y,$L2x,$L2y)
 
 function auto_grid_y($pix,&$data)
 {
-  $hp=$data["h"]-$data["top"]-$data["bottom"];
-  $ppu=\webdb\chart\pixels_per_unit($hp,$data["y_min"],$data["y_max"]);
-  $d=$pix/$ppu;
-  $r=$data["y_max"]-$data["y_min"];
-  $g=$r/$d;
+  $chart_h=$data["h"]-$data["top"]-$data["bottom"];
+  $ppu=(($chart_h-1)/($data["y_max"]-$data["y_min"]));
+  $g=$pix/$ppu;
   if ($g>0.1)
   {
     $data["grid_y"]=0.1;

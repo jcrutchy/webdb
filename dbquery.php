@@ -19,6 +19,7 @@ function dbquery_page_stub($form_config)
   $page_params["dbq_order"]="";
   $results_head_row="";
   $results_rows="";
+  $sql="";
   if (isset($_POST["execute_query"])==true)
   {
     $page_params["dbq_select"]=trim($_POST["dbq_select"]);

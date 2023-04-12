@@ -1,0 +1,74 @@
+simple asset management/inspection tool
+
+allow recording of defects, including photos, pdf's etc
+include mapping onto drawings, photos, etc
+
+allow hovering/clicking on mapping images to select affected part/assembly
+
+
+
+use below for handling of taking photos from web browser:
+
+
+https://github.com/t-edson/LazarusOpenCV
+
+https://soonsantos.medium.com/taking-pictures-using-your-webcam-in-delphi-3bb95a56071f
+
+** https://www.delphibasics.info/home/delphibasicsprojects/directxdelphiwebcamcaptureexample
+C:\dev\public\photo_capture
+
+
+
+https://blogs.windows.com/msedgedev/2022/01/20/getting-started-url-protocol-handlers-microsoft-edge/
+
+
+https://medium.com/swlh/custom-protocol-handling-how-to-8ac41ff651eb
+
+
+
+Make sure your application line / path to binary isn’t exposed to any command injections, example, customer can provide the following input as an argument:
+abcde;format-disk
+
+
+
+
+[HKEY_CLASSES_ROOT\customurl]
+@="Description here"
+"URL Protocol"=""
+
+[HKEY_CLASSES_ROOT\customurl\shell]
+
+[HKEY_CLASSES_ROOT\customurl\shell\open]
+
+[HKEY_CLASSES_ROOT\customurl\shell\open\command]
+@="\"C:\\Path To Your EXE\\ExeName.exe\" \"%1\""
+
+
+Once the above keys and values are added, from the web page,
+just call "customurl:\\parameter1=xxx&parameter2=xxx".
+You will receive the entire url as the argument in exe, which you need to process inside your exe
+
+
+
+
+set key=customurl 
+reg add HKCR\%key% /ve /d "URL:Description" 
+reg add HKCR\%key% /v "URL Protocol" /d "" 
+reg add HKCR\%key%\shell 
+reg add HKCR\%key%\shell\open 
+reg add HKCR\%key%\shell\open\command /ve /d ""c:\path to\your.exe" ""%%1"""
+
+
+reg add HKCR\%key%\shell\open\command /ve /d ""C:\WINDOWS\system32\notepad.exe" "%%1""
+reg add HKCR\%key%\shell\open\command /ve /d "\"C:\Program Files (x86)\Notepad++\notepad++.exe\" \"%%1\""
+
+
+<a href="mytexteditorurl://parameter1='C:/localpath/to/myfile.txt'">
+
+"itms://"
+
+
+
+
+make your app report to the server that it is open, and if that times out,
+redirect the user to a download page or a web implementation of your application

@@ -144,6 +144,7 @@ function play_rps($user_record,$trailing,$help_out=true)
   $data["rps"]=$sequence;
   $user_record["json_data"]=json_encode($data);
   \webdb\chat\update_user($user_record);
+  $max_sequence=0;
   foreach ($player_data as $outer_nick => $outer_player)
   {
     $outer_sequence=$outer_player["sequence"];
@@ -151,6 +152,7 @@ function play_rps($user_record,$trailing,$help_out=true)
     {
       foreach ($player_data as $inner_nick => $inner_player)
       {
+        $max_sequence=max($max_sequence,strlen($inner_player["sequence"]));
         if ($outer_nick==$inner_nick)
         {
           continue;
@@ -270,7 +272,8 @@ function play_rps($user_record,$trailing,$help_out=true)
     $params["response"]=$out;
     $response[]=\webdb\utils\template_fill("chat/pre_notice",$params);
   }
-  $response[]="maximum sequence length: ".$max_rounds;
+  $response[]="maximum rounds: ".$max_rounds;
+  $response[]="maximum sequence length: ".$max_sequence;
   $response[]="handicap = (wins-losses)*rounds for more wins than losses";
   $response[]="handicap = (wins-losses)/rounds*100000 for more losses than wins";
   $response[]="ranking is based on a handicap that balances the number of wins and losses with the number of rounds played";
