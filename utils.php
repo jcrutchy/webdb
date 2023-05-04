@@ -9,7 +9,7 @@ function system_message($message)
   global $settings;
   if (\webdb\cli\is_cli_mode()==true)
   {
-    \webdb\cli\term_echo(str_replace(PHP_EOL," ",$message),33);
+    \webdb\cli\term_echo(\webdb\utils\webdb_str_replace(PHP_EOL," ",$message),33);
     die;
   }
   $settings["unauthenticated_content"]=true;
@@ -28,7 +28,7 @@ function webdb_debug_backtrace()
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   $backtrace=json_encode(debug_backtrace()); # can't have pretty print indents for replacing settings
   $settings_json=json_encode($settings);
-  $backtrace=str_replace($settings_json,"{\"settings\":\"...\"}",$backtrace);
+  $backtrace=\webdb\utils\webdb_str_replace($settings_json,"{\"settings\":\"...\"}",$backtrace);
   $backtrace=json_decode($backtrace);
   $backtrace=json_encode($backtrace,JSON_PRETTY_PRINT);
   if (\webdb\cli\is_cli_mode()==true)
@@ -36,7 +36,7 @@ function webdb_debug_backtrace()
     return $backtrace;
   }
   $params=array();
-  $params["backtrace"]=htmlspecialchars($backtrace);
+  $params["backtrace"]=\webdb\utils\webdb_htmlspecialchars($backtrace);
   return \webdb\utils\template_fill("debug_backtrace",$params);
 }
 
@@ -331,7 +331,7 @@ function webdb_unsetcookie($setting_key,$http_only=true)
 
 function convert_to_cookie_name($name)
 {
-  return str_replace(" ","_",$name);
+  return \webdb\utils\webdb_str_replace(" ","_",$name);
 }
 
 #####################################################################################################
@@ -457,7 +457,7 @@ function ob_postprocess($buffer)
     {
       if (strpos($buffer,'$$'.$key.'$$')!==false)
       {
-        $buffer="error: unassigned $ template '".$key."' found: ".htmlspecialchars($buffer);
+        $buffer="error: unassigned $ template '".$key."' found: ".\webdb\utils\webdb_htmlspecialchars($buffer);
         break;
       }
     }
@@ -465,7 +465,7 @@ function ob_postprocess($buffer)
     {
       if (strpos($buffer,'@@'.$key.'@@')!==false)
       {
-        $buffer="error: unassigned @ template '".$key."' found: ".htmlspecialchars($buffer);
+        $buffer="error: unassigned @ template '".$key."' found: ".\webdb\utils\webdb_htmlspecialchars($buffer);
         break;
       }
     }
@@ -601,7 +601,7 @@ function load_files($path,$root="",$ext="",$trim_ext=true) # path (and root) mus
       {
         $fn=substr($fn,0,strlen($fn)-strlen($fext)-1);
       }
-      $key=str_replace("\\","/",$fn);
+      $key=\webdb\utils\webdb_str_replace("\\","/",$fn);
       $result[$key]=trim(file_get_contents($full));
     }
     else
@@ -766,7 +766,7 @@ function make_plural($singular)
 
 function replace_suffix($subject,$replaces,$unchanged,$default_append=false)
 {
-  $subject_parts=str_replace(" ","_",$subject);
+  $subject_parts=\webdb\utils\webdb_str_replace(" ","_",$subject);
   $subject_parts=explode("_",$subject);
   $last_part=array_pop($subject_parts);
   if (in_array($last_part,$unchanged)==true)
@@ -832,7 +832,7 @@ function get_resource_link($name,$type,$source="app")
   global $settings;
   #return false; # TODO: pre-load file modified times into $settings
   $filename=$settings[$source."_resources_path"].$name.".".$type;
-  $filename=str_replace("/",DIRECTORY_SEPARATOR,$filename);
+  $filename=\webdb\utils\webdb_str_replace("/",DIRECTORY_SEPARATOR,$filename);
   if (file_exists($filename)==true)
   {
     $params=array();
@@ -1125,7 +1125,7 @@ function template_fill($template_key,$params=false)
     }
     if (is_scalar($value)==true)
     {
-      $result=str_replace('%%'.$key.'%%',$value,$result);
+      $result=\webdb\utils\webdb_str_replace('%%'.$key.'%%',$value,$result);
     }
   }
   return $result;
@@ -1171,7 +1171,7 @@ function custom_template_fill($template_key,$params=false,$tracking=array(),$cus
   foreach ($settings["constants"] as $key => $value)
   {
     $placeholder='??'.$key.'??';
-    $result=str_replace($placeholder,$value,$result);
+    $result=\webdb\utils\webdb_str_replace($placeholder,$value,$result);
   }
   foreach ($settings as $key => $value)
   {
@@ -1182,7 +1182,7 @@ function custom_template_fill($template_key,$params=false,$tracking=array(),$cus
     }
     if (is_scalar($value)==true)
     {
-      $result=str_replace($placeholder,$value,$result);
+      $result=\webdb\utils\webdb_str_replace($placeholder,$value,$result);
     }
   }
   if ($params!==false)
@@ -1196,7 +1196,7 @@ function custom_template_fill($template_key,$params=false,$tracking=array(),$cus
       }
       if (is_scalar($value)==true)
       {
-        $result=str_replace($placeholder,$value,$result);
+        $result=\webdb\utils\webdb_str_replace($placeholder,$value,$result);
       }
     }
   }
@@ -1212,7 +1212,7 @@ function custom_template_fill($template_key,$params=false,$tracking=array(),$cus
       continue;
     }
     $value=\webdb\utils\custom_template_fill($key,$params,$tracking,$custom_templates);
-    $result=str_replace($placeholder,$value,$result);
+    $result=\webdb\utils\webdb_str_replace($placeholder,$value,$result);
   }
   return $result;
 }
@@ -1263,8 +1263,8 @@ function extract_params($template,$data)
 {
   $data=trim($data);
   $template_content=trim(\webdb\utils\template_fill($template));
-  $data=str_replace("\r","",$data);
-  $template_content=str_replace("\r","",$template_content);
+  $data=\webdb\utils\webdb_str_replace("\r","",$data);
+  $template_content=\webdb\utils\webdb_str_replace("\r","",$template_content);
   $parts=explode("%%",$template_content);
   $keys=array();
   $excluded=array();
@@ -2138,6 +2138,28 @@ function webdb_file_get_contents($filename)
     }
   }
   return trim($content);
+}
+
+#####################################################################################################
+
+function webdb_htmlspecialchars($val)
+{
+  if ($val===null)
+  {
+    return "";
+  }
+  return htmlspecialchars($val);
+}
+
+#####################################################################################################
+
+function webdb_str_replace($search,$replace,$subject)
+{
+  if ($subject===null)
+  {
+    return "";
+  }
+  return str_replace($search,$replace,$subject);
 }
 
 #####################################################################################################

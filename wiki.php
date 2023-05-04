@@ -99,7 +99,7 @@ function search_results($form_config,$query)
 {
   global $settings;
   $page_params=array();
-  $page_params["query"]=htmlspecialchars($query);
+  $page_params["query"]=\webdb\utils\webdb_htmlspecialchars($query);
   $compare_query=strtolower($query);
   $sql_params=array();
   $sql_params["query"]=$compare_query;
@@ -150,7 +150,7 @@ function search_results($form_config,$query)
   $page_params["wiki_styles_modified"]=\webdb\utils\resource_modified_timestamp("wiki/wiki.css");
   $page_params["wiki_styles_print_modified"]=\webdb\utils\resource_modified_timestamp("wiki/wiki_print.css");
   $content=\webdb\utils\template_fill("wiki/search_results",$page_params);
-  \webdb\utils\output_page($content,$form_config["title"]." [search: \"".htmlspecialchars($query)."\"]");
+  \webdb\utils\output_page($content,$form_config["title"]." [search: \"".\webdb\utils\webdb_htmlspecialchars($query)."\"]");
 }
 
 #####################################################################################################

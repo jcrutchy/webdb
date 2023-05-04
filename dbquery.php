@@ -85,7 +85,7 @@ function dbquery_page_stub($form_config)
       $results_rows=\webdb\utils\template_fill("dbquery/no_results");
     }
   }
-  $page_params["sql"]=htmlspecialchars($sql);
+  $page_params["sql"]=\webdb\utils\webdb_htmlspecialchars($sql);
   $page_params["results_head_row"]=$results_head_row;
   $page_params["results_rows"]=$results_rows;
   $options="";

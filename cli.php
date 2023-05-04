@@ -454,9 +454,9 @@ function link_page_id($link_table,$parent_table)
 {
   $parent_singular=\webdb\utils\make_singular($parent_table);
   $parent_plural=\webdb\utils\make_plural($parent_singular);
-  $link_page_id=str_replace($parent_plural,"",$link_table);
-  $link_page_id=str_replace($parent_singular,"",$link_page_id);
-  $link_page_id=str_replace("_links","",$link_page_id);
+  $link_page_id=\webdb\utils\webdb_str_replace($parent_plural,"",$link_table);
+  $link_page_id=\webdb\utils\webdb_str_replace($parent_singular,"",$link_page_id);
+  $link_page_id=\webdb\utils\webdb_str_replace("_links","",$link_page_id);
   $link_page_id=\webdb\utils\trim_suffix($link_page_id,"_");
   if (substr($link_page_id,0,1)=="_")
   {

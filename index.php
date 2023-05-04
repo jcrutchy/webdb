@@ -86,14 +86,14 @@ if ($settings["ip_blacklist_enabled"]==true)
 {
   if (\webdb\users\remote_address_listed($_SERVER["REMOTE_ADDR"],"black")==true)
   {
-    \webdb\utils\system_message("ip blacklisted: ".htmlspecialchars($_SERVER["REMOTE_ADDR"]));
+    \webdb\utils\system_message("ip blacklisted: ".\webdb\utils\webdb_htmlspecialchars($_SERVER["REMOTE_ADDR"]));
   }
 }
 if ($settings["ip_whitelist_enabled"]==true)
 {
   if (\webdb\users\remote_address_listed($_SERVER["REMOTE_ADDR"],"white")==false)
   {
-    \webdb\utils\system_message("ip not whitelisted: ".htmlspecialchars($_SERVER["REMOTE_ADDR"]));
+    \webdb\utils\system_message("ip not whitelisted: ".\webdb\utils\webdb_htmlspecialchars($_SERVER["REMOTE_ADDR"]));
   }
 }
 if (\webdb\utils\is_app_mode()==false)

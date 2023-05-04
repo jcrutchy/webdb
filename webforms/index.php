@@ -96,16 +96,16 @@ if ((isset($_GET["e"])==true) or (isset($_GET["i"])==true))
   #var_dump($record);
   #die;
   $edit=file_get_contents(__DIR__."/edit.htm");
-  $edit=str_replace("%%title%%",$title,$edit);
-  $edit=str_replace("%%styles%%",$styles,$edit);
-  $edit=str_replace("%%mode%%",$mode,$edit);
+  $edit=\webdb\utils\webdb_str_replace("%%title%%",$title,$edit);
+  $edit=\webdb\utils\webdb_str_replace("%%styles%%",$styles,$edit);
+  $edit=\webdb\utils\webdb_str_replace("%%mode%%",$mode,$edit);
   $rows="";
   for ($i=0;$i<count($fields);$i++)
   {
     $field=$fields[$i];
     $k=$i+1; # account for id in values
     $name=$field[1];
-    $fieldname=strtolower(str_replace(" ","_",$name));
+    $fieldname=strtolower(\webdb\utils\webdb_str_replace(" ","_",$name));
     $value=$record[$k];
     switch ($field[0])
     {
@@ -113,7 +113,7 @@ if ((isset($_GET["e"])==true) or (isset($_GET["i"])==true))
 
         break;
       case "m":
-        $value=str_replace('\n',"\n",$value);
+        $value=\webdb\utils\webdb_str_replace('\n',"\n",$value);
         $value="<textarea name='".$fieldname."' wrap='soft'>".$value."</textarea>";
         break;
       case "t":
@@ -126,7 +126,7 @@ if ((isset($_GET["e"])==true) or (isset($_GET["i"])==true))
     $row="<tr><td>".$name."</td><td>".$value."</td></tr>";
     $rows.=$row;
   }
-  $edit=str_replace("%%rows%%",$rows,$edit);
+  $edit=\webdb\utils\webdb_str_replace("%%rows%%",$rows,$edit);
   die($edit);
 }
 
@@ -145,8 +145,8 @@ if (isset($_POST["i"])==true)
 }
 
 $list=file_get_contents(__DIR__."/list.htm");
-$list=str_replace("%%title%%",$title,$list);
-$list=str_replace("%%styles%%",$styles,$list);
+$list=\webdb\utils\webdb_str_replace("%%title%%",$title,$list);
+$list=\webdb\utils\webdb_str_replace("%%styles%%",$styles,$list);
 $head="<th>id</th>";
 for ($i=0;$i<count($fields);$i++)
 {
@@ -154,7 +154,7 @@ for ($i=0;$i<count($fields);$i++)
   $head.="<th>".$field[1]."</th>";
 }
 $head.="<th>&nbsp;</th>";
-$list=str_replace("%%head%%",$head,$list);
+$list=\webdb\utils\webdb_str_replace("%%head%%",$head,$list);
 $rows="";
 for ($i=0;$i<count($data);$i++)
 {
@@ -178,7 +178,7 @@ for ($i=0;$i<count($data);$i++)
     }
     if ($field[0]=="m")
     {
-      $record[$k]=str_replace('\n',"<br>",$record[$k]);
+      $record[$k]=\webdb\utils\webdb_str_replace('\n',"<br>",$record[$k]);
     }
     $row.="<td>".$record[$k]."</td>";
   }
@@ -186,7 +186,7 @@ for ($i=0;$i<count($data);$i++)
   $row.="</tr>";
   $rows.=$row;
 }
-$list=str_replace("%%rows%%",$rows,$list);
+$list=\webdb\utils\webdb_str_replace("%%rows%%",$rows,$list);
 die($list);
 
 #####################################################################################################

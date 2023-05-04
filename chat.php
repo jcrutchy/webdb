@@ -463,15 +463,15 @@ function chat_dispatch($record_id,$form_config,$record=false,$template="chat/pop
                   {
                     if (empty($trailing)==false)
                     {
-                      $response[]="running shell command: ".htmlspecialchars($trailing);
+                      $response[]="running shell command: ".\webdb\utils\webdb_htmlspecialchars($trailing);
                       $result=shell_exec($trailing);
                       if (empty($result)==false)
                       {
                         $result=explode("\n",$result);
                         for ($i=0;$i<count($result);$i++)
                         {
-                          $result[$i]=htmlspecialchars($result[$i]);
-                          $result[$i]=str_replace(" ","&nbsp;",$result[$i]);
+                          $result[$i]=\webdb\utils\webdb_htmlspecialchars($result[$i]);
+                          $result[$i]=\webdb\utils\webdb_str_replace(" ","&nbsp;",$result[$i]);
                         }
                         $response=array_merge($response,$result);
                       }
@@ -479,7 +479,7 @@ function chat_dispatch($record_id,$form_config,$record=false,$template="chat/pop
                     }
                     else
                     {
-                      $response[]=htmlspecialchars("syntax: /shell <windows shell command>");
+                      $response[]=\webdb\utils\webdb_htmlspecialchars("syntax: /shell <windows shell command>");
                       \webdb\chat\private_notice($response);
                     }
                   }
@@ -541,8 +541,8 @@ function chat_dispatch($record_id,$form_config,$record=false,$template="chat/pop
           $row_params=array();
           $row_params["time"]=\webdb\chat\sql_to_iso_timestamp($record["message_time"]);
           $row_params["time"]=\webdb\utils\template_fill("chat/server_timestamp",$row_params);
-          $row_params["nick"]=htmlspecialchars($nick);
-          $row_params["message"]=htmlspecialchars($message);
+          $row_params["nick"]=\webdb\utils\webdb_htmlspecialchars($nick);
+          $row_params["message"]=\webdb\utils\webdb_htmlspecialchars($message);
           if ((isset($_GET["chat_break"])==true) and ($record==$last_message))
           {
             $delta.=\webdb\utils\template_fill("chat/message_row_break",$row_params);
@@ -564,7 +564,7 @@ function chat_dispatch($record_id,$form_config,$record=false,$template="chat/pop
           $record=$records[$i];
           $data["nicks"][]=$record["nick"];
         }
-        $data["channel_topic"]=htmlspecialchars($channel_record["topic"]);
+        $data["channel_topic"]=\webdb\utils\webdb_htmlspecialchars($channel_record["topic"]);
         $data["chat_break"]=false;
         if (isset($_GET["chat_break"])==true)
         {
@@ -628,7 +628,7 @@ function delete_chat_message($parts,$trailing)
         {
           foreach ($message_record as $field_name => $value)
           {
-            $message_record[$field_name]=htmlspecialchars($value);
+            $message_record[$field_name]=\webdb\utils\webdb_htmlspecialchars($value);
           }
           $delete_data=array();
           $delete_data["message_id"]=$message_id;
@@ -671,7 +671,7 @@ function delete_chat_message($parts,$trailing)
     }
     if (empty($trailing)==true)
     {
-      $response[]=htmlspecialchars("syntax: /delete <message_id> [<confirm_code>]");
+      $response[]=\webdb\utils\webdb_htmlspecialchars("syntax: /delete <message_id> [<confirm_code>]");
     }
     else
     {

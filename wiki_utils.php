@@ -21,7 +21,7 @@ function get_article_record()
 function view_fixed_article_file($form_config,$title)
 {
   global $settings;
-  $filename=strtolower(str_replace(":","_",$title));
+  $filename=strtolower(\webdb\utils\webdb_str_replace(":","_",$title));
   $template="wiki/fixed_articles/".$filename;
   if (isset($settings["templates"][$template])==false)
   {
@@ -90,9 +90,9 @@ function wikitext_to_html($content)
     $content=\webdb\wiki_utils\wikitext_escape_pair($content,$pair[0],$pair[1]);
   }
 
-  $content=str_replace("\r\n",$break,$content);
-  $content=str_replace("\r",$break,$content);
-  $content=str_replace("\n",$break,$content);
+  $content=\webdb\utils\webdb_str_replace("\r\n",$break,$content);
+  $content=\webdb\utils\webdb_str_replace("\r",$break,$content);
+  $content=\webdb\utils\webdb_str_replace("\n",$break,$content);
 
   $content=\webdb\wiki_utils\wikitext_to_html__toc($content);
 

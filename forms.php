@@ -1144,7 +1144,7 @@ function list_row($form_config,$record,$column_format,$row_spans,$lookup_records
       }
       else
       {
-        $field_params["value"]=htmlspecialchars($display_record[$field_name]);
+        $field_params["value"]=\webdb\utils\webdb_htmlspecialchars($display_record[$field_name]);
       }
     }
     $field_params["field_name"]=$field_name;
@@ -1234,7 +1234,7 @@ function list_row($form_config,$record,$column_format,$row_spans,$lookup_records
       case "csv":
         for ($i=0;$i<count($fields);$i++)
         {
-          $fields[$i]=str_replace(","," ",$fields[$i]);
+          $fields[$i]=\webdb\utils\webdb_str_replace(","," ",$fields[$i]);
         }
         return implode(",",$fields);
     }
@@ -1441,9 +1441,9 @@ function get_lookup_field_value($field_name,$form_config,$lookup_records,$displa
   }
   else
   {
-    $result=htmlspecialchars(str_replace(\webdb\index\LINEBREAK_DB_DELIM,\webdb\index\LINEBREAK_PLACEHOLDER,$result));
+    $result=\webdb\utils\webdb_htmlspecialchars(\webdb\utils\webdb_str_replace(\webdb\index\LINEBREAK_DB_DELIM,\webdb\index\LINEBREAK_PLACEHOLDER,$result));
   }
-  return str_replace(\webdb\index\LINEBREAK_PLACEHOLDER,\webdb\utils\template_fill("break"),$result);
+  return \webdb\utils\webdb_str_replace(\webdb\index\LINEBREAK_PLACEHOLDER,\webdb\utils\template_fill("break"),$result);
 }
 
 #####################################################################################################
@@ -1451,11 +1451,11 @@ function get_lookup_field_value($field_name,$form_config,$lookup_records,$displa
 function format_text_output($value)
 {
   $break=\webdb\utils\template_fill("break");
-  $value=htmlspecialchars(str_replace(\webdb\index\LINEBREAK_DB_DELIM,\webdb\index\LINEBREAK_PLACEHOLDER,$value));
-  $value=str_replace(\webdb\index\LINEBREAK_PLACEHOLDER,$break,$value);
-  $value=str_replace(PHP_EOL,$break,$value);
-  $value=str_replace("\r",$break,$value);
-  $value=str_replace("\n",$break,$value);
+  $value=\webdb\utils\webdb_htmlspecialchars(\webdb\utils\webdb_str_replace(\webdb\index\LINEBREAK_DB_DELIM,\webdb\index\LINEBREAK_PLACEHOLDER,$value));
+  $value=\webdb\utils\webdb_str_replace(\webdb\index\LINEBREAK_PLACEHOLDER,$break,$value);
+  $value=\webdb\utils\webdb_str_replace(PHP_EOL,$break,$value);
+  $value=\webdb\utils\webdb_str_replace("\r",$break,$value);
+  $value=\webdb\utils\webdb_str_replace("\n",$break,$value);
   $value=\webdb\forms\memo_field_formatting($value);
   return $value;
 }
@@ -1518,17 +1518,17 @@ function output_readonly_field($field_params,$control_type,$form_config,$field_n
         }
       }
       $field_params["field_name_basic"]=$field_name;
-      $field_params["value"]=htmlspecialchars($display_record[$field_name]);
+      $field_params["value"]=\webdb\utils\webdb_htmlspecialchars($display_record[$field_name]);
       return \webdb\forms\form_template_fill("list_field_file",$field_params);
     case "span":
     case "text":
-      $field_params["value"]=htmlspecialchars(str_replace(\webdb\index\LINEBREAK_DB_DELIM,\webdb\index\LINEBREAK_PLACEHOLDER,$display_record[$field_name]));
-      $field_params["value"]=str_replace(\webdb\index\LINEBREAK_PLACEHOLDER,\webdb\utils\template_fill("break"),$field_params["value"]);
+      $field_params["value"]=\webdb\utils\webdb_htmlspecialchars(\webdb\utils\webdb_str_replace(\webdb\index\LINEBREAK_DB_DELIM,\webdb\index\LINEBREAK_PLACEHOLDER,$display_record[$field_name]));
+      $field_params["value"]=\webdb\utils\webdb_str_replace(\webdb\index\LINEBREAK_PLACEHOLDER,\webdb\utils\template_fill("break"),$field_params["value"]);
       return \webdb\forms\form_template_fill("list_field",$field_params);
     case "combobox":
     case "listbox":
     case "radiogroup":
-      $field_params["value"]=htmlspecialchars($display_record[$field_name]);
+      $field_params["value"]=\webdb\utils\webdb_htmlspecialchars($display_record[$field_name]);
       $lookup_config=$form_config["lookups"][$field_name];
       $n=count($lookup_records[$field_name]);
       for ($i=0;$i<$n;$i++)
@@ -1538,7 +1538,7 @@ function output_readonly_field($field_params,$control_type,$form_config,$field_n
         if ($display_record[$field_name]==$key_value)
         {
           $display_value=\webdb\forms\lookup_field_display_value($lookup_config,$lookup_records[$field_name][$i]);
-          $field_params["value"]=htmlspecialchars($display_value);
+          $field_params["value"]=\webdb\utils\webdb_htmlspecialchars($display_value);
           break;
         }
       }
@@ -1666,8 +1666,8 @@ function memo_field_formatting($value)
     }
     $open_markup="&lt;".$tag."&gt;";
     $close_markup="&lt;/".$tag."&gt;";
-    $value=str_replace($open_markup,$positions["open"],$value);
-    $value=str_replace($close_markup,$positions["close"],$value);
+    $value=\webdb\utils\webdb_str_replace($open_markup,$positions["open"],$value);
+    $value=\webdb\utils\webdb_str_replace($close_markup,$positions["close"],$value);
   }
   return $value;
 }
@@ -1852,8 +1852,8 @@ function output_editable_field(&$field_params,$record,$field_name,$control_type,
       $record[$field_name]=\webdb\forms\default_value($form_config,$field_name);
       $control_type="span";
     case "span":
-      $field_params["field_value"]=htmlspecialchars(str_replace(\webdb\index\LINEBREAK_DB_DELIM,\webdb\index\LINEBREAK_PLACEHOLDER,$record[$field_name]));
-      $field_params["field_value"]=str_replace(\webdb\index\LINEBREAK_PLACEHOLDER,PHP_EOL,$field_params["field_value"]);
+      $field_params["field_value"]=\webdb\utils\webdb_htmlspecialchars(\webdb\utils\webdb_str_replace(\webdb\index\LINEBREAK_DB_DELIM,\webdb\index\LINEBREAK_PLACEHOLDER,$record[$field_name]));
+      $field_params["field_value"]=\webdb\utils\webdb_str_replace(\webdb\index\LINEBREAK_PLACEHOLDER,PHP_EOL,$field_params["field_value"]);
       break;
     case "raw":
       $control_type="span";
@@ -1869,8 +1869,8 @@ function output_editable_field(&$field_params,$record,$field_name,$control_type,
       $submit_fields[]=$field_params["field_name"];
       break;
     case "memo":
-      $field_params["field_value"]=htmlspecialchars(str_replace(\webdb\index\LINEBREAK_DB_DELIM,\webdb\index\LINEBREAK_PLACEHOLDER,$record[$field_name]));
-      $field_params["field_value"]=str_replace(\webdb\index\LINEBREAK_PLACEHOLDER,PHP_EOL,$field_params["field_value"]);
+      $field_params["field_value"]=\webdb\utils\webdb_htmlspecialchars(\webdb\utils\webdb_str_replace(\webdb\index\LINEBREAK_DB_DELIM,\webdb\index\LINEBREAK_PLACEHOLDER,$record[$field_name]));
+      $field_params["field_value"]=\webdb\utils\webdb_str_replace(\webdb\index\LINEBREAK_PLACEHOLDER,PHP_EOL,$field_params["field_value"]);
       $submit_fields[]=$field_params["field_name"];
       break;
     case "combobox":
@@ -1919,9 +1919,9 @@ function output_editable_field(&$field_params,$record,$field_name,$control_type,
         $loop_record=$records[$i];
         $option_params=array();
         $option_params["name"]=$form_config["page_id"].":edit_control:".$field_params["primary_key"].":".$field_name;
-        $option_params["value"]=htmlspecialchars($loop_record[$lookup_config["key_field"]]);
+        $option_params["value"]=\webdb\utils\webdb_htmlspecialchars($loop_record[$lookup_config["key_field"]]);
         $display_value=\webdb\forms\lookup_field_display_value($lookup_config,$loop_record);
-        $option_params["caption"]=htmlspecialchars($display_value);
+        $option_params["caption"]=\webdb\utils\webdb_htmlspecialchars($display_value);
         $option_params["disabled"]=\webdb\forms\field_disabled($form_config,$field_name);
         $option_params["js_events"]=\webdb\forms\field_js_events($form_config,$field_name,$record);
         $excluded_parent=false;
@@ -2682,7 +2682,7 @@ function advanced_search($form_config)
     $field_params=array();
     $field_params["field_name"]=$field_name;
     $field_params["control_style"]="";
-    $field_params["field_value"]=htmlspecialchars($field_value);
+    $field_params["field_value"]=\webdb\utils\webdb_htmlspecialchars($field_value);
     $search_control_type="text";
     switch ($control_type)
     {
@@ -2736,7 +2736,7 @@ function advanced_search($form_config)
         {
           $option_params=array();
           $option_params["value"]=$value;
-          $option_params["caption"]=htmlspecialchars($caption);
+          $option_params["caption"]=\webdb\utils\webdb_htmlspecialchars($caption);
           if ($value==$selected_option)
           {
             $field_params["options"].=\webdb\utils\template_fill("select_option_selected",$option_params);
@@ -2779,7 +2779,7 @@ function advanced_search($form_config)
         {
           $option_params=array();
           $option_params["value"]=$value;
-          $option_params["caption"]=htmlspecialchars($caption);
+          $option_params["caption"]=\webdb\utils\webdb_htmlspecialchars($caption);
           if ($value==$selected_option)
           {
             $field_params["options"].=\webdb\utils\template_fill("select_option_selected",$option_params);
@@ -2987,7 +2987,7 @@ function insert_form($form_config)
   $url_params=\webdb\forms\insert_default_url_params();
   foreach ($url_params as $name => $value)
   {
-    $record[$name]=htmlspecialchars($value);
+    $record[$name]=\webdb\utils\webdb_htmlspecialchars($value);
   }
   $id=\webdb\forms\config_id_url_value($form_config,$record,"primary_key");
   if ($id==="")
@@ -3461,8 +3461,8 @@ function get_uploaded_filename($form_config,$record_id,$field_name)
     $page_id=$form_config["file_field_page_id"];
   }
   $filename=$page_id."__".$record_id."__".$field_name;
-  $filename=str_replace(DIRECTORY_SEPARATOR,"_",$filename);
-  return str_replace(" ","_",$filename);
+  $filename=\webdb\utils\webdb_str_replace(DIRECTORY_SEPARATOR,"_",$filename);
+  return \webdb\utils\webdb_str_replace(" ","_",$filename);
 }
 
 #####################################################################################################
@@ -3624,7 +3624,7 @@ function process_form_data_fields($form_config,$record_id,$post_override=false)
         }
         break;
       case "memo":
-        $value_items[$field_name]=str_replace(PHP_EOL,\webdb\index\LINEBREAK_DB_DELIM,$post_fields[$post_name]);
+        $value_items[$field_name]=\webdb\utils\webdb_str_replace(PHP_EOL,\webdb\index\LINEBREAK_DB_DELIM,$post_fields[$post_name]);
         if ($value_items[$field_name]=="")
         {
           $value_items[$field_name]=null;
@@ -4129,7 +4129,7 @@ function basic_search()
   global $settings;
   $query=strtolower($_GET["basic_search"]);
   $page_params=array();
-  $page_params["title"]="basic search results: ".htmlspecialchars($query);
+  $page_params["title"]="basic search results: ".\webdb\utils\webdb_htmlspecialchars($query);
   $results="";
   for ($i=0;$i<count($settings["basic_search_forms"]);$i++)
   {

@@ -65,7 +65,7 @@ function get_user_record($username)
   {
     \webdb\users\unset_login_cookie();
     \webdb\csrf\unset_authenticated_csrf(false);
-    \webdb\utils\error_message("error: username not found: ".htmlspecialchars($username));
+    \webdb\utils\error_message("error: username not found: ".\webdb\utils\webdb_htmlspecialchars($username));
   }
   return $records[0];
 }
@@ -797,7 +797,7 @@ function validate_new_password($old_password,$new_password,$new_password_confirm
   }
   if (in_array($new_password,$settings["prohibited_passwords"])==true)
   {
-    \webdb\utils\error_message("error: cannot use any of the following for your new password: ".htmlspecialchars(implode(" ",$settings["prohibited_passwords"])));
+    \webdb\utils\error_message("error: cannot use any of the following for your new password: ".\webdb\utils\webdb_htmlspecialchars(implode(" ",$settings["prohibited_passwords"])));
   }
   if (strlen($new_password)<$settings["min_password_length"])
   {
