@@ -957,7 +957,7 @@ function chart_to_pixel_x($val,$data)
   }
   $chart_w_pix=$data["w"]-$data["left"]-$data["right"];
   $ppu=\webdb\chart\pixels_per_unit($chart_w_pix,$data["x_min"],$data["x_max"]);
-  return intval(round(($val-$data["x_min"])*$ppu)+$data["left"]);
+  return intval(round(($val-$data["x_min"])*$ppu+$data["left"]));
 }
 
 #####################################################################################################
@@ -970,7 +970,7 @@ function chart_to_pixel_y($val,$data)
   }
   $chart_h_pix=$data["h"]-$data["top"]-$data["bottom"];
   $ppu=\webdb\chart\pixels_per_unit($chart_h_pix,$data["y_min"],$data["y_max"]);
-  return intval(round($chart_h_pix-1-($val-$data["y_min"])*$ppu)+$data["top"]);
+  return intval(round($chart_h_pix-1-($val-$data["y_min"])*$ppu+$data["top"]));
 }
 
 #####################################################################################################
@@ -1041,8 +1041,8 @@ function chart_draw_column_series(&$data,$series,$y_min=0)
   $y1=\webdb\chart\chart_to_pixel_y($y_min,$data);
   for ($i=0;$i<$n;$i++)
   {
-    $x1=\webdb\chart\chart_to_pixel_x($x_values[$i],$data)-$half_col;
-    $x2=\webdb\chart\chart_to_pixel_x($x_values[$i],$data)+$half_col;
+    $x1=round(\webdb\chart\chart_to_pixel_x($x_values[$i],$data)-$half_col);
+    $x2=round(\webdb\chart\chart_to_pixel_x($x_values[$i],$data)+$half_col);
     $y2=\webdb\chart\chart_to_pixel_y($y_values[$i],$data);
     if ($y1==$y2)
     {

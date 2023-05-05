@@ -13,7 +13,7 @@ function blend_rect_horz($buffer,$x1,$y1,$x2,$y2,$from_color,$to_color) # colors
     $r=$from_color[0]-((($from_color[0]-$to_color[0])/$delta)*$i);
     $g=$from_color[1]-((($from_color[1]-$to_color[1])/$delta)*$i);
     $b=$from_color[2]-((($from_color[2]-$to_color[2])/$delta)*$i);
-    $color=imagecolorallocate($buffer,$r,$g,$b);
+    $color=imagecolorallocate($buffer,round($r),round($g),round($b));
     imagefilledrectangle($buffer,$x1+$i,$y1,$x1+$i+1,$y2,$color);
   }
 }
