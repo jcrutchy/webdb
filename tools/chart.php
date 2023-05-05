@@ -1627,7 +1627,7 @@ function chart_draw_title_x(&$data)
   $text_h=$bbox[1]-$bbox[7];
   $text_x=$cx-round($text_w/2);
   $text_y=$data["h"]-$title_margin;
-  imagettftext($data["buffer"],$title_font_size,0,$text_x,$text_y,$text_color,$text_file,$data["x_title"]);
+  imagettftext($data["buffer"],$title_font_size,0,round($text_x),round($text_y),$text_color,$text_file,$data["x_title"]);
 }
 
 #####################################################################################################
