@@ -453,6 +453,9 @@ function chat_dispatch($record_id,$form_config,$record=false,$template="chat/pop
                   \webdb\chat\delete_chat_message($parts,$trailing);
                   break;
                 case "/shell":
+                  $response[]="error: command disabled";
+                  \webdb\chat\private_notice($response);
+                  break;
                   $response=array();
                   $admin_channel_name=array();
                   $admin_channel_name["chat_channel_prefix"]=$settings["chat_channel_prefix"];
