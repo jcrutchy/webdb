@@ -160,7 +160,7 @@ function article_history($form_config,$article_record)
   global $settings;
   if (isset($_GET["rev"])==true)
   {
-    $page_params["content"]=\webdb\wiki_utils\wikitext_to_html($page_params["content"]);
+    $page_params["content"]=\webdb\wiki_utils\wikitext_to_html($article_record["content"]);
   }
   else
   {
