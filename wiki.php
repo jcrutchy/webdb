@@ -180,7 +180,8 @@ function article_history($form_config,$article_record)
   }
   $page_params["wiki_styles_modified"]=\webdb\utils\resource_modified_timestamp("wiki/wiki.css");
   $page_params["wiki_styles_print_modified"]=\webdb\utils\resource_modified_timestamp("wiki/wiki_print.css");
-  $page_params["url_title"]=urlencode($page_params["title"]);
+  $page_params["url_title"]=urlencode($article_record["title"]);
+  $page_params["title"]=$article_record["title"];
   $content=\webdb\utils\template_fill("wiki/article_history",$page_params);
   \webdb\utils\output_page($content,$form_config["title"].": ".$article_record["title"]." [history]");
 }
