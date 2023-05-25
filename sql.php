@@ -134,9 +134,9 @@ function get_pdo_object($is_admin)
 
 function get_statement_type($sql)
 {
-  $sql_parts=strtoupper(trim($sql));
+  $sql_parts=\webdb\utils\webdb_strtoupper(trim($sql));
   $sql_parts=\webdb\utils\webdb_str_replace("\n"," ",$sql_parts);
-  $sql_parts=explode(" ",$sql_parts);
+  $sql_parts=\webdb\utils\webdb_explode(" ",$sql_parts);
   $type=trim($sql_parts[0]);
   switch ($type)
   {
@@ -160,10 +160,10 @@ function column_list($database,$table)
 {
   global $settings;
   $sql_params=array();
-  $sql_params["table"]=strtoupper($table);
+  $sql_params["table"]=\webdb\utils\webdb_strtoupper($table);
   if ($settings["db_engine"]<>"sqlsrv")
   {
-    $sql_params["database"]=strtoupper($database);
+    $sql_params["database"]=\webdb\utils\webdb_strtoupper($database);
   }
   return \webdb\sql\file_fetch_prepare("generate_form_column_list",$sql_params);
 }

@@ -100,7 +100,7 @@ function search_results($form_config,$query)
   global $settings;
   $page_params=array();
   $page_params["query"]=\webdb\utils\webdb_htmlspecialchars($query);
-  $compare_query=strtolower($query);
+  $compare_query=\webdb\utils\webdb_strtolower($query);
   $sql_params=array();
   $sql_params["query"]=$compare_query;
   $records=\webdb\sql\file_fetch_prepare("wiki/search_articles",$sql_params);
@@ -110,11 +110,11 @@ function search_results($form_config,$query)
   {
     $record=$records[$i];
     $result=false;
-    if (strpos(strtolower($record["title"]),$compare_query)!==false)
+    if (strpos(\webdb\utils\webdb_strtolower($record["title"]),$compare_query)!==false)
     {
       $result=true;
     }
-    if (strpos(strtolower($record["content"]),$compare_query)!==false)
+    if (strpos(\webdb\utils\webdb_strtolower($record["content"]),$compare_query)!==false)
     {
       $result=true;
     }
@@ -132,11 +132,11 @@ function search_results($form_config,$query)
   {
     $record=$records[$i];
     $result=false;
-    if (strpos(strtolower($record["title"]),$compare_query)!==false)
+    if (strpos(\webdb\utils\webdb_strtolower($record["title"]),$compare_query)!==false)
     {
       $result=true;
     }
-    if (strpos(strtolower($record["notes"]),$compare_query)!==false)
+    if (strpos(\webdb\utils\webdb_strtolower($record["notes"]),$compare_query)!==false)
     {
       $result=true;
     }
@@ -297,7 +297,7 @@ function confirm_file_edit($form_config,$title,$file_record)
   $value_items["title"]=trim($_POST["wiki_file_edit_title"]);
   $upload_data=$_FILES["wiki_file_upload"];
   $upload_filename=$upload_data["name"];
-  $file_ext=strtolower(pathinfo($upload_filename,PATHINFO_EXTENSION)); # excludes period
+  $file_ext=\webdb\utils\webdb_strtolower(pathinfo($upload_filename,PATHINFO_EXTENSION)); # excludes period
   if (isset($settings["permitted_upload_types"][$file_ext])==false)
   {
     \webdb\utils\error_message("error: file type not permitted");

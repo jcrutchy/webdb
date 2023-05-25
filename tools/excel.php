@@ -91,7 +91,7 @@ function sheet_name_map($xml_path)
   {
     $rel=$rels[$i]["@attributes"];
     $type=$rel["Type"];
-    $type=explode("/",$type);
+    $type=\webdb\utils\webdb_explode("/",$type);
     $type=array_pop($type);
     $id=$rel["Id"];
     $sheet_rels[$id]=$rel["Target"];

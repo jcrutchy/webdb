@@ -21,7 +21,7 @@ function get_article_record()
 function view_fixed_article_file($form_config,$title)
 {
   global $settings;
-  $filename=strtolower(\webdb\utils\webdb_str_replace(":","_",$title));
+  $filename=\webdb\utils\webdb_strtolower(\webdb\utils\webdb_str_replace(":","_",$title));
   $template="wiki/fixed_articles/".$filename;
   if (isset($settings["templates"][$template])==false)
   {
@@ -123,11 +123,11 @@ function wikitext_to_html($content)
 
 function wikitext_escape_pair($content,$open_tok,$close_tok)
 {
-  $parts=explode($open_tok,$content);
+  $parts=\webdb\utils\webdb_explode($open_tok,$content);
   for ($i=1;$i<count($parts);$i++)
   {
     $part=$parts[$i];
-    $tokens=explode($close_tok,$part);
+    $tokens=\webdb\utils\webdb_explode($close_tok,$part);
     if (count($tokens)<2)
     {
       continue;
@@ -142,11 +142,11 @@ function wikitext_escape_pair($content,$open_tok,$close_tok)
 
 function wikitext_unescape_pair($content,$open_tok,$close_tok)
 {
-  $parts=explode($open_tok,$content);
+  $parts=\webdb\utils\webdb_explode($open_tok,$content);
   for ($i=1;$i<count($parts);$i++)
   {
     $part=$parts[$i];
-    $tokens=explode($close_tok,$part);
+    $tokens=\webdb\utils\webdb_explode($close_tok,$part);
     if (count($tokens)<2)
     {
       continue;
@@ -161,11 +161,11 @@ function wikitext_unescape_pair($content,$open_tok,$close_tok)
 
 function wikitext_to_html__nowiki_block($content)
 {
-  $parts=explode("<nowiki>",$content);
+  $parts=\webdb\utils\webdb_explode("<nowiki>",$content);
   for ($i=1;$i<count($parts);$i++)
   {
     $part=$parts[$i];
-    $tokens=explode("</nowiki>",$part);
+    $tokens=\webdb\utils\webdb_explode("</nowiki>",$part);
     if (count($tokens)<2)
     {
       continue;
@@ -180,7 +180,7 @@ function wikitext_to_html__nowiki_block($content)
 
 function wikitext_to_html__toc($content)
 {
-  $toc_parts=explode("<toc>",$content);
+  $toc_parts=\webdb\utils\webdb_explode("<toc>",$content);
   $toc_data=array();
   $levels=array("2"=>"===","1"=>"==");
   $caption="";
@@ -236,7 +236,7 @@ function wikitext_to_html__toc($content)
 
 function wikitext_to_html__headings($content)
 {
-  $parts=explode("==",$content);
+  $parts=\webdb\utils\webdb_explode("==",$content);
   for ($i=1;$i<count($parts);$i++)
   {
     $heading=$parts[$i];
@@ -253,7 +253,7 @@ function wikitext_to_html__headings($content)
 
 function wikitext_to_html__subheadings($content)
 {
-  $parts=explode("===",$content);
+  $parts=\webdb\utils\webdb_explode("===",$content);
   for ($i=1;$i<count($parts);$i++)
   {
     $subheading=$parts[$i];
@@ -270,11 +270,11 @@ function wikitext_to_html__subheadings($content)
 
 function wikitext_to_html__code_block($content)
 {
-  $parts=explode("<code>",$content);
+  $parts=\webdb\utils\webdb_explode("<code>",$content);
   for ($i=1;$i<count($parts);$i++)
   {
     $part=$parts[$i];
-    $tokens=explode("</code>",$part);
+    $tokens=\webdb\utils\webdb_explode("</code>",$part);
     if (count($tokens)<2)
     {
       continue;
@@ -303,17 +303,17 @@ function wikitext_to_html__code_block($content)
 
 function wikitext_to_html__file($content)
 {
-  $parts=explode("[[File:",$content);
+  $parts=\webdb\utils\webdb_explode("[[File:",$content);
   for ($i=1;$i<count($parts);$i++)
   {
     $part=$parts[$i];
-    $tokens=explode("]]",$part);
+    $tokens=\webdb\utils\webdb_explode("]]",$part);
     if (count($tokens)<2)
     {
       continue;
     }
     $args=array_shift($tokens);
-    $args=explode("|",$args);
+    $args=\webdb\utils\webdb_explode("|",$args);
     $params=array();
     $title=array_shift($args); # first arg is always title, remaining args can be in any order
     $params["title"]=$title;
@@ -325,7 +325,7 @@ function wikitext_to_html__file($content)
     for ($j=0;$j<count($args);$j++)
     {
       $arg=$args[$j];
-      $arg=explode(":",$arg);
+      $arg=\webdb\utils\webdb_explode(":",$arg);
       $arg_key=trim(array_shift($arg));
       $arg_val=trim(implode(":",$arg));
       $params[$arg_key]=$arg_val;
@@ -372,17 +372,17 @@ function wikitext_to_html__file($content)
 
 function wikitext_to_html__internal_article_link($content)
 {
-  $parts=explode("[[",$content);
+  $parts=\webdb\utils\webdb_explode("[[",$content);
   for ($i=1;$i<count($parts);$i++)
   {
     $part=$parts[$i];
-    $tokens=explode("]]",$part);
+    $tokens=\webdb\utils\webdb_explode("]]",$part);
     if (count($tokens)<2)
     {
       continue;
     }
     $token=array_shift($tokens);
-    $link=explode("|",$token);
+    $link=\webdb\utils\webdb_explode("|",$token);
     $link_params=array();
     $link_params["url_title"]=array_shift($link);
     $link_params["caption"]=$link_params["url_title"];
@@ -402,17 +402,17 @@ function wikitext_to_html__internal_article_link($content)
 {
   # todo: \webdb\graphics\scale_img($buffer,$scale,$w,$h);
   # see https://en.wikipedia.org/wiki/Help:Wikitext#Images
-  $parts=explode("[[File:",$content);
+  $parts=\webdb\utils\webdb_explode("[[File:",$content);
   for ($i=1;$i<count($parts);$i++)
   {
     $part=$parts[$i];
-    $tokens=explode("]]",$part);
+    $tokens=\webdb\utils\webdb_explode("]]",$part);
     if (count($tokens)<2)
     {
       continue;
     }
     $token=array_shift($tokens);
-    $file=explode("|",$token);
+    $file=\webdb\utils\webdb_explode("|",$token);
     $title=array_shift($file);
     $file_record=\webdb\wiki_utils\get_file_record_by_title($title);
     if ($file_record!==false)
@@ -433,8 +433,8 @@ function wikitext_to_html__internal_article_link($content)
     if (count($file)>0)
     {
       $link=implode(" ",$file);
-      $link=explode("=",$link);
-      $link_key=trim(strtolower(array_shift($link)));
+      $link=\webdb\utils\webdb_explode("=",$link);
+      $link_key=trim(\webdb\utils\webdb_strtolower(array_shift($link)));
       if ((count($link)>0) and ($link_key=="link"))
       {
         $href=implode("=",$link);
@@ -461,17 +461,17 @@ function wikitext_to_html__internal_article_link($content)
 
 function wikitext_to_html__external_article_link($content)
 {
-  $parts=explode("[",$content);
+  $parts=\webdb\utils\webdb_explode("[",$content);
   for ($i=1;$i<count($parts);$i++)
   {
     $part=$parts[$i];
-    $tokens=explode("]",$part);
+    $tokens=\webdb\utils\webdb_explode("]",$part);
     if (count($tokens)<2)
     {
       continue;
     }
     $token=array_shift($tokens);
-    $link=explode(" ",$token);
+    $link=\webdb\utils\webdb_explode(" ",$token);
     $link_params=array();
     $link_params["url"]=array_shift($link);
     $link_params["caption"]=$link_params["url"];

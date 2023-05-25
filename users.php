@@ -59,7 +59,7 @@ function get_user_record($username)
 {
   global $settings;
   $sql_params=array();
-  $sql_params["username"]=trim(strtolower($username));
+  $sql_params["username"]=trim(\webdb\utils\webdb_strtolower($username));
   $records=\webdb\sql\file_fetch_prepare("user_get_by_username",$sql_params);
   if (count($records)<>1)
   {
@@ -255,10 +255,10 @@ function login()
   $login_form_params["login_styles_modified"]=\webdb\utils\resource_modified_timestamp("login.css");
   if ((isset($_POST["login_username"])==true) and (isset($_POST["login_password"])==true))
   {
-    $login_username=trim(strtolower($_POST["login_username"]));
+    $login_username=trim(\webdb\utils\webdb_strtolower($_POST["login_username"]));
     if (strpos($login_username,"@")!==false)
     {
-      $parts=explode("@",$login_username);
+      $parts=\webdb\utils\webdb_explode("@",$login_username);
       $login_username=$parts[0];
     }
     \webdb\utils\webdb_setcookie("username_cookie",$login_username);
@@ -524,7 +524,7 @@ function logout()
 
 function update_user_stub($form_config,$event_params,$event_name)
 {
-  $event_params["value_items"]["username"]=trim(strtolower($event_params["value_items"]["username"]));
+  $event_params["value_items"]["username"]=trim(\webdb\utils\webdb_strtolower($event_params["value_items"]["username"]));
   return $event_params;
 }
 
@@ -539,7 +539,7 @@ function remote_address_listed($remote_address,$type) # $type = black|white
     return false;
   }
   $data=trim(file_get_contents($fn));
-  $lines=explode(PHP_EOL,$data);
+  $lines=\webdb\utils\webdb_explode(PHP_EOL,$data);
   for ($i=0;$i<count($lines);$i++)
   {
     $line=trim($lines[$i]);
@@ -579,8 +579,8 @@ function remote_address_changed($user_record) # allow right/lowest octet to chan
   {
     return false;
   }
-  $octets_d=explode(".",$user_record["remote_address"]);
-  $octets_r=explode(".",$_SERVER["REMOTE_ADDR"]);
+  $octets_d=\webdb\utils\webdb_explode(".",$user_record["remote_address"]);
+  $octets_r=\webdb\utils\webdb_explode(".",$_SERVER["REMOTE_ADDR"]);
   if (count($octets_d)<>4)
   {
     return true;
@@ -688,7 +688,7 @@ function send_reset_password_message()
   {
     \webdb\utils\error_message("error: missing username");
   }
-  $login_username=trim(strtolower($_POST["login_username"]));
+  $login_username=trim(\webdb\utils\webdb_strtolower($_POST["login_username"]));
   \webdb\utils\webdb_setcookie("username_cookie",$login_username);
   $user_record=\webdb\users\get_user_record($login_username);
   $value_items=array();

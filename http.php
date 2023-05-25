@@ -188,7 +188,7 @@ function cookie_header($request,$cookie_jar)
     $cookies=array();
     foreach ($cookie_jar as $key => $cookie)
     {
-      $parts=explode(";",$cookie);
+      $parts=\webdb\utils\webdb_explode(";",$cookie);
       $value=urlencode(array_shift($parts));
       $cookies[]=$key."=".$value;
     }
@@ -205,10 +205,10 @@ function update_cookies(&$cookie_jar,$headers)
   for ($i=0;$i<count($cookie_headers);$i++)
   {
     $header=$cookie_headers[$i];
-    $parts=explode("=",$header);
+    $parts=\webdb\utils\webdb_explode("=",$header);
     $key=array_shift($parts);
     $value=urldecode(implode("=",$parts));
-    $cookie_parts=explode(";",$value);
+    $cookie_parts=\webdb\utils\webdb_explode(";",$value);
     $cookie_value=urlencode(array_shift($cookie_parts));
     if ($cookie_value=="deleted")
     {
@@ -229,16 +229,16 @@ function update_cookies(&$cookie_jar,$headers)
 function search_headers($headers,$search_key)
 {
   $result=array();
-  $lines=explode("\n",$headers);
+  $lines=\webdb\utils\webdb_explode("\n",$headers);
   for ($i=0;$i<count($lines);$i++)
   {
     $line=trim($lines[$i]);
-    $parts=explode(":",$line);
+    $parts=\webdb\utils\webdb_explode(":",$line);
     if (count($parts)>=2)
     {
       $key=trim(array_shift($parts));
       $value=trim(implode(":",$parts));
-      if (strtolower($key)==strtolower($search_key))
+      if (\webdb\utils\webdb_strtolower($key)==\webdb\utils\webdb_strtolower($search_key))
       {
         $result[]=$value;
       }

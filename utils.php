@@ -199,7 +199,7 @@ function build_settings()
   $settings["sql"]=array_merge($settings["webdb_sql"],$settings["app_sql"]);
   $settings["forms"]=array();
   \webdb\forms\load_form_defs();
-  $settings["app_group_access"]=explode(",",$settings["app_group_access"]);
+  $settings["app_group_access"]=\webdb\utils\webdb_explode(",",$settings["app_group_access"]);
 }
 
 #####################################################################################################
@@ -380,10 +380,10 @@ function load_test_settings()
   if (file_exists($settings["test_settings_file"])==true)
   {
     $data=trim(file_get_contents($settings["test_settings_file"]));
-    $lines=explode(PHP_EOL,$data);
+    $lines=\webdb\utils\webdb_explode(PHP_EOL,$data);
     for ($i=0;$i<count($lines);$i++)
     {
-      $parts=explode("=",trim($lines[$i]));
+      $parts=\webdb\utils\webdb_explode("=",trim($lines[$i]));
       $key=array_shift($parts);
       $value=implode("=",$parts);
       switch ($key)
@@ -419,7 +419,7 @@ function output_resource_links($buffer,$type)
     $links[]=$link;
   }
   $links=implode(PHP_EOL,$links);
-  $buffer=explode("%%page_links_".$type."%%",$buffer,2);
+  $buffer=\webdb\utils\webdb_explode("%%page_links_".$type."%%",$buffer,2);
   return implode($links,$buffer);
 }
 
@@ -767,7 +767,7 @@ function make_plural($singular)
 function replace_suffix($subject,$replaces,$unchanged,$default_append=false)
 {
   $subject_parts=\webdb\utils\webdb_str_replace(" ","_",$subject);
-  $subject_parts=explode("_",$subject);
+  $subject_parts=\webdb\utils\webdb_explode("_",$subject);
   $last_part=array_pop($subject_parts);
   if (in_array($last_part,$unchanged)==true)
   {
@@ -950,11 +950,11 @@ function check_user_form_permission($page_id,$permission)
     {
       $redirect_url=$_GET["redirect"];
       $query=parse_url($redirect_url,PHP_URL_QUERY);
-      $query_params=explode("&",$query);
+      $query_params=\webdb\utils\webdb_explode("&",$query);
       for ($i=0;$i<count($query_params);$i++)
       {
         $query_param=$query_params[$i];
-        $parts=explode("=",$query_param);
+        $parts=\webdb\utils\webdb_explode("=",$query_param);
         $param_key=array_shift($parts);
         if ($param_key=="page")
         {
@@ -1071,7 +1071,7 @@ function initialize_format_tags()
     if (substr($name,0,strlen($template_prefix))==$template_prefix)
     {
       $name=substr($name,strlen($template_prefix));
-      $name_parts=explode("_",$name);
+      $name_parts=\webdb\utils\webdb_explode("_",$name);
       $position=array_pop($name_parts);
       $tag=trim(implode("_",$name_parts));
       if (($position<>"open") and ($position<>"close"))
@@ -1231,7 +1231,7 @@ function compare_template($template,$response)
     return true;
   }
   $template_content=trim(\webdb\utils\template_fill($template));
-  $parts=explode("%%",$template_content);
+  $parts=\webdb\utils\webdb_explode("%%",$template_content);
   $excluded=array();
   for ($i=0;$i<count($parts);$i++)
   {
@@ -1265,7 +1265,7 @@ function extract_params($template,$data)
   $template_content=trim(\webdb\utils\template_fill($template));
   $data=\webdb\utils\webdb_str_replace("\r","",$data);
   $template_content=\webdb\utils\webdb_str_replace("\r","",$template_content);
-  $parts=explode("%%",$template_content);
+  $parts=\webdb\utils\webdb_explode("%%",$template_content);
   $keys=array();
   $excluded=array();
   for ($i=0;$i<count($parts);$i++)
@@ -1486,7 +1486,7 @@ function load_credentials($prefix,$optional=false)
     }
   }
   $data=trim($data);
-  $data=explode("\n",$data);
+  $data=\webdb\utils\webdb_explode("\n",$data);
   if (count($data)<>2)
   {
     if ($optional==false)
@@ -1662,7 +1662,7 @@ function wildcard_compare($compare_value,$wildcard_value)
     var_dump($compare_value);
     var_dump($wildcard_value);
   }
-  $wildcard_parts=explode("*",$wildcard_value);
+  $wildcard_parts=\webdb\utils\webdb_explode("*",$wildcard_value);
   $compare_parts=array();
   for ($i=0;$i<count($wildcard_parts);$i++)
   {
@@ -1974,7 +1974,7 @@ function purge_expired_row_locks()
   for ($i=0;$i<count($records);$i++)
   {
     $record=$records[$i];
-    $t=strtotime($record["created_timestamp"]);
+    $t=\webdb\utils\webdb_strtotime($record["created_timestamp"]);
     $delta=time()-$t;
     if ($delta>$settings["row_lock_expiration"])
     {
@@ -2048,7 +2048,7 @@ function append_lock_details($lock)
 {
   global $settings;
   return false;
-  $lock["locked_time"]=strtotime($lock["created_timestamp"]);
+  $lock["locked_time"]=\webdb\utils\webdb_strtotime($lock["created_timestamp"]);
   $where_items=array();
   $where_items["user_id"]=$lock["user_id"];
   $users=\webdb\sql\get_exist_records($settings["database_webdb"],"users",$where_items);
@@ -2081,7 +2081,7 @@ function net_path_disconnect($path)
 
 function change_filename_ext($filename,$new_ext,$delim=".")
 {
-  $parts=explode($delim,$filename);
+  $parts=\webdb\utils\webdb_explode($delim,$filename);
   array_pop($parts);
   return implode($delim,$parts).$delim.$new_ext;
 }
@@ -2172,6 +2172,59 @@ function formatted_date_to_unix($format,$date_str)
     return false;
   }
   return date_timestamp_get($x);
+}
+
+
+#####################################################################################################
+
+function webdb_explode($delimiter,$string,$limit=PHP_INT_MAX)
+{
+  if (($delimiter===null) or ($delimiter===""))
+  {
+    return false;
+  }
+  if ($string===null)
+  {
+    $string="";
+  }
+  return explode($delimiter,$string,$limit);
+}
+
+#####################################################################################################
+
+function webdb_strtolower($string)
+{
+  if ($string===null)
+  {
+    return "";
+  }
+  return strtolower($string);
+}
+
+#####################################################################################################
+
+function webdb_strtoupper($string)
+{
+  if ($string===null)
+  {
+    return "";
+  }
+  return strtoupper($string);
+}
+
+#####################################################################################################
+
+function webdb_strtotime($time,$now=null)
+{
+  if ($time===null)
+  {
+    return "";
+  }
+  if ($now===null)
+  {
+    $now=time();
+  }
+  return strtotime($time,$now);
 }
 
 #####################################################################################################

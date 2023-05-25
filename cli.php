@@ -374,7 +374,7 @@ function generate_form($database,$table,$filename,$parent_page_id=false,$parent_
     $edit_cmd_id=$form_data["primary_key"][0];
   }
   $form_data["title"]=\webdb\cli\captionize($table);
-  $title_parts=explode("_",$page_id);
+  $title_parts=\webdb\utils\webdb_explode("_",$page_id);
   if ($title_parts[0]=="subform")
   {
     $form_data["title"]=\webdb\cli\captionize(\webdb\utils\make_plural($noun));
@@ -478,7 +478,7 @@ function captionize($field_name,$trim_id=true)
   {
     return "";
   }
-  $parts=explode("_",$field_name);
+  $parts=\webdb\utils\webdb_explode("_",$field_name);
   for ($i=0;$i<count($parts);$i++)
   {
     $part=$parts[$i];
@@ -489,11 +489,11 @@ function captionize($field_name,$trim_id=true)
     }
     if (in_array($part,$uc_words)==true)
     {
-      $part=strtoupper($part);
+      $part=\webdb\utils\webdb_strtoupper($part);
     }
     else
     {
-      $part[0]=strtoupper($part[0]);
+      $part[0]=\webdb\utils\webdb_strtoupper($part[0]);
     }
     $parts[$i]=$part;
   }

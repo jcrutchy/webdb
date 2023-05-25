@@ -231,18 +231,18 @@ function get_stripped_url($ignore_ajax=false)
   {
     $skip_params[]="ajax";
   }
-  $params=explode("?",$result["url"]);
+  $params=\webdb\utils\webdb_explode("?",$result["url"]);
   if (count($params)<2)
   {
     return $result;
   }
   $result["url"]=$params[0];
   $params=$params[1];
-  $params=explode("&",$params);
+  $params=\webdb\utils\webdb_explode("&",$params);
   $output=array();
   for ($i=0;$i<count($params);$i++)
   {
-    $parts=explode("=",$params[$i]);
+    $parts=\webdb\utils\webdb_explode("=",$params[$i]);
     $test_key=array_shift($parts);
     $test_val=implode("=",$parts);
     if (($test_key=="cmd") and ($test_val=="insert"))
@@ -300,7 +300,7 @@ function get_user_list_caption($url,$url_data)
   {
     if (strpos($url,"?")!==false)
     {
-      $caption=explode("?",$url);
+      $caption=\webdb\utils\webdb_explode("?",$url);
       $result=array_pop($caption);
     }
   }
@@ -368,7 +368,7 @@ function get_topic($form_config,$record,$config_prefix="chat_topic")
   $topic="";
   if (($record!==false) and ($form_config[$config_prefix."_fields"]<>"") and ($form_config[$config_prefix."_format"]<>""))
   {
-    $field_names=explode(",",$form_config[$config_prefix."_fields"]);
+    $field_names=\webdb\utils\webdb_explode(",",$form_config[$config_prefix."_fields"]);
     $field_values=array();
     for ($i=0;$i<count($field_names);$i++)
     {
@@ -430,7 +430,7 @@ function chat_dispatch($record_id,$form_config,$record=false,$template="chat/pop
           {
             if (substr($message,0,1)=="/")
             {
-              $parts=explode(" ",$message);
+              $parts=\webdb\utils\webdb_explode(" ",$message);
               $cmd_part=array_shift($parts);
               $trailing=implode(" ",$parts);
               switch ($cmd_part)
@@ -470,7 +470,7 @@ function chat_dispatch($record_id,$form_config,$record=false,$template="chat/pop
                       $result=shell_exec($trailing);
                       if (empty($result)==false)
                       {
-                        $result=explode("\n",$result);
+                        $result=\webdb\utils\webdb_explode("\n",$result);
                         for ($i=0;$i<count($result);$i++)
                         {
                           $result[$i]=\webdb\utils\webdb_htmlspecialchars($result[$i]);
@@ -530,7 +530,7 @@ function chat_dispatch($record_id,$form_config,$record=false,$template="chat/pop
           }
           if (substr($message,0,1)=="/")
           {
-            $parts=explode(" ",$message);
+            $parts=\webdb\utils\webdb_explode(" ",$message);
             $cmd_part=array_shift($parts);
             $trailing=implode(" ",$parts);
             switch ($cmd_part)
@@ -724,7 +724,7 @@ function insert_notice_breaks(&$response)
 
 function sql_to_iso_timestamp($timestamp)
 {
-  $timestamp=strtotime($timestamp);
+  $timestamp=\webdb\utils\webdb_strtotime($timestamp);
   return date("c",$timestamp);
 }
 

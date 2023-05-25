@@ -127,7 +127,7 @@ if ($settings["check_ua"]==true)
   if ($settings["user_agent"]<>"")
   {
     $settings["browser_info"]=get_browser($_SERVER["HTTP_USER_AGENT"],true);
-    switch (strtolower($settings["browser_info"]["browser"]))
+    switch (\webdb\utils\webdb_strtolower($settings["browser_info"]["browser"]))
     {
       case "chrome":
       case "firefox":
@@ -135,7 +135,7 @@ if ($settings["check_ua"]==true)
       default:
         \webdb\utils\system_message($ua_error." [neither chrome nor firefox]");
     }
-    if (strtolower($settings["browser_info"]["device_type"])<>"desktop")
+    if (\webdb\utils\webdb_strtolower($settings["browser_info"]["device_type"])<>"desktop")
     {
       \webdb\utils\system_message($ua_error." [not desktop]");
     }

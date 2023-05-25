@@ -51,7 +51,7 @@ function set_confirm_status_cookie($form_config,$status_message)
 function file_field_view($form_config)
 {
   global $settings;
-  $parts=explode(":",$_GET["file_view"]);
+  $parts=\webdb\utils\webdb_explode(":",$_GET["file_view"]);
   if (count($parts)<>3)
   {
     \webdb\utils\error_message("invalid 'file_view' parameter");
@@ -69,7 +69,7 @@ function file_field_view($form_config)
   $records=\webdb\sql\fetch_prepare($sql,$conditions,"form_list_fetch_by_id",false,$sql_params["table"],$sql_params["database"],$file_form_config);
   $record_filename=$records[0][$field_name];
   $ext=pathinfo($record_filename,PATHINFO_EXTENSION);
-  if (isset($settings["permitted_upload_types"][strtolower($ext)])==false)
+  if (isset($settings["permitted_upload_types"][\webdb\utils\webdb_strtolower($ext)])==false)
   {
     \webdb\utils\error_message("error: file type not permitted");
   }
@@ -80,7 +80,7 @@ function file_field_view($form_config)
   header("Expires: -1");
   header("Pragma: no-cache");
   header("Accept-Ranges: bytes");
-  header("Content-Type: ".$settings["permitted_upload_types"][strtolower($ext)]);
+  header("Content-Type: ".$settings["permitted_upload_types"][\webdb\utils\webdb_strtolower($ext)]);
   header("Content-Disposition: inline; filename=\"".$record_filename."\"");
   switch ($settings["file_upload_mode"])
   {
@@ -110,7 +110,7 @@ function file_field_delete($form_config)
   }
   $record_id=false;
   $post_name=$_GET["file_delete"];
-  $file_delete=explode(":",$post_name);
+  $file_delete=\webdb\utils\webdb_explode(":",$post_name);
   $page_id=array_shift($file_delete);
   if ($page_id<>$form_config["page_id"])
   {
@@ -279,7 +279,7 @@ function form_dispatch($page_id)
             $checklist_subforms=array();
             foreach ($_POST as $name => $value)
             {
-              $name_parts=explode(":",$name);
+              $name_parts=\webdb\utils\webdb_explode(":",$name);
               if (count($name_parts)<=1)
               {
                 continue;
@@ -813,7 +813,7 @@ function override_delete_config($subform_config)
   {
     $subform_config["delete_button_caption"]="Delete";
   }
-  $key_fieldnames=explode(\webdb\index\CONFIG_ID_DELIMITER,$subform_config["primary_key"]);
+  $key_fieldnames=\webdb\utils\webdb_explode(\webdb\index\CONFIG_ID_DELIMITER,$subform_config["primary_key"]);
   if (count($key_fieldnames)>1)
   {
     $additional_fields=false;
@@ -1022,7 +1022,7 @@ function config_id_url_value($form_config,$record,$config_key)
   {
     return "";
   }
-  $key_fields=explode(\webdb\index\CONFIG_ID_DELIMITER,$form_config[$config_key]);
+  $key_fields=\webdb\utils\webdb_explode(\webdb\index\CONFIG_ID_DELIMITER,$form_config[$config_key]);
   $values=array();
   for ($i=0;$i<count($key_fields);$i++)
   {
@@ -1318,7 +1318,7 @@ function lookup_field_display_value($lookup_config,$lookup_record)
   {
     $lookup_config["display_field"]=$lookup_config["key_field"];
   }
-  $display_field_names=explode(",",$lookup_config["display_field"]);
+  $display_field_names=\webdb\utils\webdb_explode(",",$lookup_config["display_field"]);
   $display_values=array();
   for ($i=0;$i<count($display_field_names);$i++)
   {
@@ -1346,7 +1346,7 @@ function lookup_field_display_value($lookup_config,$lookup_record)
         {
           if ($display_values[0]<>"")
           {
-            return date($settings["app_date_format"],strtotime($display_values[0]));
+            return date($settings["app_date_format"],\webdb\utils\webdb_strtotime($display_values[0]));
           }
           else
           {
@@ -1554,7 +1554,7 @@ function output_readonly_field($field_params,$control_type,$form_config,$field_n
       }
       else
       {
-        $field_params["value"]=date($settings["app_date_format"],strtotime($display_record[$field_name]));
+        $field_params["value"]=date($settings["app_date_format"],\webdb\utils\webdb_strtotime($display_record[$field_name]));
       }
       if (isset($_GET["format"])==true)
       {
@@ -1592,7 +1592,7 @@ function image_file_preview($form_config,$record,$field_name,$max_dim_pix=100)
 {
   global $settings;
   $fn=$record[$field_name];
-  $parts=explode(".",$fn);
+  $parts=\webdb\utils\webdb_explode(".",$fn);
   $ext=array_pop($parts);
   $id=\webdb\forms\config_id_url_value($form_config,$record,"primary_key");
   $fn=\webdb\forms\get_uploaded_full_filename($form_config,$id,$field_name);
@@ -1955,7 +1955,7 @@ function output_editable_field(&$field_params,$record,$field_name,$control_type,
         if (isset($lookup_config["sibling_filter_fields"])==true)
         {
           $sibling_filter_fields=$lookup_config["sibling_filter_fields"];
-          $sibling_filter_fields=explode(",",$sibling_filter_fields);
+          $sibling_filter_fields=\webdb\utils\webdb_explode(",",$sibling_filter_fields);
           for ($j=0;$j<count($sibling_filter_fields);$j++)
           {
             $sibling_filter_fieldname=$sibling_filter_fields[$j];
@@ -1995,8 +1995,8 @@ function output_editable_field(&$field_params,$record,$field_name,$control_type,
       }
       else
       {
-        $field_params["field_value"]=date($settings["app_date_format"],strtotime($record[$field_name]));
-        $field_params["iso_field_value"]=date("Y-m-d",strtotime($field_params["field_value"]));
+        $field_params["field_value"]=date($settings["app_date_format"],\webdb\utils\webdb_strtotime($record[$field_name]));
+        $field_params["iso_field_value"]=date("Y-m-d",\webdb\utils\webdb_strtotime($field_params["field_value"]));
       }
       $submit_fields[]="iso_".$field_params["field_name"];
       break;
@@ -2040,7 +2040,7 @@ function get_column_format_data($form_config)
       continue;
     }
     $caption="&nbsp;&nbsp;".$form_config["captions"][$field_name];
-    $lines=explode("@@forms/col_title_break@@",$caption);
+    $lines=\webdb\utils\webdb_explode("@@forms/col_title_break@@",$caption);
     for ($i=0;$i<count($lines);$i++)
     {
       $line=htmlspecialchars_decode($lines[$i]);
@@ -2310,7 +2310,7 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
     }
     $header_params["border_left"]=0;
     $header_params["border_right"]=0;
-    if (strtolower($settings["browser_info"]["browser"])=="firefox")
+    if (\webdb\utils\webdb_strtolower($settings["browser_info"]["browser"])=="firefox")
     {
       $header_params["rotate_bottom_border"]=$settings["list_border_width"]+1;
       $header_params["right_border_width"]=$settings["list_border_width"];
@@ -2362,7 +2362,7 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
     $header_params=array();
     $header_params["z_index"]=$z_index;
     $header_params["rotate_div_translate"]=1;
-    if (strtolower($settings["browser_info"]["browser"])=="firefox")
+    if (\webdb\utils\webdb_strtolower($settings["browser_info"]["browser"])=="firefox")
     {
       $header_params["rotate_div_translate"]=2;
     }
@@ -2412,7 +2412,7 @@ function list_form_content($form_config,$records=false,$insert_default_params=fa
         $sort_field_params["direction"]="ASC";
         if (isset($_GET["dir"])==true)
         {
-          $dir=strtoupper($_GET["dir"]);
+          $dir=\webdb\utils\webdb_strtoupper($_GET["dir"]);
           if (($dir=="ASC") or ($dir=="DESC"))
           {
             $sort_field_params["direction"]=$dir;
@@ -2798,8 +2798,8 @@ function advanced_search($form_config)
         }
         else
         {
-          $field_params["field_value"]=date($settings["app_date_format"],strtotime($field_value));
-          $field_params["iso_field_value"]=date("Y-m-d",strtotime($field_value));
+          $field_params["field_value"]=date($settings["app_date_format"],\webdb\utils\webdb_strtotime($field_value));
+          $field_params["iso_field_value"]=date("Y-m-d",\webdb\utils\webdb_strtotime($field_value));
         }
         if ($selected_option<>"")
         {
@@ -3023,7 +3023,7 @@ function output_editor($form_config,$record,$command,$verb,$id=false)
 {
   global $settings;
   $record=\webdb\forms\process_computed_fields($form_config,$record);
-  $cmd=strtolower($command);
+  $cmd=\webdb\utils\webdb_strtolower($command);
   $form_params=array();
   $form_params["page_id"]=$form_config["page_id"];
   $form_params["form_script_modified"]=\webdb\utils\resource_modified_timestamp("list.js");
@@ -3130,7 +3130,7 @@ function output_editor($form_config,$record,$command,$verb,$id=false)
       }
       if ($control_type<>"hidden")
       {
-        if ($form_config["custom_".strtolower($command)."_template"]=="")
+        if ($form_config["custom_".\webdb\utils\webdb_strtolower($command)."_template"]=="")
         {
           $rows[]=\webdb\forms\form_template_fill("field_row",$row_params);
         }
@@ -3232,7 +3232,7 @@ function editor_command_button($form_config,$command,&$form_params)
     }
   }
   $form_params["form_cmd_handler"]="";
-  $cmd_handler=strtolower($command)."_cmd_handler";
+  $cmd_handler=\webdb\utils\webdb_strtolower($command)."_cmd_handler";
   if ($form_config[$cmd_handler]<>"")
   {
     $handler_params=array();
@@ -3295,7 +3295,7 @@ function lookup_field_data($form_config,$field_name)
     }
     if ($lookup_config["order_by"]=="")
     {
-      $display_fields=explode(",",$lookup_config["display_field"]);
+      $display_fields=\webdb\utils\webdb_explode(",",$lookup_config["display_field"]);
       $first_display_field=array_shift($display_fields);
       $lookup_config["order_by"]=$first_display_field." ASC";
     }
@@ -3554,7 +3554,7 @@ function process_form_data_fields($form_config,$record_id,$post_override=false)
           if ($filename<>"")
           {
             $ext=pathinfo($filename,PATHINFO_EXTENSION);
-            if (isset($settings["permitted_upload_types"][strtolower($ext)])==false)
+            if (isset($settings["permitted_upload_types"][\webdb\utils\webdb_strtolower($ext)])==false)
             {
               \webdb\utils\error_message("error: file type not permitted");
             }
@@ -3804,8 +3804,8 @@ function check_required_values($form_config,$value_items)
 
 function config_id_conditions($form_config,$id,$config_key)
 {
-  $fieldnames=explode(\webdb\index\CONFIG_ID_DELIMITER,$form_config[$config_key]);
-  $values=explode(\webdb\index\CONFIG_ID_DELIMITER,$id);
+  $fieldnames=\webdb\utils\webdb_explode(\webdb\index\CONFIG_ID_DELIMITER,$form_config[$config_key]);
+  $values=\webdb\utils\webdb_explode(\webdb\index\CONFIG_ID_DELIMITER,$id);
   $items=array();
   for ($i=0;$i<count($fieldnames);$i++)
   {
@@ -4127,7 +4127,7 @@ function delete_selected_records($form_config)
 function basic_search()
 {
   global $settings;
-  $query=strtolower($_GET["basic_search"]);
+  $query=\webdb\utils\webdb_strtolower($_GET["basic_search"]);
   $page_params=array();
   $page_params["title"]="basic search results: ".\webdb\utils\webdb_htmlspecialchars($query);
   $results="";
@@ -4185,7 +4185,7 @@ function basic_search()
             $search_field_value=\webdb\forms\get_lookup_field_value($search_field_name,$form_config,$lookup_records,$record);
             break;
         }
-        $search_field_value=strtolower($search_field_value);
+        $search_field_value=\webdb\utils\webdb_strtolower($search_field_value);
         if (strpos($search_field_value,$query)!==false)
         {
           $results_records[]=$record;

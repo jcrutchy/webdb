@@ -14,14 +14,14 @@ function gantt($data,$callbacks=false)
 
   $task=array();
   $task["name"]="test task 1";
-  $task["start"]=strtotime("-1 months",$today);
-  $task["finish"]=strtotime("+1 months",$today);
+  $task["start"]=\webdb\utils\webdb_strtotime("-1 months",$today);
+  $task["finish"]=\webdb\utils\webdb_strtotime("+1 months",$today);
   $data[]=$task;
 
   $task=array();
   $task["name"]="test task 2";
-  $task["start"]=strtotime("-1 months",$today);
-  $task["finish"]=strtotime("+1 months",$today);
+  $task["start"]=\webdb\utils\webdb_strtotime("-1 months",$today);
+  $task["finish"]=\webdb\utils\webdb_strtotime("+1 months",$today);
   $data[]=$task;*/
 
   $line_height=30; # pixels
@@ -673,11 +673,11 @@ function get_time_captions($scale,&$data,$format=false)
       {
         $format="Y-m-d";
       }
-      $min_x=strtotime("-1 day",$min_x);
-      $min_x=strtotime(date("Y-m-d",$min_x));
+      $min_x=\webdb\utils\webdb_strtotime("-1 day",$min_x);
+      $min_x=\webdb\utils\webdb_strtotime(date("Y-m-d",$min_x));
       $data["x_min"]=$min_x;
-      $max_x=strtotime("+2 day",$max_x);
-      $max_x=strtotime(date("Y-m-d",$max_x));
+      $max_x=\webdb\utils\webdb_strtotime("+2 day",$max_x);
+      $max_x=\webdb\utils\webdb_strtotime(date("Y-m-d",$max_x));
       $data["x_max"]=$max_x;
       $diff=$max_x-$min_x;
       $data["grid_x"]=24*60*60;
@@ -686,7 +686,7 @@ function get_time_captions($scale,&$data,$format=false)
       for ($i=0;$i<=$n;$i++)
       {
         $x_captions[]=date($format,$x);
-        $x=strtotime("+1 day",$x);
+        $x=\webdb\utils\webdb_strtotime("+1 day",$x);
       }
       break;
     case "month":
@@ -694,11 +694,11 @@ function get_time_captions($scale,&$data,$format=false)
       {
         $format="M-Y";
       }
-      $min_x=strtotime("-1 month",$min_x);
-      $min_x=strtotime(date("Y-m",$min_x)."-01");
+      $min_x=\webdb\utils\webdb_strtotime("-1 month",$min_x);
+      $min_x=\webdb\utils\webdb_strtotime(date("Y-m",$min_x)."-01");
       $data["x_min"]=$min_x;
-      $max_x=strtotime("+2 month",$max_x);
-      $max_x=strtotime(date("Y-m",$max_x)."-01");
+      $max_x=\webdb\utils\webdb_strtotime("+2 month",$max_x);
+      $max_x=\webdb\utils\webdb_strtotime(date("Y-m",$max_x)."-01");
       $data["x_max"]=$max_x;
       $d1=new \DateTime("@".$min_x);
       $d2=new \DateTime("@".$max_x);
@@ -708,7 +708,7 @@ function get_time_captions($scale,&$data,$format=false)
       for ($i=0;$i<=($n+1);$i++)
       {
         $x_captions[]=date($format,$x);
-        $x=strtotime("+1 month",$x);
+        $x=\webdb\utils\webdb_strtotime("+1 month",$x);
       }
       $data["grid_x"]=($max_x-$min_x)/$n;
       break;
