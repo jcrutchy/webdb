@@ -378,7 +378,7 @@ function get_topic($form_config,$record,$config_prefix="chat_topic")
         \webdb\stubs\stub_error("error: field not found in record: ".$field_name);
       }
       $value=$record[$field_name];
-      if (strlen($value)>50)
+      if (\webdb\utils\webdb_strlen($value)>50)
       {
         $value=trim(substr($value,0,50))."...";
       }
@@ -426,7 +426,7 @@ function chat_dispatch($record_id,$form_config,$record=false,$template="chat/pop
         if (isset($_POST["message"])==true)
         {
           $message=trim($_POST["message"]);
-          if (strlen($message)>0)
+          if (\webdb\utils\webdb_strlen($message)>0)
           {
             if (substr($message,0,1)=="/")
             {
@@ -713,7 +713,7 @@ function insert_notice_breaks(&$response)
   $max_len=0;
   for ($i=0;$i<count($response);$i++)
   {
-    $max_len=max($max_len,strlen($response[$i]));
+    $max_len=max($max_len,\webdb\utils\webdb_strlen($response[$i]));
   }
   $break=str_repeat("*",$max_len);
   array_unshift($response,$break);

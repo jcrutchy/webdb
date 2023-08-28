@@ -28,7 +28,7 @@ function base64_image_encode($image_data,$type,$template="base64_image",$display
   $params["type"]=$type;
   $encoded=base64_encode($image_data);
   $params["data"]=chunk_split($encoded,76,"\r\n");
-  return \webdb\utils\template_fill("base64_image",$params);
+  return \webdb\utils\template_fill($template,$params);
 }
 
 #####################################################################################################

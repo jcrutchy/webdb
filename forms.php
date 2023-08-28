@@ -3415,7 +3415,7 @@ function upload_file($form_config,$field_name,$record_id)
   $upload_filename=$upload_data["tmp_name"];
   if (file_exists($upload_filename)==false)
   {
-    #\webdb\utils\error_message("error: uploaded file not found");
+    \webdb\utils\error_message("error uploading file (too big?)");
     return;
   }
   if ($record_id=="")
