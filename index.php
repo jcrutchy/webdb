@@ -102,7 +102,10 @@ if (\webdb\utils\is_app_mode()==false)
   \webdb\utils\static_page("home","WebDB");
 }
 
-\webdb\utils\database_connect();
+if ($settings["database_enable"]==true)
+{
+  \webdb\utils\database_connect();
+}
 
 date_default_timezone_set($settings["default_timezone"]);
 
@@ -150,9 +153,12 @@ if ($settings["check_ua"]==true)
   }
 }
 
-\webdb\users\auth_dispatch();
+if (($settings["auth_enable"]==true) and ($settings["database_enable"]==true))
+{
+  \webdb\users\auth_dispatch();
+}
 
-if (isset($_GET["update_oul"])==true)
+if ((isset($_GET["update_oul"])==true) and ($settings["database_enable"]==true))
 {
   \webdb\chat\update_online_user_list();
 }

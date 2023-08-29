@@ -7,6 +7,10 @@ namespace webdb\chat;
 function chat_initialize()
 {
   global $settings;
+  if ($settings["database_enable"]==false)
+  {
+    return false;
+  }
   if ($settings["db_engine"]=="mysql")
   {
     \webdb\sql\file_execute_prepare("chat/timezone_set");
@@ -142,6 +146,10 @@ function output_user_favorites_list()
 {
   global $settings;
   $user_record=\webdb\chat\chat_initialize();
+  if ($user_record===false)
+  {
+    return false;
+  }
   $data=array();
   if ($user_record["json_data"]<>"")
   {

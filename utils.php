@@ -155,9 +155,15 @@ function build_settings()
   \webdb\utils\initialize_settings();
   \webdb\utils\load_webdb_settings();
   \webdb\utils\load_application_settings();
-  \webdb\utils\load_credentials("db_admin");
-  \webdb\utils\load_credentials("db_user");
-  \webdb\utils\load_credentials("ftp_credentials",true);
+  if ($settings["database_enable"]==true)
+  {
+    \webdb\utils\load_credentials("db_admin");
+    \webdb\utils\load_credentials("db_user");
+  }
+  if ($settings["file_upload_mode"]=="ftp")
+  {
+    \webdb\utils\load_credentials("ftp_credentials",true);
+  }
   if ($settings["enable_pwd_file_encrypt"]==true)
   {
     if (file_exists($settings["encrypt_key_file"])==false)
@@ -190,13 +196,16 @@ function build_settings()
   }
   $settings["initialized_templates"]=array();
   \webdb\utils\initialize_format_tags();
-  $settings["webdb_sql_common"]=\webdb\utils\load_files($settings["webdb_sql_common_path"],"","sql",true);
-  $settings["webdb_sql_engine"]=\webdb\utils\load_files($settings["webdb_sql_engine_path"],"","sql",true);
-  $settings["webdb_sql"]=array_merge($settings["webdb_sql_common"],$settings["webdb_sql_engine"]);
-  $settings["app_sql_common"]=\webdb\utils\load_files($settings["app_sql_common_path"],"","sql",true);
-  $settings["app_sql_engine"]=\webdb\utils\load_files($settings["app_sql_engine_path"],"","sql",true);
-  $settings["app_sql"]=array_merge($settings["app_sql_common"],$settings["app_sql_engine"]);
-  $settings["sql"]=array_merge($settings["webdb_sql"],$settings["app_sql"]);
+  if ($settings["database_enable"]==true)
+  {
+    $settings["webdb_sql_common"]=\webdb\utils\load_files($settings["webdb_sql_common_path"],"","sql",true);
+    $settings["webdb_sql_engine"]=\webdb\utils\load_files($settings["webdb_sql_engine_path"],"","sql",true);
+    $settings["webdb_sql"]=array_merge($settings["webdb_sql_common"],$settings["webdb_sql_engine"]);
+    $settings["app_sql_common"]=\webdb\utils\load_files($settings["app_sql_common_path"],"","sql",true);
+    $settings["app_sql_engine"]=\webdb\utils\load_files($settings["app_sql_engine_path"],"","sql",true);
+    $settings["app_sql"]=array_merge($settings["app_sql_common"],$settings["app_sql_engine"]);
+    $settings["sql"]=array_merge($settings["webdb_sql"],$settings["app_sql"]);
+  }
   $settings["forms"]=array();
   \webdb\forms\load_form_defs();
   $settings["app_group_access"]=\webdb\utils\webdb_explode(",",$settings["app_group_access"]);
@@ -470,9 +479,12 @@ function ob_postprocess($buffer)
       }
     }
   }
-  if ((isset($settings["unauthenticated_content"])==false) and (isset($settings["user_record"])==false))
+  if ($settings["auth_enable"]==true)
   {
-    $buffer="error: authentication failure";
+    if ((isset($settings["unauthenticated_content"])==false) and (isset($settings["user_record"])==false))
+    {
+      $buffer="error: authentication failure";
+    }
   }
   if (\webdb\cli\is_cli_mode()==false)
   {
@@ -874,6 +886,10 @@ function template_resource_links($template_key)
 function check_user_app_permission()
 {
   global $settings;
+  if ($settings["auth_enable"]==false)
+  {
+    return;
+  }
   $user_groups=$settings["logged_in_user_groups"];
   for ($i=0;$i<count($settings["app_group_access"]);$i++)
   {
@@ -899,6 +915,10 @@ function check_user_app_permission()
 function check_user_form_permission($page_id,$permission)
 {
   global $settings;
+  if ($settings["auth_enable"]==false)
+  {
+    return true;
+  }
   $admin_user_locked=array("groups");
   if (in_array($page_id,$admin_user_locked)==true)
   {
@@ -1014,6 +1034,10 @@ function check_user_form_permission($page_id,$permission)
 function check_user_template_permission($template_name)
 {
   global $settings;
+  if ($settings["auth_enable"]==false)
+  {
+    return $template_name;
+  }
   $whitelisted=false;
   foreach ($settings["permissions"] as $group_name_iterator => $group_permissions)
   {

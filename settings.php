@@ -6,6 +6,9 @@ $settings["app_title"]=$settings["app_name"];
 $settings["dev_env"]=false;
 $settings["dev_env_email"]="";
 
+$settings["database_enable"]=true;
+$settings["auth_enable"]=true;
+
 if (isset($settings["app_root_path"])==false)
 {
   $settings["app_root_path"]=$settings["env_root_path"];
