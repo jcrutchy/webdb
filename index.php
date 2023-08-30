@@ -102,10 +102,7 @@ if (\webdb\utils\is_app_mode()==false)
   \webdb\utils\static_page("home","WebDB");
 }
 
-if ($settings["database_enable"]==true)
-{
-  \webdb\utils\database_connect();
-}
+\webdb\utils\database_connect();
 
 date_default_timezone_set($settings["default_timezone"]);
 

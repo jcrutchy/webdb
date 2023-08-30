@@ -271,6 +271,10 @@ function load_application_settings()
 function database_connect()
 {
   global $settings;
+  if ($settings["database_enable"]==false)
+  {
+    return;
+  }
   $db_database="";
   if ($settings["db_database"]<>"")
   {
