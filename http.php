@@ -4,7 +4,7 @@ namespace webdb\http;
 
 #####################################################################################################
 
-function request($url,$peer_name,$request,$ignore_verify=false)
+function request($url,$peer_name,$request,$ignore_verify=false,$return_error=false)
 {
   global $settings;
   $url_parts=parse_url($url);
@@ -54,7 +54,14 @@ function request($url,$peer_name,$request,$ignore_verify=false)
   $fp=stream_socket_client($protocol."://".$host.":".$port,$errno,$errstr,$timeout,STREAM_CLIENT_CONNECT,$context);
   if ($fp===false)
   {
-    \webdb\utils\error_message("Error connecting to '".$host."'.");
+    if ($return_error==true)
+    {
+      return false;
+    }
+    else
+    {
+      \webdb\utils\error_message("Error connecting to '".$host."'.");
+    }
   }
   fwrite($fp,$request);
   $chunksize=1024;
@@ -69,7 +76,7 @@ function request($url,$peer_name,$request,$ignore_verify=false)
 
 #####################################################################################################
 
-function wget($url,$peer_name,&$cookie_jar,$headers=false,$ignore_verify=false)
+function wget($url,$peer_name,&$cookie_jar,$headers=false,$ignore_verify=false,$return_error=false)
 {
   global $settings;
   $url_parts=parse_url($url);
@@ -92,7 +99,7 @@ function wget($url,$peer_name,&$cookie_jar,$headers=false,$ignore_verify=false)
   }
   $request=\webdb\http\cookie_header($request,$cookie_jar);
   $request.="Connection: Close\r\n\r\n";
-  $response=\webdb\http\request($url,$peer_name,$request,$ignore_verify);
+  $response=\webdb\http\request($url,$peer_name,$request,$ignore_verify,$return_error);
   $headers=\webdb\http\get_headers($response);
   \webdb\http\update_cookies($cookie_jar,$headers);
   $result=\webdb\http\search_headers($headers,"location");
@@ -104,14 +111,14 @@ function wget($url,$peer_name,&$cookie_jar,$headers=false,$ignore_verify=false)
     {
       $redirect="https://".$host.$redirect;
     }
-    $response=\webdb\http\wget($redirect,$peer_name,$cookie_jar,false,$ignore_verify);
+    $response=\webdb\http\wget($redirect,$peer_name,$cookie_jar,false,$ignore_verify,$return_error);
   }
   return $response;
 }
 
 #####################################################################################################
 
-function wpost($url,$content,$peer_name,&$cookie_jar,$headers=false,$ignore_verify=false)
+function wpost($url,$content,$peer_name,&$cookie_jar,$headers=false,$ignore_verify=false,$return_error=false)
 {
   global $settings;
   $content_type="application/x-www-form-urlencoded";
@@ -154,7 +161,7 @@ function wpost($url,$content,$peer_name,&$cookie_jar,$headers=false,$ignore_veri
   $request.="Content-Length: ".strlen($content)."\r\n";
   $request.="Connection: Close\r\n\r\n";
   $request=$request.$content;
-  $response=\webdb\http\request($url,$peer_name,$request,$ignore_verify);
+  $response=\webdb\http\request($url,$peer_name,$request,$ignore_verify,$return_error);
   $headers=\webdb\http\get_headers($response);
   \webdb\http\update_cookies($cookie_jar,$headers);
   $result=\webdb\http\search_headers($headers,"location");
@@ -166,7 +173,7 @@ function wpost($url,$content,$peer_name,&$cookie_jar,$headers=false,$ignore_veri
     {
       $redirect="https://".$host.$redirect;
     }
-    $response=\webdb\http\wget($redirect,$peer_name,$cookie_jar,false,$ignore_verify);
+    $response=\webdb\http\wget($redirect,$peer_name,$cookie_jar,false,$ignore_verify,$return_error);
   }
   return $response;
 }
