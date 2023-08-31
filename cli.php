@@ -64,7 +64,7 @@ function is_cli_mode()
 
 #####################################################################################################
 
-function cli_dispatch()
+function cli_dispatch() # cli mode doesn't have normal error/exception handlers assigned by default
 {
   global $settings;
   global $argv;

@@ -45,9 +45,6 @@ require_once($dir."tools".DIRECTORY_SEPARATOR."word.php");
 
 require_once($dir."apps".DIRECTORY_SEPARATOR."rps".DIRECTORY_SEPARATOR."rps.php");
 
-set_error_handler("\\webdb\\utils\\error_handler",E_ALL);
-set_exception_handler("\\webdb\\utils\\exception_handler");
-
 define("webdb\\index\\CONFIG_ID_DELIMITER",",");
 define("webdb\\index\\LINEBREAK_PLACEHOLDER","@@@@");
 define("webdb\\index\\LINEBREAK_DB_DELIM","\\n");
@@ -68,11 +65,14 @@ if (isset($settings)==false)
 
 if (\webdb\cli\is_cli_mode()==true)
 {
-  \webdb\cli\cli_dispatch();
+  \webdb\cli\cli_dispatch(); # cli mode doesn't have normal error/exception handlers assigned by default
   die;
 }
 
 \webdb\utils\load_settings();
+
+set_error_handler("\\webdb\\utils\\error_handler",E_ALL);
+set_exception_handler("\\webdb\\utils\\exception_handler");
 
 $settings["request_url"]=\webdb\utils\get_url();
 $settings["request_base_url"]=\webdb\utils\get_base_url();
