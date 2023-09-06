@@ -4,6 +4,30 @@ namespace webdb\utils;
 
 #####################################################################################################
 
+function simple_app_settings()
+{
+  global $settings;
+  $settings["database_enable"]=false;
+  $settings["auth_enable"]=false;
+  $settings["app_date_format"]="j-M-y";
+  $settings["default_timezone"]="Australia/Sydney";
+  $settings["login_check_address"]=false;
+  $settings["login_check_agent"]=false;
+  $settings["chat_global_enable"]=false;
+  $settings["ip_whitelist_enabled"]=false;
+  $settings["ip_blacklist_enabled"]=false;
+  $settings["check_ua"]=false;
+  $settings["check_templates"]=false;
+  $settings["email_enabled"]=false;
+  $settings["file_upload_mode"]="rename"; # rename | ftp
+  $settings["header_template"]="";
+  $settings["links_template"]="";
+  $settings["footer_template"]="";
+  $settings["login_notice_template"]="";
+}
+
+#####################################################################################################
+
 function system_message($message)
 {
   global $settings;
