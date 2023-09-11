@@ -188,6 +188,14 @@ function get_headers($response)
 
 #####################################################################################################
 
+function get_content($response)
+{
+  $i=strpos($response,"\r\n\r\n");
+  return substr($response,$i+4);
+}
+
+#####################################################################################################
+
 function cookie_header($request,$cookie_jar)
 {
   if (count($cookie_jar)>0)
