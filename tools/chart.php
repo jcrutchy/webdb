@@ -4,6 +4,45 @@ namespace webdb\chart;
 
 #####################################################################################################
 
+function ramer_douglas_peucker($points,$epsilon,$x_key,$y_key)
+{
+  # https://en.wikipedia.org/wiki/Ramer%E2%80%93Douglas%E2%80%93Peucker_algorithm
+  # https://www.loughrigg.org/rdp/
+  $dmax=0;
+  $index=0;
+  $n=count($points);
+  for ($i=1;$i<($n-1);$i++)
+  {
+    $p=$points[$i];
+    $L1=$points[0];
+    $L2=$points[$n-1];
+    $d=\webdb\chart\perpendicular_distance($p[$x_key],$p[$y_key],$L1[$x_key],$L1[$y_key],$L2[$x_key],$L2[$y_key]);
+    if ($d>$dmax)
+    {
+      $index=$i;
+      $dmax=$d;
+    }
+  }
+  $result=array();
+  if ($dmax>$epsilon)
+  {
+    $list1=array_slice($points,0,$index+1);
+    $rec_results1=\webdb\chart\ramer_douglas_peucker($list1,$epsilon,$x_key,$y_key);
+    $list2=array_slice($points,$index,$n-$index);
+    $rec_results2=\webdb\chart\ramer_douglas_peucker($list2,$epsilon,$x_key,$y_key);
+    $list3=array_slice($rec_results1,0,count($rec_results1)-1);
+    $list4=array_slice($rec_results2,0,count($rec_results2));
+    $result=array_merge($list3,$list4);
+  }
+  else
+  {
+    $result=array($points[0],$points[$n-1]);
+  }
+  return $result;
+}
+
+#####################################################################################################
+
 function gantt($data,$callbacks=false)
 {
   global $settings;
