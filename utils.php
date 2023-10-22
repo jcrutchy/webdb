@@ -2276,6 +2276,7 @@ function webdb_strtotime($time,$now=null)
   {
     $now=time();
   }
+  $now=round($now);
   return strtotime($time,$now);
 }
 

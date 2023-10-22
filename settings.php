@@ -215,6 +215,8 @@ $settings["list_border_width"]=1;
 $settings["list_group_border_color"]="000";
 $settings["list_group_border_width"]=2;
 
+\webdb\websocket\ws_default_settings();
+
 #########################################################
 
 $settings["dbquery_database"]="";
