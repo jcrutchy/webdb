@@ -4,17 +4,16 @@ namespace webdb\http;
 
 #####################################################################################################
 
-function request($url,$peer_name,$request,$ignore_verify=false)
+function request($url,$peer_name,$request,$ignore_verify=false,$return_error=false,$timeout=20)
 {
   global $settings;
   $url_parts=parse_url($url);
   $host=$url_parts["host"];
-  $timeout=20; # sec
   $context_options=array(
     "http"=>array(
       "user_agent"=>$settings["http_user_agent"],
       "max_redirects"=>10,
-      "timeout"=>20));
+      "timeout"=>$timeout));
   if (isset($url_parts["scheme"])==false)
   {
     $url_parts["scheme"]="https";
@@ -51,10 +50,18 @@ function request($url,$peer_name,$request,$ignore_verify=false)
   $context=stream_context_create($context_options);
   $errno=0;
   $errstr="";
-  $fp=stream_socket_client($protocol."://".$host.":".$port,$errno,$errstr,$timeout,STREAM_CLIENT_CONNECT,$context);
+  $fp=stream_socket_client($protocol."://".$host.":".$port,$errno,$errstr,$timeout,STREAM_CLIENT_CONNECT);
+  #$fp=stream_socket_client($protocol."://".$host.":".$port,$errno,$errstr,$timeout,STREAM_CLIENT_CONNECT,$context);
   if ($fp===false)
   {
-    \webdb\utils\error_message("Error connecting to '".$host."'.");
+    if ($return_error==true)
+    {
+      return false;
+    }
+    else
+    {
+      \webdb\utils\error_message("Error connecting to '".$host."'.");
+    }
   }
   fwrite($fp,$request);
   $chunksize=1024;
@@ -69,7 +76,7 @@ function request($url,$peer_name,$request,$ignore_verify=false)
 
 #####################################################################################################
 
-function wget($url,$peer_name,&$cookie_jar,$headers=false,$ignore_verify=false)
+function wget($url,$peer_name,&$cookie_jar,$headers=false,$ignore_verify=false,$return_error=false,$timeout=20)
 {
   global $settings;
   $url_parts=parse_url($url);
@@ -92,7 +99,7 @@ function wget($url,$peer_name,&$cookie_jar,$headers=false,$ignore_verify=false)
   }
   $request=\webdb\http\cookie_header($request,$cookie_jar);
   $request.="Connection: Close\r\n\r\n";
-  $response=\webdb\http\request($url,$peer_name,$request,$ignore_verify);
+  $response=\webdb\http\request($url,$peer_name,$request,$ignore_verify,$return_error,$timeout);
   $headers=\webdb\http\get_headers($response);
   \webdb\http\update_cookies($cookie_jar,$headers);
   $result=\webdb\http\search_headers($headers,"location");
@@ -104,14 +111,14 @@ function wget($url,$peer_name,&$cookie_jar,$headers=false,$ignore_verify=false)
     {
       $redirect="https://".$host.$redirect;
     }
-    $response=\webdb\http\wget($redirect,$peer_name,$cookie_jar,false,$ignore_verify);
+    $response=\webdb\http\wget($redirect,$peer_name,$cookie_jar,false,$ignore_verify,$return_error,$timeout);
   }
   return $response;
 }
 
 #####################################################################################################
 
-function wpost($url,$content,$peer_name,&$cookie_jar,$headers=false,$ignore_verify=false)
+function wpost($url,$content,$peer_name,&$cookie_jar,$headers=false,$ignore_verify=false,$return_error=false,$timeout=20)
 {
   global $settings;
   $content_type="application/x-www-form-urlencoded";
@@ -154,7 +161,7 @@ function wpost($url,$content,$peer_name,&$cookie_jar,$headers=false,$ignore_veri
   $request.="Content-Length: ".strlen($content)."\r\n";
   $request.="Connection: Close\r\n\r\n";
   $request=$request.$content;
-  $response=\webdb\http\request($url,$peer_name,$request,$ignore_verify);
+  $response=\webdb\http\request($url,$peer_name,$request,$ignore_verify,$return_error,$timeout);
   $headers=\webdb\http\get_headers($response);
   \webdb\http\update_cookies($cookie_jar,$headers);
   $result=\webdb\http\search_headers($headers,"location");
@@ -166,7 +173,7 @@ function wpost($url,$content,$peer_name,&$cookie_jar,$headers=false,$ignore_veri
     {
       $redirect="https://".$host.$redirect;
     }
-    $response=\webdb\http\wget($redirect,$peer_name,$cookie_jar,false,$ignore_verify);
+    $response=\webdb\http\wget($redirect,$peer_name,$cookie_jar,false,$ignore_verify,$return_error,$timeout);
   }
   return $response;
 }
@@ -181,6 +188,14 @@ function get_headers($response)
 
 #####################################################################################################
 
+function get_content($response)
+{
+  $i=strpos($response,"\r\n\r\n");
+  return substr($response,$i+4);
+}
+
+#####################################################################################################
+
 function cookie_header($request,$cookie_jar)
 {
   if (count($cookie_jar)>0)
@@ -188,7 +203,7 @@ function cookie_header($request,$cookie_jar)
     $cookies=array();
     foreach ($cookie_jar as $key => $cookie)
     {
-      $parts=explode(";",$cookie);
+      $parts=\webdb\utils\webdb_explode(";",$cookie);
       $value=urlencode(array_shift($parts));
       $cookies[]=$key."=".$value;
     }
@@ -205,10 +220,10 @@ function update_cookies(&$cookie_jar,$headers)
   for ($i=0;$i<count($cookie_headers);$i++)
   {
     $header=$cookie_headers[$i];
-    $parts=explode("=",$header);
+    $parts=\webdb\utils\webdb_explode("=",$header);
     $key=array_shift($parts);
     $value=urldecode(implode("=",$parts));
-    $cookie_parts=explode(";",$value);
+    $cookie_parts=\webdb\utils\webdb_explode(";",$value);
     $cookie_value=urlencode(array_shift($cookie_parts));
     if ($cookie_value=="deleted")
     {
@@ -229,16 +244,16 @@ function update_cookies(&$cookie_jar,$headers)
 function search_headers($headers,$search_key)
 {
   $result=array();
-  $lines=explode("\n",$headers);
+  $lines=\webdb\utils\webdb_explode("\n",$headers);
   for ($i=0;$i<count($lines);$i++)
   {
     $line=trim($lines[$i]);
-    $parts=explode(":",$line);
+    $parts=\webdb\utils\webdb_explode(":",$line);
     if (count($parts)>=2)
     {
       $key=trim(array_shift($parts));
       $value=trim(implode(":",$parts));
-      if (strtolower($key)==strtolower($search_key))
+      if (\webdb\utils\webdb_strtolower($key)==\webdb\utils\webdb_strtolower($search_key))
       {
         $result[]=$value;
       }

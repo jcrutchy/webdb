@@ -6,6 +6,9 @@ $settings["app_title"]=$settings["app_name"];
 $settings["dev_env"]=false;
 $settings["dev_env_email"]="";
 
+$settings["database_enable"]=true;
+$settings["auth_enable"]=true;
+
 if (isset($settings["app_root_path"])==false)
 {
   $settings["app_root_path"]=$settings["env_root_path"];
@@ -191,7 +194,7 @@ $settings["email_file_log_path"]="";
 $settings["report_proprietary_notice"]="";
 
 $settings["ssl_cafile"]=$settings["env_root_path"]."cacert.pem";
-$settings["http_user_agent"]="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36";
+$settings["http_user_agent"]="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36";
 
 $settings["test_settings_file"]="webdb_test.conf";
 
