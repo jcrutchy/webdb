@@ -64,7 +64,7 @@ function is_cli_mode()
 
 #####################################################################################################
 
-function cli_dispatch()
+function cli_dispatch() # cli mode doesn't have normal error/exception handlers assigned by default
 {
   global $settings;
   global $argv;
@@ -374,7 +374,7 @@ function generate_form($database,$table,$filename,$parent_page_id=false,$parent_
     $edit_cmd_id=$form_data["primary_key"][0];
   }
   $form_data["title"]=\webdb\cli\captionize($table);
-  $title_parts=explode("_",$page_id);
+  $title_parts=\webdb\utils\webdb_explode("_",$page_id);
   if ($title_parts[0]=="subform")
   {
     $form_data["title"]=\webdb\cli\captionize(\webdb\utils\make_plural($noun));
@@ -454,9 +454,9 @@ function link_page_id($link_table,$parent_table)
 {
   $parent_singular=\webdb\utils\make_singular($parent_table);
   $parent_plural=\webdb\utils\make_plural($parent_singular);
-  $link_page_id=str_replace($parent_plural,"",$link_table);
-  $link_page_id=str_replace($parent_singular,"",$link_page_id);
-  $link_page_id=str_replace("_links","",$link_page_id);
+  $link_page_id=\webdb\utils\webdb_str_replace($parent_plural,"",$link_table);
+  $link_page_id=\webdb\utils\webdb_str_replace($parent_singular,"",$link_page_id);
+  $link_page_id=\webdb\utils\webdb_str_replace("_links","",$link_page_id);
   $link_page_id=\webdb\utils\trim_suffix($link_page_id,"_");
   if (substr($link_page_id,0,1)=="_")
   {
@@ -478,7 +478,7 @@ function captionize($field_name,$trim_id=true)
   {
     return "";
   }
-  $parts=explode("_",$field_name);
+  $parts=\webdb\utils\webdb_explode("_",$field_name);
   for ($i=0;$i<count($parts);$i++)
   {
     $part=$parts[$i];
@@ -489,11 +489,11 @@ function captionize($field_name,$trim_id=true)
     }
     if (in_array($part,$uc_words)==true)
     {
-      $part=strtoupper($part);
+      $part=\webdb\utils\webdb_strtoupper($part);
     }
     else
     {
-      $part[0]=strtoupper($part[0]);
+      $part[0]=\webdb\utils\webdb_strtoupper($part[0]);
     }
     $parts[$i]=$part;
   }

@@ -4,12 +4,36 @@ namespace webdb\utils;
 
 #####################################################################################################
 
+function simple_app_settings()
+{
+  global $settings;
+  $settings["database_enable"]=false;
+  $settings["auth_enable"]=false;
+  $settings["app_date_format"]="j-M-y";
+  $settings["default_timezone"]="Australia/Sydney";
+  $settings["login_check_address"]=false;
+  $settings["login_check_agent"]=false;
+  $settings["chat_global_enable"]=false;
+  $settings["ip_whitelist_enabled"]=false;
+  $settings["ip_blacklist_enabled"]=false;
+  $settings["check_ua"]=false;
+  $settings["check_templates"]=false;
+  $settings["email_enabled"]=false;
+  $settings["file_upload_mode"]="rename"; # rename | ftp
+  $settings["header_template"]="";
+  $settings["links_template"]="";
+  $settings["footer_template"]="";
+  $settings["login_notice_template"]="";
+}
+
+#####################################################################################################
+
 function system_message($message)
 {
   global $settings;
   if (\webdb\cli\is_cli_mode()==true)
   {
-    \webdb\cli\term_echo(str_replace(PHP_EOL," ",$message),33);
+    \webdb\cli\term_echo(\webdb\utils\webdb_str_replace(PHP_EOL," ",$message),33);
     die;
   }
   $settings["unauthenticated_content"]=true;
@@ -28,7 +52,7 @@ function webdb_debug_backtrace()
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   $backtrace=json_encode(debug_backtrace()); # can't have pretty print indents for replacing settings
   $settings_json=json_encode($settings);
-  $backtrace=str_replace($settings_json,"{\"settings\":\"...\"}",$backtrace);
+  $backtrace=\webdb\utils\webdb_str_replace($settings_json,"{\"settings\":\"...\"}",$backtrace);
   $backtrace=json_decode($backtrace);
   $backtrace=json_encode($backtrace,JSON_PRETTY_PRINT);
   if (\webdb\cli\is_cli_mode()==true)
@@ -36,7 +60,7 @@ function webdb_debug_backtrace()
     return $backtrace;
   }
   $params=array();
-  $params["backtrace"]=htmlspecialchars($backtrace);
+  $params["backtrace"]=\webdb\utils\webdb_htmlspecialchars($backtrace);
   return \webdb\utils\template_fill("debug_backtrace",$params);
 }
 
@@ -155,9 +179,15 @@ function build_settings()
   \webdb\utils\initialize_settings();
   \webdb\utils\load_webdb_settings();
   \webdb\utils\load_application_settings();
-  \webdb\utils\load_credentials("db_admin");
-  \webdb\utils\load_credentials("db_user");
-  \webdb\utils\load_credentials("ftp_credentials",true);
+  if ($settings["database_enable"]==true)
+  {
+    \webdb\utils\load_credentials("db_admin");
+    \webdb\utils\load_credentials("db_user");
+  }
+  if ($settings["file_upload_mode"]=="ftp")
+  {
+    \webdb\utils\load_credentials("ftp_credentials",true);
+  }
   if ($settings["enable_pwd_file_encrypt"]==true)
   {
     if (file_exists($settings["encrypt_key_file"])==false)
@@ -190,16 +220,19 @@ function build_settings()
   }
   $settings["initialized_templates"]=array();
   \webdb\utils\initialize_format_tags();
-  $settings["webdb_sql_common"]=\webdb\utils\load_files($settings["webdb_sql_common_path"],"","sql",true);
-  $settings["webdb_sql_engine"]=\webdb\utils\load_files($settings["webdb_sql_engine_path"],"","sql",true);
-  $settings["webdb_sql"]=array_merge($settings["webdb_sql_common"],$settings["webdb_sql_engine"]);
-  $settings["app_sql_common"]=\webdb\utils\load_files($settings["app_sql_common_path"],"","sql",true);
-  $settings["app_sql_engine"]=\webdb\utils\load_files($settings["app_sql_engine_path"],"","sql",true);
-  $settings["app_sql"]=array_merge($settings["app_sql_common"],$settings["app_sql_engine"]);
-  $settings["sql"]=array_merge($settings["webdb_sql"],$settings["app_sql"]);
+  if ($settings["database_enable"]==true)
+  {
+    $settings["webdb_sql_common"]=\webdb\utils\load_files($settings["webdb_sql_common_path"],"","sql",true);
+    $settings["webdb_sql_engine"]=\webdb\utils\load_files($settings["webdb_sql_engine_path"],"","sql",true);
+    $settings["webdb_sql"]=array_merge($settings["webdb_sql_common"],$settings["webdb_sql_engine"]);
+    $settings["app_sql_common"]=\webdb\utils\load_files($settings["app_sql_common_path"],"","sql",true);
+    $settings["app_sql_engine"]=\webdb\utils\load_files($settings["app_sql_engine_path"],"","sql",true);
+    $settings["app_sql"]=array_merge($settings["app_sql_common"],$settings["app_sql_engine"]);
+    $settings["sql"]=array_merge($settings["webdb_sql"],$settings["app_sql"]);
+  }
   $settings["forms"]=array();
   \webdb\forms\load_form_defs();
-  $settings["app_group_access"]=explode(",",$settings["app_group_access"]);
+  $settings["app_group_access"]=\webdb\utils\webdb_explode(",",$settings["app_group_access"]);
 }
 
 #####################################################################################################
@@ -262,6 +295,10 @@ function load_application_settings()
 function database_connect()
 {
   global $settings;
+  if ($settings["database_enable"]==false)
+  {
+    return;
+  }
   $db_database="";
   if ($settings["db_database"]<>"")
   {
@@ -331,7 +368,7 @@ function webdb_unsetcookie($setting_key,$http_only=true)
 
 function convert_to_cookie_name($name)
 {
-  return str_replace(" ","_",$name);
+  return \webdb\utils\webdb_str_replace(" ","_",$name);
 }
 
 #####################################################################################################
@@ -380,10 +417,10 @@ function load_test_settings()
   if (file_exists($settings["test_settings_file"])==true)
   {
     $data=trim(file_get_contents($settings["test_settings_file"]));
-    $lines=explode(PHP_EOL,$data);
+    $lines=\webdb\utils\webdb_explode(PHP_EOL,$data);
     for ($i=0;$i<count($lines);$i++)
     {
-      $parts=explode("=",trim($lines[$i]));
+      $parts=\webdb\utils\webdb_explode("=",trim($lines[$i]));
       $key=array_shift($parts);
       $value=implode("=",$parts);
       switch ($key)
@@ -419,7 +456,7 @@ function output_resource_links($buffer,$type)
     $links[]=$link;
   }
   $links=implode(PHP_EOL,$links);
-  $buffer=explode("%%page_links_".$type."%%",$buffer,2);
+  $buffer=\webdb\utils\webdb_explode("%%page_links_".$type."%%",$buffer,2);
   return implode($links,$buffer);
 }
 
@@ -457,7 +494,7 @@ function ob_postprocess($buffer)
     {
       if (strpos($buffer,'$$'.$key.'$$')!==false)
       {
-        $buffer="error: unassigned $ template '".$key."' found: ".htmlspecialchars($buffer);
+        $buffer="error: unassigned $ template '".$key."' found: ".\webdb\utils\webdb_htmlspecialchars($buffer);
         break;
       }
     }
@@ -465,14 +502,17 @@ function ob_postprocess($buffer)
     {
       if (strpos($buffer,'@@'.$key.'@@')!==false)
       {
-        $buffer="error: unassigned @ template '".$key."' found: ".htmlspecialchars($buffer);
+        $buffer="error: unassigned @ template '".$key."' found: ".\webdb\utils\webdb_htmlspecialchars($buffer);
         break;
       }
     }
   }
-  if ((isset($settings["unauthenticated_content"])==false) and (isset($settings["user_record"])==false))
+  if ($settings["auth_enable"]==true)
   {
-    $buffer="error: authentication failure";
+    if ((isset($settings["unauthenticated_content"])==false) and (isset($settings["user_record"])==false))
+    {
+      $buffer="error: authentication failure";
+    }
   }
   if (\webdb\cli\is_cli_mode()==false)
   {
@@ -601,7 +641,7 @@ function load_files($path,$root="",$ext="",$trim_ext=true) # path (and root) mus
       {
         $fn=substr($fn,0,strlen($fn)-strlen($fext)-1);
       }
-      $key=str_replace("\\","/",$fn);
+      $key=\webdb\utils\webdb_str_replace("\\","/",$fn);
       $result[$key]=trim(file_get_contents($full));
     }
     else
@@ -766,8 +806,8 @@ function make_plural($singular)
 
 function replace_suffix($subject,$replaces,$unchanged,$default_append=false)
 {
-  $subject_parts=str_replace(" ","_",$subject);
-  $subject_parts=explode("_",$subject);
+  $subject_parts=\webdb\utils\webdb_str_replace(" ","_",$subject);
+  $subject_parts=\webdb\utils\webdb_explode("_",$subject);
   $last_part=array_pop($subject_parts);
   if (in_array($last_part,$unchanged)==true)
   {
@@ -832,7 +872,7 @@ function get_resource_link($name,$type,$source="app")
   global $settings;
   #return false; # TODO: pre-load file modified times into $settings
   $filename=$settings[$source."_resources_path"].$name.".".$type;
-  $filename=str_replace("/",DIRECTORY_SEPARATOR,$filename);
+  $filename=\webdb\utils\webdb_str_replace("/",DIRECTORY_SEPARATOR,$filename);
   if (file_exists($filename)==true)
   {
     $params=array();
@@ -874,6 +914,10 @@ function template_resource_links($template_key)
 function check_user_app_permission()
 {
   global $settings;
+  if ($settings["auth_enable"]==false)
+  {
+    return;
+  }
   $user_groups=$settings["logged_in_user_groups"];
   for ($i=0;$i<count($settings["app_group_access"]);$i++)
   {
@@ -899,6 +943,10 @@ function check_user_app_permission()
 function check_user_form_permission($page_id,$permission)
 {
   global $settings;
+  if ($settings["auth_enable"]==false)
+  {
+    return true;
+  }
   $admin_user_locked=array("groups");
   if (in_array($page_id,$admin_user_locked)==true)
   {
@@ -950,11 +998,11 @@ function check_user_form_permission($page_id,$permission)
     {
       $redirect_url=$_GET["redirect"];
       $query=parse_url($redirect_url,PHP_URL_QUERY);
-      $query_params=explode("&",$query);
+      $query_params=\webdb\utils\webdb_explode("&",$query);
       for ($i=0;$i<count($query_params);$i++)
       {
         $query_param=$query_params[$i];
-        $parts=explode("=",$query_param);
+        $parts=\webdb\utils\webdb_explode("=",$query_param);
         $param_key=array_shift($parts);
         if ($param_key=="page")
         {
@@ -1014,6 +1062,10 @@ function check_user_form_permission($page_id,$permission)
 function check_user_template_permission($template_name)
 {
   global $settings;
+  if ($settings["auth_enable"]==false)
+  {
+    return $template_name;
+  }
   $whitelisted=false;
   foreach ($settings["permissions"] as $group_name_iterator => $group_permissions)
   {
@@ -1071,7 +1123,7 @@ function initialize_format_tags()
     if (substr($name,0,strlen($template_prefix))==$template_prefix)
     {
       $name=substr($name,strlen($template_prefix));
-      $name_parts=explode("_",$name);
+      $name_parts=\webdb\utils\webdb_explode("_",$name);
       $position=array_pop($name_parts);
       $tag=trim(implode("_",$name_parts));
       if (($position<>"open") and ($position<>"close"))
@@ -1125,7 +1177,7 @@ function template_fill($template_key,$params=false)
     }
     if (is_scalar($value)==true)
     {
-      $result=str_replace('%%'.$key.'%%',$value,$result);
+      $result=\webdb\utils\webdb_str_replace('%%'.$key.'%%',$value,$result);
     }
   }
   return $result;
@@ -1171,7 +1223,7 @@ function custom_template_fill($template_key,$params=false,$tracking=array(),$cus
   foreach ($settings["constants"] as $key => $value)
   {
     $placeholder='??'.$key.'??';
-    $result=str_replace($placeholder,$value,$result);
+    $result=\webdb\utils\webdb_str_replace($placeholder,$value,$result);
   }
   foreach ($settings as $key => $value)
   {
@@ -1182,7 +1234,7 @@ function custom_template_fill($template_key,$params=false,$tracking=array(),$cus
     }
     if (is_scalar($value)==true)
     {
-      $result=str_replace($placeholder,$value,$result);
+      $result=\webdb\utils\webdb_str_replace($placeholder,$value,$result);
     }
   }
   if ($params!==false)
@@ -1196,7 +1248,7 @@ function custom_template_fill($template_key,$params=false,$tracking=array(),$cus
       }
       if (is_scalar($value)==true)
       {
-        $result=str_replace($placeholder,$value,$result);
+        $result=\webdb\utils\webdb_str_replace($placeholder,$value,$result);
       }
     }
   }
@@ -1212,7 +1264,7 @@ function custom_template_fill($template_key,$params=false,$tracking=array(),$cus
       continue;
     }
     $value=\webdb\utils\custom_template_fill($key,$params,$tracking,$custom_templates);
-    $result=str_replace($placeholder,$value,$result);
+    $result=\webdb\utils\webdb_str_replace($placeholder,$value,$result);
   }
   return $result;
 }
@@ -1231,7 +1283,7 @@ function compare_template($template,$response)
     return true;
   }
   $template_content=trim(\webdb\utils\template_fill($template));
-  $parts=explode("%%",$template_content);
+  $parts=\webdb\utils\webdb_explode("%%",$template_content);
   $excluded=array();
   for ($i=0;$i<count($parts);$i++)
   {
@@ -1263,9 +1315,9 @@ function extract_params($template,$data)
 {
   $data=trim($data);
   $template_content=trim(\webdb\utils\template_fill($template));
-  $data=str_replace("\r","",$data);
-  $template_content=str_replace("\r","",$template_content);
-  $parts=explode("%%",$template_content);
+  $data=\webdb\utils\webdb_str_replace("\r","",$data);
+  $template_content=\webdb\utils\webdb_str_replace("\r","",$template_content);
+  $parts=\webdb\utils\webdb_explode("%%",$template_content);
   $keys=array();
   $excluded=array();
   for ($i=0;$i<count($parts);$i++)
@@ -1486,7 +1538,7 @@ function load_credentials($prefix,$optional=false)
     }
   }
   $data=trim($data);
-  $data=explode("\n",$data);
+  $data=\webdb\utils\webdb_explode("\n",$data);
   if (count($data)<>2)
   {
     if ($optional==false)
@@ -1662,7 +1714,7 @@ function wildcard_compare($compare_value,$wildcard_value)
     var_dump($compare_value);
     var_dump($wildcard_value);
   }
-  $wildcard_parts=explode("*",$wildcard_value);
+  $wildcard_parts=\webdb\utils\webdb_explode("*",$wildcard_value);
   $compare_parts=array();
   for ($i=0;$i<count($wildcard_parts);$i++)
   {
@@ -1974,7 +2026,7 @@ function purge_expired_row_locks()
   for ($i=0;$i<count($records);$i++)
   {
     $record=$records[$i];
-    $t=strtotime($record["created_timestamp"]);
+    $t=\webdb\utils\webdb_strtotime($record["created_timestamp"]);
     $delta=time()-$t;
     if ($delta>$settings["row_lock_expiration"])
     {
@@ -2048,7 +2100,7 @@ function append_lock_details($lock)
 {
   global $settings;
   return false;
-  $lock["locked_time"]=strtotime($lock["created_timestamp"]);
+  $lock["locked_time"]=\webdb\utils\webdb_strtotime($lock["created_timestamp"]);
   $where_items=array();
   $where_items["user_id"]=$lock["user_id"];
   $users=\webdb\sql\get_exist_records($settings["database_webdb"],"users",$where_items);
@@ -2081,7 +2133,7 @@ function net_path_disconnect($path)
 
 function change_filename_ext($filename,$new_ext,$delim=".")
 {
-  $parts=explode($delim,$filename);
+  $parts=\webdb\utils\webdb_explode($delim,$filename);
   array_pop($parts);
   return implode($delim,$parts).$delim.$new_ext;
 }
@@ -2142,6 +2194,28 @@ function webdb_file_get_contents($filename)
 
 #####################################################################################################
 
+function webdb_htmlspecialchars($val)
+{
+  if ($val===null)
+  {
+    return "";
+  }
+  return htmlspecialchars($val);
+}
+
+#####################################################################################################
+
+function webdb_str_replace($search,$replace,$subject)
+{
+  if ($subject===null)
+  {
+    return "";
+  }
+  return str_replace($search,$replace,$subject);
+}
+
+#####################################################################################################
+
 function formatted_date_to_unix($format,$date_str)
 {
   $x=date_create_from_format($format,$date_str);
@@ -2150,6 +2224,71 @@ function formatted_date_to_unix($format,$date_str)
     return false;
   }
   return date_timestamp_get($x);
+}
+
+
+#####################################################################################################
+
+function webdb_explode($delimiter,$string,$limit=PHP_INT_MAX)
+{
+  if (($delimiter===null) or ($delimiter===""))
+  {
+    return false;
+  }
+  if ($string===null)
+  {
+    $string="";
+  }
+  return explode($delimiter,$string,$limit);
+}
+
+#####################################################################################################
+
+function webdb_strtolower($string)
+{
+  if ($string===null)
+  {
+    return "";
+  }
+  return strtolower($string);
+}
+
+#####################################################################################################
+
+function webdb_strtoupper($string)
+{
+  if ($string===null)
+  {
+    return "";
+  }
+  return strtoupper($string);
+}
+
+#####################################################################################################
+
+function webdb_strtotime($time,$now=null)
+{
+  if ($time===null)
+  {
+    return "";
+  }
+  if ($now===null)
+  {
+    $now=time();
+  }
+  $now=round($now);
+  return strtotime($time,$now);
+}
+
+#####################################################################################################
+
+function webdb_strlen($string)
+{
+  if ($string===null)
+  {
+    return 0;
+  }
+  return strlen($string);
 }
 
 #####################################################################################################

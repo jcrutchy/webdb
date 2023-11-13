@@ -81,8 +81,8 @@ function query_error($sql,$source="",$filename="",$params=array(),$form_config=f
   }
   if (\webdb\cli\is_cli_mode()==true)
   {
-    $source_error=str_replace(PHP_EOL," ",$source_error);
-    $sql=str_replace(PHP_EOL," ",$sql);
+    $source_error=\webdb\utils\webdb_str_replace(PHP_EOL," ",$source_error);
+    $sql=\webdb\utils\webdb_str_replace(PHP_EOL," ",$sql);
     \webdb\cli\term_echo("SQL ERROR",31);
     \webdb\cli\term_echo("filename: ".$filename,31);
     \webdb\cli\term_echo("error: ".$source_error,31);
@@ -108,8 +108,8 @@ function query_error($sql,$source="",$filename="",$params=array(),$form_config=f
     $msg_params=array();
     $msg_params["driver_code"]=$error_code;
     $msg_params["filename"]=$filename;
-    $msg_params["source_error"]=htmlspecialchars($source_error);
-    $msg_params["sql"]=htmlspecialchars($sql);
+    $msg_params["source_error"]=\webdb\utils\webdb_htmlspecialchars($source_error);
+    $msg_params["sql"]=\webdb\utils\webdb_htmlspecialchars($sql);
     $msg_params["params"]=json_encode($params,JSON_PRETTY_PRINT);
     \webdb\utils\error_message(\webdb\utils\template_fill("sql_error",$msg_params));
   }
@@ -134,9 +134,9 @@ function get_pdo_object($is_admin)
 
 function get_statement_type($sql)
 {
-  $sql_parts=strtoupper(trim($sql));
-  $sql_parts=str_replace("\n"," ",$sql_parts);
-  $sql_parts=explode(" ",$sql_parts);
+  $sql_parts=\webdb\utils\webdb_strtoupper(trim($sql));
+  $sql_parts=\webdb\utils\webdb_str_replace("\n"," ",$sql_parts);
+  $sql_parts=\webdb\utils\webdb_explode(" ",$sql_parts);
   $type=trim($sql_parts[0]);
   switch ($type)
   {
@@ -151,7 +151,7 @@ function get_statement_type($sql)
     case "DELETE":
       return "DELETE";
   }
-  \webdb\utils\error_message("error: unexpected sql statement type: ".htmlspecialchars($sql));
+  \webdb\utils\error_message("error: unexpected sql statement type: ".\webdb\utils\webdb_htmlspecialchars($sql));
 }
 
 #####################################################################################################
@@ -160,10 +160,10 @@ function column_list($database,$table)
 {
   global $settings;
   $sql_params=array();
-  $sql_params["table"]=strtoupper($table);
+  $sql_params["table"]=\webdb\utils\webdb_strtoupper($table);
   if ($settings["db_engine"]<>"sqlsrv")
   {
-    $sql_params["database"]=strtoupper($database);
+    $sql_params["database"]=\webdb\utils\webdb_strtoupper($database);
   }
   return \webdb\sql\file_fetch_prepare("generate_form_column_list",$sql_params);
 }
@@ -490,7 +490,7 @@ function execute_prepare($sql,$params=array(),$filename="",$is_admin=false,$tabl
     case "DELETE":
       if ($settings["sql_database_change"]==false)
       {
-        \webdb\utils\error_message("error executing sql query that changes the database (change flag not set): ".htmlspecialchars($sql));
+        \webdb\utils\error_message("error executing sql query that changes the database (change flag not set): ".\webdb\utils\webdb_htmlspecialchars($sql));
       }
   }
   $settings["sql_database_change"]=false;
@@ -521,9 +521,9 @@ function fetch_prepare($sql,$params=array(),$filename="",$is_admin=false,$table=
     case "INSERT":
     case "UPDATE":
     case "DELETE":
-      \webdb\utils\error_message("error: changing the database not permitted using webdb\\sql\\fetch_prepare function: ".htmlspecialchars($sql));
+      \webdb\utils\error_message("error: changing the database not permitted using webdb\\sql\\fetch_prepare function: ".\webdb\utils\webdb_htmlspecialchars($sql));
     default:
-      \webdb\utils\error_message("error: unexpected sql statement type: ".htmlspecialchars($sql));
+      \webdb\utils\error_message("error: unexpected sql statement type: ".\webdb\utils\webdb_htmlspecialchars($sql));
   }
   $statement=\webdb\sql\execute_return($sql,$params,$filename,$is_admin,$table,$database,$form_config);
   return $statement->fetchAll(\PDO::FETCH_ASSOC);
@@ -596,7 +596,7 @@ function sql_log($status,$sql,$params=array(),$table="",$database="")
   {
     $username=$settings["user_record"]["username"];
   }
-  $sql=str_replace(PHP_EOL," ",$sql);
+  $sql=\webdb\utils\webdb_str_replace(PHP_EOL," ",$sql);
   $content=date("Y-m-d H:i:s")."\t".$username."\t".$status."\t".$sql."\t".json_encode($params);
   $settings["logs"]["sql"][]=$content;
 }
@@ -627,7 +627,7 @@ function null_user_check($sql,$where_items,$table,$database)
   $error_params["database"]=$database;
   $error_params["table"]=$table;
   $error_params["where_items"]=json_encode($where_items,JSON_PRETTY_PRINT);
-  $error_params["sql"]=htmlspecialchars($sql);
+  $error_params["sql"]=\webdb\utils\webdb_htmlspecialchars($sql);
   \webdb\utils\error_message(\webdb\utils\template_fill("unauthenticated_change_error",$error_params));
 }
 
@@ -704,7 +704,7 @@ function sql_change($old_records,$sql,$where_items,$value_items,$table,$database
   {
     call_user_func($settings["sql_change_event_handler"],$items);
   }
-  $items["sql_statement"]=str_replace(PHP_EOL," ",$items["sql_statement"]);
+  $items["sql_statement"]=\webdb\utils\webdb_str_replace(PHP_EOL," ",$items["sql_statement"]);
   $content=date("Y-m-d H:i:s").PHP_EOL.json_encode($items,JSON_PRETTY_PRINT);
   #$settings["logs"]["sql_change"][]=$content;
   $path=$settings["sql_change_log_path"];

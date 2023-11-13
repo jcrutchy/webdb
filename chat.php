@@ -7,6 +7,10 @@ namespace webdb\chat;
 function chat_initialize()
 {
   global $settings;
+  if ($settings["database_enable"]==false)
+  {
+    return false;
+  }
   if ($settings["db_engine"]=="mysql")
   {
     \webdb\sql\file_execute_prepare("chat/timezone_set");
@@ -142,6 +146,10 @@ function output_user_favorites_list()
 {
   global $settings;
   $user_record=\webdb\chat\chat_initialize();
+  if ($user_record===false)
+  {
+    return false;
+  }
   $data=array();
   if ($user_record["json_data"]<>"")
   {
@@ -231,18 +239,18 @@ function get_stripped_url($ignore_ajax=false)
   {
     $skip_params[]="ajax";
   }
-  $params=explode("?",$result["url"]);
+  $params=\webdb\utils\webdb_explode("?",$result["url"]);
   if (count($params)<2)
   {
     return $result;
   }
   $result["url"]=$params[0];
   $params=$params[1];
-  $params=explode("&",$params);
+  $params=\webdb\utils\webdb_explode("&",$params);
   $output=array();
   for ($i=0;$i<count($params);$i++)
   {
-    $parts=explode("=",$params[$i]);
+    $parts=\webdb\utils\webdb_explode("=",$params[$i]);
     $test_key=array_shift($parts);
     $test_val=implode("=",$parts);
     if (($test_key=="cmd") and ($test_val=="insert"))
@@ -300,7 +308,7 @@ function get_user_list_caption($url,$url_data)
   {
     if (strpos($url,"?")!==false)
     {
-      $caption=explode("?",$url);
+      $caption=\webdb\utils\webdb_explode("?",$url);
       $result=array_pop($caption);
     }
   }
@@ -368,7 +376,7 @@ function get_topic($form_config,$record,$config_prefix="chat_topic")
   $topic="";
   if (($record!==false) and ($form_config[$config_prefix."_fields"]<>"") and ($form_config[$config_prefix."_format"]<>""))
   {
-    $field_names=explode(",",$form_config[$config_prefix."_fields"]);
+    $field_names=\webdb\utils\webdb_explode(",",$form_config[$config_prefix."_fields"]);
     $field_values=array();
     for ($i=0;$i<count($field_names);$i++)
     {
@@ -378,7 +386,7 @@ function get_topic($form_config,$record,$config_prefix="chat_topic")
         \webdb\stubs\stub_error("error: field not found in record: ".$field_name);
       }
       $value=$record[$field_name];
-      if (strlen($value)>50)
+      if (\webdb\utils\webdb_strlen($value)>50)
       {
         $value=trim(substr($value,0,50))."...";
       }
@@ -426,11 +434,11 @@ function chat_dispatch($record_id,$form_config,$record=false,$template="chat/pop
         if (isset($_POST["message"])==true)
         {
           $message=trim($_POST["message"]);
-          if (strlen($message)>0)
+          if (\webdb\utils\webdb_strlen($message)>0)
           {
             if (substr($message,0,1)=="/")
             {
-              $parts=explode(" ",$message);
+              $parts=\webdb\utils\webdb_explode(" ",$message);
               $cmd_part=array_shift($parts);
               $trailing=implode(" ",$parts);
               switch ($cmd_part)
@@ -453,6 +461,9 @@ function chat_dispatch($record_id,$form_config,$record=false,$template="chat/pop
                   \webdb\chat\delete_chat_message($parts,$trailing);
                   break;
                 case "/shell":
+                  $response[]="error: command disabled";
+                  \webdb\chat\private_notice($response);
+                  break;
                   $response=array();
                   $admin_channel_name=array();
                   $admin_channel_name["chat_channel_prefix"]=$settings["chat_channel_prefix"];
@@ -463,15 +474,15 @@ function chat_dispatch($record_id,$form_config,$record=false,$template="chat/pop
                   {
                     if (empty($trailing)==false)
                     {
-                      $response[]="running shell command: ".htmlspecialchars($trailing);
+                      $response[]="running shell command: ".\webdb\utils\webdb_htmlspecialchars($trailing);
                       $result=shell_exec($trailing);
                       if (empty($result)==false)
                       {
-                        $result=explode("\n",$result);
+                        $result=\webdb\utils\webdb_explode("\n",$result);
                         for ($i=0;$i<count($result);$i++)
                         {
-                          $result[$i]=htmlspecialchars($result[$i]);
-                          $result[$i]=str_replace(" ","&nbsp;",$result[$i]);
+                          $result[$i]=\webdb\utils\webdb_htmlspecialchars($result[$i]);
+                          $result[$i]=\webdb\utils\webdb_str_replace(" ","&nbsp;",$result[$i]);
                         }
                         $response=array_merge($response,$result);
                       }
@@ -479,7 +490,7 @@ function chat_dispatch($record_id,$form_config,$record=false,$template="chat/pop
                     }
                     else
                     {
-                      $response[]=htmlspecialchars("syntax: /shell <windows shell command>");
+                      $response[]=\webdb\utils\webdb_htmlspecialchars("syntax: /shell <windows shell command>");
                       \webdb\chat\private_notice($response);
                     }
                   }
@@ -527,7 +538,7 @@ function chat_dispatch($record_id,$form_config,$record=false,$template="chat/pop
           }
           if (substr($message,0,1)=="/")
           {
-            $parts=explode(" ",$message);
+            $parts=\webdb\utils\webdb_explode(" ",$message);
             $cmd_part=array_shift($parts);
             $trailing=implode(" ",$parts);
             switch ($cmd_part)
@@ -541,8 +552,8 @@ function chat_dispatch($record_id,$form_config,$record=false,$template="chat/pop
           $row_params=array();
           $row_params["time"]=\webdb\chat\sql_to_iso_timestamp($record["message_time"]);
           $row_params["time"]=\webdb\utils\template_fill("chat/server_timestamp",$row_params);
-          $row_params["nick"]=htmlspecialchars($nick);
-          $row_params["message"]=htmlspecialchars($message);
+          $row_params["nick"]=\webdb\utils\webdb_htmlspecialchars($nick);
+          $row_params["message"]=\webdb\utils\webdb_htmlspecialchars($message);
           if ((isset($_GET["chat_break"])==true) and ($record==$last_message))
           {
             $delta.=\webdb\utils\template_fill("chat/message_row_break",$row_params);
@@ -564,7 +575,7 @@ function chat_dispatch($record_id,$form_config,$record=false,$template="chat/pop
           $record=$records[$i];
           $data["nicks"][]=$record["nick"];
         }
-        $data["channel_topic"]=htmlspecialchars($channel_record["topic"]);
+        $data["channel_topic"]=\webdb\utils\webdb_htmlspecialchars($channel_record["topic"]);
         $data["chat_break"]=false;
         if (isset($_GET["chat_break"])==true)
         {
@@ -628,7 +639,7 @@ function delete_chat_message($parts,$trailing)
         {
           foreach ($message_record as $field_name => $value)
           {
-            $message_record[$field_name]=htmlspecialchars($value);
+            $message_record[$field_name]=\webdb\utils\webdb_htmlspecialchars($value);
           }
           $delete_data=array();
           $delete_data["message_id"]=$message_id;
@@ -671,7 +682,7 @@ function delete_chat_message($parts,$trailing)
     }
     if (empty($trailing)==true)
     {
-      $response[]=htmlspecialchars("syntax: /delete <message_id> [<confirm_code>]");
+      $response[]=\webdb\utils\webdb_htmlspecialchars("syntax: /delete <message_id> [<confirm_code>]");
     }
     else
     {
@@ -710,7 +721,7 @@ function insert_notice_breaks(&$response)
   $max_len=0;
   for ($i=0;$i<count($response);$i++)
   {
-    $max_len=max($max_len,strlen($response[$i]));
+    $max_len=max($max_len,\webdb\utils\webdb_strlen($response[$i]));
   }
   $break=str_repeat("*",$max_len);
   array_unshift($response,$break);
@@ -721,7 +732,7 @@ function insert_notice_breaks(&$response)
 
 function sql_to_iso_timestamp($timestamp)
 {
-  $timestamp=strtotime($timestamp);
+  $timestamp=\webdb\utils\webdb_strtotime($timestamp);
   return date("c",$timestamp);
 }
 

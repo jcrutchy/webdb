@@ -90,8 +90,8 @@ function dispatch()
           $row_params=array();
           $row_params["time"]=\messenger\utils\sql_to_iso_timestamp($record["message_time"]);
           $row_params["time"]=\webdb\utils\template_fill("server_timestamp",$row_params);
-          $row_params["nick"]=htmlspecialchars($record["nick"]);
-          $row_params["message"]=htmlspecialchars($record["message"]);
+          $row_params["nick"]=\webdb\utils\webdb_htmlspecialchars($record["nick"]);
+          $row_params["message"]=\webdb\utils\webdb_htmlspecialchars($record["message"]);
           if ((isset($_GET["break"])==true) and ($record==$last_message))
           {
             $delta.=\webdb\utils\template_fill("message_row_break",$row_params);
@@ -112,7 +112,7 @@ function dispatch()
         {
           $record=$records[$i];
           $row_params=array();
-          $row_params["channel_name"]=htmlspecialchars($record["channel_name"]);
+          $row_params["channel_name"]=\webdb\utils\webdb_htmlspecialchars($record["channel_name"]);
           if ($record["channel_id"]==$channel_record["channel_id"])
           {
             $rows.=\webdb\utils\template_fill("active_channel_row",$row_params);
@@ -133,7 +133,7 @@ function dispatch()
           $record=$records[$i];
           $data["nicks"][]=$record["nick"];
           $row_params=array();
-          $row_params["nick"]=htmlspecialchars($record["nick"]);
+          $row_params["nick"]=\webdb\utils\webdb_htmlspecialchars($record["nick"]);
           if ($record["user_id"]==$user_record["user_id"])
           {
             $rows.=\webdb\utils\template_fill("active_user_row",$row_params);
@@ -146,8 +146,8 @@ function dispatch()
         $users_params=array();
         $users_params["users_rows"]=$rows;
         $data["users"]=\webdb\utils\template_fill("users",$users_params);
-        $data["channel_name"]=htmlspecialchars($channel_record["channel_name"]);
-        $data["channel_topic"]=htmlspecialchars($channel_record["topic"]);
+        $data["channel_name"]=\webdb\utils\webdb_htmlspecialchars($channel_record["channel_name"]);
+        $data["channel_topic"]=\webdb\utils\webdb_htmlspecialchars($channel_record["topic"]);
         $data=json_encode($data);
         die($data);
     }

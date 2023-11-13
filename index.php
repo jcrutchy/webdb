@@ -33,6 +33,7 @@ require_once($dir."chat.php");
 require_once($dir."manage.php");
 require_once($dir."cli.php");
 require_once($dir."http.php");
+require_once($dir."websocket.php");
 require_once($dir."dbquery.php");
 require_once($dir."wiki.php");
 require_once($dir."wiki_utils.php");
@@ -44,9 +45,6 @@ require_once($dir."tools".DIRECTORY_SEPARATOR."excel.php");
 require_once($dir."tools".DIRECTORY_SEPARATOR."word.php");
 
 require_once($dir."apps".DIRECTORY_SEPARATOR."rps".DIRECTORY_SEPARATOR."rps.php");
-
-set_error_handler("\\webdb\\utils\\error_handler",E_ALL);
-set_exception_handler("\\webdb\\utils\\exception_handler");
 
 define("webdb\\index\\CONFIG_ID_DELIMITER",",");
 define("webdb\\index\\LINEBREAK_PLACEHOLDER","@@@@");
@@ -68,11 +66,14 @@ if (isset($settings)==false)
 
 if (\webdb\cli\is_cli_mode()==true)
 {
-  \webdb\cli\cli_dispatch();
+  \webdb\cli\cli_dispatch(); # cli mode doesn't have normal error/exception handlers assigned by default
   die;
 }
 
 \webdb\utils\load_settings();
+
+set_error_handler("\\webdb\\utils\\error_handler",E_ALL);
+set_exception_handler("\\webdb\\utils\\exception_handler");
 
 $settings["request_url"]=\webdb\utils\get_url();
 $settings["request_base_url"]=\webdb\utils\get_base_url();
@@ -86,14 +87,14 @@ if ($settings["ip_blacklist_enabled"]==true)
 {
   if (\webdb\users\remote_address_listed($_SERVER["REMOTE_ADDR"],"black")==true)
   {
-    \webdb\utils\system_message("ip blacklisted: ".htmlspecialchars($_SERVER["REMOTE_ADDR"]));
+    \webdb\utils\system_message("ip blacklisted: ".\webdb\utils\webdb_htmlspecialchars($_SERVER["REMOTE_ADDR"]));
   }
 }
 if ($settings["ip_whitelist_enabled"]==true)
 {
   if (\webdb\users\remote_address_listed($_SERVER["REMOTE_ADDR"],"white")==false)
   {
-    \webdb\utils\system_message("ip not whitelisted: ".htmlspecialchars($_SERVER["REMOTE_ADDR"]));
+    \webdb\utils\system_message("ip not whitelisted: ".\webdb\utils\webdb_htmlspecialchars($_SERVER["REMOTE_ADDR"]));
   }
 }
 if (\webdb\utils\is_app_mode()==false)
@@ -127,7 +128,7 @@ if ($settings["check_ua"]==true)
   if ($settings["user_agent"]<>"")
   {
     $settings["browser_info"]=get_browser($_SERVER["HTTP_USER_AGENT"],true);
-    switch (strtolower($settings["browser_info"]["browser"]))
+    switch (\webdb\utils\webdb_strtolower($settings["browser_info"]["browser"]))
     {
       case "chrome":
       case "firefox":
@@ -135,7 +136,7 @@ if ($settings["check_ua"]==true)
       default:
         \webdb\utils\system_message($ua_error." [neither chrome nor firefox]");
     }
-    if (strtolower($settings["browser_info"]["device_type"])<>"desktop")
+    if (\webdb\utils\webdb_strtolower($settings["browser_info"]["device_type"])<>"desktop")
     {
       \webdb\utils\system_message($ua_error." [not desktop]");
     }
@@ -150,9 +151,12 @@ if ($settings["check_ua"]==true)
   }
 }
 
-\webdb\users\auth_dispatch();
+if (($settings["auth_enable"]==true) and ($settings["database_enable"]==true))
+{
+  \webdb\users\auth_dispatch();
+}
 
-if (isset($_GET["update_oul"])==true)
+if ((isset($_GET["update_oul"])==true) and ($settings["database_enable"]==true))
 {
   \webdb\chat\update_online_user_list();
 }

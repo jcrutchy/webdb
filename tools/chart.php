@@ -4,6 +4,45 @@ namespace webdb\chart;
 
 #####################################################################################################
 
+function ramer_douglas_peucker($points,$epsilon,$x_key,$y_key)
+{
+  # https://en.wikipedia.org/wiki/Ramer%E2%80%93Douglas%E2%80%93Peucker_algorithm
+  # https://www.loughrigg.org/rdp/
+  $dmax=0;
+  $index=0;
+  $n=count($points);
+  for ($i=1;$i<($n-1);$i++)
+  {
+    $p=$points[$i];
+    $L1=$points[0];
+    $L2=$points[$n-1];
+    $d=\webdb\chart\perpendicular_distance($p[$x_key],$p[$y_key],$L1[$x_key],$L1[$y_key],$L2[$x_key],$L2[$y_key]);
+    if ($d>$dmax)
+    {
+      $index=$i;
+      $dmax=$d;
+    }
+  }
+  $result=array();
+  if ($dmax>$epsilon)
+  {
+    $list1=array_slice($points,0,$index+1);
+    $rec_results1=\webdb\chart\ramer_douglas_peucker($list1,$epsilon,$x_key,$y_key);
+    $list2=array_slice($points,$index,$n-$index);
+    $rec_results2=\webdb\chart\ramer_douglas_peucker($list2,$epsilon,$x_key,$y_key);
+    $list3=array_slice($rec_results1,0,count($rec_results1)-1);
+    $list4=array_slice($rec_results2,0,count($rec_results2));
+    $result=array_merge($list3,$list4);
+  }
+  else
+  {
+    $result=array($points[0],$points[$n-1]);
+  }
+  return $result;
+}
+
+#####################################################################################################
+
 function gantt($data,$callbacks=false)
 {
   global $settings;
@@ -14,14 +53,14 @@ function gantt($data,$callbacks=false)
 
   $task=array();
   $task["name"]="test task 1";
-  $task["start"]=strtotime("-1 months",$today);
-  $task["finish"]=strtotime("+1 months",$today);
+  $task["start"]=\webdb\utils\webdb_strtotime("-1 months",$today);
+  $task["finish"]=\webdb\utils\webdb_strtotime("+1 months",$today);
   $data[]=$task;
 
   $task=array();
   $task["name"]="test task 2";
-  $task["start"]=strtotime("-1 months",$today);
-  $task["finish"]=strtotime("+1 months",$today);
+  $task["start"]=\webdb\utils\webdb_strtotime("-1 months",$today);
+  $task["finish"]=\webdb\utils\webdb_strtotime("+1 months",$today);
   $data[]=$task;*/
 
   $line_height=30; # pixels
@@ -304,6 +343,7 @@ function chart_colors()
   $colors["magenta"]=array(211,54,130);
   $colors["blue"]=array(38,139,210);
   $colors["grid"]=array(230,230,230);
+  $colors["sub_grid"]=array(240,240,240);
   $colors["border"]=array(230,230,250);
   $colors["black"]=array(0,0,0);
   return $colors;
@@ -490,6 +530,8 @@ function initilize_chart($copy_source=false)
   $data["discontinuous_plots"]=array();
   $data["grid_x"]=1;
   $data["grid_y"]=1;
+  $data["sub_grid_x"]=false;
+  $data["sub_grid_y"]=false;
   $data["x_min"]=0;
   $data["x_max"]=10;
   $data["y_min"]=0;
@@ -661,6 +703,22 @@ function auto_range(&$data)
 
 #####################################################################################################
 
+function adjust_min_max_months_x(&$data)
+{
+  $data["x_min"]=\webdb\utils\webdb_strtotime("-1 month",$data["x_min"]);
+  $data["x_min"]=\webdb\utils\webdb_strtotime(date("Y-m",$data["x_min"])."-01");
+  $data["x_max"]=\webdb\utils\webdb_strtotime("+2 month",$data["x_max"]);
+  $data["x_max"]=\webdb\utils\webdb_strtotime(date("Y-m",$data["x_max"])."-01");
+  $d1=new \DateTime("@".$data["x_min"]);
+  $d2=new \DateTime("@".$data["x_max"]);
+  $diff=$d1->diff($d2);
+  $n=$diff->y*12+$diff->m;
+  $data["grid_x"]=($data["x_max"]-$data["x_min"])/$n;
+  return $n;
+}
+
+#####################################################################################################
+
 function get_time_captions($scale,&$data,$format=false)
 {
   $min_x=$data["x_min"];
@@ -673,11 +731,11 @@ function get_time_captions($scale,&$data,$format=false)
       {
         $format="Y-m-d";
       }
-      $min_x=strtotime("-1 day",$min_x);
-      $min_x=strtotime(date("Y-m-d",$min_x));
+      $min_x=\webdb\utils\webdb_strtotime("-1 day",$min_x);
+      $min_x=\webdb\utils\webdb_strtotime(date("Y-m-d",$min_x));
       $data["x_min"]=$min_x;
-      $max_x=strtotime("+2 day",$max_x);
-      $max_x=strtotime(date("Y-m-d",$max_x));
+      $max_x=\webdb\utils\webdb_strtotime("+2 day",$max_x);
+      $max_x=\webdb\utils\webdb_strtotime(date("Y-m-d",$max_x));
       $data["x_max"]=$max_x;
       $diff=$max_x-$min_x;
       $data["grid_x"]=24*60*60;
@@ -686,7 +744,7 @@ function get_time_captions($scale,&$data,$format=false)
       for ($i=0;$i<=$n;$i++)
       {
         $x_captions[]=date($format,$x);
-        $x=strtotime("+1 day",$x);
+        $x=\webdb\utils\webdb_strtotime("+1 day",$x);
       }
       break;
     case "month":
@@ -694,23 +752,13 @@ function get_time_captions($scale,&$data,$format=false)
       {
         $format="M-Y";
       }
-      $min_x=strtotime("-1 month",$min_x);
-      $min_x=strtotime(date("Y-m",$min_x)."-01");
-      $data["x_min"]=$min_x;
-      $max_x=strtotime("+2 month",$max_x);
-      $max_x=strtotime(date("Y-m",$max_x)."-01");
-      $data["x_max"]=$max_x;
-      $d1=new \DateTime("@".$min_x);
-      $d2=new \DateTime("@".$max_x);
-      $diff=$d1->diff($d2);
-      $n=$diff->y*12+$diff->m;
-      $x=$min_x;
+      $n=\webdb\chart\adjust_min_max_months_x($data);
+      $x=$data["x_min"];
       for ($i=0;$i<=($n+1);$i++)
       {
         $x_captions[]=date($format,$x);
-        $x=strtotime("+1 month",$x);
+        $x=\webdb\utils\webdb_strtotime("+1 month",$x);
       }
-      $data["grid_x"]=($max_x-$min_x)/$n;
       break;
     case "year":
       # TODO
@@ -957,7 +1005,7 @@ function chart_to_pixel_x($val,$data)
   }
   $chart_w_pix=$data["w"]-$data["left"]-$data["right"];
   $ppu=\webdb\chart\pixels_per_unit($chart_w_pix,$data["x_min"],$data["x_max"]);
-  return intval(round(($val-$data["x_min"])*$ppu)+$data["left"]);
+  return intval(round(($val-$data["x_min"])*$ppu+$data["left"]));
 }
 
 #####################################################################################################
@@ -970,7 +1018,7 @@ function chart_to_pixel_y($val,$data)
   }
   $chart_h_pix=$data["h"]-$data["top"]-$data["bottom"];
   $ppu=\webdb\chart\pixels_per_unit($chart_h_pix,$data["y_min"],$data["y_max"]);
-  return intval(round($chart_h_pix-1-($val-$data["y_min"])*$ppu)+$data["top"]);
+  return intval(round($chart_h_pix-1-($val-$data["y_min"])*$ppu+$data["top"]));
 }
 
 #####################################################################################################
@@ -1041,8 +1089,8 @@ function chart_draw_column_series(&$data,$series,$y_min=0)
   $y1=\webdb\chart\chart_to_pixel_y($y_min,$data);
   for ($i=0;$i<$n;$i++)
   {
-    $x1=\webdb\chart\chart_to_pixel_x($x_values[$i],$data)-$half_col;
-    $x2=\webdb\chart\chart_to_pixel_x($x_values[$i],$data)+$half_col;
+    $x1=round(\webdb\chart\chart_to_pixel_x($x_values[$i],$data)-$half_col);
+    $x2=round(\webdb\chart\chart_to_pixel_x($x_values[$i],$data)+$half_col);
     $y2=\webdb\chart\chart_to_pixel_y($y_values[$i],$data);
     if ($y1==$y2)
     {
@@ -1356,6 +1404,20 @@ function chart_draw_grid(&$data)
     {
       case "linear":
         $dx=$data["x_max"]-$data["x_min"];
+        if ($data["sub_grid_x"]!==false)
+        {
+          $color=$data["colors"]["sub_grid"];
+          $line_color=imagecolorallocate($data["buffer"],$color[0],$color[1],$color[2]);
+          $n=round($dx/$data["sub_grid_x"]);
+          for ($i=0;$i<=$n;$i++)
+          {
+            $rx=$data["sub_grid_x"]*$i+$data["x_min"];
+            $px=\webdb\chart\chart_to_pixel_x($rx,$data);
+            imageline($data["buffer"],$px,$data["top"],$px,$data["h"]-$data["bottom"]-1,$line_color);
+          }
+          $color=$data["colors"]["grid"];
+          $line_color=imagecolorallocate($data["buffer"],$color[0],$color[1],$color[2]);
+        }
         $n=round($dx/$data["grid_x"]);
         for ($i=0;$i<=$n;$i++)
         {
@@ -1387,6 +1449,20 @@ function chart_draw_grid(&$data)
     {
       case "linear":
         $dy=$data["y_max"]-$data["y_min"];
+        if ($data["sub_grid_y"]!==false)
+        {
+          $color=$data["colors"]["sub_grid"];
+          $line_color=imagecolorallocate($data["buffer"],$color[0],$color[1],$color[2]);
+          $n=round($dy/$data["sub_grid_y"]);
+          for ($i=0;$i<=$n;$i++)
+          {
+            $ry=$data["sub_grid_y"]*$i+$data["y_min"];
+            $py=\webdb\chart\chart_to_pixel_y($ry,$data);
+            imageline($data["buffer"],$data["left"],$py,$data["w"]-$data["right"]-1,$py,$line_color);
+          }
+          $color=$data["colors"]["grid"];
+          $line_color=imagecolorallocate($data["buffer"],$color[0],$color[1],$color[2]);
+        }
         $n=round($dy/$data["grid_y"]);
         for ($i=0;$i<=$n;$i++)
         {
@@ -1456,7 +1532,7 @@ function chart_draw_axis_x(&$data)
         {
           if (($i%2)>0)
           {
-            continue;
+            #continue; TODO: SKIPS MONTHS IN LINUX SOMETIMES ???
           }
         }
         imageline($data["buffer"],$x,$y,$x,$y+$tick_length,$line_color);
@@ -1627,7 +1703,7 @@ function chart_draw_title_x(&$data)
   $text_h=$bbox[1]-$bbox[7];
   $text_x=$cx-round($text_w/2);
   $text_y=$data["h"]-$title_margin;
-  imagettftext($data["buffer"],$title_font_size,0,$text_x,$text_y,$text_color,$text_file,$data["x_title"]);
+  imagettftext($data["buffer"],$title_font_size,0,round($text_x),round($text_y),$text_color,$text_file,$data["x_title"]);
 }
 
 #####################################################################################################

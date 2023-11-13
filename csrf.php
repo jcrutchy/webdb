@@ -153,7 +153,7 @@ function fill_csrf_token($buffer)
   {
     $settings["csrf_token"]="";
   }
-  return str_replace("%%csrf_token%%",$settings["csrf_token"],$buffer);
+  return \webdb\utils\webdb_str_replace("%%csrf_token%%",$settings["csrf_token"],$buffer);
 }
 
 #####################################################################################################

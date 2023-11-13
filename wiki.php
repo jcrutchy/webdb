@@ -99,8 +99,8 @@ function search_results($form_config,$query)
 {
   global $settings;
   $page_params=array();
-  $page_params["query"]=htmlspecialchars($query);
-  $compare_query=strtolower($query);
+  $page_params["query"]=\webdb\utils\webdb_htmlspecialchars($query);
+  $compare_query=\webdb\utils\webdb_strtolower($query);
   $sql_params=array();
   $sql_params["query"]=$compare_query;
   $records=\webdb\sql\file_fetch_prepare("wiki/search_articles",$sql_params);
@@ -110,11 +110,11 @@ function search_results($form_config,$query)
   {
     $record=$records[$i];
     $result=false;
-    if (strpos(strtolower($record["title"]),$compare_query)!==false)
+    if (strpos(\webdb\utils\webdb_strtolower($record["title"]),$compare_query)!==false)
     {
       $result=true;
     }
-    if (strpos(strtolower($record["content"]),$compare_query)!==false)
+    if (strpos(\webdb\utils\webdb_strtolower($record["content"]),$compare_query)!==false)
     {
       $result=true;
     }
@@ -132,11 +132,11 @@ function search_results($form_config,$query)
   {
     $record=$records[$i];
     $result=false;
-    if (strpos(strtolower($record["title"]),$compare_query)!==false)
+    if (strpos(\webdb\utils\webdb_strtolower($record["title"]),$compare_query)!==false)
     {
       $result=true;
     }
-    if (strpos(strtolower($record["notes"]),$compare_query)!==false)
+    if (strpos(\webdb\utils\webdb_strtolower($record["notes"]),$compare_query)!==false)
     {
       $result=true;
     }
@@ -150,7 +150,7 @@ function search_results($form_config,$query)
   $page_params["wiki_styles_modified"]=\webdb\utils\resource_modified_timestamp("wiki/wiki.css");
   $page_params["wiki_styles_print_modified"]=\webdb\utils\resource_modified_timestamp("wiki/wiki_print.css");
   $content=\webdb\utils\template_fill("wiki/search_results",$page_params);
-  \webdb\utils\output_page($content,$form_config["title"]." [search: \"".htmlspecialchars($query)."\"]");
+  \webdb\utils\output_page($content,$form_config["title"]." [search: \"".\webdb\utils\webdb_htmlspecialchars($query)."\"]");
 }
 
 #####################################################################################################
@@ -160,7 +160,7 @@ function article_history($form_config,$article_record)
   global $settings;
   if (isset($_GET["rev"])==true)
   {
-    $page_params["content"]=\webdb\wiki_utils\wikitext_to_html($page_params["content"]);
+    $page_params["content"]=\webdb\wiki_utils\wikitext_to_html($article_record["content"]);
   }
   else
   {
@@ -180,7 +180,8 @@ function article_history($form_config,$article_record)
   }
   $page_params["wiki_styles_modified"]=\webdb\utils\resource_modified_timestamp("wiki/wiki.css");
   $page_params["wiki_styles_print_modified"]=\webdb\utils\resource_modified_timestamp("wiki/wiki_print.css");
-  $page_params["url_title"]=urlencode($page_params["title"]);
+  $page_params["url_title"]=urlencode($article_record["title"]);
+  $page_params["title"]=$article_record["title"];
   $content=\webdb\utils\template_fill("wiki/article_history",$page_params);
   \webdb\utils\output_page($content,$form_config["title"].": ".$article_record["title"]." [history]");
 }
@@ -297,7 +298,7 @@ function confirm_file_edit($form_config,$title,$file_record)
   $value_items["title"]=trim($_POST["wiki_file_edit_title"]);
   $upload_data=$_FILES["wiki_file_upload"];
   $upload_filename=$upload_data["name"];
-  $file_ext=strtolower(pathinfo($upload_filename,PATHINFO_EXTENSION)); # excludes period
+  $file_ext=\webdb\utils\webdb_strtolower(pathinfo($upload_filename,PATHINFO_EXTENSION)); # excludes period
   if (isset($settings["permitted_upload_types"][$file_ext])==false)
   {
     \webdb\utils\error_message("error: file type not permitted");

@@ -13,7 +13,7 @@ function blend_rect_horz($buffer,$x1,$y1,$x2,$y2,$from_color,$to_color) # colors
     $r=$from_color[0]-((($from_color[0]-$to_color[0])/$delta)*$i);
     $g=$from_color[1]-((($from_color[1]-$to_color[1])/$delta)*$i);
     $b=$from_color[2]-((($from_color[2]-$to_color[2])/$delta)*$i);
-    $color=imagecolorallocate($buffer,$r,$g,$b);
+    $color=imagecolorallocate($buffer,round($r),round($g),round($b));
     imagefilledrectangle($buffer,$x1+$i,$y1,$x1+$i+1,$y2,$color);
   }
 }
@@ -28,7 +28,7 @@ function base64_image_encode($image_data,$type,$template="base64_image",$display
   $params["type"]=$type;
   $encoded=base64_encode($image_data);
   $params["data"]=chunk_split($encoded,76,"\r\n");
-  return \webdb\utils\template_fill("base64_image",$params);
+  return \webdb\utils\template_fill($template,$params);
 }
 
 #####################################################################################################
