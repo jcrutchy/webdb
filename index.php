@@ -33,6 +33,7 @@ require_once($dir."chat.php");
 require_once($dir."manage.php");
 require_once($dir."cli.php");
 require_once($dir."http.php");
+require_once($dir."websocket.php");
 require_once($dir."dbquery.php");
 require_once($dir."wiki.php");
 require_once($dir."wiki_utils.php");
