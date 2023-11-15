@@ -50,7 +50,8 @@ function request($url,$peer_name,$request,$ignore_verify=false,$return_error=fal
   $context=stream_context_create($context_options);
   $errno=0;
   $errstr="";
-  $fp=stream_socket_client($protocol."://".$host.":".$port,$errno,$errstr,$timeout,STREAM_CLIENT_CONNECT,$context);
+  $fp=stream_socket_client($protocol."://".$host.":".$port,$errno,$errstr,$timeout,STREAM_CLIENT_CONNECT);
+  #$fp=stream_socket_client($protocol."://".$host.":".$port,$errno,$errstr,$timeout,STREAM_CLIENT_CONNECT,$context);
   if ($fp===false)
   {
     if ($return_error==true)

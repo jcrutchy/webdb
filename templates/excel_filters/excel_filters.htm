@@ -1,0 +1,239 @@
+
+
+<!-- ref: https://stackoverflow.com/a/69357517 -->
+
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+
+
+<script>
+
+(function($) {
+
+$.fn.ddTableFilter = function(options) {
+  options = $.extend(true, $.fn.ddTableFilter.defaultOptions, options);
+
+  return this.each(function() {
+    if($(this).hasClass('ddtf-processed')) {
+      refreshFilters(this);
+      return;
+    }
+    var table = $(this);
+    var start = new Date();
+
+    $('th:visible', table).each(function(index) {
+      if($(this).hasClass('skip-filter')) return;
+      var selectbox = $('<select class="form-control">');
+      var values = [];
+      var opts = [];
+      //selectbox.append('<option value="--all--">' + $(this).text() + '</option>');
+      selectbox.append('<option value="--all--">-- all --</option>');
+
+      var col = $('tr:not(.skip-filter) td:nth-child(' + (index + 1) + ')', table).each(function() {
+        var cellVal = options.valueCallback.apply(this);
+        if(cellVal.length == 0) {
+          cellVal = '--empty--';
+        }
+        $(this).attr('ddtf-value', cellVal);
+
+        if($.inArray(cellVal, values) === -1) {
+          var cellText = options.textCallback.apply(this);
+          if(cellText.length == 0) {cellText = options.emptyText;}
+          values.push(cellVal);
+          opts.push({val:cellVal, text:cellText});
+        }
+      });
+      if(opts.length < options.minOptions){
+        return;
+      }
+      if(options.sortOpt) {
+        opts.sort(options.sortOptCallback);
+      }
+      $.each(opts, function() {
+        $(selectbox).append('<option value="' + this.val + '">' + this.text + '</option>')
+      });
+
+      //$(this).wrapInner('<div style="display:none">');
+      $(this).append(selectbox);
+
+      selectbox.bind('change', {column:col}, function(event) {
+        var changeStart = new Date();
+        var value = $(this).val();
+
+        event.data.column.each(function() {
+          if($(this).attr('ddtf-value') === value || value == '--all--') {
+            $(this).removeClass('ddtf-filtered');
+          }
+          else {
+            $(this).addClass('ddtf-filtered');
+          }
+        });
+        var changeStop = new Date();
+        refreshFilters(table);
+
+      });
+      table.addClass('ddtf-processed');
+      if($.isFunction(options.afterBuild)) {
+        options.afterBuild.apply(table);
+      }
+    });
+
+    function refreshFilters(table) {
+      var refreshStart = new Date();
+      $('tr', table).each(function() {
+        var row = $(this);
+        if($('td.ddtf-filtered', row).length > 0) {
+          options.transition.hide.apply(row, options.transition.options);
+        }
+        else {
+          options.transition.show.apply(row, options.transition.options);
+        }
+      });
+
+      if($.isFunction(options.afterFilter)) {
+        options.afterFilter.apply(table);
+      }
+    }
+  });
+};
+
+$.fn.ddTableFilter.defaultOptions = {
+  valueCallback:function() {
+    return encodeURIComponent($.trim($(this).text()));
+  },
+  textCallback:function() {
+    return $.trim($(this).text());
+  },
+  sortOptCallback: function(a, b) {
+    return a.text.toLowerCase() > b.text.toLowerCase();
+  },
+  afterFilter: null,
+  afterBuild: null,
+  transition: {
+    hide:$.fn.hide,
+    show:$.fn.show,
+    options: []
+  },
+  emptyText:'--Empty--',
+  sortOpt:true,
+  debug:false,
+  minOptions:2
+}
+
+})(jQuery);
+
+$('table').ddTableFilter();
+
+</script>
+
+
+
+
+
+<style>
+
+table
+  {
+    margin: 0 auto;
+    margin-top: 20px;
+    position: relative;
+    overflow: auto;
+    overflow-y: overlay;
+  }
+
+th
+  {
+    position: sticky;
+    top: 0;
+    border: 1px solid black;
+    background-color: #8EA9DB;
+    text-align: center;
+    color: black;
+    table-layout: fixed;
+    height: 70px;
+    vertical-align: top;
+    border-top-color: #dddddd;
+    border-left-color: #dddddd;
+    border-right-color: #dddddd;
+  }
+
+td
+  {
+    border-left-color: #dddddd;
+    border-right-color: #dddddd;
+  }
+
+.form-control
+  {
+    width: 150px;
+    position: absolute;
+    bottom: 3px;
+    left: 4px;
+  }
+
+.filter
+  {
+    min-width: 148px;
+  }
+
+</style>
+
+
+
+
+<!-- example use
+<table style='padding: 8px;'>
+  <tr>
+    <th index=0>Email
+      <div class="filter"></div>
+    </th>
+    <th index=1>Name
+      <div class="filter"></div>
+    </th>
+    <th index=2>Level
+      <div class="filter"></div>
+    </th>
+    <th index=3>Location
+      <div class="filter"></div>
+    </th>
+  </tr>
+
+  <tr>
+    <td>Email 1</td>
+    <td>Name 1</td>
+    <td>Level 1</td>
+    <td>Location 2</td>
+  </tr>
+  <tr>
+    <td>Email 1</td>
+    <td>Name 1</td>
+    <td>Level 1</td>
+    <td>Location 1</td>
+  </tr>
+  <tr>
+    <td>Email 2</td>
+    <td>Name 1</td>
+    <td>Level 2</td>
+    <td>Location 1</td>
+  </tr>
+  <tr>
+    <td>Email 3</td>
+    <td>Name 2</td>
+    <td>Level 2</td>
+    <td>Location 1</td>
+  </tr>
+  <tr>
+    <td>Email 3</td>
+    <td>Name 3</td>
+    <td>Level 1</td>
+    <td>Location 2</td>
+  </tr>
+  <tr>
+    <td>Email 1</td>
+    <td>Name 2</td>
+    <td>Level 2</td>
+    <td>Location 1</td>
+  </tr>
+-->
