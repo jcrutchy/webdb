@@ -118,7 +118,7 @@ function wget($url,$peer_name,&$cookie_jar,$headers=false,$ignore_verify=false,$
 
 #####################################################################################################
 
-function wpost($url,$content,$peer_name,&$cookie_jar,$headers=false,$ignore_verify=false,$return_error=false,$timeout=20)
+function wpost($url,$content,$peer_name,&$cookie_jar,$headers=false,$ignore_verify=false,$return_error=false,$timeout=20,$method="POST",$ua_override=false)
 {
   global $settings;
   $content_type="application/x-www-form-urlencoded";
@@ -145,9 +145,12 @@ function wpost($url,$content,$peer_name,&$cookie_jar,$headers=false,$ignore_veri
   {
     $uri.="?".$url_parts["query"];
   }
-  $request="POST ".$uri." HTTP/1.0\r\n";
+  $request=$method." ".$uri." HTTP/1.0\r\n";
   $request.="Host: ".$host."\r\n";
-  $request.="User-Agent: ".$settings["http_user_agent"]."\r\n";
+  if ($ua_override===false)
+  {
+    $request.="User-Agent: ".$settings["http_user_agent"]."\r\n";
+  }
   if ($headers===false)
   {
     $request.="Accept: text/html; charset=utf-8\r\n";
