@@ -27,6 +27,8 @@ $settings["app_forms_path"]=$settings["app_root_path"]."forms".DIRECTORY_SEPARAT
 
 $settings["global_temp_path"]="";
 
+$settings["application_default_page_id"]="";
+
 $settings["file_field_image_preview_max_pix"]=100;
 
 $settings["app_home_template"]="home";

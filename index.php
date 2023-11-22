@@ -202,6 +202,13 @@ if (isset($_GET["page"])==true)
   \webdb\forms\form_dispatch($_GET["page"]);
 }
 
+if ($settings["application_default_page_id"]<>"")
+{
+  $url=\webdb\utils\get_url();
+  $url.="?page=".$settings["application_default_page_id"];
+  \webdb\utils\redirect($url);
+}
+
 $home_params=array();
 $home_params["user_favorites_list"]=\webdb\chat\output_user_favorites_list();
 $content=\webdb\utils\template_fill($settings["app_home_template"],$home_params);
