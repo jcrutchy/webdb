@@ -296,7 +296,7 @@ function on_browser_msg($client_key,$data)
   }
   elseif ($settings["ws_browser_connections"][$client_key]["state"]=="OPEN")
   {
-    \webdb\cli\term_echo("message received from OPEN browser client socket ".$client_key,32);
+    \webdb\cli\term_echo("command or text message received from OPEN browser client socket ".$client_key,32);
     $frame=\webdb\websocket\decode_frame($data);
     if ($frame===false)
     {
@@ -359,7 +359,7 @@ function on_browser_msg($client_key,$data)
     }
     if ($msg<>"")
     {
-      \webdb\cli\term_echo("message received from browser client socket ".$client_key,32);
+      \webdb\cli\term_echo("text message received from browser client socket ".$client_key,32);
       \webdb\cli\term_echo("  ".$msg,32);
       if (function_exists($settings["ws_on_browser_server_msg"])==true)
       {
@@ -401,8 +401,7 @@ function broadcast_to_all($msg)
     if ($conn["state"]=="OPEN")
     {
       \webdb\cli\term_echo("sending to browser client socket ".$key.": ".$msg,33);
-      $frame=\webdb\websocket\encode_text_data_frame($msg);
-      \webdb\websocket\do_browser_reply($key,$frame);
+      \webdb\websocket\send_browser_text($key,$msg);
     }
   }
 }
