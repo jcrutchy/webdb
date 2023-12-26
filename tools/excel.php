@@ -82,7 +82,7 @@ function sheet_values($filename,$strings)
 
 function sheet_name_map($xml_path)
 {
-  $rels=simplexml_load_file($xml_path.'\xl\_rels\workbook.xml.rels');
+  $rels=simplexml_load_file($xml_path."/xl/_rels/workbook.xml.rels");
   $rels=json_encode($rels);
   $rels=json_decode($rels,true);
   $rels=$rels["Relationship"];
@@ -96,7 +96,7 @@ function sheet_name_map($xml_path)
     $id=$rel["Id"];
     $sheet_rels[$id]=$rel["Target"];
   }
-  $book=simplexml_load_file($xml_path.'\xl\workbook.xml');
+  $book=simplexml_load_file($xml_path."/xl/workbook.xml");
   $names=array();
   $sheets=$book->sheets;
   foreach ($sheets->sheet as $sheet)
