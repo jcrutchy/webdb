@@ -134,6 +134,10 @@ function get_pdo_object($is_admin)
 
 function get_statement_type($sql)
 {
+  if (trim($sql)=="SET time_zone = \"+00:00\";")
+  {
+    return "SET";
+  }
   $sql_parts=\webdb\utils\webdb_strtoupper(trim($sql));
   $sql_parts=\webdb\utils\webdb_str_replace("\n"," ",$sql_parts);
   $sql_parts=\webdb\utils\webdb_explode(" ",$sql_parts);
@@ -492,6 +496,10 @@ function execute_prepare($sql,$params=array(),$filename="",$is_admin=false,$tabl
       {
         \webdb\utils\error_message("error executing sql query that changes the database (change flag not set): ".\webdb\utils\webdb_htmlspecialchars($sql));
       }
+      break;
+    case "SET":
+      $statement=\webdb\sql\execute_return($sql,$params,$filename,$is_admin,$table,$database,$form_config);
+      return true;
   }
   $settings["sql_database_change"]=false;
   \webdb\sql\null_user_check($sql,$params,$table,$database);

@@ -11,6 +11,10 @@ function chat_initialize()
   {
     return false;
   }
+  if ($settings["chat_global_enable"]==false)
+  {
+    return false;
+  }
   if ($settings["db_engine"]=="mysql")
   {
     \webdb\sql\file_execute_prepare("chat/timezone_set");
@@ -35,6 +39,14 @@ function update_online_user_list()
 {
   global $settings;
   $user_record=\webdb\chat\chat_initialize();
+  if ($user_record===false)
+  {
+    $params=array();
+    $params["rows"]="";
+    $data["html"]=\webdb\utils\template_fill("online_user_list_table",$params);
+    $data=json_encode($data);
+    die($data);
+  }
   $data=array();
   if ($user_record["json_data"]<>"")
   {
