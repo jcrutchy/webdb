@@ -2292,3 +2292,15 @@ function webdb_strlen($string)
 }
 
 #####################################################################################################
+
+function load_bytes_from_file($filename)
+{
+  $fhandle=fopen($filename,"rb");
+  $fsize=filesize($filename);
+  $contents=fread($fhandle,$fsize);
+  $result=unpack("C*",$contents);
+  fclose($fhandle);
+  return $result;
+}
+
+#####################################################################################################

@@ -72,7 +72,7 @@ function scale_img(&$buffer,$scale,$w,$h)
     return false;
   }
   imagedestroy($buffer);
-  $buffer=imagecreate($final_w,$final_h);
+  $buffer=imagecreatetruecolor($final_w,$final_h);
   if (imagecopy($buffer,$buffer_resized,0,0,0,0,$final_w,$final_h)==false)
   {
     return false;
