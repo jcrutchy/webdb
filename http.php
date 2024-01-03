@@ -21,7 +21,8 @@ function request($url,$peer_name,$request,$ignore_verify=false,$return_error=fal
   if ($url_parts["scheme"]=="https")
   {
     $port=443;
-    if (file_exists($settings["ssl_cafile"])==false)
+    $protocol="tls";
+    /*if (file_exists($settings["ssl_cafile"])==false)
     {
       \webdb\utils\error_message("Certificate file not found.");
     }
@@ -39,15 +40,14 @@ function request($url,$peer_name,$request,$ignore_verify=false,$return_error=fal
     {
       $context_options["ssl"]["verify_peer"]=false;
       $context_options["ssl"]["verify_peer_name"]=false;
-    }
-    $protocol="tls";
+    }*/
   }
   else
   {
     $port=80;
     $protocol="tcp";
   }
-  $context=stream_context_create($context_options);
+  #$context=stream_context_create($context_options);
   $errno=0;
   $errstr="";
   $fp=stream_socket_client($protocol."://".$host.":".$port,$errno,$errstr,$timeout,STREAM_CLIENT_CONNECT);
