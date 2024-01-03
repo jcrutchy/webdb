@@ -860,6 +860,11 @@ function output_chart($data,$filename=false,$no_output=false,$rhs_data=false,$dr
     {
       \webdb\chart\chart_draw_today_mark($data);
     }
+    $bg_color=imagecolorallocate($data["buffer"],$data["bg_color_r"],$data["bg_color_g"],$data["bg_color_b"]);
+    imagefilledrectangle($data["buffer"],0,0,$data["w"],$data["top"]-1,$bg_color);
+    imagefilledrectangle($data["buffer"],0,0,$data["left"]-1,$data["h"],$bg_color);
+    imagefilledrectangle($data["buffer"],$data["w"]-$data["right"],0,$data["w"],$data["h"],$bg_color);
+    imagefilledrectangle($data["buffer"],0,$data["h"]-$data["bottom"],$data["w"],$data["h"],$bg_color);
     if ($data["show_y_axis"]==true)
     {
       \webdb\chart\chart_draw_axis_y($data,$rhs_data);
