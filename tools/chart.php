@@ -320,7 +320,7 @@ function auto_grid_y($pix,&$data)
 
 function zero_value($value)
 {
-  if (abs($value)<=1e-15)
+  if (abs($value)<=1e-12)
   {
     return 0.0;
   }
