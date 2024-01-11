@@ -22,36 +22,35 @@ function request($url,$peer_name,$request,$ignore_verify=false,$return_error=fal
   {
     $port=443;
     $protocol="tls";
-    /*if (file_exists($settings["ssl_cafile"])==false)
+    if (($ignore_verify==false) and ($peer_name<>"") and (file_exists($settings["ssl_cafile"])==true))
     {
-      \webdb\utils\error_message("Certificate file not found.");
+      $context_options["ssl"]=array(
+        "peer_name"=>$peer_name,
+        "verify_peer"=>true,
+        "verify_peer_name"=>true,
+        "allow_self_signed"=>false,
+        "verify_depth"=>5,
+        "cafile"=>$settings["ssl_cafile"],
+        "disable_compression"=>false,
+        "SNI_enabled"=>true,
+        "ciphers"=>"DEFAULT");
     }
-    $context_options["ssl"]=array(
-      "peer_name"=>$peer_name,
-      "verify_peer"=>true,
-      "verify_peer_name"=>true,
-      "allow_self_signed"=>false,
-      "verify_depth"=>5,
-      "cafile"=>$settings["ssl_cafile"],
-      "disable_compression"=>false,
-      "SNI_enabled"=>true,
-      "ciphers"=>"DEFAULT");
-    if ($ignore_verify==true)
+    else
     {
-      $context_options["ssl"]["verify_peer"]=false;
-      $context_options["ssl"]["verify_peer_name"]=false;
-    }*/
+      $context_options["ssl"]=array(
+        "verify_peer"=>false,
+        "verify_peer_name"=>false);
+    }
   }
   else
   {
     $port=80;
     $protocol="tcp";
   }
-  #$context=stream_context_create($context_options);
+  $context=stream_context_create($context_options);
   $errno=0;
   $errstr="";
-  $fp=stream_socket_client($protocol."://".$host.":".$port,$errno,$errstr,$timeout,STREAM_CLIENT_CONNECT);
-  #$fp=stream_socket_client($protocol."://".$host.":".$port,$errno,$errstr,$timeout,STREAM_CLIENT_CONNECT,$context);
+  $fp=stream_socket_client($protocol."://".$host.":".$port,$errno,$errstr,$timeout,STREAM_CLIENT_CONNECT,$context);
   if ($fp===false)
   {
     if ($return_error==true)
