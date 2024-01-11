@@ -346,6 +346,9 @@ function chart_colors()
   $colors["sub_grid"]=array(240,240,240);
   $colors["border"]=array(230,230,250);
   $colors["black"]=array(0,0,0);
+  $colors["background"]=array(253,253,253);
+  $colors["axes"]=array(50,50,50);
+  $colors["titles"]=array(50,50,50);
   return $colors;
 }
 
@@ -547,9 +550,6 @@ function initilize_chart($copy_source=false)
   $data["show_grid_y"]=true;
   $data["show_x_axis"]=true;
   $data["show_y_axis"]=true;
-  $data["bg_color_r"]=253;
-  $data["bg_color_g"]=253;
-  $data["bg_color_b"]=253;
   $data["auto_grid_x_pix"]=30;
   $data["auto_grid_y_pix"]=30;
   $data["user_data"]=array(); # use to store any data (may be useful for events)
@@ -860,11 +860,12 @@ function output_chart($data,$filename=false,$no_output=false,$rhs_data=false,$dr
     {
       \webdb\chart\chart_draw_today_mark($data);
     }
-    $bg_color=imagecolorallocate($data["buffer"],$data["bg_color_r"],$data["bg_color_g"],$data["bg_color_b"]);
-    imagefilledrectangle($data["buffer"],0,0,$data["w"],$data["top"]-1,$bg_color);
-    imagefilledrectangle($data["buffer"],0,0,$data["left"]-1,$data["h"],$bg_color);
-    imagefilledrectangle($data["buffer"],$data["w"]-$data["right"],0,$data["w"],$data["h"],$bg_color);
-    imagefilledrectangle($data["buffer"],0,$data["h"]-$data["bottom"],$data["w"],$data["h"],$bg_color);
+    $color=$data["colors"]["background"];
+    $color=imagecolorallocate($data["buffer"],$color[0],$color[1],$color[2]);
+    imagefilledrectangle($data["buffer"],0,0,$data["w"],$data["top"]-1,$color);
+    imagefilledrectangle($data["buffer"],0,0,$data["left"]-1,$data["h"],$color);
+    imagefilledrectangle($data["buffer"],$data["w"]-$data["right"],0,$data["w"],$data["h"],$color);
+    imagefilledrectangle($data["buffer"],0,$data["h"]-$data["bottom"],$data["w"],$data["h"],$color);
     if ($data["show_y_axis"]==true)
     {
       \webdb\chart\chart_draw_axis_y($data,$rhs_data);
@@ -1034,8 +1035,9 @@ function chart_draw_create(&$data)
   imageantialias($data["buffer"],false);
   imagesetthickness($data["buffer"],1);
   imageantialias($data["buffer"],true);
-  $bg_color=imagecolorallocate($data["buffer"],$data["bg_color_r"],$data["bg_color_g"],$data["bg_color_b"]);
-  imagefill($data["buffer"],0,0,$bg_color);
+  $color=$data["colors"]["background"];
+  $color=imagecolorallocate($data["buffer"],$color[0],$color[1],$color[2]);
+  imagefill($data["buffer"],0,0,$color);
 }
 
 #####################################################################################################
@@ -1051,8 +1053,8 @@ function chart_draw_destroy(&$data)
 function chart_draw_border(&$data)
 {
   $color=$data["colors"]["border"];
-  $line_color=imagecolorallocate($data["buffer"],$color[0],$color[1],$color[2]);
-  imagerectangle($data["buffer"],0,0,$data["w"]-1,$data["h"]-1,$line_color);
+  $color=imagecolorallocate($data["buffer"],$color[0],$color[1],$color[2]);
+  imagerectangle($data["buffer"],0,0,$data["w"]-1,$data["h"]-1,$color);
 }
 
 #####################################################################################################
@@ -1068,11 +1070,11 @@ function chart_draw_today_mark(&$data)
   {
     $color=$data["today_mark"];
     $color=$data["colors"][$color];
-    $line_color=imagecolorallocate($data["buffer"],$color[0],$color[1],$color[2]);
+    $color=imagecolorallocate($data["buffer"],$color[0],$color[1],$color[2]);
     $px=\webdb\chart\chart_to_pixel_x($rx,$data);
     $py1=\webdb\chart\chart_to_pixel_y($data["y_max"],$data);
     $py2=\webdb\chart\chart_to_pixel_y($data["y_min"],$data);
-    imageline($data["buffer"],$px,$py1,$px,$py2,$line_color);
+    imageline($data["buffer"],$px,$py1,$px,$py2,$color);
   }
 }
 
@@ -1504,8 +1506,9 @@ function chart_draw_axis_x(&$data)
   $tick_length=5;
   $label_space=4;
   $text_file=$settings["gd_ttf"];
-  $line_color=imagecolorallocate($data["buffer"],50,50,50);
-  $text_color=imagecolorallocate($data["buffer"],50,50,50);
+  $color=$data["colors"]["axes"];
+  $line_color=imagecolorallocate($data["buffer"],$color[0],$color[1],$color[2]);
+  $text_color=imagecolorallocate($data["buffer"],$color[0],$color[1],$color[2]);
   $y=$data["h"]-$data["bottom"]-1;
   imageline($data["buffer"],$data["left"],$y,$data["w"]-$data["right"]-1,$y,$line_color);
   switch ($data["x_axis_scale"])
@@ -1593,8 +1596,9 @@ function chart_draw_axis_y(&$data,$rhs_data=false)
   $tick_length=5;
   $label_space=4;
   $text_file=$settings["gd_ttf"];
-  $line_color=imagecolorallocate($data["buffer"],50,50,50);
-  $text_color=imagecolorallocate($data["buffer"],50,50,50);
+  $color=$data["colors"]["axes"];
+  $line_color=imagecolorallocate($data["buffer"],$color[0],$color[1],$color[2]);
+  $text_color=imagecolorallocate($data["buffer"],$color[0],$color[1],$color[2]);
   imageline($data["buffer"],$data["left"],$data["top"],$data["left"],$data["h"]-$data["bottom"]-1,$line_color);
   switch ($data["y_axis_scale"])
   {
@@ -1700,7 +1704,8 @@ function chart_draw_title_x(&$data)
   global $settings;
   $title_font_size=12;
   $title_margin=5;
-  $text_color=imagecolorallocate($data["buffer"],50,50,50);
+  $color=$data["colors"]["titles"];
+  $text_color=imagecolorallocate($data["buffer"],$color[0],$color[1],$color[2]);
   $text_file=$settings["gd_ttf"];
   $cx=($data["w"]-$data["left"]-$data["right"])/2+$data["left"];
   $bbox=imagettfbbox($title_font_size,0,$text_file,$data["x_title"]);
@@ -1718,7 +1723,8 @@ function chart_draw_title_y(&$data,$rhs_data=false)
   global $settings;
   $title_font_size=12;
   $title_margin=5;
-  $text_color=imagecolorallocate($data["buffer"],50,50,50);
+  $color=$data["colors"]["titles"];
+  $text_color=imagecolorallocate($data["buffer"],$color[0],$color[1],$color[2]);
   $text_file=$settings["gd_ttf"];
   $cy=($data["h"]-$data["bottom"]-$data["top"])/2+$data["top"];
   $bbox=imagettfbbox($title_font_size,0,$text_file,$data["y_title"]);
