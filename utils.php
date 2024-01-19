@@ -662,6 +662,10 @@ function list_files($path,$root="") # path (and root) must have trailing delimit
   }
   $result=array();
   $file_list=scandir($path);
+  if ($file_list===false)
+  {
+    return array();
+  }
   for ($i=0;$i<count($file_list);$i++)
   {
     $fn=$file_list[$i];
