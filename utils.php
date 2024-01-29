@@ -2222,6 +2222,10 @@ function webdb_str_replace($search,$replace,$subject)
 
 function formatted_date_to_unix($format,$date_str)
 {
+  if ($date_str===null)
+  {
+    return false;
+  }
   $x=date_create_from_format($format,$date_str);
   if ($x===false)
   {
