@@ -2312,3 +2312,30 @@ function load_bytes_from_file($filename)
 }
 
 #####################################################################################################
+
+function forced_download($full_filename,$name_override=false)
+{
+  global $settings;
+  $settings["ignore_ob_postprocess"]=true;
+  header("Content-Description: File Transfer");
+  header("Content-Type: application/octet-stream");
+  if ($name_override===false)
+  {
+    header("Content-Disposition: attachment; filename=\"".basename($full_filename)."\"");
+  }
+  else
+  {
+    header("Content-Disposition: attachment; filename=\"".$name_override."\"");
+  }
+  header("Content-Transfer-Encoding: binary");
+  header("Cache-Control: no-cache, no-store, must-revalidate");
+  header("Pragma: no-cache");
+  header("Expires: 0");
+  header("Content-Length: ".filesize($full_filename));
+  ob_end_clean();
+  flush();
+  readfile($full_filename);
+  exit;
+}
+
+#####################################################################################################
