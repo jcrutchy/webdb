@@ -559,6 +559,9 @@ function initilize_chart($copy_source=false)
   $data["3d_focal_length"]=0;
   $data["custom_axes_x"]=array();
   $data["custom_axes_y"]=array();
+  $data["legend_x"]=0;
+  $data["legend_y"]=0;
+  $data["show_legend"]=false;
   if ($copy_source!==false)
   {
     foreach ($copy_source as $key => $value)
@@ -809,6 +812,26 @@ function chart_legend_line($w,$h,$color)
 
 #####################################################################################################
 
+function chart_draw_legend(&$data)
+{
+  if ($data["show_legend"]==false)
+  {
+    return;
+  }
+  $x=$data["legend_x"];
+  $y=$data["legend_y"];
+
+  $w=200;
+  $h=200;
+
+  # TODO: DRAW LEGEND ON CHART WITH TOP LEFT CORNER @ $data["legend_x"],$data["legend_y"]
+  $color=$data["colors"]["axes"];
+  $color=imagecolorallocate($data["buffer"],$color[0],$color[1],$color[2]);
+  imagefilledrectangle($data["buffer"],$x,$y,$w,$h,$color);
+}
+
+#####################################################################################################
+
 function handle_chart_event($event_type,$chart_data)
 {
   if ($chart_data[$event_type]<>"")
@@ -907,6 +930,7 @@ function output_chart($data,$filename=false,$no_output=false,$rhs_data=false,$dr
     }
   }
   \webdb\chart\handle_chart_event("on_after_plots",$data);
+  \webdb\chart\chart_draw_legend($data);
   if (($data["scale"]!=="") and ($data["scale"]<>1))
   {
     \webdb\graphics\scale_img($data["buffer"],$data["scale"],$data["w"],$data["h"]);
@@ -1695,7 +1719,7 @@ function chart_draw_custom_axes_y(&$data)
     $text_w=$bbox[2]-$bbox[0];
     $text_h=$bbox[1]-$bbox[7];
     $text_x=$left-$title_margin;
-    $text_y=$cy+round($text_w/2);
+    $text_y=round($cy+$text_w/2);
     imagettftext($data["buffer"],$title_font_size,90,$text_x,$text_y,$text_color,$text_file,$caption);
   }
 
