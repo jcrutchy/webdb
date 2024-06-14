@@ -557,6 +557,8 @@ function initilize_chart($copy_source=false)
   $data["on_after_grid"]="";
   $data["on_after_plots"]="";
   $data["3d_focal_length"]=0;
+  $data["custom_axes_x"]=array();
+  $data["custom_axes_y"]=array();
   if ($copy_source!==false)
   {
     foreach ($copy_source as $key => $value)
@@ -564,6 +566,7 @@ function initilize_chart($copy_source=false)
       $data[$key]=$value;
     }
   }
+  # if (isset($data["x_axis_format_date"])==true)
   # if (isset($data["x_axis_format"])==true)
   # if (isset($data["y_axis_format"])==true)
   # if (isset($data["x_captions"][$i])==true)
@@ -713,7 +716,9 @@ function adjust_min_max_months_x(&$data)
   $d2=new \DateTime("@".$data["x_max"]);
   $diff=$d1->diff($d2);
   $n=$diff->y*12+$diff->m;
-  $data["grid_x"]=($data["x_max"]-$data["x_min"])/$n;
+  #$data["grid_x"]=($data["x_max"]-$data["x_min"])/$n;
+  $data["grid_x"]=30.436875*24*60*60; # The mean month-length in the Gregorian calendar is 30.436875 days
+  $data["x_max"]=$data["x_min"]+$n*$data["grid_x"];
   return $n;
 }
 
@@ -753,12 +758,20 @@ function get_time_captions($scale,&$data,$format=false)
         $format="M-Y";
       }
       $n=\webdb\chart\adjust_min_max_months_x($data);
-      $x=$data["x_min"];
-      for ($i=0;$i<=($n+1);$i++)
+      $x_captions[]=date($format,$data["x_min"]);
+      $d=date_parse(date("Y-m-d",$data["x_min"]));
+      for ($i=1;$i<=$n;$i++)
       {
+        $d["month"]++;
+        if ($d["month"]>12)
+        {
+          $d["month"]=1;
+          $d["year"]++;
+        }
+        $x=\webdb\utils\webdb_strtotime($d["year"]."-".sprintf("%02d",$d["month"])."-01");
         $x_captions[]=date($format,$x);
-        $x=\webdb\utils\webdb_strtotime("+1 month",$x);
       }
+      $x_captions[]=date($format,$data["x_max"]);
       break;
     case "year":
       # TODO
@@ -869,10 +882,12 @@ function output_chart($data,$filename=false,$no_output=false,$rhs_data=false,$dr
     if ($data["show_y_axis"]==true)
     {
       \webdb\chart\chart_draw_axis_y($data,$rhs_data);
+      \webdb\chart\chart_draw_custom_axes_y($data);
     }
     if ($data["show_x_axis"]==true)
     {
       \webdb\chart\chart_draw_axis_x($data);
+      \webdb\chart\chart_draw_custom_axes_x($data);
     }
     if ($data["x_title"]!=="")
     {
@@ -1529,6 +1544,10 @@ function chart_draw_axis_x(&$data)
         {
           $caption=sprintf($data["x_axis_format"],$rx);
         }
+        if (isset($data["x_axis_format_date"])==true)
+        {
+          $caption=date($data["x_axis_format_date"],$rx);
+        }
         if (isset($data["x_captions"][$i])==true)
         {
           $caption=$data["x_captions"][$i];
@@ -1585,6 +1604,101 @@ function chart_draw_axis_x(&$data)
       }
       break;
   }
+}
+
+#####################################################################################################
+
+function chart_draw_custom_axes_x(&$data)
+{
+  global $settings;
+  # $data["custom_axes_x"]
+}
+
+#####################################################################################################
+
+function chart_draw_custom_axes_y(&$data)
+{
+  global $settings;
+  # $data["custom_axes_y"][]=array(min_y,max_y,grid_y,pos_x,pos_y_min,pos_y_max,"title");
+  # values are float, pos_x value is the nth main axis grid, pos_y values are float relative to the main axes
+  $font_size=10;
+  $tick_length=5;
+  $label_space=4;
+  $text_file=$settings["gd_ttf"];
+  $color=$data["colors"]["axes"];
+  $line_color=imagecolorallocate($data["buffer"],$color[0],$color[1],$color[2]);
+  $text_color=imagecolorallocate($data["buffer"],$color[0],$color[1],$color[2]);
+
+  $m=count($data["custom_axes_y"]);
+  for ($j=0;$j<$m;$j++)
+  {
+    $axis=$data["custom_axes_y"][$j];
+
+    $min_y=$axis[0];
+    $max_y=$axis[1];
+    $grid_y=$axis[2];
+    $pos_x=$axis[3];
+    $pos_y_min=$axis[4];
+    $pos_y_max=$axis[5];
+
+    $f=($pos_y_max-$pos_y_min)/($max_y-$min_y);
+
+    $left=\webdb\chart\chart_to_pixel_x($data["x_min"]+$data["grid_x"]*$pos_x,$data);
+
+    $top=\webdb\chart\chart_to_pixel_y($pos_y_max,$data);
+    $bottom=\webdb\chart\chart_to_pixel_y($pos_y_min,$data);
+
+    imageline($data["buffer"],$left,$top,$left,$bottom,$line_color);
+    $dy=$max_y-$min_y;
+    $n=round($dy/$grid_y);
+    for ($i=0;$i<=$n;$i++)
+    {
+      $ry=$grid_y*$i;
+      $caption=\webdb\chart\zero_value($ry+$min_y);
+      $y=\webdb\chart\chart_to_pixel_y($ry*$f+$pos_y_min,$data);
+      imageline($data["buffer"],$left,$y,$left-$tick_length,$y,$line_color);
+      $bbox=imagettfbbox($font_size,0,$text_file,$caption);
+      $text_w=$bbox[2]-$bbox[0];
+      $text_h=$bbox[1]-$bbox[7];
+      $text_x=$left-$text_w-$tick_length-$label_space;
+      $text_y=$y+round($text_h/2);
+      imagettftext($data["buffer"],$font_size,0,$text_x,$text_y,$text_color,$text_file,$caption);
+    }
+  }
+
+  $title_font_size=12;
+  $color=$data["colors"]["titles"];
+  $text_color=imagecolorallocate($data["buffer"],$color[0],$color[1],$color[2]);
+
+  for ($j=0;$j<$m;$j++)
+  {
+    $axis=$data["custom_axes_y"][$j];
+
+    $min_y=$axis[0];
+    $max_y=$axis[1];
+    $grid_y=$axis[2];
+    $pos_x=$axis[3];
+    $pos_y_min=$axis[4];
+    $pos_y_max=$axis[5];
+
+    $f=($pos_y_max-$pos_y_min)/($max_y-$min_y);
+
+    $left=\webdb\chart\chart_to_pixel_x($data["x_min"]+$data["grid_x"]*$pos_x,$data);
+
+    $top=\webdb\chart\chart_to_pixel_y($pos_y_max,$data);
+    $bottom=\webdb\chart\chart_to_pixel_y($pos_y_min,$data);
+
+    $cy=($bottom-$top)/2+$top;
+    $title_margin=$axis[6];
+    $caption=$axis[7];
+    $bbox=imagettfbbox($title_font_size,0,$text_file,$caption);
+    $text_w=$bbox[2]-$bbox[0];
+    $text_h=$bbox[1]-$bbox[7];
+    $text_x=$left-$title_margin;
+    $text_y=$cy+round($text_w/2);
+    imagettftext($data["buffer"],$title_font_size,90,$text_x,$text_y,$text_color,$text_file,$caption);
+  }
+
 }
 
 #####################################################################################################
