@@ -1389,6 +1389,31 @@ function strip_http_headers($response)
 
 #####################################################################################################
 
+function strip_first_tag(&$html,$tag)
+{
+  $lhtml=strtolower($html);
+  $i=strpos($lhtml,"<".$tag);
+  $end="</".$tag.">";
+  $j=strpos($lhtml,$end);
+  if (($i===false) or ($j===false))
+  {
+    return false;
+  }
+  $html=substr($html,0,$i).substr($html,$j+strlen($end));
+  return true;
+}
+
+#####################################################################################################
+
+function strip_all_tag(&$html,$tag)
+{
+  while (\webdb\utils\strip_first_tag($html,$tag)==true)
+  {
+  }
+}
+
+#####################################################################################################
+
 function check_csrf_error($response)
 {
   if (\webdb\utils\compare_template("csrf_error_unauth",$response)==true)
@@ -2282,9 +2307,8 @@ function webdb_strtotime($time,$now=null)
   }
   if ($now===null)
   {
-    $now=time();
+    return strtotime($time);
   }
-  $now=round($now);
   return strtotime($time,$now);
 }
 
