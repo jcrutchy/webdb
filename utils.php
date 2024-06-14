@@ -2309,7 +2309,7 @@ function webdb_strtotime($time,$now=null)
   {
     return strtotime($time);
   }
-  return strtotime($time,$now);
+  return strtotime($time,intval(round($now)));
 }
 
 #####################################################################################################
