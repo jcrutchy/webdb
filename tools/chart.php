@@ -1772,6 +1772,11 @@ function chart_draw_custom_axes_y(&$data)
     $margin=$axis["margin"];
     $title=$axis["title"];
     $format=$axis["format"];
+    $y_captions=array();
+    if (isset($axis["y_captions"])==true)
+    {
+      $y_captions=$axis["y_captions"];
+    }
     $f=($pos_y_max-$pos_y_min)/($max_y-$min_y);
     $left=\webdb\chart\chart_to_pixel_x($data["x_min"]+$data["grid_x"]*$pos_x,$data);
     $top=\webdb\chart\chart_to_pixel_y($pos_y_max,$data);
@@ -1788,6 +1793,10 @@ function chart_draw_custom_axes_y(&$data)
       if (empty($format)==false)
       {
         $caption=sprintf($format,$caption);
+      }
+      if (isset($y_captions[$caption])==true)
+      {
+        $caption=$y_captions[$caption];
       }
       $y=\webdb\chart\chart_to_pixel_y($ry*$f+$pos_y_min,$data);
       imageline($data["buffer"],$left,$y,$left-$tick_length,$y,$line_color);
