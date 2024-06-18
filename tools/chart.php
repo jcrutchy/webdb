@@ -1794,9 +1794,11 @@ function chart_draw_custom_axes_y(&$data)
       {
         $caption=sprintf($format,$caption);
       }
+      $vert_os=0;
       if (isset($y_captions[$caption])==true)
       {
         $caption=$y_captions[$caption];
+        $vert_os=3;
       }
       $y=\webdb\chart\chart_to_pixel_y($ry*$f+$pos_y_min,$data);
       imageline($data["buffer"],$left,$y,$left-$tick_length,$y,$line_color);
@@ -1804,7 +1806,7 @@ function chart_draw_custom_axes_y(&$data)
       $text_w=$bbox[2]-$bbox[0];
       $text_h=$bbox[1]-$bbox[7];
       $text_x=$left-$text_w-$tick_length-$label_space;
-      $text_y=$y+round($text_h/2);
+      $text_y=$y+round($text_h/2)-$vert_os;
       imagettftext($data["buffer"],$font_size,0,$text_x,$text_y,$text_color,$text_file,$caption);
     }
     $title_font_size=12;
