@@ -335,6 +335,7 @@ function chart_colors()
   $colors["teal"]=array(11,132,165);
   $colors["yellow"]=array(246,200,95);
   $colors["purple"]=array(111,78,124);
+  $colors["green"]=array(0,128,0);
   $colors["light_green"]=array(157,216,102);
   $colors["red"]=array(202,71,47);
   $colors["light_red"]=array(254,200,216);
