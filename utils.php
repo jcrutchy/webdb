@@ -1389,12 +1389,48 @@ function strip_http_headers($response)
 
 #####################################################################################################
 
-function strip_first_tag(&$html,$tag)
+function strip_first_tag_attribute(&$html,$tag,$attrib)
 {
   $lhtml=strtolower($html);
   $i=strpos($lhtml,"<".$tag);
   $end="</".$tag.">";
   $j=strpos($lhtml,$end);
+  if (($i===false) or ($j===false))
+  {
+    return false;
+  }
+  $k=strpos($lhtml," ".$attrib,$i+strlen($tag)+1);
+  if ($k===false)
+  {
+    return false;
+  }
+  $m=strpos($lhtml,"\"",$k+strlen($attrib)+1);
+  $n=strpos($lhtml,"\"",$m+1);
+  $html=substr($html,0,$k).substr($html,$n+1);
+  return true;
+}
+
+#####################################################################################################
+
+function strip_all_tag_attribute(&$html,$tag,$attrib)
+{
+  while (\webdb\utils\strip_first_tag_attribute($html,$tag,$attrib)==true)
+  {
+  }
+}
+
+#####################################################################################################
+
+function strip_first_tag(&$html,$tag,$xml=false)
+{
+  $lhtml=strtolower($html);
+  $i=strpos($lhtml,"<".$tag);
+  $end="</".$tag.">";
+  if ($xml==true)
+  {
+    $end=" />";
+  }
+  $j=strpos($lhtml,$end,$i);
   if (($i===false) or ($j===false))
   {
     return false;
@@ -1405,9 +1441,9 @@ function strip_first_tag(&$html,$tag)
 
 #####################################################################################################
 
-function strip_all_tag(&$html,$tag)
+function strip_all_tag(&$html,$tag,$xml=false)
 {
-  while (\webdb\utils\strip_first_tag($html,$tag)==true)
+  while (\webdb\utils\strip_first_tag($html,$tag,$xml)==true)
   {
   }
 }
