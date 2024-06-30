@@ -1855,13 +1855,16 @@ function chart_draw_axis_y(&$data,$rhs_data=false)
         {
           $caption=$data["y_captions"][$i];
         }
-        imageline($data["buffer"],$data["left"],$y,$data["left"]-$tick_length,$y,$line_color);
-        $bbox=imagettfbbox($font_size,0,$text_file,$caption);
-        $text_w=$bbox[2]-$bbox[0];
-        $text_h=$bbox[1]-$bbox[7];
-        $text_x=$data["left"]-$text_w-$tick_length-$label_space;
-        $text_y=$y+round($text_h/2);
-        imagettftext($data["buffer"],$font_size,0,$text_x,$text_y,$text_color,$text_file,$caption);
+        if ($caption<>"")
+        {
+          imageline($data["buffer"],$data["left"],$y,$data["left"]-$tick_length,$y,$line_color);
+          $bbox=imagettfbbox($font_size,0,$text_file,$caption);
+          $text_w=$bbox[2]-$bbox[0];
+          $text_h=$bbox[1]-$bbox[7];
+          $text_x=$data["left"]-$text_w-$tick_length-$label_space;
+          $text_y=$y+round($text_h/2);
+          imagettftext($data["buffer"],$font_size,0,$text_x,$text_y,$text_color,$text_file,$caption);
+        }
       }
       if ($rhs_data===false)
       {
@@ -1883,18 +1886,17 @@ function chart_draw_axis_y(&$data,$rhs_data=false)
         if (isset($rhs_data["y_captions"][$i])==true)
         {
           $caption=$rhs_data["y_captions"][$i];
-          if ($caption=="")
-          {
-            continue;
-          }
         }
-        imageline($data["buffer"],$x,$y,$x-$tick_length,$y,$line_color);
-        $bbox=imagettfbbox($font_size,0,$text_file,$caption);
-        $text_w=$bbox[2]-$bbox[0];
-        $text_h=$bbox[1]-$bbox[7];
-        $text_x=$x-$text_w-$tick_length-$label_space;
-        $text_y=$y+round($text_h/2);
-        imagettftext($data["buffer"],$font_size,0,$text_x,$text_y,$text_color,$text_file,$caption);
+        if ($caption<>"")
+        {
+          imageline($data["buffer"],$x,$y,$x-$tick_length,$y,$line_color);
+          $bbox=imagettfbbox($font_size,0,$text_file,$caption);
+          $text_w=$bbox[2]-$bbox[0];
+          $text_h=$bbox[1]-$bbox[7];
+          $text_x=$x-$text_w-$tick_length-$label_space;
+          $text_y=$y+round($text_h/2);
+          imagettftext($data["buffer"],$font_size,0,$text_x,$text_y,$text_color,$text_file,$caption);
+        }
       }
       break;
     case "log10":
