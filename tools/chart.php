@@ -4,6 +4,102 @@ namespace webdb\chart;
 
 #####################################################################################################
 
+function gps_to_plane_coord($lat_deg,$lon_deg)
+{
+  # https://stackoverflow.com/questions/1185408/converting-from-longitude-latitude-to-cartesian-coordinates
+  $lat=deg2rad($lat_deg);
+  $lon=deg2rad($lon_deg);
+  $x=$earth_radius*cos($lat)*cos($lon);
+  $y=$earth_radius*cos($lat)*sin($lon);
+  return array($x,$y);
+}
+
+#####################################################################################################
+
+function haversine_great_circle_distance($latitude_from,$longitude_from,$latitude_to,$longitude_to)
+{
+  # https://stackoverflow.com/questions/14750275/haversine-formula-with-php
+  $earth_radius=6371; # km
+  $latitude_from=deg2rad($latitude_from);
+  $longitude_from=deg2rad($longitude_from);
+  $latitude_to=deg2rad($latitude_to);
+  $longitude_to=deg2rad($longitude_to);
+  $lat_delta=$latitude_to-$latitude_from;
+  $lon_delta=$longitude_to-$longitude_from;
+  $angle=2*asin(sqrt(pow(sin($lat_delta/2),2)+cos($latitude_from)*cos($latitude_to)*pow(sin($lon_delta/2),2)));
+  return $angle*$earth_radius;
+}
+
+#####################################################################################################
+
+function point_in_polygon($point,$polygon) # point is array(x,y) and polygon is array of points (vertices)
+{
+  # approach is using horizontal ray-casting
+  $n=count($polygon);
+  if ($n==0)
+  {
+    return false;
+  }
+  $polygon[]=$polygon[0];
+  $n++;
+  # check if point corresponds to a polygon vertex
+  for ($i=0;$i<$n;$i++)
+  {
+    $vertex=$polygon[$i];
+    if (($point[0]==$vertex[0]) and ($point[1]==$vertex[1]))
+    {
+      return true;
+    }
+  }
+  $intersections=0;
+  for ($i=1;$i<$n;$i++)
+  {
+    $vertex1=$polygon[$i-1];
+    $vertex2=$polygon[$i];
+    if ($vertex1[1]==$vertex2[1]) # boundary between vertex1 and vertex2 is horizontal
+    {
+      if (($vertex1[1]==$point[1]) and ($point[0]<=max($vertex1[0],$vertex2[0])))
+      {
+        if ($point[0]>=min($vertex1[0],$vertex2[0]))
+        {
+          return true; # point lies along horizontal polygon boundary
+        }
+        else
+        {
+          $intersections++; # point lies along same line but to the left of the boundary segment itself (counts as a boundary intersection for a ray cast to the right from point)
+        }
+      }
+    }
+    elseif ($vertex1[0]==$vertex2[0]) # boundary between vertex1 and vertex2 is vertical
+    {
+      if (($point[0]<=$vertex1[0]) and ($point[1]>=min($vertex1[1],$vertex2[1])) and ($point[1]<=max($vertex1[1],$vertex2[1])))
+      {
+        $intersections++; # horizontal ray cast to the right of point crosses vertical boundary segment
+      }
+    }
+    else # boundary segment between vertex1 and vertex2 is diagonal
+    {
+      if (($point[1]>=min($vertex1[1],$vertex2[1])) and ($point[1]<=max($vertex1[1],$vertex2[1])))
+      {
+        $m=($vertex2[1]-$vertex1[1])/($vertex2[0]-$vertex1[0]); # gradient
+        $c=$vertex1[1]-$m*$vertex1[0]; # y-axis intercept
+        $x_int=($point[1]-$c)/$m;
+        if ($x_int>=$point[0]) # ray cast towards the right from point crosses diagonal boundary segment
+        {
+          $intersections++;
+        }
+      }
+    }
+  }
+  if (($intersections%2)==0)
+  {
+    return false;
+  }
+  return true;
+}
+
+#####################################################################################################
+
 function ramer_douglas_peucker($points,$epsilon,$x_key,$y_key)
 {
   # https://en.wikipedia.org/wiki/Ramer%E2%80%93Douglas%E2%80%93Peucker_algorithm
@@ -253,10 +349,45 @@ function perpendicular_distance($x,$y,$L1x,$L1y,$L2x,$L2y)
   }
   else
   {
-    $m=(($L2y-$L1y)/($L2x-$L1x));
+    $m=($L2y-$L1y)/($L2x-$L1x);
     $c=(0-$L1x)*$m+$L1y;
     return (abs($m*$x-$y+$c))/(sqrt($m*$m+1));
   }
+}
+
+#####################################################################################################
+
+function perpendicular_coords($x1,$y1,$x2,$y2,$d)
+{
+  if ($x1==$x2) # vertical line
+  {
+    $p1_x=$x2-$d;
+    $p1_y=$y2;
+    $p2_x=$x2+$d;
+    $p2_y=$y2;
+  }
+  elseif ($y1==$y2) # horizontal line
+  {
+    $p1_x=$x2;
+    $p1_y=$y2-$d;
+    $p2_x=$x2;
+    $p2_y=$y2+$d;
+  }
+  else
+  {
+    $delta_x=$x2-$x1;
+    $delta_y=$y2-$y1;
+    $mag=sqrt(pow($delta_x,2)+pow($delta_y,2));
+    $u1_x=-$delta_y/$mag;
+    $u1_y=$delta_x/$mag;
+    $u2_x=$delta_y/$mag;
+    $u2_y=-$delta_x/$mag;
+    $p1_x=$x2+$d*$u1_x;
+    $p1_y=$y2+$d*$u1_y;
+    $p2_x=$x2+$d*$u2_x;
+    $p2_y=$y2+$d*$u2_y;
+  }
+  return array(array($p1_x,$p1_y),array($p2_x,$p2_y));
 }
 
 #####################################################################################################
@@ -1005,10 +1136,22 @@ function output_chart($data,$filename=false,$no_output=false,$rhs_data=false,$dr
     }
     $color=$data["colors"]["background"];
     $color=imagecolorallocate($data["buffer"],$color[0],$color[1],$color[2]);
-    imagefilledrectangle($data["buffer"],0,0,$data["w"],$data["top"]-1,$color);
-    imagefilledrectangle($data["buffer"],0,0,$data["left"]-1,$data["h"],$color);
-    imagefilledrectangle($data["buffer"],$data["w"]-$data["right"],0,$data["w"],$data["h"],$color);
-    imagefilledrectangle($data["buffer"],0,$data["h"]-$data["bottom"],$data["w"],$data["h"],$color);
+    if ($data["top"]>0)
+    {
+      imagefilledrectangle($data["buffer"],0,0,$data["w"],$data["top"]-1,$color);
+    }
+    if ($data["left"]>0)
+    {
+      imagefilledrectangle($data["buffer"],0,0,$data["left"]-1,$data["h"],$color);
+    }
+    if ($data["right"]>0)
+    {
+      imagefilledrectangle($data["buffer"],$data["w"]-$data["right"],0,$data["w"],$data["h"],$color);
+    }
+    if ($data["bottom"]>0)
+    {
+      imagefilledrectangle($data["buffer"],0,$data["h"]-$data["bottom"],$data["w"],$data["h"],$color);
+    }
     if ($data["show_y_axis"]==true)
     {
       \webdb\chart\chart_draw_axis_y($data,$rhs_data);
