@@ -695,6 +695,7 @@ function initilize_chart($copy_source=false)
   $data["legend_left"]=0;
   $data["legend_top"]=0;
   $data["show_legend"]=false;
+  $data["transparent_color"]=false;
   if ($copy_source!==false)
   {
     foreach ($copy_source as $key => $value)
@@ -1182,6 +1183,14 @@ function output_chart($data,$filename=false,$no_output=false,$rhs_data=false,$dr
   }
   \webdb\chart\handle_chart_event("on_after_plots",$data);
   \webdb\chart\chart_draw_legend($data);
+
+  if ($data["transparent_color"]!==false)
+  {
+    $color=$data["transparent_color"];
+    $color_trans=imagecolorallocatealpha($data["buffer"],$color[0],$color[1],$color[2],127);
+    imagecolortransparent($data["buffer"],$color_trans);
+  }
+
   if (($data["scale"]!=="") and ($data["scale"]<>1))
   {
     \webdb\graphics\scale_img($data["buffer"],$data["scale"],$data["w"],$data["h"]);
