@@ -595,10 +595,7 @@ function assign_plot_data($data,$series_data,$x_key,$y_key,$color_key,$marker=""
   $series["y_values"]=array();
   $series["colors"]=array();
   $series["style"]=$style;
-  if ($line_thickness>1)
-  {
-    $series["thickness"]=$line_thickness;
-  }
+  $series["thickness"]=$line_thickness;
   $min_x=PHP_INT_MAX;
   $max_x=0;
   $min_y=PHP_INT_MAX;
@@ -1039,10 +1036,10 @@ function chart_draw_legend(&$data)
 
     $line_y=$y-round($text_h/2);
 
-    if ($series["marker"]=="box")
+    if ($series["marker"]<>"")
     {
       $x1=$x+round($line_w/2);
-      imagerectangle($data["buffer"],$x1-2,$line_y-2,$x1+2,$line_y+2,$line_color);
+      \webdb\chart\chart_draw_plot_marker($data,$series["marker"],$x1,$line_y,$line_color);
     }
     if (isset($series["thickness"])==true)
     {
@@ -1095,6 +1092,15 @@ function draw_discontinuous_plots(&$data)
 
 #####################################################################################################
 
+function assign_plot_trigger(&$data,$trigger_function)
+{
+  $series=array();
+  $series["trigger"]=$trigger_function;
+  $data["series"][]=$series;
+}
+
+#####################################################################################################
+
 function draw_series_plots(&$data)
 {
   global $settings;
@@ -1102,6 +1108,14 @@ function draw_series_plots(&$data)
   for ($i=0;$i<$n;$i++)
   {
     $series=$data["series"][$i];
+    if (isset($series["trigger"])==true)
+    {
+      if (function_exists($series["trigger"])==true)
+      {
+        call_user_func($series["trigger"],$data);
+      }
+      continue;
+    }
     switch ($series["type"])
     {
       case "column":
@@ -1567,21 +1581,25 @@ function chart_draw_continuous_plot(&$data,$series)
     }
     if ($colors[$i]!==false)
     {
-      $line_color=imagecolorallocate($data["buffer"],$colors[$i][0],$colors[$i][1],$colors[$i][2]);
+      if (count($colors[$i])==3)
+      {
+        $line_color=imagecolorallocate($data["buffer"],$colors[$i][0],$colors[$i][1],$colors[$i][2]);
+      }
+      else
+      {
+        $line_color=imagecolorallocatealpha($data["buffer"],$colors[$i][0],$colors[$i][1],$colors[$i][2],$colors[$i][3]);
+      }
     }
-    if (($series["marker"]=="box") and ($pt1ok==true))
+    if (($series["marker"]<>"") and ($pt1ok==true))
     {
-      imagerectangle($data["buffer"],$x1-2,$y1-2,$x1+2,$y1+2,$line_color);
+      \webdb\chart\chart_draw_plot_marker($data,$series["marker"],$x1,$y1,$line_color);
       if ($series["line_enabled"]==false)
       {
         imagesetpixel($data["buffer"],$x1,$y1,$line_color);
       }
     }
-    if (isset($series["thickness"])==true)
-    {
-      imageantialias($data["buffer"],false);
-      imagesetthickness($data["buffer"],$series["thickness"]);
-    }
+    imageantialias($data["buffer"],false);
+    imagesetthickness($data["buffer"],$series["thickness"]);
     if ($series["line_enabled"]==true)
     {
       switch ($series["style"])
@@ -1590,16 +1608,40 @@ function chart_draw_continuous_plot(&$data,$series)
           imageline($data["buffer"],$x1,$y1,$x2,$y2,$line_color);
           break;
         case "dash":
-          imagedashedline($data["buffer"],$x1,$y1,$x2,$y2,$line_color);
+          imagedashedline($data["buffer"],$x1,$y1,$x2,$y2,$line_color); # BUG: line thickness doesn't seem to be reliable
           break;
       }
     }
     imagesetthickness($data["buffer"],1);
     imageantialias($data["buffer"],true);
   }
-  if (($series["marker"]=="box") and ($n>0) and ($pt2ok==true))
+  if (($series["marker"]<>"") and ($n>0) and ($pt2ok==true))
   {
-    imagerectangle($data["buffer"],$x2-2,$y2-2,$x2+2,$y2+2,$line_color);
+    \webdb\chart\chart_draw_plot_marker($data,$series["marker"],$x2,$y2,$line_color);
+  }
+}
+
+#####################################################################################################
+
+function chart_draw_plot_marker(&$data,$marker,$px,$py,$line_color)
+{
+  imageantialias($data["buffer"],false);
+  imagesetthickness($data["buffer"],1);
+  switch ($marker)
+  {
+    case "dot":
+      for ($i=0;$i<=20;$i++)
+      {
+        imagesetpixel($data["buffer"],$px,$py,$line_color);
+      }
+      break;
+    case "box":
+      imagerectangle($data["buffer"],$px-2,$py-2,$px+2,$py+2,$line_color);
+      break;
+    case "target":
+      imageline($data["buffer"],$px-3,$py,$px+3,$py,$line_color);
+      imageline($data["buffer"],$px,$py-3,$px,$py+3,$line_color);
+      break;
   }
 }
 
@@ -1688,15 +1730,15 @@ function chart_draw_discontinuous_plot(&$data,$plot)
     $y1=\webdb\chart\chart_to_pixel_y($y1,$data);
     $x2=\webdb\chart\chart_to_pixel_x($x2,$data);
     $y2=\webdb\chart\chart_to_pixel_y($y2,$data);
-    if ($plot["marker"]=="box")
+    if ($plot["marker"]<>"")
     {
-      imagerectangle($data["buffer"],$x1-2,$y1-2,$x1+2,$y1+2,$line_color);
+      \webdb\chart\chart_draw_plot_marker($data,$plot["marker"],$x1,$y1,$line_color);
     }
     imageline($data["buffer"],$x1,$y1,$x2,$y2,$line_color);
   }
-  if (($plot["marker"]=="box") and ($n>0))
+  if (($plot["marker"]<>"") and ($n>0))
   {
-    imagerectangle($data["buffer"],$x2-2,$y2-2,$x2+2,$y2+2,$line_color);
+    \webdb\chart\chart_draw_plot_marker($data,$plot["marker"],$x2,$y2,$line_color);
   }
 }
 
