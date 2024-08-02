@@ -710,6 +710,17 @@ function initilize_chart($copy_source=false)
 
 #####################################################################################################
 
+function allocate_color(&$data,$color)
+{
+  if (count($color)==4)
+  {
+    return imagecolorallocatealpha($data["buffer"],$color[0],$color[1],$color[2],$color[3]);
+  }
+  return imagecolorallocate($data["buffer"],$color[0],$color[1],$color[2]);
+}
+
+#####################################################################################################
+
 function auto_range(&$data)
 {
   $min_x=PHP_INT_MAX;
@@ -1350,8 +1361,9 @@ function chart_draw_create(&$data)
   imageantialias($data["buffer"],false);
   imagesetthickness($data["buffer"],1);
   imageantialias($data["buffer"],true);
+  #imagesavealpha($data["buffer"],true);
   $color=$data["colors"]["background"];
-  $color=imagecolorallocate($data["buffer"],$color[0],$color[1],$color[2]);
+  $color=\webdb\chart\allocate_color($data,$color);
   imagefill($data["buffer"],0,0,$color);
 }
 
@@ -1493,7 +1505,7 @@ function chart_draw_continuous_plot(&$data,$series)
   imagesetthickness($data["buffer"],1);
   $color=$series["color"];
   $color=$data["colors"][$color];
-  $line_color=imagecolorallocate($data["buffer"],$color[0],$color[1],$color[2]);
+  $line_color=\webdb\chart\allocate_color($data,$color);
   if (isset($series["x_values"])==false)
   {
     $series["x_values"]=array();
@@ -1581,14 +1593,7 @@ function chart_draw_continuous_plot(&$data,$series)
     }
     if ($colors[$i]!==false)
     {
-      if (count($colors[$i])==3)
-      {
-        $line_color=imagecolorallocate($data["buffer"],$colors[$i][0],$colors[$i][1],$colors[$i][2]);
-      }
-      else
-      {
-        $line_color=imagecolorallocatealpha($data["buffer"],$colors[$i][0],$colors[$i][1],$colors[$i][2],$colors[$i][3]);
-      }
+      $line_color=\webdb\chart\allocate_color($data,$colors[$i]);
     }
     if (($series["marker"]<>"") and ($pt1ok==true))
     {
