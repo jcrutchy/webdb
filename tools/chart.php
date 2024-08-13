@@ -463,6 +463,19 @@ function zero_value($value)
 function chart_colors()
 {
   $colors=array();
+
+  $colors["corp_violet"]=array(64,45,130);
+  $colors["corp_white"]=array(242,242,242);
+  $colors["corp_sky_blue"]=array(3,159,218);
+  $colors["corp_light_gray"]=array(191,191,191);
+  $colors["corp_dark_gray"]=array(89,89,89);
+  $colors["corp_teal"]=array(37,171,145);
+  $colors["corp_orange"]=array(247,162,9);
+  $colors["corp_red"]=array(219,2,55);
+
+  $colors["safety_yellow"]=array(255,210,0);
+  $colors["safety_red"]=array(219,8,25);
+
   $colors["teal"]=array(11,132,165);
   $colors["yellow"]=array(246,200,95);
   $colors["purple"]=array(111,78,124);

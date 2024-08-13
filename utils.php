@@ -1647,7 +1647,10 @@ function send_email($recipient,$cc,$subject,$message,$from="",$reply_to="",$boun
     $bounce_to="";
   }
   $headers=array();
-  $headers[]="From: ".$from;
+  if ($from<>"")
+  {
+    $headers[]="From: ".$from;
+  }
   if ($cc<>"")
   {
     $headers[]="Cc: ".$cc;
@@ -1659,8 +1662,8 @@ function send_email($recipient,$cc,$subject,$message,$from="",$reply_to="",$boun
   $headers[]="Content-Type: text/html; charset=iso-8859-1";
   if ($settings["email_enabled"]==true)
   {
-    #mail($recipient,$subject,$message,implode(PHP_EOL,$headers),"-f".$bounce_to); # LINUX
-    mail($recipient,$subject,$message,implode(PHP_EOL,$headers)); # WINDOWS PROD
+    #mail($recipient,$subject,$message,implode("\r\n",$headers),"-f ".$bounce_to); # LINUX
+    mail($recipient,$subject,$message,implode("\r\n",$headers)); # WINDOWS PROD
   }
   if (($settings["email_file_log_enabled"]==true) and (isset($settings["templates"])==true))
   {
