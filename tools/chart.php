@@ -718,6 +718,7 @@ function initilize_chart($copy_source=false)
   # if (isset($data["y_axis_format"])==true)
   # if (isset($data["x_captions"][$i])==true)
   # if (isset($data["y_captions"][$i])==true)
+  # if (isset($data["y_caption_colors"][$i])==true)
   return $data;
 }
 
@@ -2066,6 +2067,14 @@ function chart_draw_axis_y(&$data,$rhs_data=false)
         if (isset($data["y_captions"][$i])==true)
         {
           $caption=$data["y_captions"][$i];
+        }
+        if (isset($data["y_caption_colors"][$i])==true)
+        {
+          $text_color=\webdb\chart\allocate_color($data,$data["y_caption_colors"][$i]);
+        }
+        else
+        {
+          $text_color=\webdb\chart\allocate_color($data,$color);
         }
         if ($caption<>"")
         {
