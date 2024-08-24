@@ -401,6 +401,7 @@ function output_page($content,$title)
   }
   $page_params["calendar"]=\webdb\forms\get_calendar();
   $page_params["app_name"]=$settings["app_name"];
+  $page_params["additional_head_html"]=$settings["additional_head_html"];
   $output=\webdb\utils\template_fill("page",$page_params);
   die($output);
 }
