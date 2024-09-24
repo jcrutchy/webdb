@@ -631,6 +631,10 @@ function null_user_check($sql,$where_items,$table,$database)
   {
     return null;
   }
+  if ($settings["auth_enable"]==false)
+  {
+    return null;
+  }
   $error_params=array();
   $error_params["database"]=$database;
   $error_params["table"]=$table;
