@@ -693,6 +693,8 @@ function initilize_chart($copy_source=false)
   $data["show_grid_y"]=true;
   $data["show_x_axis"]=true;
   $data["show_y_axis"]=true;
+  $data["x_axis_font_size"]=10;
+  $data["y_axis_font_size"]=10;
   $data["auto_grid_x_pix"]=30;
   $data["auto_grid_y_pix"]=30;
   $data["user_data"]=array(); # use to store any data (may be useful for events)
@@ -1864,7 +1866,7 @@ function chart_draw_grid(&$data)
 function chart_draw_axis_x(&$data)
 {
   global $settings;
-  $font_size=10;
+  $font_size=$data["x_axis_font_size"];
   $tick_length=5;
   $label_space=4;
   $text_file=$settings["gd_ttf"];
@@ -2041,7 +2043,7 @@ function chart_draw_custom_axes_y(&$data)
 function chart_draw_axis_y(&$data,$rhs_data=false)
 {
   global $settings;
-  $font_size=10;
+  $font_size=$data["y_axis_font_size"];
   $tick_length=5;
   $label_space=4;
   $text_file=$settings["gd_ttf"];
