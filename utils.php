@@ -2403,3 +2403,20 @@ function forced_download($full_filename,$name_override=false)
 }
 
 #####################################################################################################
+
+function get_array_address($address,&$array,$delim=".")
+{
+  $keys=explode($delim,$address);
+  $key=array_shift($keys);
+  if (isset($array[$key])==false)
+  {
+    return false;
+  }
+  if (count($keys)==0)
+  {
+    return $array[$key];
+  }
+  return \webdb\utils\get_array_address(implode($delim,$keys),$array[$key],$delim);
+}
+
+#####################################################################################################
