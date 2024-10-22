@@ -242,6 +242,7 @@ function initialize_settings()
   global $settings;
   $includes=get_included_files();
   $settings["env_root_path"]=dirname($includes[0]).DIRECTORY_SEPARATOR;
+  $settings["env_root_path"]=str_replace("\\","/",$settings["env_root_path"]);
   $settings["links_css"]=array();
   $settings["links_js"]=array();
   $settings["logs"]=array();
@@ -253,8 +254,11 @@ function initialize_settings()
   $settings["sql_database_change"]=false;
   $settings["calendar_fields"]=array();
   $settings["permissions"]=array();
+  $settings["templates"]=array();
   $settings["webdb_parent_path"]=dirname(__DIR__).DIRECTORY_SEPARATOR;
+  $settings["webdb_parent_path"]=str_replace("\\","/",$settings["webdb_parent_path"]);
   $settings["webdb_root_path"]=__DIR__.DIRECTORY_SEPARATOR;
+  $settings["webdb_root_path"]=str_replace("\\","/",$settings["webdb_root_path"]);
   $settings["webdb_directory_name"]=basename($settings["webdb_root_path"]);
   #$settings["constants"]=get_defined_constants(false); # BAD FOR PERFORMANCE OF TEMPLATE_FILL FUNCTION
   $settings["constants"]=array();
