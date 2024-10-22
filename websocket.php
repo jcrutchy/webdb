@@ -20,6 +20,7 @@ function ws_default_settings()
   $settings["ws_browser_connections"]=array();
   $settings["ws_on_browser_server_msg"]="";
   $settings["ws_on_app_server_msg"]="";
+  $settings["ws_on_server_loop"]="";
 }
 
 #####################################################################################################
@@ -52,6 +53,10 @@ function server_start()
   while (true)
   {
     usleep(0.05e6); # 0.05 second to prevent cpu flogging
+    if (function_exists($settings["ws_on_server_loop"])==True)
+    {
+      call_user_func($settings["ws_on_server_loop"]);
+    }
     $read=array($settings["ws_app_server"]);
     $write=null;
     $except=null;
