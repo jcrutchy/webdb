@@ -405,7 +405,7 @@ function broadcast_to_all($msg)
   {
     if ($conn["state"]=="OPEN")
     {
-      \webdb\cli\term_echo("sending to browser client socket ".$key.": ".$msg,33);
+      #\webdb\cli\term_echo("sending to browser client socket ".$key.": ".$msg,33);
       \webdb\websocket\send_browser_text($key,$msg);
     }
   }
