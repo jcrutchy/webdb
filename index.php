@@ -37,6 +37,7 @@ require_once($dir."websocket.php");
 require_once($dir."dbquery.php");
 require_once($dir."wiki.php");
 require_once($dir."wiki_utils.php");
+require_once($dir."teams.php");
 require_once($dir."tools".DIRECTORY_SEPARATOR."nn.php");
 require_once($dir."tools".DIRECTORY_SEPARATOR."dxf.php");
 require_once($dir."tools".DIRECTORY_SEPARATOR."graphics.php");
