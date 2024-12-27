@@ -1216,7 +1216,8 @@ function custom_template_fill($template_key,$params=false,$tracking=array(),$cus
   }
   if (in_array($template_key,$tracking)==true)
   {
-    \webdb\utils\system_message("error: circular reference to template '".$template_key."'");
+    #\webdb\utils\system_message("error: circular reference to template '".$template_key."'");
+    return "";
   }
   $substitute_template=\webdb\utils\check_user_template_permission($template_key);
   if ($substitute_template===false)
