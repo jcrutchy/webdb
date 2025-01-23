@@ -50,6 +50,7 @@ function server_start()
   }
   \webdb\cli\term_echo("app server bound to ".$conn_str,32);
   stream_set_blocking($settings["ws_app_server"],0);
+  $stat_time=time();
   while (true)
   {
     usleep(0.05e6); # 0.05 second to prevent cpu flogging
@@ -221,6 +222,12 @@ function server_start()
           \webdb\cli\term_echo("pinging client ".$client_key,32);
         }
       }
+    }
+    $t=time();
+    if (($t-$stat_time)>5)
+    {
+      \webdb\cli\term_echo("websocket server loop - ".count($settings["ws_browser_connections"])." clients connected",31);
+      $stat_time=$t;
     }
   }
   \webdb\websocket\shutdown_server();
