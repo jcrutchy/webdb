@@ -301,7 +301,8 @@ function on_browser_msg($client_key,$data)
   }
   elseif ($settings["ws_browser_connections"][$client_key]["state"]=="OPEN")
   {
-    \webdb\cli\term_echo("command or text message received from OPEN browser client socket ".$client_key,32);
+    $peer_name=$settings["ws_browser_connections"][$client_key]["peer_name"];
+    \webdb\cli\term_echo("command or text message received from OPEN browser client socket ".$client_key." [".$peer_name."]",32);
     $frame=\webdb\websocket\decode_frame($data);
     if ($frame===false)
     {
