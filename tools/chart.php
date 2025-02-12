@@ -1347,6 +1347,14 @@ function pixel_to_chart_y($pix,$data)
 
 function chart_to_pixel_x($val,$data)
 {
+  if (is_numeric($val)==false)
+  {
+    die("chart_to_pixel_x: ".$val);
+  }
+  if (is_numeric($data["x_min"])==false)
+  {
+    die("chart_to_pixel_x: ".$data["x_min"]);
+  }
   if ($data["x_axis_scale"]=="log10")
   {
     $val=log10($val);
@@ -1360,6 +1368,14 @@ function chart_to_pixel_x($val,$data)
 
 function chart_to_pixel_y($val,$data)
 {
+  if (is_numeric($val)==false)
+  {
+    die("chart_to_pixel_y: ".$val);
+  }
+  if (is_numeric($data["y_min"])==false)
+  {
+    die("chart_to_pixel_y: ".$data["y_min"]);
+  }
   if ($data["y_axis_scale"]=="log10")
   {
     $val=log10($val);
