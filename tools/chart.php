@@ -1917,6 +1917,10 @@ function chart_draw_axis_x(&$data)
         {
           $caption=$data["x_captions"][$i];
         }
+        if ($caption=="")
+        {
+          continue;
+        }
         $bbox=imagettfbbox($font_size,0,$text_file,$caption);
         $text_w=$bbox[2]-$bbox[0];
         $text_h=$bbox[1]-$bbox[7];
