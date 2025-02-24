@@ -2041,6 +2041,10 @@ function chart_draw_custom_axes_y(&$data)
         $vert_os=3;
       }
       $y=\webdb\chart\chart_to_pixel_y($ry*$f+$pos_y_min,$data);
+      if (($y<$data["top"]) or ($y>($data["h"]-$data["bottom"])))
+      {
+        continue;
+      }
       imageline($data["buffer"],$left,$y,$left-$tick_length,$y,$line_color);
       $bbox=imagettfbbox($font_size,0,$text_file,$caption);
       $text_w=$bbox[2]-$bbox[0];
