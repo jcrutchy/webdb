@@ -1985,7 +1985,7 @@ function chart_draw_custom_axes_y(&$data)
 {
   global $settings;
   # values are float, pos_x value is the nth main axis grid, pos_y values are float relative to the main axes
-  $font_size=10;
+  $font_size=$data["y_axis_font_size"];
   $tick_length=5;
   $label_space=4;
   $text_file=$settings["gd_ttf"];
@@ -2008,6 +2008,10 @@ function chart_draw_custom_axes_y(&$data)
     if (isset($axis["y_captions"])==true)
     {
       $y_captions=$axis["y_captions"];
+    }
+    if (isset($axis["font_size"])==true)
+    {
+      $font_size=$axis["font_size"];
     }
     $f=($pos_y_max-$pos_y_min)/($max_y-$min_y);
     $left=\webdb\chart\chart_to_pixel_x($data["x_min"]+$data["grid_x"]*$pos_x,$data);
