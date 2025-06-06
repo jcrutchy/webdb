@@ -2425,3 +2425,18 @@ function get_array_address($address,&$array,$delim=".")
 }
 
 #####################################################################################################
+
+function strip_html_comments(&$html)
+{
+  $i=strpos($html,"<!--");
+  $end="-->";
+  $j=strpos($html,$end);
+  if (($i===false) or ($j===false))
+  {
+    return;
+  }
+  $html=substr($html,0,$i).substr($html,$j+strlen($end));
+  strip_comments($html);
+}
+
+#####################################################################################################
