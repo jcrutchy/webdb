@@ -2436,7 +2436,7 @@ function strip_html_comments(&$html)
     return;
   }
   $html=substr($html,0,$i).substr($html,$j+strlen($end));
-  strip_comments($html);
+  \webdb\utils\strip_html_comments($html);
 }
 
 #####################################################################################################
