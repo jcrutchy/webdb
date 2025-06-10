@@ -2455,7 +2455,7 @@ function get_html_comments(&$html,&$comments)
   {
     return;
   }
-  $comments[]=substr($html,$i+$L1,$j-1);
+  $comments[]=trim(substr($html,$i+$L1,$j-$i-$L2-1));
   $html=substr($html,0,$i).substr($html,$j+$L2);
   \webdb\utils\get_html_comments($html,$comments);
 }
