@@ -2428,15 +2428,36 @@ function get_array_address($address,&$array,$delim=".")
 
 function strip_html_comments(&$html)
 {
-  $i=strpos($html,"<!--");
-  $end="-->";
-  $j=strpos($html,$end);
+  $tok1="<!--";
+  $tok2="-->";
+  $L2=strlen($tok2);
+  $i=strpos($html,$tok1);
+  $j=strpos($html,$tok2);
   if (($i===false) or ($j===false))
   {
     return;
   }
-  $html=substr($html,0,$i).substr($html,$j+strlen($end));
+  $html=substr($html,0,$i).substr($html,$j+$L2);
   \webdb\utils\strip_html_comments($html);
+}
+
+#####################################################################################################
+
+function get_html_comments(&$html,&$comments)
+{
+  $tok1="<!--";
+  $tok2="-->";
+  $L1=strlen($tok1);
+  $L2=strlen($tok2);
+  $i=strpos($html,$tok1);
+  $j=strpos($html,$tok2);
+  if (($i===false) or ($j===false))
+  {
+    return;
+  }
+  $comments[]=substr($html,$i+$L1,$j-1);
+  $html=substr($html,0,$i).substr($html,$j+$L2);
+  \webdb\utils\get_html_comments($html,$comments);
 }
 
 #####################################################################################################
