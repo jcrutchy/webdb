@@ -2461,3 +2461,15 @@ function get_html_comments(&$html,&$comments)
 }
 
 #####################################################################################################
+
+function str_replace_once($search,$replace,$subject)
+{
+  $i=strpos($subject,$search);
+  if ($i===false)
+  {
+    return $subject;
+  }
+  return substr_replace($subject,$replace,$i,strlen($search));
+}
+
+#####################################################################################################
