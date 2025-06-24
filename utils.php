@@ -2473,3 +2473,53 @@ function str_replace_once($search,$replace,$subject)
 }
 
 #####################################################################################################
+
+function xml_to_arr($obj)
+{
+  # adapted from comment on https://www.php.net/manual/en/book.simplexml.php
+  $namespace=$obj->getDocNamespaces(true);
+  $namespace[NULL]=NULL;
+  $children=array();
+  $attributes=array();
+  $tag=strtolower((string)$obj->getName());
+  $text=trim((string)$obj);
+  if (is_object($obj)==true)
+  {
+    foreach ($namespace as $ns => $nsUrl)
+    {
+      $objAttributes=$obj->attributes($ns,true);
+      foreach ($objAttributes as $attributeName => $attributeValue)
+      {
+        $attribName=strtolower(trim((string)$attributeName));
+        $attribVal=trim((string)$attributeValue);
+        if (empty($ns)==false)
+        {
+          $attribName=$ns.":".$attribName;
+        }
+        $attributes[$attribName]=$attribVal;
+      }
+      $objChildren=$obj->children($ns,true);
+      foreach ($objChildren as $childName => $child)
+      {
+        $children[]=\webdb\utils\xml_to_arr($child);
+      }
+    }
+  }
+  $result=array();
+  $result["tag"]=$tag;
+  if ($text<>"")
+  {
+    $result["text"]=$text;
+  }
+  if (count($attributes)>0)
+  {
+    $result["attributes"]=$attributes;
+  }
+  if (count($children)>0)
+  {
+    $result["children"]=$children;
+  }
+  return $result;
+}
+
+#####################################################################################################
