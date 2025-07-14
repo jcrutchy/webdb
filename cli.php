@@ -72,7 +72,7 @@ function cli_dispatch() # cli mode doesn't have normal error/exception handlers 
   {
     die;
   }
-  $arg=$argv[1];
+  $arg=trim($argv[1]);
   ini_set("max_execution_time","0");
   switch ($arg)
   {

@@ -229,6 +229,7 @@ function form_dispatch($page_id)
   switch ($form_config["form_type"])
   {
     case "list":
+      \webdb\forms\add_resource_includes($form_config);
       if ($form_config["generate_stub"]<>"")
       {
         if (function_exists($form_config["generate_stub"])==true)
@@ -259,7 +260,6 @@ function form_dispatch($page_id)
           }
         }
       }
-      \webdb\forms\add_resource_includes($form_config);
       if ((($form_config["database"]=="") or ($form_config["table"]=="")) and ($form_config["records_sql"]==""))
       {
         if (isset($form_config["event_handlers"]["on_list"])==false)

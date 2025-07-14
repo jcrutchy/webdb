@@ -4,6 +4,102 @@ namespace webdb\chart;
 
 #####################################################################################################
 
+function gps_to_plane_coord($lat_deg,$lon_deg)
+{
+  # https://stackoverflow.com/questions/1185408/converting-from-longitude-latitude-to-cartesian-coordinates
+  $lat=deg2rad($lat_deg);
+  $lon=deg2rad($lon_deg);
+  $x=$earth_radius*cos($lat)*cos($lon);
+  $y=$earth_radius*cos($lat)*sin($lon);
+  return array($x,$y);
+}
+
+#####################################################################################################
+
+function haversine_great_circle_distance($latitude_from,$longitude_from,$latitude_to,$longitude_to)
+{
+  # https://stackoverflow.com/questions/14750275/haversine-formula-with-php
+  $earth_radius=6371; # km
+  $latitude_from=deg2rad($latitude_from);
+  $longitude_from=deg2rad($longitude_from);
+  $latitude_to=deg2rad($latitude_to);
+  $longitude_to=deg2rad($longitude_to);
+  $lat_delta=$latitude_to-$latitude_from;
+  $lon_delta=$longitude_to-$longitude_from;
+  $angle=2*asin(sqrt(pow(sin($lat_delta/2),2)+cos($latitude_from)*cos($latitude_to)*pow(sin($lon_delta/2),2)));
+  return $angle*$earth_radius;
+}
+
+#####################################################################################################
+
+function point_in_polygon($point,$polygon) # point is array(x,y) and polygon is array of points (vertices)
+{
+  # approach is using horizontal ray-casting
+  $n=count($polygon);
+  if ($n==0)
+  {
+    return false;
+  }
+  $polygon[]=$polygon[0];
+  $n++;
+  # check if point corresponds to a polygon vertex
+  for ($i=0;$i<$n;$i++)
+  {
+    $vertex=$polygon[$i];
+    if (($point[0]==$vertex[0]) and ($point[1]==$vertex[1]))
+    {
+      return true;
+    }
+  }
+  $intersections=0;
+  for ($i=1;$i<$n;$i++)
+  {
+    $vertex1=$polygon[$i-1];
+    $vertex2=$polygon[$i];
+    if ($vertex1[1]==$vertex2[1]) # boundary between vertex1 and vertex2 is horizontal
+    {
+      if (($vertex1[1]==$point[1]) and ($point[0]<=max($vertex1[0],$vertex2[0])))
+      {
+        if ($point[0]>=min($vertex1[0],$vertex2[0]))
+        {
+          return true; # point lies along horizontal polygon boundary
+        }
+        else
+        {
+          $intersections++; # point lies along same line but to the left of the boundary segment itself (counts as a boundary intersection for a ray cast to the right from point)
+        }
+      }
+    }
+    elseif ($vertex1[0]==$vertex2[0]) # boundary between vertex1 and vertex2 is vertical
+    {
+      if (($point[0]<=$vertex1[0]) and ($point[1]>=min($vertex1[1],$vertex2[1])) and ($point[1]<=max($vertex1[1],$vertex2[1])))
+      {
+        $intersections++; # horizontal ray cast to the right of point crosses vertical boundary segment
+      }
+    }
+    else # boundary segment between vertex1 and vertex2 is diagonal
+    {
+      if (($point[1]>=min($vertex1[1],$vertex2[1])) and ($point[1]<=max($vertex1[1],$vertex2[1])))
+      {
+        $m=($vertex2[1]-$vertex1[1])/($vertex2[0]-$vertex1[0]); # gradient
+        $c=$vertex1[1]-$m*$vertex1[0]; # y-axis intercept
+        $x_int=($point[1]-$c)/$m;
+        if ($x_int>=$point[0]) # ray cast towards the right from point crosses diagonal boundary segment
+        {
+          $intersections++;
+        }
+      }
+    }
+  }
+  if (($intersections%2)==0)
+  {
+    return false;
+  }
+  return true;
+}
+
+#####################################################################################################
+
 function ramer_douglas_peucker($points,$epsilon,$x_key,$y_key)
 {
   # https://en.wikipedia.org/wiki/Ramer%E2%80%93Douglas%E2%80%93Peucker_algorithm
@@ -43,42 +139,42 @@ function ramer_douglas_peucker($points,$epsilon,$x_key,$y_key)
 
 #####################################################################################################
 
-function gantt($data,$callbacks=false)
+function gantt($tasks,$callbacks=false)
 {
   global $settings;
 
   $today=time();
 
-  /*$data=array();
+  /*$tasks=array();
 
   $task=array();
   $task["name"]="test task 1";
   $task["start"]=\webdb\utils\webdb_strtotime("-1 months",$today);
   $task["finish"]=\webdb\utils\webdb_strtotime("+1 months",$today);
-  $data[]=$task;
+  $tasks[]=$task;
 
   $task=array();
   $task["name"]="test task 2";
   $task["start"]=\webdb\utils\webdb_strtotime("-1 months",$today);
   $task["finish"]=\webdb\utils\webdb_strtotime("+1 months",$today);
-  $data[]=$task;*/
+  $tasks[]=$task;*/
 
   $line_height=30; # pixels
   $bar_thickness=0.5; # real y
 
-  $task_count=count($data);
+  $task_count=count($tasks);
 
-  $chart_data=\webdb\chart\initilize_chart();
-  $chart_data["h"]=$line_height*($task_count+1);
+  $data=\webdb\chart\initilize_chart();
+  $data["h"]=$line_height*($task_count+1);
 
-  $chart_data["y_min"]=0;
-  $chart_data["y_max"]=$task_count+1;
-  $chart_data["grid_y"]=1;
-  $chart_data["x_title"]="";
-  $chart_data["y_title"]="";
+  $data["y_min"]=0;
+  $data["y_max"]=$task_count+1;
+  $data["grid_y"]=1;
+  $data["x_title"]="";
+  $data["y_title"]="";
 
-  $chart_data["y_captions"]=array();
-  $chart_data["y_captions"][]="";
+  $data["y_captions"]=array();
+  $data["y_captions"][]="";
 
   $font_size=10; # pt
   $text_file=$settings["gd_ttf"];
@@ -93,7 +189,7 @@ function gantt($data,$callbacks=false)
 
   for ($i=0;$i<$task_count;$i++)
   {
-    $task=$data[$i];
+    $task=$tasks[$i];
     $y=$i+1;
 
     $bbox=imagettfbbox($font_size,0,$text_file,$task["name"]);
@@ -106,37 +202,37 @@ function gantt($data,$callbacks=false)
     $x_max=max($x_max,$task["start"]);
     $x_max=max($x_max,$task["finish"]);
 
-    $chart_data["y_captions"][$y]=$task["name"];
+    $data["y_captions"][$y]=$task["name"];
 
     $records=array();
     $records[]=array($task["start"],$y+$bar_thickness/3);
     $records[]=array($task["finish"],$y-$bar_thickness/3);
-    $chart_data=\webdb\chart\assign_plot_data($chart_data,$records,0,1,"teal","",false,true,$task["name"],"bar");
+    $data=\webdb\chart\assign_plot_data($data,$records,0,1,"teal","",false,true,$task["name"],"bar");
 
   }
 
-  $chart_data["y_captions"][]="";
+  $data["y_captions"][]="";
 
-  $chart_data["x_min"]=$x_min;
-  $chart_data["x_max"]=$x_max;
+  $data["x_min"]=$x_min;
+  $data["x_max"]=$x_max;
 
-  \webdb\chart\get_time_captions("month",$chart_data,"M-y");
+  \webdb\chart\get_time_captions("month",$data,"M-y");
 
-  $chart_data["today_mark"]="red";
-  $chart_data["today_override"]=$today;
+  $data["today_mark"]="red";
+  $data["today_override"]=$today;
 
-  $chart_data["left"]=$max_text_w+$tick_length+$label_space+$y_margin;
+  $data["left"]=$max_text_w+$tick_length+$label_space+$y_margin;
 
   if ($callbacks!==false)
   {
     foreach ($callbacks as $event_type => $event_data)
     {
-      $chart_data[$event_type]=$event_data["callback_function"];
-      $chart_data["user_data"][$event_type]=$event_data["user_data"];
+      $data[$event_type]=$event_data["callback_function"];
+      $data["user_data"][$event_type]=$event_data["user_data"];
     }
   }
 
-  return \webdb\chart\output_chart($chart_data);
+  return \webdb\chart\output_chart($data);
 }
 
 #####################################################################################################
@@ -253,10 +349,45 @@ function perpendicular_distance($x,$y,$L1x,$L1y,$L2x,$L2y)
   }
   else
   {
-    $m=(($L2y-$L1y)/($L2x-$L1x));
+    $m=($L2y-$L1y)/($L2x-$L1x);
     $c=(0-$L1x)*$m+$L1y;
     return (abs($m*$x-$y+$c))/(sqrt($m*$m+1));
   }
+}
+
+#####################################################################################################
+
+function perpendicular_coords($x1,$y1,$x2,$y2,$d)
+{
+  if ($x1==$x2) # vertical line
+  {
+    $p1_x=$x2-$d;
+    $p1_y=$y2;
+    $p2_x=$x2+$d;
+    $p2_y=$y2;
+  }
+  elseif ($y1==$y2) # horizontal line
+  {
+    $p1_x=$x2;
+    $p1_y=$y2-$d;
+    $p2_x=$x2;
+    $p2_y=$y2+$d;
+  }
+  else
+  {
+    $delta_x=$x2-$x1;
+    $delta_y=$y2-$y1;
+    $mag=sqrt(pow($delta_x,2)+pow($delta_y,2));
+    $u1_x=-$delta_y/$mag;
+    $u1_y=$delta_x/$mag;
+    $u2_x=$delta_y/$mag;
+    $u2_y=-$delta_x/$mag;
+    $p1_x=$x2+$d*$u1_x;
+    $p1_y=$y2+$d*$u1_y;
+    $p2_x=$x2+$d*$u2_x;
+    $p2_y=$y2+$d*$u2_y;
+  }
+  return array(array($p1_x,$p1_y),array($p2_x,$p2_y));
 }
 
 #####################################################################################################
@@ -320,7 +451,7 @@ function auto_grid_y($pix,&$data)
 
 function zero_value($value)
 {
-  if (abs($value)<=1e-15)
+  if (abs($value)<=1e-12)
   {
     return 0.0;
   }
@@ -332,13 +463,28 @@ function zero_value($value)
 function chart_colors()
 {
   $colors=array();
+
+  $colors["corp_violet"]=array(64,45,130);
+  $colors["corp_white"]=array(242,242,242);
+  $colors["corp_sky_blue"]=array(3,159,218);
+  $colors["corp_light_gray"]=array(191,191,191);
+  $colors["corp_dark_gray"]=array(89,89,89);
+  $colors["corp_teal"]=array(37,171,145);
+  $colors["corp_orange"]=array(247,162,9);
+  $colors["corp_red"]=array(219,2,55);
+
+  $colors["safety_yellow"]=array(255,210,0);
+  $colors["safety_red"]=array(219,8,25);
+
   $colors["teal"]=array(11,132,165);
   $colors["yellow"]=array(246,200,95);
   $colors["purple"]=array(111,78,124);
+  $colors["green"]=array(0,128,0);
   $colors["light_green"]=array(157,216,102);
   $colors["red"]=array(202,71,47);
   $colors["light_red"]=array(254,200,216);
   $colors["orange"]=array(255,160,86);
+  $colors["light_orange"]=array(255,222,196);
   $colors["sky_blue"]=array(141,221,208);
   $colors["magenta"]=array(211,54,130);
   $colors["blue"]=array(38,139,210);
@@ -346,12 +492,15 @@ function chart_colors()
   $colors["sub_grid"]=array(240,240,240);
   $colors["border"]=array(230,230,250);
   $colors["black"]=array(0,0,0);
+  $colors["background"]=array(253,253,253);
+  $colors["axes"]=array(50,50,50);
+  $colors["titles"]=array(50,50,50);
   return $colors;
 }
 
 #####################################################################################################
 
-function assign_discontinuous_plot_data($chart_data,$plot_data,$x_key,$y_key,$color_key,$marker="",$limits="update")
+function assign_discontinuous_plot_data($data,$plot_data,$x_key,$y_key,$color_key,$marker="",$limits="update")
 {
   # $segment_data[$i]["p1|2"][$x|y_key]
   $plot=array();
@@ -367,19 +516,19 @@ function assign_discontinuous_plot_data($chart_data,$plot_data,$x_key,$y_key,$co
   }
   else
   {
-    $min_x=$chart_data["x_min"];
-    $max_x=$chart_data["x_max"];
-    $min_y=$chart_data["y_min"];
-    $max_y=$chart_data["y_max"];
+    $min_x=$data["x_min"];
+    $max_x=$data["x_max"];
+    $min_y=$data["y_min"];
+    $max_y=$data["y_max"];
   }
   $n=count($plot_data);
   for ($i=0;$i<$n;$i++)
   {
-    $data=$plot_data[$i];
-    $x1=$data["p1"][$x_key];
-    $y1=$data["p1"][$y_key];
-    $x2=$data["p2"][$x_key];
-    $y2=$data["p2"][$y_key];
+    $plot=$plot_data[$i];
+    $x1=$plot["p1"][$x_key];
+    $y1=$plot["p1"][$y_key];
+    $x2=$plot["p2"][$x_key];
+    $y2=$plot["p2"][$y_key];
     $segment=array();
     $segment["p1"]=array($x1,$y1);
     $segment["p2"]=array($x2,$y2);
@@ -417,35 +566,35 @@ function assign_discontinuous_plot_data($chart_data,$plot_data,$x_key,$y_key,$co
       $max_y=$y2;
     }
   }
-  $chart_data["discontinuous_plots"][]=$plot;
+  $data["discontinuous_plots"][]=$plot;
   if (($limits=="update") or ($limits=="assign"))
   {
     if (($min_x<$max_x) and ($min_y<$max_y))
     {
-      $chart_data["x_min"]=$min_x;
-      $chart_data["x_max"]=$max_x;
-      $chart_data["y_min"]=$min_y;
-      $chart_data["y_max"]=$max_y;
+      $data["x_min"]=$min_x;
+      $data["x_max"]=$max_x;
+      $data["y_min"]=$min_y;
+      $data["y_max"]=$max_y;
     }
   }
-  return $chart_data;
+  return $data;
 }
 
 #####################################################################################################
 
-function assign_3d_plot_data($chart_data,$vertices,$edges,$color_key)
+function assign_3d_plot_data($data,$vertices,$edges,$color_key)
 {
   $series=array();
   $series["color"]=$color_key;
   $series["vertices"]=$vertices;
   $series["edges"]=$edges;
-  $chart_data["3d_series"][]=$series;
-  return $chart_data;
+  $data["3d_series"][]=$series;
+  return $data;
 }
 
 #####################################################################################################
 
-function assign_plot_data($chart_data,$series_data,$x_key,$y_key,$color_key,$marker="",$assign_limits=true,$line_enabled=true,$name="",$style="solid",$series_data_color_key=false,$line_thickness=1)
+function assign_plot_data($data,$series_data,$x_key,$y_key,$color_key,$marker="",$assign_limits=true,$line_enabled=true,$name="",$style="solid",$series_data_color_key=false,$line_thickness=1)
 {
   # $style="solid"|"dash"
   # $series_data[$i][$x|y_key] (continuous)
@@ -459,10 +608,7 @@ function assign_plot_data($chart_data,$series_data,$x_key,$y_key,$color_key,$mar
   $series["y_values"]=array();
   $series["colors"]=array();
   $series["style"]=$style;
-  if ($line_thickness>1)
-  {
-    $series["thickness"]=$line_thickness;
-  }
+  $series["thickness"]=$line_thickness;
   $min_x=PHP_INT_MAX;
   $max_x=0;
   $min_y=PHP_INT_MAX;
@@ -500,18 +646,18 @@ function assign_plot_data($chart_data,$series_data,$x_key,$y_key,$color_key,$mar
       $max_y=$y;
     }
   }
-  $chart_data["series"][]=$series;
+  $data["series"][]=$series;
   if ($assign_limits==true)
   {
     if (($min_x<=$max_x) and ($min_y<=$max_y))
     {
-      $chart_data["x_min"]=$min_x;
-      $chart_data["x_max"]=$max_x;
-      $chart_data["y_min"]=$min_y;
-      $chart_data["y_max"]=$max_y;
+      $data["x_min"]=$min_x;
+      $data["x_max"]=$max_x;
+      $data["y_min"]=$min_y;
+      $data["y_max"]=$max_y;
     }
   }
-  return $chart_data;
+  return $data;
 }
 
 #####################################################################################################
@@ -547,9 +693,8 @@ function initilize_chart($copy_source=false)
   $data["show_grid_y"]=true;
   $data["show_x_axis"]=true;
   $data["show_y_axis"]=true;
-  $data["bg_color_r"]=253;
-  $data["bg_color_g"]=253;
-  $data["bg_color_b"]=253;
+  $data["x_axis_font_size"]=10;
+  $data["y_axis_font_size"]=10;
   $data["auto_grid_x_pix"]=30;
   $data["auto_grid_y_pix"]=30;
   $data["user_data"]=array(); # use to store any data (may be useful for events)
@@ -557,6 +702,12 @@ function initilize_chart($copy_source=false)
   $data["on_after_grid"]="";
   $data["on_after_plots"]="";
   $data["3d_focal_length"]=0;
+  $data["custom_axes_x"]=array();
+  $data["custom_axes_y"]=array();
+  $data["legend_left"]=0;
+  $data["legend_top"]=0;
+  $data["show_legend"]=false;
+  $data["transparent_color"]=false;
   if ($copy_source!==false)
   {
     foreach ($copy_source as $key => $value)
@@ -564,11 +715,24 @@ function initilize_chart($copy_source=false)
       $data[$key]=$value;
     }
   }
+  # if (isset($data["x_axis_format_date"])==true)
   # if (isset($data["x_axis_format"])==true)
   # if (isset($data["y_axis_format"])==true)
   # if (isset($data["x_captions"][$i])==true)
   # if (isset($data["y_captions"][$i])==true)
+  # if (isset($data["y_caption_colors"][$i])==true)
   return $data;
+}
+
+#####################################################################################################
+
+function allocate_color(&$data,$color)
+{
+  if (count($color)==4)
+  {
+    return imagecolorallocatealpha($data["buffer"],$color[0],$color[1],$color[2],$color[3]);
+  }
+  return imagecolorallocate($data["buffer"],$color[0],$color[1],$color[2]);
 }
 
 #####################################################################################################
@@ -579,7 +743,8 @@ function auto_range(&$data)
   $max_x=PHP_INT_MIN;
   $min_y=PHP_INT_MAX;
   $max_y=PHP_INT_MIN;
-  for ($i=0;$i<count($data["discontinuous_plots"]);$i++)
+  $m=count($data["discontinuous_plots"]);
+  for ($i=0;$i<$m;$i++)
   {
     $plot=$data["discontinuous_plots"][$i];
     $segments=$plot["segments"];
@@ -625,7 +790,8 @@ function auto_range(&$data)
       }
     }
   }
-  for ($i=0;$i<count($data["series"]);$i++)
+  $m=count($data["series"]);
+  for ($i=0;$i<$m;$i++)
   {
     $series=$data["series"][$i];
     $x_values=$series["x_values"];
@@ -713,7 +879,9 @@ function adjust_min_max_months_x(&$data)
   $d2=new \DateTime("@".$data["x_max"]);
   $diff=$d1->diff($d2);
   $n=$diff->y*12+$diff->m;
-  $data["grid_x"]=($data["x_max"]-$data["x_min"])/$n;
+  #$data["grid_x"]=($data["x_max"]-$data["x_min"])/$n;
+  $data["grid_x"]=30.436875*24*60*60; # The mean month-length in the Gregorian calendar is 30.436875 days
+  $data["x_max"]=$data["x_min"]+$n*$data["grid_x"];
   return $n;
 }
 
@@ -753,12 +921,20 @@ function get_time_captions($scale,&$data,$format=false)
         $format="M-Y";
       }
       $n=\webdb\chart\adjust_min_max_months_x($data);
-      $x=$data["x_min"];
-      for ($i=0;$i<=($n+1);$i++)
+      $x_captions[]=date($format,$data["x_min"]);
+      $d=date_parse(date("Y-m-d",$data["x_min"]));
+      for ($i=1;$i<=$n;$i++)
       {
+        $d["month"]++;
+        if ($d["month"]>12)
+        {
+          $d["month"]=1;
+          $d["year"]++;
+        }
+        $x=\webdb\utils\webdb_strtotime($d["year"]."-".sprintf("%02d",$d["month"])."-01");
         $x_captions[]=date($format,$x);
-        $x=\webdb\utils\webdb_strtotime("+1 month",$x);
       }
+      $x_captions[]=date($format,$data["x_max"]);
       break;
     case "year":
       # TODO
@@ -796,16 +972,137 @@ function chart_legend_line($w,$h,$color)
 
 #####################################################################################################
 
-function handle_chart_event($event_type,$chart_data)
+function chart_draw_legend(&$data)
 {
-  if ($chart_data[$event_type]<>"")
+  global $settings;
+  if ($data["show_legend"]==false)
   {
-    if (function_exists($chart_data[$event_type])==true)
+    return;
+  }
+  $left=$data["legend_left"]; # refers to vertical gridline (towards right from left of main chart area)
+  $top=$data["legend_top"]; # refers to horizontal gridline (towards top from bottom of main chart area)
+
+  $left=\webdb\chart\chart_to_pixel_x($data["x_min"]+$data["grid_x"]*$left,$data);
+  $top=\webdb\chart\chart_to_pixel_y($data["y_min"]+$data["grid_y"]*$top,$data);
+
+  $font_size=10;
+  $text_file=$settings["gd_ttf"];
+
+  $bbox=imagettfbbox($font_size,0,$text_file,"Ay");
+  $text_h=$bbox[1]-$bbox[7];
+
+  $gap_x=5;
+  $gap_y=3;
+  $line_w=20;
+  $margin_x=6;
+  $margin_y=6;
+
+  $n=count($data["series"]);
+  $m=0;
+  $max_text_w=0;
+  for ($i=0;$i<$n;$i++)
+  {
+    $series=$data["series"][$i];
+    $caption=$series["name"];
+    if (empty($caption)==true)
     {
-      return call_user_func($chart_data[$event_type],$chart_data,$event_type);
+      continue;
+    }
+    $bbox=imagettfbbox($font_size,0,$text_file,$caption);
+    $text_w=$bbox[2]-$bbox[0];
+    $max_text_w=max($max_text_w,$text_w);
+    $m++;
+  }
+
+  imagesavealpha($data["buffer"],true);
+  $color=array(0,0,0,122);
+  $color=imagecolorallocatealpha($data["buffer"],$color[0],$color[1],$color[2],$color[3]);
+  imagecolortransparent($data["buffer"],$color);
+  $w=2*$margin_x+$gap_x+$max_text_w+$line_w;
+  $h=2*$margin_y+$m*($text_h+$gap_y)-$gap_y+$text_h+$margin_y;
+  imagefilledrectangle($data["buffer"],$left,$top,$left+$w,$top+$h,$color);
+
+  $color=array(150,150,150);
+  $color=imagecolorallocate($data["buffer"],$color[0],$color[1],$color[2]);
+  imagerectangle($data["buffer"],$left,$top,$left+$w,$top+$h,$color);
+
+  $color=$data["colors"]["axes"];
+  $text_color=imagecolorallocate($data["buffer"],$color[0],$color[1],$color[2]);
+  $title="LEGEND";
+  $bbox=imagettfbbox($font_size,0,$text_file,$title);
+  $text_w=$bbox[2]-$bbox[0];
+
+  $text_x=$left+round($w/2-$text_w/2);
+  $text_y=$top+$margin_y+$text_h;
+  imagettftext($data["buffer"],$font_size,0,$text_x,$text_y,$text_color,$text_file,$title);
+
+  $m=0;
+
+  for ($i=0;$i<$n;$i++)
+  {
+    $series=$data["series"][$i];
+
+    $caption=$series["name"];
+    if (empty($caption)==true)
+    {
+      continue;
+    }
+    $color=$series["color"];
+    $color=$data["colors"][$color];
+    $line_color=imagecolorallocate($data["buffer"],$color[0],$color[1],$color[2]);
+
+    $x=$left+$margin_x;
+    $y=$top+$margin_y+$text_h+($text_h+$gap_y)*$m+$text_h+$margin_y;
+
+    $color=$data["colors"]["axes"];
+    $text_color=imagecolorallocate($data["buffer"],$color[0],$color[1],$color[2]);
+
+    $text_x=$x+$line_w+$gap_x;
+    $text_y=$y;
+    imagettftext($data["buffer"],$font_size,0,$text_x,$text_y,$text_color,$text_file,$caption);
+
+    $line_y=$y-round($text_h/2);
+
+    if ($series["marker"]<>"")
+    {
+      $x1=$x+round($line_w/2);
+      \webdb\chart\chart_draw_plot_marker($data,$series["marker"],$x1,$line_y,$line_color);
+    }
+    if (isset($series["thickness"])==true)
+    {
+      imageantialias($data["buffer"],false);
+      imagesetthickness($data["buffer"],$series["thickness"]);
+    }
+    if ($series["line_enabled"]==true)
+    {
+      switch ($series["style"])
+      {
+        case "solid":
+          imageline($data["buffer"],$x,$line_y,$x+$line_w,$line_y,$line_color);
+          break;
+        case "dash":
+          imagedashedline($data["buffer"],$x,$line_y,$x+$line_w,$line_y,$line_color);
+          break;
+      }
+    }
+    imagesetthickness($data["buffer"],1);
+    imageantialias($data["buffer"],true);
+    $m++;
+  }
+}
+
+#####################################################################################################
+
+function handle_chart_event($event_type,$data)
+{
+  if ($data[$event_type]<>"")
+  {
+    if (function_exists($data[$event_type])==true)
+    {
+      return call_user_func($data[$event_type],$data,$event_type);
     }
   }
-  return $chart_data;
+  return $data;
 }
 
 #####################################################################################################
@@ -813,7 +1110,8 @@ function handle_chart_event($event_type,$chart_data)
 function draw_discontinuous_plots(&$data)
 {
   global $settings;
-  for ($i=0;$i<count($data["discontinuous_plots"]);$i++)
+  $n=count($data["discontinuous_plots"]);
+  for ($i=0;$i<$n;$i++)
   {
     \webdb\chart\chart_draw_discontinuous_plot($data,$data["discontinuous_plots"][$i]);
   }
@@ -821,12 +1119,30 @@ function draw_discontinuous_plots(&$data)
 
 #####################################################################################################
 
+function assign_plot_trigger(&$data,$trigger_function)
+{
+  $series=array();
+  $series["trigger"]=$trigger_function;
+  $data["series"][]=$series;
+}
+
+#####################################################################################################
+
 function draw_series_plots(&$data)
 {
   global $settings;
-  for ($i=0;$i<count($data["series"]);$i++)
+  $n=count($data["series"]);
+  for ($i=0;$i<$n;$i++)
   {
     $series=$data["series"][$i];
+    if (isset($series["trigger"])==true)
+    {
+      if (function_exists($series["trigger"])==true)
+      {
+        call_user_func($series["trigger"],$data);
+      }
+      continue;
+    }
     switch ($series["type"])
     {
       case "column":
@@ -860,13 +1176,33 @@ function output_chart($data,$filename=false,$no_output=false,$rhs_data=false,$dr
     {
       \webdb\chart\chart_draw_today_mark($data);
     }
+    $color=$data["colors"]["background"];
+    $color=imagecolorallocate($data["buffer"],$color[0],$color[1],$color[2]);
+    if ($data["top"]>0)
+    {
+      imagefilledrectangle($data["buffer"],0,0,$data["w"],$data["top"]-1,$color);
+    }
+    if ($data["left"]>0)
+    {
+      imagefilledrectangle($data["buffer"],0,0,$data["left"]-1,$data["h"],$color);
+    }
+    if ($data["right"]>0)
+    {
+      imagefilledrectangle($data["buffer"],$data["w"]-$data["right"],0,$data["w"],$data["h"],$color);
+    }
+    if ($data["bottom"]>0)
+    {
+      imagefilledrectangle($data["buffer"],0,$data["h"]-$data["bottom"],$data["w"],$data["h"],$color);
+    }
     if ($data["show_y_axis"]==true)
     {
       \webdb\chart\chart_draw_axis_y($data,$rhs_data);
+      \webdb\chart\chart_draw_custom_axes_y($data);
     }
     if ($data["show_x_axis"]==true)
     {
       \webdb\chart\chart_draw_axis_x($data);
+      \webdb\chart\chart_draw_custom_axes_x($data);
     }
     if ($data["x_title"]!=="")
     {
@@ -879,13 +1215,23 @@ function output_chart($data,$filename=false,$no_output=false,$rhs_data=false,$dr
   }
   else
   {
-    for ($i=0;$i<count($data["3d_series"]);$i++)
+    $n=count($data["3d_series"]);
+    for ($i=0;$i<$n;$i++)
     {
       $series=$data["3d_series"][$i];
       \webdb\chart\chart_draw_3d_plot($data,$series);
     }
   }
   \webdb\chart\handle_chart_event("on_after_plots",$data);
+  \webdb\chart\chart_draw_legend($data);
+
+  if ($data["transparent_color"]!==false)
+  {
+    $color=$data["transparent_color"];
+    $color_trans=imagecolorallocatealpha($data["buffer"],$color[0],$color[1],$color[2],127);
+    imagecolortransparent($data["buffer"],$color_trans);
+  }
+
   if (($data["scale"]!=="") and ($data["scale"]<>1))
   {
     \webdb\graphics\scale_img($data["buffer"],$data["scale"],$data["w"],$data["h"]);
@@ -919,7 +1265,8 @@ function output_chart_pix_series($data,$key)
 {
   $result=array();
   $s=$data["series"][$key];
-  for ($i=0;$i<count($s["x_values"]);$i++)
+  $n=count($s["x_values"]);
+  for ($i=0;$i<$n;$i++)
   {
     $x=$s["x_values"][$i];
     $x=\webdb\chart\chart_to_pixel_x($x,$data);
@@ -941,7 +1288,8 @@ function get_caption($data,$series_key,$axis,$val)
   $grid=$data["grid_".$axis];
   $result=false;
   $min_error=$max;
-  for ($i=0;$i<count($captions);$i++)
+  $n=count($captions);
+  for ($i=0;$i<$n;$i++)
   {
     $test=$grid*$i+$min;
     $error=abs($test-$val);
@@ -999,6 +1347,14 @@ function pixel_to_chart_y($pix,$data)
 
 function chart_to_pixel_x($val,$data)
 {
+  if (is_numeric($val)==false)
+  {
+    die("chart_to_pixel_x: ".$val);
+  }
+  if (is_numeric($data["x_min"])==false)
+  {
+    die("chart_to_pixel_x: ".$data["x_min"]);
+  }
   if ($data["x_axis_scale"]=="log10")
   {
     $val=log10($val);
@@ -1012,6 +1368,14 @@ function chart_to_pixel_x($val,$data)
 
 function chart_to_pixel_y($val,$data)
 {
+  if (is_numeric($val)==false)
+  {
+    die("chart_to_pixel_y: ".$val);
+  }
+  if (is_numeric($data["y_min"])==false)
+  {
+    die("chart_to_pixel_y: ".$data["y_min"]);
+  }
   if ($data["y_axis_scale"]=="log10")
   {
     $val=log10($val);
@@ -1029,8 +1393,10 @@ function chart_draw_create(&$data)
   imageantialias($data["buffer"],false);
   imagesetthickness($data["buffer"],1);
   imageantialias($data["buffer"],true);
-  $bg_color=imagecolorallocate($data["buffer"],$data["bg_color_r"],$data["bg_color_g"],$data["bg_color_b"]);
-  imagefill($data["buffer"],0,0,$bg_color);
+  #imagesavealpha($data["buffer"],true);
+  $color=$data["colors"]["background"];
+  $color=\webdb\chart\allocate_color($data,$color);
+  imagefill($data["buffer"],0,0,$color);
 }
 
 #####################################################################################################
@@ -1046,8 +1412,8 @@ function chart_draw_destroy(&$data)
 function chart_draw_border(&$data)
 {
   $color=$data["colors"]["border"];
-  $line_color=imagecolorallocate($data["buffer"],$color[0],$color[1],$color[2]);
-  imagerectangle($data["buffer"],0,0,$data["w"]-1,$data["h"]-1,$line_color);
+  $color=imagecolorallocate($data["buffer"],$color[0],$color[1],$color[2]);
+  imagerectangle($data["buffer"],0,0,$data["w"]-1,$data["h"]-1,$color);
 }
 
 #####################################################################################################
@@ -1063,11 +1429,11 @@ function chart_draw_today_mark(&$data)
   {
     $color=$data["today_mark"];
     $color=$data["colors"][$color];
-    $line_color=imagecolorallocate($data["buffer"],$color[0],$color[1],$color[2]);
+    $color=imagecolorallocate($data["buffer"],$color[0],$color[1],$color[2]);
     $px=\webdb\chart\chart_to_pixel_x($rx,$data);
     $py1=\webdb\chart\chart_to_pixel_y($data["y_max"],$data);
     $py2=\webdb\chart\chart_to_pixel_y($data["y_min"],$data);
-    imageline($data["buffer"],$px,$py1,$px,$py2,$line_color);
+    imageline($data["buffer"],$px,$py1,$px,$py2,$color);
   }
 }
 
@@ -1171,7 +1537,7 @@ function chart_draw_continuous_plot(&$data,$series)
   imagesetthickness($data["buffer"],1);
   $color=$series["color"];
   $color=$data["colors"][$color];
-  $line_color=imagecolorallocate($data["buffer"],$color[0],$color[1],$color[2]);
+  $line_color=\webdb\chart\allocate_color($data,$color);
   if (isset($series["x_values"])==false)
   {
     $series["x_values"]=array();
@@ -1259,21 +1625,18 @@ function chart_draw_continuous_plot(&$data,$series)
     }
     if ($colors[$i]!==false)
     {
-      $line_color=imagecolorallocate($data["buffer"],$colors[$i][0],$colors[$i][1],$colors[$i][2]);
+      $line_color=\webdb\chart\allocate_color($data,$colors[$i]);
     }
-    if (($series["marker"]=="box") and ($pt1ok==true))
+    if (($series["marker"]<>"") and ($pt1ok==true))
     {
-      imagerectangle($data["buffer"],$x1-2,$y1-2,$x1+2,$y1+2,$line_color);
+      \webdb\chart\chart_draw_plot_marker($data,$series["marker"],$x1,$y1,$line_color);
       if ($series["line_enabled"]==false)
       {
         imagesetpixel($data["buffer"],$x1,$y1,$line_color);
       }
     }
-    if (isset($series["thickness"])==true)
-    {
-      imageantialias($data["buffer"],false);
-      imagesetthickness($data["buffer"],$series["thickness"]);
-    }
+    imageantialias($data["buffer"],false);
+    imagesetthickness($data["buffer"],$series["thickness"]);
     if ($series["line_enabled"]==true)
     {
       switch ($series["style"])
@@ -1282,16 +1645,40 @@ function chart_draw_continuous_plot(&$data,$series)
           imageline($data["buffer"],$x1,$y1,$x2,$y2,$line_color);
           break;
         case "dash":
-          imagedashedline($data["buffer"],$x1,$y1,$x2,$y2,$line_color);
+          imagedashedline($data["buffer"],$x1,$y1,$x2,$y2,$line_color); # BUG: line thickness doesn't seem to be reliable
           break;
       }
     }
     imagesetthickness($data["buffer"],1);
     imageantialias($data["buffer"],true);
   }
-  if (($series["marker"]=="box") and ($n>0) and ($pt2ok==true))
+  if (($series["marker"]<>"") and ($n>0) and ($pt2ok==true))
   {
-    imagerectangle($data["buffer"],$x2-2,$y2-2,$x2+2,$y2+2,$line_color);
+    \webdb\chart\chart_draw_plot_marker($data,$series["marker"],$x2,$y2,$line_color);
+  }
+}
+
+#####################################################################################################
+
+function chart_draw_plot_marker(&$data,$marker,$px,$py,$line_color)
+{
+  imageantialias($data["buffer"],false);
+  imagesetthickness($data["buffer"],1);
+  switch ($marker)
+  {
+    case "dot":
+      for ($i=0;$i<=20;$i++)
+      {
+        imagesetpixel($data["buffer"],$px,$py,$line_color);
+      }
+      break;
+    case "box":
+      imagerectangle($data["buffer"],$px-2,$py-2,$px+2,$py+2,$line_color);
+      break;
+    case "target":
+      imageline($data["buffer"],$px-3,$py,$px+3,$py,$line_color);
+      imageline($data["buffer"],$px,$py-3,$px,$py+3,$line_color);
+      break;
   }
 }
 
@@ -1380,15 +1767,15 @@ function chart_draw_discontinuous_plot(&$data,$plot)
     $y1=\webdb\chart\chart_to_pixel_y($y1,$data);
     $x2=\webdb\chart\chart_to_pixel_x($x2,$data);
     $y2=\webdb\chart\chart_to_pixel_y($y2,$data);
-    if ($plot["marker"]=="box")
+    if ($plot["marker"]<>"")
     {
-      imagerectangle($data["buffer"],$x1-2,$y1-2,$x1+2,$y1+2,$line_color);
+      \webdb\chart\chart_draw_plot_marker($data,$plot["marker"],$x1,$y1,$line_color);
     }
     imageline($data["buffer"],$x1,$y1,$x2,$y2,$line_color);
   }
-  if (($plot["marker"]=="box") and ($n>0))
+  if (($plot["marker"]<>"") and ($n>0))
   {
-    imagerectangle($data["buffer"],$x2-2,$y2-2,$x2+2,$y2+2,$line_color);
+    \webdb\chart\chart_draw_plot_marker($data,$plot["marker"],$x2,$y2,$line_color);
   }
 }
 
@@ -1495,12 +1882,13 @@ function chart_draw_grid(&$data)
 function chart_draw_axis_x(&$data)
 {
   global $settings;
-  $font_size=10;
+  $font_size=$data["x_axis_font_size"];
   $tick_length=5;
   $label_space=4;
   $text_file=$settings["gd_ttf"];
-  $line_color=imagecolorallocate($data["buffer"],50,50,50);
-  $text_color=imagecolorallocate($data["buffer"],50,50,50);
+  $color=$data["colors"]["axes"];
+  $line_color=imagecolorallocate($data["buffer"],$color[0],$color[1],$color[2]);
+  $text_color=imagecolorallocate($data["buffer"],$color[0],$color[1],$color[2]);
   $y=$data["h"]-$data["bottom"]-1;
   imageline($data["buffer"],$data["left"],$y,$data["w"]-$data["right"]-1,$y,$line_color);
   switch ($data["x_axis_scale"])
@@ -1521,9 +1909,17 @@ function chart_draw_axis_x(&$data)
         {
           $caption=sprintf($data["x_axis_format"],$rx);
         }
+        if (isset($data["x_axis_format_date"])==true)
+        {
+          $caption=date($data["x_axis_format_date"],$rx);
+        }
         if (isset($data["x_captions"][$i])==true)
         {
           $caption=$data["x_captions"][$i];
+        }
+        if ($caption=="")
+        {
+          continue;
         }
         $bbox=imagettfbbox($font_size,0,$text_file,$caption);
         $text_w=$bbox[2]-$bbox[0];
@@ -1581,15 +1977,107 @@ function chart_draw_axis_x(&$data)
 
 #####################################################################################################
 
-function chart_draw_axis_y(&$data,$rhs_data=false)
+function chart_draw_custom_axes_x(&$data)
 {
   global $settings;
-  $font_size=10;
+  # $data["custom_axes_x"]
+}
+
+#####################################################################################################
+
+function chart_draw_custom_axes_y(&$data)
+{
+  global $settings;
+  # values are float, pos_x value is the nth main axis grid, pos_y values are float relative to the main axes
+  $font_size=$data["y_axis_font_size"];
   $tick_length=5;
   $label_space=4;
   $text_file=$settings["gd_ttf"];
-  $line_color=imagecolorallocate($data["buffer"],50,50,50);
-  $text_color=imagecolorallocate($data["buffer"],50,50,50);
+  $m=count($data["custom_axes_y"]);
+  for ($j=0;$j<$m;$j++)
+  {
+    $color=$data["colors"]["axes"];
+    $text_color=imagecolorallocate($data["buffer"],$color[0],$color[1],$color[2]);
+    $axis=$data["custom_axes_y"][$j];
+    $min_y=$axis["min_y"];
+    $max_y=$axis["max_y"];
+    $grid_y=$axis["grid_y"];
+    $pos_x=$axis["pos_x"];
+    $pos_y_min=$axis["pos_y_min"];
+    $pos_y_max=$axis["pos_y_max"];
+    $margin=$axis["margin"];
+    $title=$axis["title"];
+    $format=$axis["format"];
+    $y_captions=array();
+    if (isset($axis["y_captions"])==true)
+    {
+      $y_captions=$axis["y_captions"];
+    }
+    if (isset($axis["font_size"])==true)
+    {
+      $font_size=$axis["font_size"];
+    }
+    $f=($pos_y_max-$pos_y_min)/($max_y-$min_y);
+    $left=\webdb\chart\chart_to_pixel_x($data["x_min"]+$data["grid_x"]*$pos_x,$data);
+    $top=\webdb\chart\chart_to_pixel_y($pos_y_max,$data);
+    $bottom=\webdb\chart\chart_to_pixel_y($pos_y_min,$data);
+    $color=$data["colors"]["axes"];
+    $line_color=imagecolorallocate($data["buffer"],$color[0],$color[1],$color[2]);
+    imageline($data["buffer"],$left,$top,$left,$bottom,$line_color);
+    $dy=$max_y-$min_y;
+    $n=round($dy/$grid_y);
+    for ($i=0;$i<=$n;$i++)
+    {
+      $ry=$grid_y*$i;
+      $caption=\webdb\chart\zero_value($ry+$min_y);
+      if (empty($format)==false)
+      {
+        $caption=sprintf($format,$caption);
+      }
+      $vert_os=0;
+      if (isset($y_captions[$caption])==true)
+      {
+        $caption=$y_captions[$caption];
+        $vert_os=3;
+      }
+      $y=\webdb\chart\chart_to_pixel_y($ry*$f+$pos_y_min,$data);
+      if (($y<$data["top"]) or ($y>($data["h"]-$data["bottom"])))
+      {
+        continue;
+      }
+      imageline($data["buffer"],$left,$y,$left-$tick_length,$y,$line_color);
+      $bbox=imagettfbbox($font_size,0,$text_file,$caption);
+      $text_w=$bbox[2]-$bbox[0];
+      $text_h=$bbox[1]-$bbox[7];
+      $text_x=$left-$text_w-$tick_length-$label_space;
+      $text_y=$y+round($text_h/2)-$vert_os;
+      imagettftext($data["buffer"],$font_size,0,$text_x,$text_y,$text_color,$text_file,$caption);
+    }
+    $title_font_size=12;
+    $color=$data["colors"]["titles"];
+    $text_color=imagecolorallocate($data["buffer"],$color[0],$color[1],$color[2]);
+    $cy=($bottom-$top)/2+$top;
+    $bbox=imagettfbbox($title_font_size,0,$text_file,$title);
+    $text_w=$bbox[2]-$bbox[0];
+    $text_h=$bbox[1]-$bbox[7];
+    $text_x=$left-$margin;
+    $text_y=round($cy+$text_w/2);
+    imagettftext($data["buffer"],$title_font_size,90,$text_x,$text_y,$text_color,$text_file,$title);
+  }
+}
+
+#####################################################################################################
+
+function chart_draw_axis_y(&$data,$rhs_data=false)
+{
+  global $settings;
+  $font_size=$data["y_axis_font_size"];
+  $tick_length=5;
+  $label_space=4;
+  $text_file=$settings["gd_ttf"];
+  $color=$data["colors"]["axes"];
+  $line_color=imagecolorallocate($data["buffer"],$color[0],$color[1],$color[2]);
+  $text_color=imagecolorallocate($data["buffer"],$color[0],$color[1],$color[2]);
   imageline($data["buffer"],$data["left"],$data["top"],$data["left"],$data["h"]-$data["bottom"]-1,$line_color);
   switch ($data["y_axis_scale"])
   {
@@ -1610,13 +2098,24 @@ function chart_draw_axis_y(&$data,$rhs_data=false)
         {
           $caption=$data["y_captions"][$i];
         }
-        imageline($data["buffer"],$data["left"],$y,$data["left"]-$tick_length,$y,$line_color);
-        $bbox=imagettfbbox($font_size,0,$text_file,$caption);
-        $text_w=$bbox[2]-$bbox[0];
-        $text_h=$bbox[1]-$bbox[7];
-        $text_x=$data["left"]-$text_w-$tick_length-$label_space;
-        $text_y=$y+round($text_h/2);
-        imagettftext($data["buffer"],$font_size,0,$text_x,$text_y,$text_color,$text_file,$caption);
+        if (isset($data["y_caption_colors"][$i])==true)
+        {
+          $text_color=\webdb\chart\allocate_color($data,$data["y_caption_colors"][$i]);
+        }
+        else
+        {
+          $text_color=\webdb\chart\allocate_color($data,$color);
+        }
+        if ($caption<>"")
+        {
+          imageline($data["buffer"],$data["left"],$y,$data["left"]-$tick_length,$y,$line_color);
+          $bbox=imagettfbbox($font_size,0,$text_file,$caption);
+          $text_w=$bbox[2]-$bbox[0];
+          $text_h=$bbox[1]-$bbox[7];
+          $text_x=$data["left"]-$text_w-$tick_length-$label_space;
+          $text_y=$y+round($text_h/2);
+          imagettftext($data["buffer"],$font_size,0,$text_x,$text_y,$text_color,$text_file,$caption);
+        }
       }
       if ($rhs_data===false)
       {
@@ -1638,18 +2137,17 @@ function chart_draw_axis_y(&$data,$rhs_data=false)
         if (isset($rhs_data["y_captions"][$i])==true)
         {
           $caption=$rhs_data["y_captions"][$i];
-          if ($caption=="")
-          {
-            continue;
-          }
         }
-        imageline($data["buffer"],$x,$y,$x-$tick_length,$y,$line_color);
-        $bbox=imagettfbbox($font_size,0,$text_file,$caption);
-        $text_w=$bbox[2]-$bbox[0];
-        $text_h=$bbox[1]-$bbox[7];
-        $text_x=$x-$text_w-$tick_length-$label_space;
-        $text_y=$y+round($text_h/2);
-        imagettftext($data["buffer"],$font_size,0,$text_x,$text_y,$text_color,$text_file,$caption);
+        if ($caption<>"")
+        {
+          imageline($data["buffer"],$x,$y,$x-$tick_length,$y,$line_color);
+          $bbox=imagettfbbox($font_size,0,$text_file,$caption);
+          $text_w=$bbox[2]-$bbox[0];
+          $text_h=$bbox[1]-$bbox[7];
+          $text_x=$x-$text_w-$tick_length-$label_space;
+          $text_y=$y+round($text_h/2);
+          imagettftext($data["buffer"],$font_size,0,$text_x,$text_y,$text_color,$text_file,$caption);
+        }
       }
       break;
     case "log10":
@@ -1695,7 +2193,8 @@ function chart_draw_title_x(&$data)
   global $settings;
   $title_font_size=12;
   $title_margin=5;
-  $text_color=imagecolorallocate($data["buffer"],50,50,50);
+  $color=$data["colors"]["titles"];
+  $text_color=imagecolorallocate($data["buffer"],$color[0],$color[1],$color[2]);
   $text_file=$settings["gd_ttf"];
   $cx=($data["w"]-$data["left"]-$data["right"])/2+$data["left"];
   $bbox=imagettfbbox($title_font_size,0,$text_file,$data["x_title"]);
@@ -1713,7 +2212,8 @@ function chart_draw_title_y(&$data,$rhs_data=false)
   global $settings;
   $title_font_size=12;
   $title_margin=5;
-  $text_color=imagecolorallocate($data["buffer"],50,50,50);
+  $color=$data["colors"]["titles"];
+  $text_color=imagecolorallocate($data["buffer"],$color[0],$color[1],$color[2]);
   $text_file=$settings["gd_ttf"];
   $cy=($data["h"]-$data["bottom"]-$data["top"])/2+$data["top"];
   $bbox=imagettfbbox($title_font_size,0,$text_file,$data["y_title"]);
@@ -1752,9 +2252,5 @@ function chart_draw_html_out(&$data)
 {
   return \webdb\graphics\base64_image($data["buffer"],"png");
 }
-
-#####################################################################################################
-
-
 
 #####################################################################################################

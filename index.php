@@ -37,6 +37,8 @@ require_once($dir."websocket.php");
 require_once($dir."dbquery.php");
 require_once($dir."wiki.php");
 require_once($dir."wiki_utils.php");
+require_once($dir."teams.php");
+require_once($dir."tools".DIRECTORY_SEPARATOR."nn.php");
 require_once($dir."tools".DIRECTORY_SEPARATOR."dxf.php");
 require_once($dir."tools".DIRECTORY_SEPARATOR."graphics.php");
 require_once($dir."tools".DIRECTORY_SEPARATOR."tree.php");
@@ -54,11 +56,6 @@ define("webdb\\index\\TEMPLATE_PLACEHOLDER_1","!~template_placeholder_1~!");
 define("webdb\\index\\TEMPLATE_PLACEHOLDER_2","!~template_placeholder_2~!");
 define("webdb\\index\\TEMPLATE_PLACEHOLDER_3","!~template_placeholder_3~!");
 
-if (\webdb\cli\is_cli_mode()==false)
-{
-  ob_start("\\webdb\\utils\\ob_postprocess");
-}
-
 if (isset($settings)==false)
 {
   $settings=array();
@@ -71,6 +68,11 @@ if (\webdb\cli\is_cli_mode()==true)
 }
 
 \webdb\utils\load_settings();
+
+if (\webdb\cli\is_cli_mode()==false)
+{
+  ob_start("\\webdb\\utils\\ob_postprocess");
+}
 
 set_error_handler("\\webdb\\utils\\error_handler",E_ALL);
 set_exception_handler("\\webdb\\utils\\exception_handler");

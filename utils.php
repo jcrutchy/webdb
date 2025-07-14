@@ -242,6 +242,7 @@ function initialize_settings()
   global $settings;
   $includes=get_included_files();
   $settings["env_root_path"]=dirname($includes[0]).DIRECTORY_SEPARATOR;
+  $settings["env_root_path"]=str_replace("\\","/",$settings["env_root_path"]);
   $settings["links_css"]=array();
   $settings["links_js"]=array();
   $settings["logs"]=array();
@@ -253,8 +254,11 @@ function initialize_settings()
   $settings["sql_database_change"]=false;
   $settings["calendar_fields"]=array();
   $settings["permissions"]=array();
+  $settings["templates"]=array();
   $settings["webdb_parent_path"]=dirname(__DIR__).DIRECTORY_SEPARATOR;
+  $settings["webdb_parent_path"]=str_replace("\\","/",$settings["webdb_parent_path"]);
   $settings["webdb_root_path"]=__DIR__.DIRECTORY_SEPARATOR;
+  $settings["webdb_root_path"]=str_replace("\\","/",$settings["webdb_root_path"]);
   $settings["webdb_directory_name"]=basename($settings["webdb_root_path"]);
   #$settings["constants"]=get_defined_constants(false); # BAD FOR PERFORMANCE OF TEMPLATE_FILL FUNCTION
   $settings["constants"]=array();
@@ -401,6 +405,7 @@ function output_page($content,$title)
   }
   $page_params["calendar"]=\webdb\forms\get_calendar();
   $page_params["app_name"]=$settings["app_name"];
+  $page_params["additional_head_html"]=$settings["additional_head_html"];
   $output=\webdb\utils\template_fill("page",$page_params);
   die($output);
 }
@@ -662,6 +667,10 @@ function list_files($path,$root="") # path (and root) must have trailing delimit
   }
   $result=array();
   $file_list=scandir($path);
+  if ($file_list===false)
+  {
+    return array();
+  }
   for ($i=0;$i<count($file_list);$i++)
   {
     $fn=$file_list[$i];
@@ -1207,7 +1216,8 @@ function custom_template_fill($template_key,$params=false,$tracking=array(),$cus
   }
   if (in_array($template_key,$tracking)==true)
   {
-    \webdb\utils\system_message("error: circular reference to template '".$template_key."'");
+    #\webdb\utils\system_message("error: circular reference to template '".$template_key."'");
+    return "";
   }
   $substitute_template=\webdb\utils\check_user_template_permission($template_key);
   if ($substitute_template===false)
@@ -1381,6 +1391,67 @@ function strip_http_headers($response)
     return $response;
   }
   return trim(substr($response,$i+strlen($delim)));
+}
+
+#####################################################################################################
+
+function strip_first_tag_attribute(&$html,$tag,$attrib)
+{
+  $lhtml=strtolower($html);
+  $i=strpos($lhtml,"<".$tag);
+  $end="</".$tag.">";
+  $j=strpos($lhtml,$end);
+  if (($i===false) or ($j===false))
+  {
+    return false;
+  }
+  $k=strpos($lhtml," ".$attrib,$i+strlen($tag)+1);
+  if ($k===false)
+  {
+    return false;
+  }
+  $m=strpos($lhtml,"\"",$k+strlen($attrib)+1);
+  $n=strpos($lhtml,"\"",$m+1);
+  $html=substr($html,0,$k).substr($html,$n+1);
+  return true;
+}
+
+#####################################################################################################
+
+function strip_all_tag_attribute(&$html,$tag,$attrib)
+{
+  while (\webdb\utils\strip_first_tag_attribute($html,$tag,$attrib)==true)
+  {
+  }
+}
+
+#####################################################################################################
+
+function strip_first_tag(&$html,$tag,$xml=false)
+{
+  $lhtml=strtolower($html);
+  $i=strpos($lhtml,"<".$tag);
+  $end="</".$tag.">";
+  if ($xml==true)
+  {
+    $end=" />";
+  }
+  $j=strpos($lhtml,$end,$i);
+  if (($i===false) or ($j===false))
+  {
+    return false;
+  }
+  $html=substr($html,0,$i).substr($html,$j+strlen($end));
+  return true;
+}
+
+#####################################################################################################
+
+function strip_all_tag(&$html,$tag,$xml=false)
+{
+  while (\webdb\utils\strip_first_tag($html,$tag,$xml)==true)
+  {
+  }
 }
 
 #####################################################################################################
@@ -1582,7 +1653,10 @@ function send_email($recipient,$cc,$subject,$message,$from="",$reply_to="",$boun
     $bounce_to="";
   }
   $headers=array();
-  $headers[]="From: ".$from;
+  if ($from<>"")
+  {
+    $headers[]="From: ".$from;
+  }
   if ($cc<>"")
   {
     $headers[]="Cc: ".$cc;
@@ -1594,8 +1668,8 @@ function send_email($recipient,$cc,$subject,$message,$from="",$reply_to="",$boun
   $headers[]="Content-Type: text/html; charset=iso-8859-1";
   if ($settings["email_enabled"]==true)
   {
-    #mail($recipient,$subject,$message,implode(PHP_EOL,$headers),"-f".$bounce_to); # LINUX
-    mail($recipient,$subject,$message,implode(PHP_EOL,$headers)); # WINDOWS PROD
+    #mail($recipient,$subject,$message,implode("\r\n",$headers),"-f ".$bounce_to); # LINUX
+    mail($recipient,$subject,$message,implode("\r\n",$headers)); # WINDOWS PROD
   }
   if (($settings["email_file_log_enabled"]==true) and (isset($settings["templates"])==true))
   {
@@ -2218,6 +2292,10 @@ function webdb_str_replace($search,$replace,$subject)
 
 function formatted_date_to_unix($format,$date_str)
 {
+  if ($date_str===null)
+  {
+    return false;
+  }
   $x=date_create_from_format($format,$date_str);
   if ($x===false)
   {
@@ -2274,10 +2352,9 @@ function webdb_strtotime($time,$now=null)
   }
   if ($now===null)
   {
-    $now=time();
+    return strtotime($time);
   }
-  $now=round($now);
-  return strtotime($time,$now);
+  return strtotime($time,intval(round($now)));
 }
 
 #####################################################################################################
@@ -2289,6 +2366,160 @@ function webdb_strlen($string)
     return 0;
   }
   return strlen($string);
+}
+
+#####################################################################################################
+
+function load_bytes_from_file($filename)
+{
+  $fhandle=fopen($filename,"rb");
+  $fsize=filesize($filename);
+  $contents=fread($fhandle,$fsize);
+  $result=unpack("C*",$contents);
+  fclose($fhandle);
+  return $result;
+}
+
+#####################################################################################################
+
+function forced_download($full_filename,$name_override=false)
+{
+  global $settings;
+  $settings["ignore_ob_postprocess"]=true;
+  header("Content-Description: File Transfer");
+  header("Content-Type: application/octet-stream");
+  if ($name_override===false)
+  {
+    header("Content-Disposition: attachment; filename=\"".basename($full_filename)."\"");
+  }
+  else
+  {
+    header("Content-Disposition: attachment; filename=\"".$name_override."\"");
+  }
+  header("Content-Transfer-Encoding: binary");
+  header("Cache-Control: no-cache, no-store, must-revalidate");
+  header("Pragma: no-cache");
+  header("Expires: 0");
+  header("Content-Length: ".filesize($full_filename));
+  ob_end_clean();
+  flush();
+  readfile($full_filename);
+  exit;
+}
+
+#####################################################################################################
+
+function get_array_address($address,&$array,$delim=".")
+{
+  $keys=explode($delim,$address);
+  $key=array_shift($keys);
+  if (isset($array[$key])==false)
+  {
+    return false;
+  }
+  if (count($keys)==0)
+  {
+    return $array[$key];
+  }
+  return \webdb\utils\get_array_address(implode($delim,$keys),$array[$key],$delim);
+}
+
+#####################################################################################################
+
+function strip_html_comments(&$html)
+{
+  $tok1="<!--";
+  $tok2="-->";
+  $L2=strlen($tok2);
+  $i=strpos($html,$tok1);
+  $j=strpos($html,$tok2);
+  if (($i===false) or ($j===false))
+  {
+    return;
+  }
+  $html=substr($html,0,$i).substr($html,$j+$L2);
+  \webdb\utils\strip_html_comments($html);
+}
+
+#####################################################################################################
+
+function get_html_comments(&$html,&$comments)
+{
+  $tok1="<!--";
+  $tok2="-->";
+  $L1=strlen($tok1);
+  $L2=strlen($tok2);
+  $i=strpos($html,$tok1);
+  $j=strpos($html,$tok2);
+  if (($i===false) or ($j===false))
+  {
+    return;
+  }
+  $comments[]=trim(substr($html,$i+$L1,$j-$i-$L2-1));
+  $html=substr($html,0,$i).substr($html,$j+$L2);
+  \webdb\utils\get_html_comments($html,$comments);
+}
+
+#####################################################################################################
+
+function str_replace_once($search,$replace,$subject)
+{
+  $i=strpos($subject,$search);
+  if ($i===false)
+  {
+    return $subject;
+  }
+  return substr_replace($subject,$replace,$i,strlen($search));
+}
+
+#####################################################################################################
+
+function xml_to_arr($obj)
+{
+  # adapted from comment on https://www.php.net/manual/en/book.simplexml.php
+  $namespace=$obj->getDocNamespaces(true);
+  $namespace[NULL]=NULL;
+  $children=array();
+  $attributes=array();
+  $tag=strtolower((string)$obj->getName());
+  $text=trim((string)$obj);
+  if (is_object($obj)==true)
+  {
+    foreach ($namespace as $ns => $nsUrl)
+    {
+      $objAttributes=$obj->attributes($ns,true);
+      foreach ($objAttributes as $attributeName => $attributeValue)
+      {
+        $attribName=strtolower(trim((string)$attributeName));
+        $attribVal=trim((string)$attributeValue);
+        if (empty($ns)==false)
+        {
+          $attribName=$ns.":".$attribName;
+        }
+        $attributes[$attribName]=$attribVal;
+      }
+      $objChildren=$obj->children($ns,true);
+      foreach ($objChildren as $childName => $child)
+      {
+        $children[]=\webdb\utils\xml_to_arr($child);
+      }
+    }
+  }
+  $result=array();
+  $result["tag"]=$tag;
+  if ($text<>"")
+  {
+    $result["text"]=$text;
+  }
+  if (count($attributes)>0)
+  {
+    $result["attributes"]=$attributes;
+  }
+  if (count($children)>0)
+  {
+    $result["children"]=$children;
+  }
+  return $result;
 }
 
 #####################################################################################################

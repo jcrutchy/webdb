@@ -20,6 +20,7 @@ function ws_default_settings()
   $settings["ws_browser_connections"]=array();
   $settings["ws_on_browser_server_msg"]="";
   $settings["ws_on_app_server_msg"]="";
+  $settings["ws_on_server_loop"]="";
 }
 
 #####################################################################################################
@@ -49,9 +50,14 @@ function server_start()
   }
   \webdb\cli\term_echo("app server bound to ".$conn_str,32);
   stream_set_blocking($settings["ws_app_server"],0);
+  $stat_time=time();
   while (true)
   {
     usleep(0.05e6); # 0.05 second to prevent cpu flogging
+    if (function_exists($settings["ws_on_server_loop"])==True)
+    {
+      call_user_func($settings["ws_on_server_loop"]);
+    }
     $read=array($settings["ws_app_server"]);
     $write=null;
     $except=null;
@@ -217,6 +223,12 @@ function server_start()
         }
       }
     }
+    $t=time();
+    if (($t-$stat_time)>5)
+    {
+      \webdb\cli\term_echo("websocket server loop - ".count($settings["ws_browser_connections"])." clients connected",31);
+      $stat_time=$t;
+    }
   }
   \webdb\websocket\shutdown_server();
 }
@@ -296,7 +308,8 @@ function on_browser_msg($client_key,$data)
   }
   elseif ($settings["ws_browser_connections"][$client_key]["state"]=="OPEN")
   {
-    \webdb\cli\term_echo("command or text message received from OPEN browser client socket ".$client_key,32);
+    $peer_name=$settings["ws_browser_connections"][$client_key]["peer_name"];
+    \webdb\cli\term_echo("command or text message received from OPEN browser client socket ".$client_key." [".$peer_name."]",32);
     $frame=\webdb\websocket\decode_frame($data);
     if ($frame===false)
     {
@@ -400,7 +413,7 @@ function broadcast_to_all($msg)
   {
     if ($conn["state"]=="OPEN")
     {
-      \webdb\cli\term_echo("sending to browser client socket ".$key.": ".$msg,33);
+      #\webdb\cli\term_echo("sending to browser client socket ".$key.": ".$msg,33);
       \webdb\websocket\send_browser_text($key,$msg);
     }
   }
