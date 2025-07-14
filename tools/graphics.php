@@ -62,17 +62,31 @@ function base64_image($image,$type,$display="block",$border="0")
 
 #####################################################################################################
 
-function scale_img(&$buffer,$scale,$w,$h)
+function scale_img(&$buffer,$scale,$w,$h,$transparent_color=false)
 {
   $final_w=round($w*$scale);
   $final_h=round($h*$scale);
   $buffer_resized=imagecreatetruecolor($final_w,$final_h);
+  if ($transparent_color!==false)
+  {
+    imagecolortransparent($buffer_resized,$transparent_color);
+    imagealphablending($buffer_resized,true);
+    imagesavealpha($buffer_resized,true);
+    imagefill($buffer_resized,0,0,$transparent_color);
+  }
   if (imagecopyresampled($buffer_resized,$buffer,0,0,0,0,$final_w,$final_h,$w,$h)==false)
   {
     return false;
   }
   imagedestroy($buffer);
   $buffer=imagecreate($final_w,$final_h);
+  if ($transparent_color!==false)
+  {
+    imagecolortransparent($buffer,$transparent_color);
+    imagealphablending($buffer,true);
+    imagesavealpha($buffer,true);
+    imagefill($buffer,0,0,$transparent_color);
+  }
   if (imagecopy($buffer,$buffer_resized,0,0,0,0,$final_w,$final_h)==false)
   {
     return false;
