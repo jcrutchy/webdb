@@ -1627,7 +1627,7 @@ function load_credentials($prefix,$optional=false)
 
 #####################################################################################################
 
-function send_email($recipient,$cc,$subject,$message,$from="",$reply_to="",$bounce_to="")
+function send_email($recipient,$cc,$subject,$message,$from="",$reply_to="",$bounce_to="",$bcc="")
 {
   global $settings;
   if ($recipient=="")
@@ -1660,6 +1660,10 @@ function send_email($recipient,$cc,$subject,$message,$from="",$reply_to="",$boun
   if ($cc<>"")
   {
     $headers[]="Cc: ".$cc;
+  }
+  if ($bcc<>"")
+  {
+    $headers[]="Bcc: ".$bcc;
   }
   /*$headers[]="Reply-To: ".$reply_to;
   $headers[]="X-Sender: ".$from;
