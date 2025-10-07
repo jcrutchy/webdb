@@ -1992,6 +1992,7 @@ function chart_draw_custom_axes_y(&$data)
   $font_size=$data["y_axis_font_size"];
   $tick_length=5;
   $label_space=4;
+  $margin=50;
   $text_file=$settings["gd_ttf"];
   $m=count($data["custom_axes_y"]);
   for ($j=0;$j<$m;$j++)
@@ -2005,9 +2006,20 @@ function chart_draw_custom_axes_y(&$data)
     $pos_x=$axis["pos_x"];
     $pos_y_min=$axis["pos_y_min"];
     $pos_y_max=$axis["pos_y_max"];
-    $margin=$axis["margin"];
+    if (isset($axis["margin"])==true)
+    {
+      $margin=$axis["margin"];
+    }
     $title=$axis["title"];
     $format=$axis["format"];
+    if (isset($axis["label_space"])==true)
+    {
+      $label_space=$axis["label_space"];
+    }
+    if (isset($axis["tick_length"])==true)
+    {
+      $tick_length=$axis["tick_length"];
+    }
     $y_captions=array();
     if (isset($axis["y_captions"])==true)
     {
