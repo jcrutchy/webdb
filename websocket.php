@@ -398,6 +398,11 @@ function close_browser_client($client_key,$status_code=false,$reason="")
   {
     \webdb\cli\term_echo("closing client socket ".$client_key." connection (uncleanly)",33);
   }
+  if (isset($settings["ws_browser_sockets"][$client_key])==false)
+  {
+    \webdb\cli\term_echo("closing client socket ".$client_key." connection (stream not found)",33);
+    return;
+  }
   stream_socket_shutdown($settings["ws_browser_sockets"][$client_key],STREAM_SHUT_RDWR);
   fclose($settings["ws_browser_sockets"][$client_key]);
   unset($settings["ws_browser_sockets"][$client_key]);
