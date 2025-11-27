@@ -487,6 +487,39 @@ function encode_frame($opcode,$payload="",$status=false)
   return $frame;
 }
 
+/* REFACTORED BY COPILOT
+function encode_frame(int $opcode, string $payload = "", int $status = null): string
+{
+    // RFC 6455: Server frames are never masked
+    $fin = 0x80; // FIN bit set
+    $frame = chr($fin | ($opcode & 0x0F));
+
+    $length = strlen($payload);
+    if ($status !== null) {
+        $length += 2; // Add 2 bytes for status code
+    }
+
+    // Encode payload length
+    if ($length <= 125) {
+        $frame .= chr($length);
+    } elseif ($length <= 65535) {
+        $frame .= chr(126) . pack("n", $length); // 16-bit unsigned
+    } else {
+        $frame .= chr(127) . pack("J", $length); // 64-bit unsigned
+    }
+
+    // Add status code if present
+    if ($status !== null) {
+        $frame .= pack("n", $status);
+    }
+
+    // Append payload
+    $frame .= $payload;
+
+    return $frame;
+}
+*/
+
 #####################################################################################################
 
 function coalesce_frames(&$buffer)
@@ -583,6 +616,91 @@ function decode_frame(&$frame_data)
   }
   return $frame;
 }
+
+/* REFACTORED BY COPILOT
+function decode_frame(string $frame_data, int $max_payload_size = 65536): array|false
+{
+    $len = strlen($frame_data);
+    if ($len < 2) {
+        return false; // Too short
+    }
+
+    $firstByte = ord($frame_data[0]);
+    $secondByte = ord($frame_data[1]);
+
+    $fin = ($firstByte & 0x80) !== 0;
+    $opcode = $firstByte & 0x0F;
+    $masked = ($secondByte & 0x80) !== 0;
+    $payloadLen = $secondByte & 0x7F;
+
+    $offset = 2;
+
+    // Extended payload length
+    if ($payloadLen === 126)
+    {
+        if ($len < 4) return false;
+        $payloadLen = unpack("n", substr($frame_data, $offset, 2))[1];
+        $offset += 2;
+    }
+    elseif ($payloadLen === 127)
+    {
+        if ($len < 10) return false;
+        $payloadLen = unpack("J", substr($frame_data, $offset, 8))[1];
+        $offset += 8;
+    }
+
+    // Validate payload size
+    if ($payloadLen > $max_payload_size)
+    {
+        return false; // Too big
+    }
+
+    // Mask key
+    $maskKey = [];
+    if ($masked) {
+        if ($len < $offset + 4) return false;
+        $maskKey = array_values(unpack("C4", substr($frame_data, $offset, 4)));
+        $offset += 4;
+    }
+
+    // Payload
+    if ($len < $offset + $payloadLen)
+    {
+        return false; // Incomplete frame
+    }
+    $payload = substr($frame_data, $offset, $payloadLen);
+
+    // Unmask if needed
+    if ($masked)
+    {
+        for ($i = 0; $i < $payloadLen; $i++) {
+            $payload[$i] = chr(ord($payload[$i]) ^ $maskKey[$i % 4]);
+        }
+    }
+
+    // Close frame status
+    $closeStatus = null;
+    if ($opcode === 8 && $payloadLen >= 2)
+    {
+        $closeStatus = unpack("n", substr($payload, 0, 2))[1];
+        $payload = substr($payload, 2);
+    }
+
+    // UTF-8 validation for text frames
+    if ($opcode === 1 && !mb_check_encoding($payload, 'UTF-8'))
+    {
+        return false; // Invalid UTF-8
+    }
+
+    return [
+        "fin" => $fin,
+        "opcode" => $opcode,
+        "mask" => $masked,
+        "payload" => $payload,
+        "close_status" => $closeStatus
+    ];
+}
+*/
 
 #####################################################################################################
 
