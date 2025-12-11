@@ -2527,3 +2527,23 @@ function xml_to_arr($obj)
 }
 
 #####################################################################################################
+
+function array_flatten($array,$prefix="",$separator=".")
+{
+  $result=array();
+  foreach ($array as $key => $value)
+  {
+    $new_key=$prefix.$key;
+    if (is_array($value)==true)
+    {
+      $result=array_merge($result,\webdb\utils\array_flatten($value,$new_key.$separator,$separator));
+    }
+    else
+    {
+      $result[$new_key]=$value;
+    }
+  }
+  return $result;
+}
+
+#####################################################################################################
