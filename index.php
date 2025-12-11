@@ -207,7 +207,14 @@ if (isset($_GET["page"])==true)
 if ($settings["application_default_page_id"]<>"")
 {
   $url=\webdb\utils\get_url();
-  $url.="?page=".$settings["application_default_page_id"];
+  $parts=explode("?",$url);
+  $base=array_shift($parts);
+  $uri=implode("?",$parts);
+  $url=$base."?page=".$settings["application_default_page_id"];
+  if ($uri<>"")
+  {
+    $url.="&".$uri;
+  }
   \webdb\utils\redirect($url);
 }
 
