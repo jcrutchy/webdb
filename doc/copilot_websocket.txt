@@ -1,0 +1,879 @@
+
+<?php
+declare(strict_types=1);
+
+/*
+  RFC 6455 WebSocket server (procedural, PHP 8, no external deps)
+  - Non-blocking, select()-based
+  - Fully binary-safe frame encode/decode
+  - Fragment reassembly for text/binary messages
+  - Control frames (ping/pong/close) handled per spec
+  - Handshake validates Version=13, Upgrade/Connection, Sec-WebSocket-Key
+  - Optional subprotocol negotiation (first intersection)
+  - Event dispatch via function_exists + call_user_func:
+      on_open(int $clientId, array $clientInfo)
+      on_message(int $clientId, int $opcode, string $payload)
+      on_ping(int $clientId, string $payload)
+      on_pong(int $clientId, string $payload)
+      on_close(int $clientId, ?int $code, ?string $reason)
+      on_error(int $clientId, string $message)
+      on_tick(void)
+*/
+
+function websocket_server(string $host, int $port, array $options=[]): void
+{
+  $backlog=($options['backlog']??128);
+  $maxMessageBytes=($options['max_message_bytes']??(8*1024*1024));
+  $tickMs=($options['tick_ms']??100);
+  $subprotocols=(isset($options['subprotocols'])&&is_array($options['subprotocols']))?$options['subprotocols']:[];
+  $server=stream_socket_server('tcp://'.$host.':'.$port, $errno, $errstr, STREAM_SERVER_BIND|STREAM_SERVER_LISTEN);
+  if(!$server)
+  {
+    log_error(-1, 'Failed to create server socket: '.$errstr.' ('.$errno.')');
+    return;
+  }
+  stream_set_blocking($server, false);
+
+  $clients=[]; // int=>resource
+  $info=[];    // int=>array{buffer:string,handshaked:bool,fragOpcode:?int,fragBuffer:string,closing:bool,maskExpected:bool,protocol:?string}
+  $nextId=1;
+  $lastTick=(int)(hrtime(true)/1000000);
+
+  while(true)
+  {
+    $read=[];
+    $write=[];
+    $except=[];
+    $read[]=$server;
+    foreach($clients as $cid=>$sock)
+    {
+      $read[]=$sock;
+    }
+
+    $timeoutSec=0;
+    $timeoutUsec=(int)($tickMs*1000);
+    $numChanged=@stream_select($read, $write, $except, $timeoutSec, $timeoutUsec);
+    if($numChanged===false)
+    {
+      // select error; continue
+    }
+
+    foreach($read as $sock)
+    {
+      if($sock===$server)
+      {
+        $client=@stream_socket_accept($server, 0);
+        if($client)
+        {
+          stream_set_blocking($client, false);
+          $cid=$nextId;
+          $nextId=$nextId+1;
+          $clients[$cid]=$client;
+          $info[$cid]=[
+            'buffer'=>'',
+            'handshaked'=>false,
+            'fragOpcode'=>null,
+            'fragBuffer'=>'',
+            'closing'=>false,
+            'maskExpected'=>true, // server expects masked frames from clients
+            'protocol'=>null,
+          ];
+          // No event yet; will call on_open after handshake succeeds
+        }
+      }
+      else
+      {
+        $cid=find_client_id($clients, $sock);
+        if($cid===0)
+        {
+          continue;
+        }
+        $chunk=@fread($sock, 8192);
+        if($chunk===false)
+        {
+          close_client($cid, $clients, $info, null, null);
+          continue;
+        }
+        if($chunk==='')
+        {
+          if(feof($sock))
+          {
+            close_client($cid, $clients, $info, null, null);
+          }
+          continue;
+        }
+        $info[$cid]['buffer']=$info[$cid]['buffer'].$chunk;
+
+        if(!$info[$cid]['handshaked'])
+        {
+          if(process_handshake($cid, $clients, $info, $subprotocols))
+          {
+            $info[$cid]['handshaked']=true;
+            if(function_exists('on_open'))
+            {
+              call_user_func('on_open', $cid, ['protocol'=>$info[$cid]['protocol']]);
+            }
+          }
+        }
+
+        if($info[$cid]['handshaked'])
+        {
+          process_frames($cid, $clients, $info, $maxMessageBytes);
+        }
+      }
+    }
+
+    $now=(int)(hrtime(true)/1000000);
+    if($now-$lastTick>=$tickMs)
+    {
+      $lastTick=$now;
+      if(function_exists('on_tick'))
+      {
+        call_user_func('on_tick');
+      }
+    }
+  }
+}
+
+function find_client_id(array $clients, $sock): int
+{
+  foreach($clients as $cid=>$csock)
+  {
+    if($csock===$sock)
+    {
+      return $cid;
+    }
+  }
+  return 0;
+}
+
+function process_handshake(int $cid, array &$clients, array &$info, array $serverProtocols): bool
+{
+  $sock=$clients[$cid];
+  $buf=$info[$cid]['buffer'];
+
+  $hdrEndPos=strpos($buf, "\r\n\r\n");
+  if($hdrEndPos===false)
+  {
+    return false;
+  }
+
+  $headerPart=substr($buf, 0, $hdrEndPos+4);
+  $info[$cid]['buffer']=substr($buf, $hdrEndPos+4);
+
+  $lines=explode("\r\n", $headerPart);
+  if(count($lines)<2)
+  {
+    fail_handshake($cid, $clients, $info, 400, 'Bad Request');
+    return false;
+  }
+
+  $requestLine=$lines[0];
+  $parts=explode(' ', $requestLine);
+  if(count($parts)<3)
+  {
+    fail_handshake($cid, $clients, $info, 400, 'Bad Request');
+    return false;
+  }
+  $method=$parts[0];
+  $version=$parts[count($parts)-1];
+
+  if($method!=='GET')
+  {
+    fail_handshake($cid, $clients, $info, 405, 'Method Not Allowed');
+    return false;
+  }
+  if(strpos($version, 'HTTP/1.1')===false)
+  {
+    fail_handshake($cid, $clients, $info, 400, 'Bad Request');
+    return false;
+  }
+
+  $headers=[];
+  for($i=1;$i<count($lines);$i=$i+1)
+  {
+    $line=$lines[$i];
+    if($line==='')
+    {
+      continue;
+    }
+    $colonPos=strpos($line, ':');
+    if($colonPos===false)
+    {
+      continue;
+    }
+    $name=trim(substr($line, 0, $colonPos));
+    $value=trim(substr($line, $colonPos+1));
+    $lname=strtolower($name);
+    $headers[$lname]=$value;
+  }
+
+  if(!isset($headers['upgrade']))
+  {
+    fail_handshake($cid, $clients, $info, 400, 'Missing Upgrade header');
+    return false;
+  }
+  if(strtolower($headers['upgrade'])!=='websocket')
+  {
+    fail_handshake($cid, $clients, $info, 400, 'Upgrade must be websocket');
+    return false;
+  }
+
+  if(!isset($headers['connection']))
+  {
+    fail_handshake($cid, $clients, $info, 400, 'Missing Connection header');
+    return false;
+  }
+  $connLower=strtolower($headers['connection']);
+  $hasUpgrade=(strpos($connLower, 'upgrade')!==false);
+  if(!$hasUpgrade)
+  {
+    fail_handshake($cid, $clients, $info, 400, 'Connection must include Upgrade');
+    return false;
+  }
+
+  if(!isset($headers['sec-websocket-version']))
+  {
+    send_version_required($cid, $clients);
+    close_client($cid, $clients, $info, null, null);
+    return false;
+  }
+  $ver=trim($headers['sec-websocket-version']);
+  if($ver!=='13')
+  {
+    send_version_required($cid, $clients);
+    close_client($cid, $clients, $info, null, null);
+    return false;
+  }
+
+  if(!isset($headers['sec-websocket-key']))
+  {
+    fail_handshake($cid, $clients, $info, 400, 'Missing Sec-WebSocket-Key');
+    return false;
+  }
+  $key=trim($headers['sec-websocket-key']);
+  $decoded=base64_decode($key, true);
+  if($decoded===false)
+  {
+    fail_handshake($cid, $clients, $info, 400, 'Invalid Sec-WebSocket-Key');
+    return false;
+  }
+  $keyLen=strlen($decoded);
+  if($keyLen!==16)
+  {
+    fail_handshake($cid, $clients, $info, 400, 'Invalid Sec-WebSocket-Key length');
+    return false;
+  }
+
+  $accept=base64_encode(sha1($key.'258EAFA5-E914-47DA-95CA-C5AB0DC85B11', true));
+  $protocol=null;
+  if(isset($headers['sec-websocket-protocol'])&&count($serverProtocols)>0)
+  {
+    $offeredRaw=$headers['sec-websocket-protocol'];
+    $pieces=explode(',', $offeredRaw);
+    $chosen=null;
+    for($i=0;$i<count($pieces);$i=$i+1)
+    {
+      $p=trim($pieces[$i]);
+      for($j=0;$j<count($serverProtocols);$j=$j+1)
+      {
+        if($p===$serverProtocols[$j])
+        {
+          $chosen=$p;
+          break;
+        }
+      }
+      if($chosen!==null)
+      {
+        break;
+      }
+    }
+    if($chosen!==null)
+    {
+      $protocol=$chosen;
+    }
+  }
+
+  $resp="HTTP/1.1 101 Switching Protocols\r\n";
+  $resp.="Upgrade: websocket\r\n";
+  $resp.="Connection: Upgrade\r\n";
+  $resp.="Sec-WebSocket-Accept: ".$accept."\r\n";
+  if($protocol!==null)
+  {
+    $resp.="Sec-WebSocket-Protocol: ".$protocol."\r\n";
+  }
+  $resp.="\r\n";
+
+  safe_write($sock, $resp);
+  $info[$cid]['protocol']=$protocol;
+  return true;
+}
+
+function fail_handshake(int $cid, array &$clients, array &$info, int $code, string $reason): void
+{
+  $sock=$clients[$cid];
+  $resp="HTTP/1.1 ".$code." ".$reason."\r\nContent-Length: 0\r\nConnection: close\r\n\r\n";
+  safe_write($sock, $resp);
+  close_client($cid, $clients, $info, null, null);
+}
+
+function send_version_required(int $cid, array &$clients): void
+{
+  $sock=$clients[$cid];
+  $resp="HTTP/1.1 426 Upgrade Required\r\nSec-WebSocket-Version: 13\r\nContent-Length: 0\r\nConnection: close\r\n\r\n";
+  safe_write($sock, $resp);
+}
+
+function process_frames(int $cid, array &$clients, array &$info, int $maxMessageBytes): void
+{
+  $sock=$clients[$cid];
+  $buf=$info[$cid]['buffer'];
+
+  while(strlen($buf)>=2)
+  {
+    $decoded=null;
+    try
+    {
+      $decoded=ws_decode_frame($buf, true);
+    }
+    catch(InvalidArgumentException $e)
+    {
+      $msg=$e->getMessage();
+      $isTrunc=(strpos($msg, 'Truncated frame')!==false);
+      if($isTrunc)
+      {
+        break;
+      }
+      send_close($sock, 1002, 'Protocol error');
+      close_client($cid, $clients, $info, 1002, 'Protocol error');
+      return;
+    }
+
+    $buf=substr($buf, $decoded['frame_len']);
+    $info[$cid]['buffer']=$buf;
+
+    $opcode=$decoded['opcode'];
+    $fin=$decoded['fin'];
+    $payload=$decoded['payload'];
+    $plen=$decoded['payload_len'];
+
+    if($opcode===0x9)
+    {
+      // Ping -> Pong
+      $pong=ws_encode_frame($payload, 0xA, true);
+      safe_write($sock, $pong);
+      if(function_exists('on_ping'))
+      {
+        call_user_func('on_ping', $cid, $payload);
+      }
+      continue;
+    }
+    if($opcode===0xA)
+    {
+      if(function_exists('on_pong'))
+      {
+        call_user_func('on_pong', $cid, $payload);
+      }
+      continue;
+    }
+    if($opcode===0x8)
+    {
+      $code=$decoded['close_code'];
+      $reason=$decoded['close_reason'];
+      // Echo close then drop
+      $replyPayload='';
+      if($code!==null)
+      {
+        $replyPayload=pack('n', $code);
+        if($reason!==null)
+        {
+          $replyPayload=$replyPayload.$reason;
+        }
+      }
+      $closeFrame=ws_encode_frame($replyPayload, 0x8, true);
+      safe_write($sock, $closeFrame);
+      close_client($cid, $clients, $info, $code, $reason);
+      return;
+    }
+
+    if($opcode===0x0)
+    {
+      if($info[$cid]['fragOpcode']===null)
+      {
+        send_close($sock, 1002, 'Unexpected continuation');
+        close_client($cid, $clients, $info, 1002, 'Unexpected continuation');
+        return;
+      }
+      $info[$cid]['fragBuffer']=$info[$cid]['fragBuffer'].$payload;
+      if(strlen($info[$cid]['fragBuffer'])>$maxMessageBytes)
+      {
+        send_close($sock, 1009, 'Message too big');
+        close_client($cid, $clients, $info, 1009, 'Message too big');
+        return;
+      }
+      if($fin)
+      {
+        $completePayload=$info[$cid]['fragBuffer'];
+        $origOpcode=$info[$cid]['fragOpcode'];
+        $info[$cid]['fragBuffer']='';
+        $info[$cid]['fragOpcode']=null;
+
+        if($origOpcode===0x1)
+        {
+          $valid=utf8_is_valid($completePayload);
+          if(!$valid)
+          {
+            send_close($sock, 1007, 'Invalid UTF-8');
+            close_client($cid, $clients, $info, 1007, 'Invalid UTF-8');
+            return;
+          }
+        }
+        if(function_exists('on_message'))
+        {
+          call_user_func('on_message', $cid, $origOpcode, $completePayload);
+        }
+      }
+      continue;
+    }
+
+    if($opcode===0x1||$opcode===0x2)
+    {
+      if(!$fin)
+      {
+        if($info[$cid]['fragOpcode']!==null)
+        {
+          send_close($sock, 1002, 'Fragmented message in progress');
+          close_client($cid, $clients, $info, 1002, 'Fragmented message in progress');
+          return;
+        }
+        $info[$cid]['fragOpcode']=$opcode;
+        $info[$cid]['fragBuffer']=$payload;
+        if(strlen($info[$cid]['fragBuffer'])>$maxMessageBytes)
+        {
+          send_close($sock, 1009, 'Message too big');
+          close_client($cid, $clients, $info, 1009, 'Message too big');
+          return;
+        }
+        continue;
+      }
+      else
+      {
+        if($opcode===0x1)
+        {
+          $valid=utf8_is_valid($payload);
+          if(!$valid)
+          {
+            send_close($sock, 1007, 'Invalid UTF-8');
+            close_client($cid, $clients, $info, 1007, 'Invalid UTF-8');
+            return;
+          }
+        }
+        if(function_exists('on_message'))
+        {
+          call_user_func('on_message', $cid, $opcode, $payload);
+        }
+        continue;
+      }
+    }
+
+    // Unknown opcode
+    send_close($sock, 1003, 'Unsupported data');
+    close_client($cid, $clients, $info, 1003, 'Unsupported data');
+    return;
+  }
+}
+
+function safe_write($sock, string $data): void
+{
+  $total=strlen($data);
+  $written=0;
+  while($written<$total)
+  {
+    $n=@fwrite($sock, substr($data, $written));
+    if($n===false)
+    {
+      break;
+    }
+    if($n===0)
+    {
+      // back off
+      usleep(1000);
+    }
+    else
+    {
+      $written=$written+$n;
+    }
+  }
+}
+
+function send_close($sock, int $code, string $reason): void
+{
+  $payload=pack('n', $code).$reason;
+  $frame=ws_encode_frame($payload, 0x8, true);
+  safe_write($sock, $frame);
+}
+
+function close_client(int $cid, array &$clients, array &$info, ?int $code, ?string $reason): void
+{
+  if(isset($clients[$cid]))
+  {
+    @fclose($clients[$cid]);
+    unset($clients[$cid]);
+  }
+  if(isset($info[$cid]))
+  {
+    unset($info[$cid]);
+  }
+  if(function_exists('on_close'))
+  {
+    call_user_func('on_close', $cid, $code, $reason);
+  }
+}
+
+function ws_encode_frame(string $payload, int $opcode, bool $fin): string
+{
+  // Server frames MUST be unmasked
+  $len=strlen($payload);
+  $firstByte=($fin?0x80:0x00)|($opcode&0x0F);
+  $frame=chr($firstByte);
+
+  if($len<=125)
+  {
+    $frame.=chr($len);
+  }
+  else
+  {
+    if($len<=0xFFFF)
+    {
+      $frame.=chr(126).pack('n', $len);
+    }
+    else
+    {
+      $hi=($len>>32)&0xFFFFFFFF;
+      $lo=$len&0xFFFFFFFF;
+      $frame.=chr(127).pack('N2', $hi, $lo);
+    }
+  }
+  $frame.=$payload;
+  return $frame;
+}
+
+function ws_decode_frame(string $frame, bool $expectMasked): array
+{
+  $total=strlen($frame);
+  if($total<2)
+  {
+    throw new InvalidArgumentException('Truncated frame: need at least 2 bytes');
+  }
+
+  $b1=ord($frame[0]);
+  $b2=ord($frame[1]);
+
+  $fin=(($b1&0x80)!==0);
+  $rsv1=(($b1&0x40)!==0)?1:0;
+  $rsv2=(($b1&0x20)!==0)?1:0;
+  $rsv3=(($b1&0x10)!==0)?1:0;
+  $opcode=$b1&0x0F;
+
+  if($rsv1===1||$rsv2===1||$rsv3===1)
+  {
+    throw new InvalidArgumentException('RSV bits set without extensions');
+  }
+
+  $masked=(($b2&0x80)!==0);
+  if($expectMasked&&(!$masked))
+  {
+    throw new InvalidArgumentException('Expected masked frame from client');
+  }
+
+  $len7=$b2&0x7F;
+  $pos=2;
+  $payloadLen=0;
+
+  if($len7===126)
+  {
+    if($total<$pos+2)
+    {
+      throw new InvalidArgumentException('Truncated frame: 16-bit length missing');
+    }
+    $payloadLen=unpack('n', substr($frame, $pos, 2))[1];
+    $pos=$pos+2;
+  }
+  else
+  {
+    if($len7===127)
+    {
+      if($total<$pos+8)
+      {
+        throw new InvalidArgumentException('Truncated frame: 64-bit length missing');
+      }
+      $parts=unpack('N2', substr($frame, $pos, 8));
+      $pos=$pos+8;
+      if(($parts[1]&0x80000000)!==0)
+      {
+        throw new InvalidArgumentException('Invalid 64-bit length MSB');
+      }
+      $payloadLen=($parts[1]*4294967296)+$parts[2];
+    }
+    else
+    {
+      $payloadLen=$len7;
+    }
+  }
+
+  $maskKey='';
+  if($masked)
+  {
+    if($total<$pos+4)
+    {
+      throw new InvalidArgumentException('Truncated frame: mask key missing');
+    }
+    $maskKey=substr($frame, $pos, 4);
+    $pos=$pos+4;
+  }
+
+  if($total<$pos+$payloadLen)
+  {
+    throw new InvalidArgumentException('Truncated frame: payload incomplete');
+  }
+
+  $payload=substr($frame, $pos, $payloadLen);
+  $frameLen=$pos+$payloadLen;
+
+  if($masked&&$payloadLen>0)
+  {
+    $unmasked='';
+    // XOR without regex, loop-based
+    for($i=0;$i<$payloadLen;$i=$i+1)
+    {
+      $unmasked.=chr(ord($payload[$i])^ord($maskKey[$i%4]));
+    }
+    $payload=$unmasked;
+  }
+
+  $isControl=($opcode===0x8)||($opcode===0x9)||($opcode===0xA);
+  if($isControl)
+  {
+    if(!$fin)
+    {
+      throw new InvalidArgumentException('Control frames must be final');
+    }
+    if($payloadLen>125)
+    {
+      throw new InvalidArgumentException('Control frame payload too long');
+    }
+  }
+
+  $closeCode=null;
+  $closeReason=null;
+  if($opcode===0x8)
+  {
+    if($payloadLen===1)
+    {
+      throw new InvalidArgumentException('Close payload length 1 invalid');
+    }
+    if($payloadLen>=2)
+    {
+      $closeCode=unpack('n', substr($payload, 0, 2))[1];
+      $closeReason=substr($payload, 2);
+      $validCode=is_valid_close_code($closeCode);
+      if(!$validCode)
+      {
+        throw new InvalidArgumentException('Invalid close code');
+      }
+      if($closeReason!==''&&(!utf8_is_valid($closeReason)))
+      {
+        throw new InvalidArgumentException('Invalid UTF-8 in close reason');
+      }
+    }
+  }
+
+  return [
+    'fin'=>$fin,
+    'rsv1'=>$rsv1,
+    'rsv2'=>$rsv2,
+    'rsv3'=>$rsv3,
+    'opcode'=>$opcode,
+    'masked'=>$masked,
+    'mask_key'=>$maskKey,
+    'payload'=>$payload,
+    'payload_len'=>$payloadLen,
+    'frame_len'=>$frameLen,
+    'close_code'=>$closeCode,
+    'close_reason'=>$closeReason,
+  ];
+}
+
+function is_valid_close_code(int $code): bool
+{
+  if($code===1000)
+  {
+    return true;
+  }
+  if($code>=1001&&$code<=1013)
+  {
+    if($code===1004||$code===1005||$code===1006)
+    {
+      return false;
+    }
+    return true;
+  }
+  if($code>=3000&&$code<=4999)
+  {
+    return true;
+  }
+  return false;
+}
+
+function utf8_is_valid(string $s): bool
+{
+  $len=strlen($s);
+  $i=0;
+  while($i<$len)
+  {
+    $b=ord($s[$i]);
+    if($b<=0x7F)
+    {
+      $i=$i+1;
+      continue;
+    }
+    if($b>=0xC2&&$b<=0xDF)
+    {
+      if($i+1>=$len)
+      {
+        return false;
+      }
+      $b1=ord($s[$i+1]);
+      if(($b1&0xC0)!==0x80)
+      {
+        return false;
+      }
+      $i=$i+2;
+      continue;
+    }
+    if($b>=0xE0&&$b<=0xEF)
+    {
+      if($i+2>=$len)
+      {
+        return false;
+      }
+      $b1=ord($s[$i+1]);
+      $b2=ord($s[$i+2]);
+      if(($b1&0xC0)!==0x80||($b2&0xC0)!==0x80)
+      {
+        return false;
+      }
+      if($b===0xE0&&($b1<0xA0||$b1>0xBF))
+      {
+        return false;
+      }
+      if($b===0xED&&($b1<0x80||$b1>0x9F))
+      {
+        return false;
+      }
+      $i=$i+3;
+      continue;
+    }
+    if($b>=0xF0&&$b<=0xF4)
+    {
+      if($i+3>=$len)
+      {
+        return false;
+      }
+      $b1=ord($s[$i+1]);
+      $b2=ord($s[$i+2]);
+      $b3=ord($s[$i+3]);
+      if(($b1&0xC0)!==0x80||($b2&0xC0)!==0x80||($b3&0xC0)!==0x80)
+      {
+        return false;
+      }
+      if($b===0xF0&&($b1<0x90||$b1>0xBF))
+      {
+        return false;
+      }
+      if($b===0xF4&&($b1<0x80||$b1>0x8F))
+      {
+        return false;
+      }
+      $i=$i+4;
+      continue;
+    }
+    return false;
+  }
+  return true;
+}
+
+/* ===== Optional: simple broadcast helper ===== */
+
+function ws_send_text(array $clients, int $cid, string $text): void
+{
+  $sock=$clients[$cid];
+  $frame=ws_encode_frame($text, 0x1, true);
+  safe_write($sock, $frame);
+}
+
+function ws_send_binary(array $clients, int $cid, string $bytes): void
+{
+  $sock=$clients[$cid];
+  $frame=ws_encode_frame($bytes, 0x2, true);
+  safe_write($sock, $frame);
+}
+
+/* ===== Logging helper ===== */
+
+function log_error(int $cid, string $msg): void
+{
+  if(function_exists('on_error'))
+  {
+    call_user_func('on_error', $cid, $msg);
+  }
+}
+
+/* ===== Example entrypoint (CLI) =====
+   Uncomment to run:
+*/
+
+// $host='0.0.0.0';
+// $port=8080;
+// websocket_server($host, $port, [
+//   'subprotocols'=>['chat','json'],
+//   'max_message_bytes'=>8*1024*1024,
+//   'tick_ms'=>100,
+// ]);
+
+/* ===== Example event handlers (define these in your script) =====
+function on_open(int $clientId, array $clientInfo): void
+{
+  echo "Client ".$clientId." connected; protocol=".($clientInfo['protocol']??'none').PHP_EOL;
+}
+
+function on_message(int $clientId, int $opcode, string $payload): void
+{
+  echo "Message from #".$clientId." opcode=".$opcode." len=".strlen($payload).PHP_EOL;
+}
+
+function on_ping(int $clientId, string $payload): void
+{
+  echo "Ping from #".$clientId." len=".strlen($payload).PHP_EOL;
+}
+
+function on_pong(int $clientId, string $payload): void
+{
+  echo "Pong from #".$clientId." len=".strlen($payload).PHP_EOL;
+}
+
+function on_close(int $clientId, ?int $code, ?string $reason): void
+{
+  echo "Client ".$clientId." closed code=".($code??0)." reason=".($reason??'').PHP_EOL; # syntax explainer: ($code??0) means output $code if it is set and isn't null, otherwise outputs 0
+}
+
+function on_error(int $clientId, string $message): void
+{
+  fwrite(STDERR, "Error (#".$clientId."): ".$message.PHP_EOL);
+}
+
+function on_tick(): void
+{
+  // periodic work
+}
+*/

@@ -1665,11 +1665,22 @@ function send_email($recipient,$cc,$subject,$message,$from="",$reply_to="",$boun
   {
     $headers[]="Bcc: ".$bcc;
   }
+  if (($message<>"") and (mb_detect_encoding($message,"UTF-8",true)==false))
+  {
+    $message=mb_convert_encoding($message,"UTF-8","Windows-1252,ISO-8859-1");
+  }
+  if (stripos($message,"<meta charset=")===false)
+  {
+    if ((stripos($message,"</head>")!==false) and (stripos($message,"charset=")===false))
+    {
+      $message=str_replace("</head>","<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\"></head>",$message);
+    }
+  }
   /*$headers[]="Reply-To: ".$reply_to;
   $headers[]="X-Sender: ".$from;
   $headers[]="X-Mailer: PHP/".phpversion();*/
   $headers[]="MIME-Version: 1.0";
-  $headers[]="Content-Type: text/html; charset=iso-8859-1";
+  $headers[]="Content-Type: text/html; charset=UTF-8";
   if ($settings["email_enabled"]==true)
   {
     #mail($recipient,$subject,$message,implode("\r\n",$headers),"-f ".$bounce_to); # LINUX

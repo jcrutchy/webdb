@@ -520,6 +520,66 @@ function encode_frame(int $opcode, string $payload = "", int $status = null): st
 }
 */
 
+/*
+ * Encode a WebSocket frame (RFC 6455) from opcode and payload.
+ *
+ * @param string $payload Binary-safe payload (for text frames, UTF‑8 per RFC 6455)
+ * @param int    $opcode  0x0=continuation, 0x1=text, 0x2=binary, 0x8=close, 0x9=ping, 0xA=pong
+ * @param bool   $fin     Whether this is the final fragment (sets FIN bit)
+ * @param bool   $mask    Whether to mask (client->server MUST mask; server->client MUST NOT)
+ * @return string         Encoded frame bytes
+ * @throws InvalidArgumentException
+ */
+/*function ws_encode_frame(string $payload, int $opcode = 0x1, bool $fin = true, bool $mask = false): string
+{
+    if ($opcode < 0x0 || $opcode > 0xF) {
+        throw new InvalidArgumentException('Opcode must be in [0x0..0xF].');
+    }
+    $len = strlen($payload);
+    // Control frame rules: payload ≤125 and FIN=1
+    if (in_array($opcode, [0x8, 0x9, 0xA], true)) {
+        if ($len > 125) {
+            throw new InvalidArgumentException('Control frame payload must be ≤ 125 bytes.');
+        }
+        if (!$fin) {
+            throw new InvalidArgumentException('Control frames must not be fragmented (FIN must be 1).');
+        }
+    }
+    // First byte: FIN (bit7), RSV1-3 (0), opcode (low 4 bits)
+    $firstByte = ($fin ? 0x80 : 0x00) | ($opcode & 0x0F);
+    $frame     = chr($firstByte);
+    // Second byte and extended length
+    $maskBit = $mask ? 0x80 : 0x00;
+    if ($len <= 125) {
+        $frame .= chr($maskBit | $len);
+    } elseif ($len <= 0xFFFF) {
+        // 126 followed by 16-bit unsigned big-endian length
+        $frame .= chr($maskBit | 126) . pack('n', $len);
+    } else {
+        // 127 followed by 64-bit unsigned big-endian length
+        // PHP doesn't have a big-endian 64-bit pack code, so use two 32-bit words (N2)
+        $hi = ($len >> 32) & 0xFFFFFFFF;
+        $lo = $len & 0xFFFFFFFF;
+        $frame .= chr($maskBit | 127) . pack('N2', $hi, $lo);
+    }
+    // Payload (masked or not)
+    if ($mask) {
+        $maskKey = random_bytes(4);     // Clients MUST use a masking key
+        $frame  .= $maskKey;
+
+        // XOR each byte with the mask key (repeats every 4 bytes)
+        $masked = '';
+        for ($i = 0; $i < $len; $i++) {
+            $masked .= chr(ord($payload[$i]) ^ ord($maskKey[$i % 4]));
+        }
+        $frame .= $masked;
+    } else {
+        $frame .= $payload;             // Servers MUST NOT mask
+    }
+    return $frame;
+}
+*/
+
 #####################################################################################################
 
 function coalesce_frames(&$buffer)
@@ -701,6 +761,188 @@ function decode_frame(string $frame_data, int $max_payload_size = 65536): array|
     ];
 }
 */
+
+/*
+ * Decode a single RFC 6455 WebSocket frame.
+ *
+ * @param string   $frame         Raw frame bytes (binary-safe).
+ * @param ?bool    $expectMasked  If true, require mask=1; if false, require mask=0; if null, accept either.
+ * @param bool     $validateUtf8  If true, validate Text payload and Close reason as UTF-8.
+ *
+ * @return array{
+ *   fin:bool,
+ *   rsv1:int, rsv2:int, rsv3:int,
+ *   opcode:int,
+ *   masked:bool,
+ *   mask_key:string,
+ *   payload:string,        // unmasked payload (binary-safe)
+ *   payload_len:int,       // length of unmasked payload
+ *   frame_len:int,         // total bytes consumed from $frame
+ *   close_code:?int,       // only for opcode=0x8 (Close)
+ *   close_reason:?string   // only for opcode=0x8 (Close), unmasked
+ * }
+ *
+ * @throws InvalidArgumentException on protocol violations or truncated input.
+ */
+/*function ws_decode_frame(string $frame, ?bool $expectMasked = null, bool $validateUtf8 = false): array
+{
+    $total = strlen($frame);
+    if ($total < 2) {
+        throw new InvalidArgumentException('Truncated frame: need at least 2 bytes for header.');
+    }
+
+    $b1 = ord($frame[0]);
+    $b2 = ord($frame[1]);
+
+    $fin   = (bool) (($b1 & 0x80) !== 0);
+    $rsv1  = ($b1 & 0x40) ? 1 : 0;
+    $rsv2  = ($b1 & 0x20) ? 1 : 0;
+    $rsv3  = ($b1 & 0x10) ? 1 : 0;
+    $opcode = $b1 & 0x0F;
+
+    $masked = (bool) (($b2 & 0x80) !== 0);
+    $len7   = $b2 & 0x7F;
+
+    // Optional mask expectation enforcement
+    if ($expectMasked !== null && $masked !== $expectMasked) {
+        throw new InvalidArgumentException($expectMasked
+            ? 'Expected a masked frame (client->server), got unmasked.'
+            : 'Expected an unmasked frame (server->client), got masked.'
+        );
+    }
+
+    // RSV bits must be 0 unless extensions negotiated
+    if ($rsv1 || $rsv2 || $rsv3) {
+        throw new InvalidArgumentException('RSV bits set but no extensions negotiated.');
+    }
+
+    $pos = 2;
+    // Extended payload length
+    if ($len7 === 126) {
+        if ($total < $pos + 2) {
+            throw new InvalidArgumentException('Truncated frame: need 2 bytes for 16-bit length.');
+        }
+        $payloadLen = unpack('n', substr($frame, $pos, 2))[1];
+        $pos += 2;
+    } elseif ($len7 === 127) {
+        if ($total < $pos + 8) {
+            throw new InvalidArgumentException('Truncated frame: need 8 bytes for 64-bit length.');
+        }
+        $parts = unpack('N2', substr($frame, $pos, 8)); // two 32-bit big-endian words
+        $payloadLen = ($parts[1] * 4294967296) + $parts[2]; // 64-bit length
+        $pos += 8;
+        // RFC6455: most significant bit of 64-bit length MUST be 0 (no negative)
+        if ($parts[1] & 0x80000000) {
+            throw new InvalidArgumentException('Invalid 64-bit payload length (MSB must be 0).');
+        }
+    } else {
+        $payloadLen = $len7;
+    }
+
+    // Masking key
+    $maskKey = '';
+    if ($masked) {
+        if ($total < $pos + 4) {
+            throw new InvalidArgumentException('Truncated frame: need 4 bytes for masking key.');
+        }
+        $maskKey = substr($frame, $pos, 4);
+        $pos += 4;
+    }
+
+    // Payload
+    if ($total < $pos + $payloadLen) {
+        throw new InvalidArgumentException('Truncated frame: payload incomplete.');
+    }
+    $payload = substr($frame, $pos, $payloadLen);
+    $frameLen = $pos + $payloadLen;
+
+    // Unmask if needed
+    if ($masked && $payloadLen > 0) {
+        $unmasked = '';
+        for ($i = 0; $i < $payloadLen; $i++) {
+            $unmasked .= chr(ord($payload[$i]) ^ ord($maskKey[$i % 4]));
+        }
+        $payload = $unmasked;
+    }
+
+    // Control frame rules
+    $isControl = in_array($opcode, [0x8, 0x9, 0xA], true);
+    if ($isControl) {
+        if (!$fin) {
+            throw new InvalidArgumentException('Control frames must not be fragmented (FIN must be 1).');
+        }
+        if ($payloadLen > 125) {
+            throw new InvalidArgumentException('Control frame payload must be ≤ 125 bytes.');
+        }
+    }
+
+    // Optional UTF-8 validation for text and for close reason
+    $closeCode = null;
+    $closeReason = null;
+
+    if ($opcode === 0x1 && $validateUtf8) { // Text
+        if (!ws_is_valid_utf8($payload)) {
+            throw new InvalidArgumentException('Invalid UTF-8 in text frame payload.');
+        }
+    }
+
+    if ($opcode === 0x8) { // Close
+        if ($payloadLen === 1) {
+            throw new InvalidArgumentException('Close frame payload length 1 is invalid (need 0 or ≥2).');
+        }
+        if ($payloadLen >= 2) {
+            $closeCode = unpack('n', substr($payload, 0, 2))[1];
+            $closeReason = substr($payload, 2);
+            if ($validateUtf8 && strlen($closeReason) > 0 && !ws_is_valid_utf8($closeReason)) {
+                throw new InvalidArgumentException('Invalid UTF-8 in close reason.');
+            }
+            // Optional: basic validation of close code ranges per RFC 6455
+            if (!ws_is_valid_close_code($closeCode)) {
+                throw new InvalidArgumentException('Invalid WebSocket close status code: ' . $closeCode);
+            }
+        }
+    }
+
+    return [
+        'fin'          => $fin,
+        'rsv1'         => $rsv1,
+        'rsv2'         => $rsv2,
+        'rsv3'         => $rsv3,
+        'opcode'       => $opcode,
+        'masked'       => $masked,
+        'mask_key'     => $maskKey,
+        'payload'      => $payload,
+        'payload_len'  => $payloadLen,
+        'frame_len'    => $frameLen,
+        'close_code'   => $closeCode,
+        'close_reason' => $closeReason,
+    ];
+}*/
+
+/*
+ * Validate UTF-8 using PCRE, which is commonly available.
+ */
+/*function ws_is_valid_utf8(string $s): bool
+{
+    // preg_match returns 1 if valid UTF-8, 0 otherwise. The //u modifier enforces UTF-8.
+    return preg_match('//u', $s) === 1;
+}*/
+
+/*
+ * Basic validation of close status codes according to RFC 6455.
+ * Allowed: 1000, 1001, 1002, 1003, 1007, 1008, 1009, 1010, 1011, 1012, 1013, 1015(reserved, not sent),
+ * 3000–3999 (libraries), 4000–4999 (applications). Disallow 1004, 1005, 1006 (reserved).
+ */
+/*function ws_is_valid_close_code(int $code): bool
+{
+    if ($code === 1000 || ($code >= 1001 && $code <= 1013 && !in_array($code, [1004, 1005, 1006], true))) {
+        return true;
+    }
+    if ($code >= 3000 && $code <= 4999) {
+        return true;
+    }
+    return false;
+}*/
 
 #####################################################################################################
 
