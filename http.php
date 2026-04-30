@@ -160,7 +160,10 @@ function wpost($url,$content,$peer_name,&$cookie_jar,$headers=false,$ignore_veri
     $request.=implode("\r\n",$headers)."\r\n";
   }
   $request=\webdb\http\cookie_header($request,$cookie_jar);
-  $request.="Content-Length: ".strlen($content)."\r\n";
+  if (strlen($content)>0)
+  {
+    $request.="Content-Length: ".strlen($content)."\r\n";
+  }
   $request.="Connection: Close\r\n\r\n";
   $request=$request.$content;
   $response=\webdb\http\request($url,$peer_name,$request,$ignore_verify,$return_error,$timeout);
