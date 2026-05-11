@@ -110,6 +110,10 @@ function wget($url,$peer_name,&$cookie_jar,$headers=false,$ignore_verify=false,$
     {
       $redirect="https://".$host.$redirect;
     }
+    if (\webdb\cli\is_cli_mode()==true)
+    {
+      \webdb\cli\term_echo("  => redirect: ".$redirect,31);
+    }
     $response=\webdb\http\wget($redirect,$peer_name,$cookie_jar,false,$ignore_verify,$return_error,$timeout);
   }
   return $response;
@@ -177,6 +181,10 @@ function wpost($url,$content,$peer_name,&$cookie_jar,$headers=false,$ignore_veri
     if (isset($url_parts["host"])==false)
     {
       $redirect="https://".$host.$redirect;
+    }
+    if (\webdb\cli\is_cli_mode()==true)
+    {
+      \webdb\cli\term_echo("  => redirect: ".$redirect,31);
     }
     $response=\webdb\http\wget($redirect,$peer_name,$cookie_jar,false,$ignore_verify,$return_error,$timeout);
   }
