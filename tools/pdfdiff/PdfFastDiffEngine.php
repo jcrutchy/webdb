@@ -81,8 +81,6 @@ final class PdfFastDiffEngine
     private float $marginLeftCm;   // odd-page value; swapped for even pages
     private float $marginRightCm;  // odd-page value; swapped for even pages
     private float $changeThreshold;
-    private float $diffFuzzPercent;
-    private int $diffSmoothingRadius;
 
     private int $oldTotal = 0;
     private int $newTotal = 0;
@@ -103,9 +101,7 @@ final class PdfFastDiffEngine
         float $marginBottomCm = 0.0,
         float $marginLeftCm = 0.0,
         float $marginRightCm = 0.0,
-        float $changeThreshold = 0.03,
-        float $diffFuzzPercent = 10.0,
-        ?int $diffSmoothingRadius = null,
+        float $changeThreshold = 0.001,
         int $cpuCount = 8,
         int $renderDpi = 100,
         int $thumbWidth = 320
@@ -136,16 +132,9 @@ final class PdfFastDiffEngine
         $this->marginLeftCm = $marginLeftCm;
         $this->marginRightCm = $marginRightCm;
         $this->changeThreshold = $changeThreshold;
-        $this->diffFuzzPercent = $diffFuzzPercent;
         $this->cpuCount = $cpuCount;
         $this->renderDpi = $renderDpi;
         $this->thumbWidth = $thumbWidth;
-        // Anti-aliased text/line edges produce a scatter of single-pixel
-        // differences that read as "jagged" in the diff visualization. The
-        // smoothing radius consolidates those into solid highlighted
-        // regions (see generateDiffImage). Scale with DPI so it stays
-        // proportionally sized if renderDpi is changed from the default.
-        $this->diffSmoothingRadius = $diffSmoothingRadius ?? max(1, (int)round($renderDpi / 100 * 1.5));
 
         self::assertBinaryExists('pdfinfo');
         self::assertBinaryExists('pdftocairo');
@@ -266,8 +255,6 @@ final class PdfFastDiffEngine
                 'marginLeftCm' => $this->marginLeftCm,
                 'marginRightCm' => $this->marginRightCm,
                 'changeThreshold' => $this->changeThreshold,
-                'diffFuzzPercent' => $this->diffFuzzPercent,
-                'diffSmoothingRadius' => $this->diffSmoothingRadius,
                 'renderDpi' => $this->renderDpi,
                 'generatedAt' => date('c'),
             ],
@@ -693,81 +680,31 @@ final class PdfFastDiffEngine
 
     private function generateDiffImage(string $file1, string $file2, string $outPath): bool
     {
-        $dir = dirname($outPath);
-        $rawMask = "{$dir}/" . uniqid('mask_raw_') . '.png';
-        $cleanMask = "{$dir}/" . uniqid('mask_clean_') . '.png';
-        $dimmed = "{$dir}/" . uniqid('dimmed_') . '.png';
-
-        try {
-            // Step 1: a black/white difference mask, with -fuzz giving a
-            // color-distance tolerance so near-identical anti-aliased pixels
-            // don't register as "different" in the first place.
-            $cmd = sprintf(
-                'compare -metric AE -fuzz %F%% -highlight-color white -lowlight-color black %s %s %s 2>&1',
-                $this->diffFuzzPercent,
-                escapeshellarg($file1),
-                escapeshellarg($file2),
-                escapeshellarg($rawMask)
-            );
-            exec($cmd, $output, $exitCode);
-            // `compare` returns 1 when a difference was found (expected) --
-            // only 2 signals a real error.
-            if ($exitCode === 2 || !file_exists($rawMask)) {
-                fwrite(STDERR, "[-] diff mask generation failed: " . implode(' ', $output) . "\n");
-                return false;
-            }
-
-            // Step 2: Close morphology (dilate then erode) fills small gaps
-            // and merges nearby speckle pixels into solid blobs. Unlike an
-            // erosion-based cleanup, Close never deletes an isolated pixel
-            // outright, so it can't accidentally erase a small genuine
-            // change -- it only ever makes existing differences look more
-            // like cohesive regions and less like scattered noise.
-            $cmd = sprintf(
-                'convert %s -morphology Close Disk:%d %s 2>&1',
-                escapeshellarg($rawMask),
-                $this->diffSmoothingRadius,
-                escapeshellarg($cleanMask)
-            );
-            exec($cmd, $output, $exitCode);
-            if ($exitCode !== 0 || !file_exists($cleanMask)) {
-                fwrite(STDERR, "[-] diff mask smoothing failed: " . implode(' ', $output) . "\n");
-                return false;
-            }
-
-            // Step 3: composite the cleaned mask as a red highlight over a
-            // dimmed grayscale version of the new page, for context.
-            $cmd = sprintf(
-                'convert %s -colorspace Gray -level 25%%,100%% %s 2>&1',
-                escapeshellarg($file2),
-                escapeshellarg($dimmed)
-            );
-            exec($cmd, $output, $exitCode);
-            if ($exitCode !== 0 || !file_exists($dimmed)) {
-                fwrite(STDERR, "[-] diff background generation failed: " . implode(' ', $output) . "\n");
-                return false;
-            }
-
-            $cmd = sprintf(
-                'convert %s \( %s -fill red -opaque white \) -compose over -composite %s 2>&1',
-                escapeshellarg($dimmed),
-                escapeshellarg($cleanMask),
-                escapeshellarg($outPath)
-            );
-            exec($cmd, $output, $exitCode);
-            if ($exitCode !== 0 || !file_exists($outPath)) {
-                fwrite(STDERR, "[-] diff composite failed: " . implode(' ', $output) . "\n");
-                return false;
-            }
-
-            return true;
-        } finally {
-            foreach ([$rawMask, $cleanMask, $dimmed] as $f) {
-                if (file_exists($f)) {
-                    unlink($f);
-                }
-            }
+        // Pure per-channel component subtraction: result = abs(file1 - file2)
+        // at every pixel. Identical pixels go to black, maximally different
+        // pixels (e.g. ink vs no ink) go to white/bright, and partial
+        // differences (sub-pixel anti-aliasing, partial ink coverage) land
+        // proportionally in between. No thresholding, masking, or blob
+        // consolidation -- this is a continuous delta, not a classification.
+        //
+        // Note this deliberately drops all page context: unchanged content,
+        // margins, and background all collapse to black along with it, so
+        // the output reads as "just the delta" rather than "a page with a
+        // change highlighted on it." If you want the surrounding content
+        // faintly visible for orientation, composite a dimmed copy of
+        // $file2 underneath first (DstOver at low opacity) before returning.
+        $cmd = sprintf(
+            'convert %s %s -compose Difference -composite %s 2>&1',
+            escapeshellarg($file1),
+            escapeshellarg($file2),
+            escapeshellarg($outPath)
+        );
+        exec($cmd, $output, $exitCode);
+        if ($exitCode !== 0 || !file_exists($outPath)) {
+            fwrite(STDERR, "[-] diff image generation failed: " . implode(' ', $output) . "\n");
+            return false;
         }
+        return true;
     }
 
     private function makeThumbnail(string $sourcePath, string $relativeOutPath): ?string
