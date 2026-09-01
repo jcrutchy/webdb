@@ -9,41 +9,71 @@ declare(strict_types=1);
  * throw off the alignment between old and new pages.
  *
  * PAGE ALIGNMENT
- *   Pass $insertedPages (page numbers in the NEW pdf that don't correspond
- *   to anything in the old pdf) and $removedPages (page numbers in the OLD
- *   pdf that don't survive into the new pdf). Everything else is assumed to
- *   be the same content, just possibly at a different page number. This is
- *   validated up front:
- *       newTotal === oldTotal + count($insertedPages) - count($removedPages)
- *   An alignment plan is then built by walking both page sequences in
- *   lockstep, producing an ordered list of 'paired' / 'inserted' / 'removed'
- *   entries. Workers operate on slices of this plan rather than on raw page
- *   ranges, since a paired old/new page number no longer has to match.
+ *   Pass $alignment: a list of [oldPage, newPage] pairs, 1-indexed, in the
+ *   order they should be walked. Either slot may be null:
+ *       [22, 23]    -- old p22 corresponds to new p23 ("paired")
+ *       [null, 22]  -- new p22 has no old counterpart ("inserted")
+ *       [22, null]  -- old p22 has no new counterpart ("removed")
+ *   This is expected to come from a Needleman-Wunsch (or similar) sequence
+ *   alignment run by the caller over the two page sequences -- this class
+ *   does no alignment itself, it just walks the pairs it's given in order
+ *   to build the diff plan. Workers operate on slices of this plan rather
+ *   than on raw page ranges, since a paired old/new page number no longer
+ *   has to match.
  *
- * MARGINS / CONTENT-AREA CROPPING
- *   $marginTopCm and $marginBottomCm apply to every page. $marginLeftCm and
- *   $marginRightCm apply to ODD pages; EVEN pages automatically get those
- *   two swapped (mirrors a typical inner/outer binding margin). Before a
- *   paired page is hashed/compared, both sides are cropped to their own
- *   content area using their OWN page number's parity -- so if old page 5
- *   (odd) becomes new page 6 (even) after an insertion, each side is
- *   cropped correctly for its own position, and a footer/page-number that
- *   only exists because of renumbering never causes a false 'changed'.
+ *   Validated up front: the non-null oldPage values, taken in the order
+ *   they appear, must be exactly 1..oldTotal with no gaps/repeats/
+ *   out-of-order entries (and likewise for newPage vs newTotal). That
+ *   catches a malformed alignment (e.g. built against the wrong page
+ *   counts) before any rendering happens.
+ *
+ * LAYOUT / CONTENT-AREA CROPPING
+ *   Pass $layoutOld and $layoutNew: each is an array keyed by page number,
+ *   one entry per page, describing that page's content box. Expected shape
+ *   per entry (all length values in cm):
+ *       [
+ *           'page_no'      => int,
+ *           'page_width'   => float,  // full physical page width
+ *           'page_height'  => float,  // full physical page height
+ *           'content_left'   => float,  // offset from left edge to content box
+ *           'content_top'    => float,  // offset from top edge to content box
+ *           'content_right'  => float,  // offset from left edge to right edge of content box
+ *           'content_bottom' => float,  // offset from top edge to bottom edge of content box
+ *           'width'        => float,  // content box width (content_right - content_left)
+ *           'height'       => float,  // content box height (content_bottom - content_top)
+ *           'left_margin'  => float,  // = content_left, kept for readability/validation
+ *           'right_margin' => float,  // = page_width - content_right
+ *           'binding_side' => 'left'|'right',
+ *       ]
+ *   Before a paired page is hashed/compared, both sides are cropped to
+ *   their OWN page's content box from their OWN side's layout array -- so
+ *   if old page 5 becomes new page 6 after an insertion, each side is
+ *   cropped using its own measured content area, and a footer/page-number
+ *   that only exists because of renumbering never causes a false 'changed'.
  *   The published full-res old/new images remain uncropped for context;
  *   only the comparison itself (and the diff visualization) is confined to
- *   the content area.
+ *   the content area. A page missing from the relevant layout array falls
+ *   back to the full rendered page (no crop) and logs a warning.
  *
- *   Note: when a page's parity flips (e.g. old page 5 -> new page 6), the
- *   crop windows for old vs new come from a genuinely different pixel
- *   offset, so anti-aliased text is never byte-identical even when the
- *   underlying content hasn't changed -- an exact hash match is only
- *   reliable when both sides share the same parity. For a parity flip, the
- *   comparison always falls through to an RMSE check against
- *   $changeThreshold, which absorbs that sub-pixel rasterization noise
- *   without needing an exact match. Calibrate $changeThreshold against your
- *   own documents/DPI if needed (observed noise floor from a pure parity
- *   flip was ~0.013-0.014 in testing at 100 DPI with the default; a real
- *   content change was ~0.06-0.09 in the same test).
+ *   left_margin/right_margin are expected to be consistent across pages
+ *   sharing the same binding_side (that's the "should be a rectangle"
+ *   assumption a fixed inner/outer binding margin implies). This class
+ *   uses content_left/content_top/width/height directly rather than
+ *   recomputing them, but does a soft consistency check across each
+ *   layout array grouped by binding_side and logs to STDERR (not a hard
+ *   failure) if the margins vary by more than a small tolerance -- useful
+ *   as an early signal that the layout data is noisy or binding_side was
+ *   misdetected for some pages.
+ *
+ *   Note: even with per-page measured content boxes, an exact hash match
+ *   across old vs new is only reliable when the crop windows line up
+ *   pixel-for-pixel; small measurement noise (or a genuine binding_side
+ *   flip between old/new for the same logical page) can shift the crop by
+ *   a pixel or two, and anti-aliased text won't be byte-identical even
+ *   when the content hasn't changed. The comparison always falls through
+ *   to an RMSE check against $changeThreshold in that case, which absorbs
+ *   that sub-pixel rasterization noise without needing an exact match.
+ *   Calibrate $changeThreshold against your own documents/DPI if needed.
  *
  * I/O strategy (this is where the time goes on 1000+ page documents):
  *   - unchanged pages (identical content-area crop): ONE thumbnail is
@@ -71,15 +101,14 @@ final class PdfFastDiffEngine
     private int $renderDpi;
     private int $thumbWidth;
 
-    /** @var list<int> */
-    private array $insertedPages;
-    /** @var list<int> */
-    private array $removedPages;
+    /** @var list<array{0: ?int, 1: ?int}> */
+    private array $alignment;
 
-    private float $marginTopCm;
-    private float $marginBottomCm;
-    private float $marginLeftCm;   // odd-page value; swapped for even pages
-    private float $marginRightCm;  // odd-page value; swapped for even pages
+    /** @var array<int, array<string, mixed>> keyed by old page number */
+    private array $layoutOld;
+    /** @var array<int, array<string, mixed>> keyed by new page number */
+    private array $layoutNew;
+
     private float $changeThreshold;
 
     private int $oldTotal = 0;
@@ -88,19 +117,21 @@ final class PdfFastDiffEngine
     private int $ownerPid;
 
     /**
-     * @param list<int> $insertedPages Page numbers in $pdfPath2 with no old-side counterpart.
-     * @param list<int> $removedPages  Page numbers in $pdfPath1 with no new-side counterpart.
+     * @param list<array{0: ?int, 1: ?int}> $alignment Ordered [oldPage, newPage] pairs
+     *        (1-indexed; either slot may be null), as produced by a
+     *        Needleman-Wunsch alignment of the two page sequences.
+     * @param array<int, array<string, mixed>> $layoutOld Per-page content-box
+     *        layout for $pdfPath1, keyed by old page number. See class docblock.
+     * @param array<int, array<string, mixed>> $layoutNew Per-page content-box
+     *        layout for $pdfPath2, keyed by new page number. See class docblock.
      */
     public function __construct(
         string $pdfPath1,
         string $pdfPath2,
         string $outputDir,
-        array $insertedPages = [],
-        array $removedPages = [],
-        float $marginTopCm = 0.0,
-        float $marginBottomCm = 0.0,
-        float $marginLeftCm = 0.0,
-        float $marginRightCm = 0.0,
+        array $alignment,
+        array $layoutOld = [],
+        array $layoutNew = [],
         float $changeThreshold = 0.001,
         int $cpuCount = 8,
         int $renderDpi = 100,
@@ -115,22 +146,30 @@ final class PdfFastDiffEngine
         if ($cpuCount < 1) {
             throw new InvalidArgumentException('cpuCount must be >= 1');
         }
-        foreach (['marginTopCm' => $marginTopCm, 'marginBottomCm' => $marginBottomCm,
-                  'marginLeftCm' => $marginLeftCm, 'marginRightCm' => $marginRightCm] as $name => $val) {
-            if ($val < 0) {
-                throw new InvalidArgumentException("{$name} must be >= 0");
+        if ($alignment === []) {
+            throw new InvalidArgumentException('alignment must not be empty');
+        }
+        foreach ($alignment as $i => $pair) {
+            if (!is_array($pair) || count($pair) !== 2 || !array_key_exists(0, $pair) || !array_key_exists(1, $pair)) {
+                throw new InvalidArgumentException("alignment[{$i}] must be a 2-element [oldPage, newPage] pair");
+            }
+            if ($pair[0] === null && $pair[1] === null) {
+                throw new InvalidArgumentException("alignment[{$i}] cannot have both oldPage and newPage null");
             }
         }
 
         $this->pdfPath1 = $pdfPath1;
         $this->pdfPath2 = $pdfPath2;
         $this->outputDir = rtrim($outputDir, '/');
-        $this->insertedPages = array_values(array_unique(array_map('intval', $insertedPages)));
-        $this->removedPages = array_values(array_unique(array_map('intval', $removedPages)));
-        $this->marginTopCm = $marginTopCm;
-        $this->marginBottomCm = $marginBottomCm;
-        $this->marginLeftCm = $marginLeftCm;
-        $this->marginRightCm = $marginRightCm;
+        $this->alignment = array_map(
+            static fn(array $pair): array => [
+                $pair[0] !== null ? (int)$pair[0] : null,
+                $pair[1] !== null ? (int)$pair[1] : null,
+            ],
+            array_values($alignment)
+        );
+        $this->layoutOld = $layoutOld;
+        $this->layoutNew = $layoutNew;
         $this->changeThreshold = $changeThreshold;
         $this->cpuCount = $cpuCount;
         $this->renderDpi = $renderDpi;
@@ -154,6 +193,9 @@ final class PdfFastDiffEngine
         if (!mkdir($this->scratchDir, 0755, true) && !is_dir($this->scratchDir)) {
             throw new RuntimeException("Failed to create RAM disk workspace at {$this->scratchDir}");
         }
+
+        $this->validateLayoutConsistency($this->layoutOld, 'old');
+        $this->validateLayoutConsistency($this->layoutNew, 'new');
 
         $this->ownerPid = getmypid();
     }
@@ -189,8 +231,10 @@ final class PdfFastDiffEngine
         $workerCount = min($this->cpuCount, count($plan));
         $chunkSize = (int)ceil(count($plan) / $workerCount);
 
+        $insertedCount = count(array_filter($plan, static fn($u) => $u['type'] === 'inserted'));
+        $removedCount = count(array_filter($plan, static fn($u) => $u['type'] === 'removed'));
         fwrite(STDERR, "[+] Old: {$this->oldTotal}pp, New: {$this->newTotal}pp, "
-            . count($this->insertedPages) . " inserted, " . count($this->removedPages) . " removed, "
+            . "{$insertedCount} inserted, {$removedCount} removed, "
             . count($plan) . " total diff units across {$workerCount} workers...\n");
 
         $pids = [];
@@ -248,12 +292,7 @@ final class PdfFastDiffEngine
                 'sourceNew' => $this->pdfPath2,
                 'oldTotalPages' => $this->oldTotal,
                 'newTotalPages' => $this->newTotal,
-                'insertedPages' => $this->insertedPages,
-                'removedPages' => $this->removedPages,
-                'marginTopCm' => $this->marginTopCm,
-                'marginBottomCm' => $this->marginBottomCm,
-                'marginLeftCm' => $this->marginLeftCm,
-                'marginRightCm' => $this->marginRightCm,
+                'alignment' => $this->alignment,
                 'changeThreshold' => $this->changeThreshold,
                 'renderDpi' => $this->renderDpi,
                 'generatedAt' => date('c'),
@@ -272,70 +311,140 @@ final class PdfFastDiffEngine
         return $result;
     }
 
+    /**
+     * Confirms the caller's alignment (e.g. from a Needleman-Wunsch run)
+     * actually accounts for every old and every new page exactly once, in
+     * increasing order, before any rendering happens.
+     */
     private function validateAlignment(): void
     {
-        $expectedNewTotal = $this->oldTotal + count($this->insertedPages) - count($this->removedPages);
-        if ($expectedNewTotal !== $this->newTotal) {
+        $oldSeen = [];
+        $newSeen = [];
+        $lastOld = 0;
+        $lastNew = 0;
+
+        foreach ($this->alignment as $i => [$oldP, $newP]) {
+            if ($oldP !== null) {
+                if ($oldP < 1 || $oldP > $this->oldTotal) {
+                    throw new InvalidArgumentException(
+                        "alignment[{$i}] oldPage {$oldP} out of range 1..{$this->oldTotal}"
+                    );
+                }
+                if ($oldP <= $lastOld) {
+                    throw new InvalidArgumentException(
+                        "alignment[{$i}] oldPage {$oldP} is not strictly increasing (previous was {$lastOld})"
+                    );
+                }
+                if (isset($oldSeen[$oldP])) {
+                    throw new InvalidArgumentException("alignment contains oldPage {$oldP} more than once");
+                }
+                $oldSeen[$oldP] = true;
+                $lastOld = $oldP;
+            }
+            if ($newP !== null) {
+                if ($newP < 1 || $newP > $this->newTotal) {
+                    throw new InvalidArgumentException(
+                        "alignment[{$i}] newPage {$newP} out of range 1..{$this->newTotal}"
+                    );
+                }
+                if ($newP <= $lastNew) {
+                    throw new InvalidArgumentException(
+                        "alignment[{$i}] newPage {$newP} is not strictly increasing (previous was {$lastNew})"
+                    );
+                }
+                if (isset($newSeen[$newP])) {
+                    throw new InvalidArgumentException("alignment contains newPage {$newP} more than once");
+                }
+                $newSeen[$newP] = true;
+                $lastNew = $newP;
+            }
+        }
+
+        if (count($oldSeen) !== $this->oldTotal) {
             throw new InvalidArgumentException(sprintf(
-                'Page alignment does not add up: old=%d + inserted=%d - removed=%d = %d, but new pdf has %d pages.',
-                $this->oldTotal,
-                count($this->insertedPages),
-                count($this->removedPages),
-                $expectedNewTotal,
-                $this->newTotal
+                'alignment covers %d old page(s) but %s has %d pages.',
+                count($oldSeen),
+                $this->pdfPath1,
+                $this->oldTotal
             ));
         }
-        foreach ($this->insertedPages as $p) {
-            if ($p < 1 || $p > $this->newTotal) {
-                throw new InvalidArgumentException("insertedPages contains {$p}, out of range 1..{$this->newTotal}");
-            }
-        }
-        foreach ($this->removedPages as $p) {
-            if ($p < 1 || $p > $this->oldTotal) {
-                throw new InvalidArgumentException("removedPages contains {$p}, out of range 1..{$this->oldTotal}");
-            }
+        if (count($newSeen) !== $this->newTotal) {
+            throw new InvalidArgumentException(sprintf(
+                'alignment covers %d new page(s) but %s has %d pages.',
+                count($newSeen),
+                $this->pdfPath2,
+                $this->newTotal
+            ));
         }
     }
 
     /**
-     * Walks both page sequences in lockstep to produce an ordered list of
-     * diff units. Keyed by sequential plan index (not page number), since
-     * paired old/new page numbers can differ once pages have shifted.
+     * Converts the caller-supplied alignment into the plan shape the rest
+     * of the engine expects. Keyed by sequential plan index (not page
+     * number), since paired old/new page numbers can differ once pages
+     * have shifted. The alignment's own order is trusted as-is (it's the
+     * output of the caller's Needleman-Wunsch walk).
      *
      * @return array<int, array{idx: int, type: string, oldPage: ?int, newPage: ?int}>
      */
     private function buildAlignmentPlan(): array
     {
-        $removedSet = array_flip($this->removedPages);
-        $insertedSet = array_flip($this->insertedPages);
-
         $plan = [];
-        $idx = 0;
-        $oldP = 1;
-        $newP = 1;
-        while ($oldP <= $this->oldTotal || $newP <= $this->newTotal) {
-            if ($oldP <= $this->oldTotal && isset($removedSet[$oldP])) {
-                $plan[$idx] = ['idx' => $idx, 'type' => 'removed', 'oldPage' => $oldP, 'newPage' => null];
-                $idx++;
-                $oldP++;
-                continue;
-            }
-            if ($newP <= $this->newTotal && isset($insertedSet[$newP])) {
-                $plan[$idx] = ['idx' => $idx, 'type' => 'inserted', 'oldPage' => null, 'newPage' => $newP];
-                $idx++;
-                $newP++;
-                continue;
-            }
-            // Both within range and neither removed nor inserted at this
-            // position -- validateAlignment() guarantees this pairs up
-            // cleanly (both counters exhausted together).
-            $plan[$idx] = ['idx' => $idx, 'type' => 'paired', 'oldPage' => $oldP, 'newPage' => $newP];
-            $idx++;
-            $oldP++;
-            $newP++;
+        foreach ($this->alignment as $idx => [$oldP, $newP]) {
+            $type = match (true) {
+                $oldP !== null && $newP !== null => 'paired',
+                $oldP === null => 'inserted',
+                default => 'removed', // $newP === null
+            };
+            $plan[$idx] = ['idx' => $idx, 'type' => $type, 'oldPage' => $oldP, 'newPage' => $newP];
         }
-
         return $plan;
+    }
+
+    /**
+     * Soft consistency check only -- logs to STDERR, never throws. Groups
+     * a layout array by binding_side and flags left_margin/right_margin
+     * values that stray more than $toleranceCm from that group's median,
+     * since a fixed inner/outer binding margin should otherwise hold
+     * steady across every page on the same side.
+     *
+     * @param array<int, array<string, mixed>> $layout
+     */
+    private function validateLayoutConsistency(array $layout, string $label, float $toleranceCm = 0.15): void
+    {
+        if ($layout === []) {
+            return;
+        }
+        $bySide = [];
+        foreach ($layout as $pageNo => $entry) {
+            $side = $entry['binding_side'] ?? 'unknown';
+            $bySide[$side]['left'][$pageNo] = $entry['left_margin'] ?? null;
+            $bySide[$side]['right'][$pageNo] = $entry['right_margin'] ?? null;
+        }
+        foreach ($bySide as $side => $margins) {
+            foreach (['left', 'right'] as $edge) {
+                $values = array_filter($margins[$edge], static fn($v) => $v !== null);
+                if (count($values) < 2) {
+                    continue;
+                }
+                sort($values);
+                $median = $values[(int)floor(count($values) / 2)];
+                foreach ($margins[$edge] as $pageNo => $v) {
+                    if ($v !== null && abs($v - $median) > $toleranceCm) {
+                        fwrite(STDERR, sprintf(
+                            "[!] %s layout: page %d %s_margin=%.3fcm strays from binding_side=%s median %.3fcm by >%.2fcm\n",
+                            $label,
+                            $pageNo,
+                            $edge,
+                            $v,
+                            $side,
+                            $median,
+                            $toleranceCm
+                        ));
+                    }
+                }
+            }
+        }
     }
 
     private static function assertBinaryExists(string $binary): void
@@ -504,8 +613,18 @@ final class PdfFastDiffEngine
 
             $oldCropPath = "{$workDir}/cmp_old_{$idxPadded}.png";
             $newCropPath = "{$workDir}/cmp_new_{$idxPadded}.png";
-            $oldCrop = $this->cropForComparison($oldFile, $unit['oldPage'], $oldCropPath);
-            $newCrop = $this->cropForComparison($newFile, $unit['newPage'], $newCropPath);
+            $oldCrop = $this->cropForComparison(
+                $oldFile,
+                $unit['oldPage'],
+                $oldCropPath,
+                $this->layoutOld[$unit['oldPage']] ?? null
+            );
+            $newCrop = $this->cropForComparison(
+                $newFile,
+                $unit['newPage'],
+                $newCropPath,
+                $this->layoutNew[$unit['newPage']] ?? null
+            );
 
             if ($oldCrop === null || $newCrop === null) {
                 // Margins too large for this page's rendered size, or the
@@ -533,15 +652,22 @@ final class PdfFastDiffEngine
                 continue;
             }
 
-            // A parity flip (old page odd, new page even, or vice versa)
-            // means the two crop windows come from different sub-pixel
-            // offsets -- anti-aliased text won't hash-match even when the
-            // content is identical. Only trust the hash fast-path when
-            // both sides share parity; otherwise always fall through to
-            // the RMSE/threshold check below.
-            $sameParity = ($unit['oldPage'] % 2) === ($unit['newPage'] % 2);
+            // A binding-side flip (e.g. old page was a left-hand page,
+            // new page is a right-hand page) means the two crop windows
+            // come from different sub-pixel offsets -- anti-aliased text
+            // won't hash-match even when the content is identical. Prefer
+            // the measured binding_side from layout when both sides have
+            // one; fall back to old/new page-number parity when layout
+            // data is missing. Only trust the hash fast-path when both
+            // sides agree; otherwise always fall through to the RMSE/
+            // threshold check below.
+            $oldSide = $this->layoutOld[$unit['oldPage']]['binding_side'] ?? null;
+            $newSide = $this->layoutNew[$unit['newPage']]['binding_side'] ?? null;
+            $sameSide = ($oldSide !== null && $newSide !== null)
+                ? ($oldSide === $newSide)
+                : (($unit['oldPage'] % 2) === ($unit['newPage'] % 2));
 
-            if ($sameParity && md5_file($oldCrop['path']) === md5_file($newCrop['path'])) {
+            if ($sameSide && md5_file($oldCrop['path']) === md5_file($newCrop['path'])) {
                 // Content area is byte-identical -- treat as unchanged even
                 // if the full page differs (e.g. only a renumbered footer
                 // inside the margin changed). One thumbnail, no full-res.
@@ -583,13 +709,15 @@ final class PdfFastDiffEngine
     /**
      * Crops a rendered page to its content area for comparison purposes
      * only (the published full-res image is never overwritten). Uses the
-     * page's OWN parity to decide which side gets the larger margin, so a
-     * page keeps the correct crop even if it changed odd/even position
-     * between old and new.
+     * page's OWN measured content box from the caller-supplied layout
+     * entry, so a page keeps the correct crop even if its binding side
+     * changed between old and new. Falls back to the full rendered page
+     * (no crop) when no layout entry is available for this page.
      *
+     * @param array<string, mixed>|null $layoutEntry Per-page layout, see class docblock.
      * @return array{path: string, width: int, height: int}|null
      */
-    private function cropForComparison(string $sourcePath, int $pageNumber, string $destPath): ?array
+    private function cropForComparison(string $sourcePath, int $pageNumber, string $destPath, ?array $layoutEntry): ?array
     {
         $dims = @getimagesize($sourcePath);
         if ($dims === false) {
@@ -598,21 +726,56 @@ final class PdfFastDiffEngine
         }
         [$width, $height] = $dims;
 
-        $isOdd = ($pageNumber % 2) === 1;
-        $leftCm = $isOdd ? $this->marginLeftCm : $this->marginRightCm;
-        $rightCm = $isOdd ? $this->marginRightCm : $this->marginLeftCm;
+        if ($layoutEntry === null) {
+            fwrite(STDERR, "[!] No layout entry for page {$pageNumber} -- using full page as content area\n");
+            if (!@copy($sourcePath, $destPath)) {
+                fwrite(STDERR, "[-] Fallback copy failed for page {$pageNumber}\n");
+                return null;
+            }
+            return ['path' => $destPath, 'width' => $width, 'height' => $height];
+        }
 
+        // renderDpi is pixels-per-inch, so cm -> inch -> px, independent of
+        // the layout's own page_width/page_height (those are only used
+        // below to sanity-check against the actually-rendered image size).
         $cmToPx = fn(float $cm): int => (int)round($cm / 2.54 * $this->renderDpi);
-        $topPx = $cmToPx($this->marginTopCm);
-        $bottomPx = $cmToPx($this->marginBottomCm);
-        $leftPx = $cmToPx($leftCm);
-        $rightPx = $cmToPx($rightCm);
 
-        $cropW = $width - $leftPx - $rightPx;
-        $cropH = $height - $topPx - $bottomPx;
-        if ($cropW <= 0 || $cropH <= 0) {
-            fwrite(STDERR, "[-] Margins leave no content area for page {$pageNumber} "
-                . "({$width}x{$height}px, margins L{$leftPx} R{$rightPx} T{$topPx} B{$bottomPx}px)\n");
+        $contentLeftCm = (float)($layoutEntry['content_left'] ?? 0.0);
+        $contentTopCm = (float)($layoutEntry['content_top'] ?? 0.0);
+        $contentWidthCm = isset($layoutEntry['width'])
+            ? (float)$layoutEntry['width']
+            : (float)($layoutEntry['content_right'] ?? 0.0) - $contentLeftCm;
+        $contentHeightCm = isset($layoutEntry['height'])
+            ? (float)$layoutEntry['height']
+            : (float)($layoutEntry['content_bottom'] ?? 0.0) - $contentTopCm;
+
+        $leftPx = $cmToPx($contentLeftCm);
+        $topPx = $cmToPx($contentTopCm);
+        $cropW = $cmToPx($contentWidthCm);
+        $cropH = $cmToPx($contentHeightCm);
+
+        if (isset($layoutEntry['page_width'], $layoutEntry['page_height'])) {
+            $expectedW = $cmToPx((float)$layoutEntry['page_width']);
+            $expectedH = $cmToPx((float)$layoutEntry['page_height']);
+            // A few px of slack for rounding between the layout's own
+            // page_width/page_height and pdftocairo's rendered dimensions.
+            if (abs($expectedW - $width) > 3 || abs($expectedH - $height) > 3) {
+                fwrite(STDERR, sprintf(
+                    "[!] Layout page_size for page %d (%dx%d px @ %ddpi) doesn't match rendered image (%dx%d px) -- "
+                        . "crop may be off; check the layout data or renderDpi.\n",
+                    $pageNumber,
+                    $expectedW,
+                    $expectedH,
+                    $this->renderDpi,
+                    $width,
+                    $height
+                ));
+            }
+        }
+
+        if ($cropW <= 0 || $cropH <= 0 || $leftPx + $cropW > $width || $topPx + $cropH > $height) {
+            fwrite(STDERR, "[-] Layout content box out of bounds for page {$pageNumber} "
+                . "(image {$width}x{$height}px, box L{$leftPx} T{$topPx} W{$cropW} H{$cropH}px)\n");
             return null;
         }
 
@@ -748,16 +911,16 @@ final class PdfFastDiffEngine
 }
 
 // --- EXECUTION EXAMPLE (run from CLI, not inside a web request) ---
+// $alignment = needlemanWunschAlign($oldPageSequence, $newPageSequence); // caller-supplied
+// // e.g. [[1,1], [2,2], [null,3], [3,4], [4,null], [5,5], ...]
+//
 // $engine = new PdfFastDiffEngine(
 //     '/path/to/old.pdf',
 //     '/path/to/new.pdf',
 //     '/var/www/app/storage/diffs/job-123',
-//     insertedPages: [2, 47],     // new.pdf page numbers with no old counterpart
-//     removedPages: [10],         // old.pdf page numbers with no new counterpart
-//     marginTopCm: 2.0,
-//     marginBottomCm: 2.0,
-//     marginLeftCm: 2.5,          // odd pages; even pages get L/R swapped automatically
-//     marginRightCm: 1.5,
+//     alignment: $alignment,
+//     layoutOld: $layoutOld,   // [$pageNo => ['content_left' => ..., 'binding_side' => ..., ...], ...]
+//     layoutNew: $layoutNew,
 //     cpuCount: 8
 // );
 // $result = $engine->run();
