@@ -75,6 +75,28 @@ declare(strict_types=1);
  *   that sub-pixel rasterization noise without needing an exact match.
  *   Calibrate $changeThreshold against your own documents/DPI if needed.
  *
+ *   Whenever a full-res old/new pair is published because a comparison
+ *   was actually attempted (paired pages that didn't hash-match, plus the
+ *   rare crop_failed/size_mismatch fallback cases), a thin rectangle is
+ *   drawn on each published copy at that page's own content-box
+ *   coordinates ($bboxColor / $bboxStrokeWidth, default thin red) -- so
+ *   it's visible at a glance which region was actually compared. The
+ *   underlying render is never modified; only the published copy gets the
+ *   box. A side with no layout entry (or a failed crop) publishes without
+ *   a box.
+ *
+ *   If the two content-box crops for a pair come out a different pixel
+ *   size (near-universal when each side's box is measured independently
+ *   -- a px or two of rounding, or one side genuinely having an extra
+ *   line, is normal even for two otherwise-matching pages), both crops
+ *   are padded up to their shared max width/height with
+ *   $padBackgroundColor (default white), anchored top-left, before
+ *   hashing/RMSE/diffing -- rather than giving up on the comparison. The
+ *   'sizeAdjusted' key on that page's manifest entry records the two
+ *   original sizes plus the padded size, so a genuinely-wrong crop is
+ *   still easy to spot after the fact. 'size_mismatch' status is now only
+ *   reached if the padding command itself fails.
+ *
  * I/O strategy (this is where the time goes on 1000+ page documents):
  *   - unchanged pages (identical content-area crop): ONE thumbnail is
  *     written, no full-res publish at all. Full-res is rendered on demand
@@ -110,6 +132,9 @@ final class PdfFastDiffEngine
     private array $layoutNew;
 
     private float $changeThreshold;
+    private string $bboxColor;
+    private int $bboxStrokeWidth;
+    private string $padBackgroundColor;
 
     private int $oldTotal = 0;
     private int $newTotal = 0;
@@ -135,7 +160,10 @@ final class PdfFastDiffEngine
         float $changeThreshold = 0.001,
         int $cpuCount = 8,
         int $renderDpi = 100,
-        int $thumbWidth = 320
+        int $thumbWidth = 320,
+        string $bboxColor = 'red',
+        int $bboxStrokeWidth = 1,
+        string $padBackgroundColor = 'white'
     ) {
         if (!file_exists($pdfPath1)) {
             throw new InvalidArgumentException("File not found: {$pdfPath1}");
@@ -174,6 +202,9 @@ final class PdfFastDiffEngine
         $this->cpuCount = $cpuCount;
         $this->renderDpi = $renderDpi;
         $this->thumbWidth = $thumbWidth;
+        $this->bboxColor = $bboxColor;
+        $this->bboxStrokeWidth = $bboxStrokeWidth;
+        $this->padBackgroundColor = $padBackgroundColor;
 
         self::assertBinaryExists('pdfinfo');
         self::assertBinaryExists('pdftocairo');
@@ -631,8 +662,8 @@ final class PdfFastDiffEngine
                 // crop command failed. Publish full images so a human can
                 // still look, but don't claim a comparison was made.
                 $entry['status'] = 'crop_failed';
-                $entry['full']['old'] = $this->publish($oldFile, "full/old-{$idxPadded}.png");
-                $entry['full']['new'] = $this->publish($newFile, "full/new-{$idxPadded}.png");
+                $entry['full']['old'] = $this->publish($oldFile, "full/old-{$idxPadded}.png", $oldCrop['box'] ?? null);
+                $entry['full']['new'] = $this->publish($newFile, "full/new-{$idxPadded}.png", $newCrop['box'] ?? null);
                 $entry['thumb']['old'] = $this->makeThumbnail($oldFile, "thumb/old-{$idxPadded}.png");
                 $entry['thumb']['new'] = $this->makeThumbnail($newFile, "thumb/new-{$idxPadded}.png");
                 $manifest[$idx] = $entry;
@@ -640,16 +671,39 @@ final class PdfFastDiffEngine
             }
 
             if ($oldCrop['width'] !== $newCrop['width'] || $oldCrop['height'] !== $newCrop['height']) {
-                // Different physical page sizes between old/new for this
-                // pair -- content-area dimensions won't line up for a pixel
-                // compare. Publish full images for manual inspection.
-                $entry['status'] = 'size_mismatch';
-                $entry['full']['old'] = $this->publish($oldFile, "full/old-{$idxPadded}.png");
-                $entry['full']['new'] = $this->publish($newFile, "full/new-{$idxPadded}.png");
-                $entry['thumb']['old'] = $this->makeThumbnail($oldFile, "thumb/old-{$idxPadded}.png");
-                $entry['thumb']['new'] = $this->makeThumbnail($newFile, "thumb/new-{$idxPadded}.png");
-                $manifest[$idx] = $entry;
-                continue;
+                // Content boxes came out a different size on each side.
+                // Since each side's content box is measured independently,
+                // this is almost always a few px of rounding/measurement
+                // noise (or one side legitimately having a couple extra
+                // lines of content) rather than a real physical page-size
+                // difference -- so pad both crops up to their shared max
+                // width/height (anchored top-left, matching how the boxes
+                // were measured) and keep comparing, instead of giving up.
+                // The padding is solid background outside real content on
+                // both sides, so it doesn't distort the diff.
+                $maxW = max($oldCrop['width'], $newCrop['width']);
+                $maxH = max($oldCrop['height'], $newCrop['height']);
+                $entry['sizeAdjusted'] = [
+                    'old' => ['width' => $oldCrop['width'], 'height' => $oldCrop['height']],
+                    'new' => ['width' => $newCrop['width'], 'height' => $newCrop['height']],
+                    'padded' => ['width' => $maxW, 'height' => $maxH],
+                ];
+                if (!$this->padToDimensions($oldCrop['path'], $maxW, $maxH)
+                    || !$this->padToDimensions($newCrop['path'], $maxW, $maxH)) {
+                    // Padding itself failed (rare) -- publish for manual
+                    // inspection rather than comparing mismatched images.
+                    $entry['status'] = 'size_mismatch';
+                    $entry['full']['old'] = $this->publish($oldFile, "full/old-{$idxPadded}.png", $oldCrop['box']);
+                    $entry['full']['new'] = $this->publish($newFile, "full/new-{$idxPadded}.png", $newCrop['box']);
+                    $entry['thumb']['old'] = $this->makeThumbnail($oldFile, "thumb/old-{$idxPadded}.png");
+                    $entry['thumb']['new'] = $this->makeThumbnail($newFile, "thumb/new-{$idxPadded}.png");
+                    $manifest[$idx] = $entry;
+                    continue;
+                }
+                $oldCrop['width'] = $maxW;
+                $oldCrop['height'] = $maxH;
+                $newCrop['width'] = $maxW;
+                $newCrop['height'] = $maxH;
             }
 
             // A binding-side flip (e.g. old page was a left-hand page,
@@ -681,8 +735,8 @@ final class PdfFastDiffEngine
             // hash comparison -- publish full pages for context, but
             // compute RMSE/diff from the cropped content area only, so
             // margin content never pollutes the visual diff either.
-            $entry['full']['old'] = $this->publish($oldFile, "full/old-{$idxPadded}.png");
-            $entry['full']['new'] = $this->publish($newFile, "full/new-{$idxPadded}.png");
+            $entry['full']['old'] = $this->publish($oldFile, "full/old-{$idxPadded}.png", $oldCrop['box']);
+            $entry['full']['new'] = $this->publish($newFile, "full/new-{$idxPadded}.png", $newCrop['box']);
             $entry['thumb']['old'] = $this->makeThumbnail($oldFile, "thumb/old-{$idxPadded}.png");
             $entry['thumb']['new'] = $this->makeThumbnail($newFile, "thumb/new-{$idxPadded}.png");
 
@@ -715,7 +769,7 @@ final class PdfFastDiffEngine
      * (no crop) when no layout entry is available for this page.
      *
      * @param array<string, mixed>|null $layoutEntry Per-page layout, see class docblock.
-     * @return array{path: string, width: int, height: int}|null
+     * @return array{path: string, width: int, height: int, box: ?array{left: int, top: int, width: int, height: int}}|null
      */
     private function cropForComparison(string $sourcePath, int $pageNumber, string $destPath, ?array $layoutEntry): ?array
     {
@@ -732,7 +786,10 @@ final class PdfFastDiffEngine
                 fwrite(STDERR, "[-] Fallback copy failed for page {$pageNumber}\n");
                 return null;
             }
-            return ['path' => $destPath, 'width' => $width, 'height' => $height];
+            // No measured content box for this page, so there's nothing
+            // meaningful to draw -- box is null (distinct from a box that
+            // happens to cover the whole page).
+            return ['path' => $destPath, 'width' => $width, 'height' => $height, 'box' => null];
         }
 
         // renderDpi is pixels-per-inch, so cm -> inch -> px, independent of
@@ -794,7 +851,9 @@ final class PdfFastDiffEngine
             return null;
         }
 
-        return ['path' => $destPath, 'width' => $cropW, 'height' => $cropH];
+        return ['path' => $destPath, 'width' => $cropW, 'height' => $cropH, 'box' => [
+            'left' => $leftPx, 'top' => $topPx, 'width' => $cropW, 'height' => $cropH,
+        ]];
     }
 
     private function renderRange(string $pdfPath, int $startPage, int $endPage, string $outPrefix): bool
@@ -887,13 +946,75 @@ final class PdfFastDiffEngine
         return $relativeOutPath;
     }
 
-    private function publish(string $sourcePath, string $relativeOutPath): string
+    /**
+     * @param ?array{left: int, top: int, width: int, height: int} $box When
+     *        given, draws a thin rectangle at these image-pixel coordinates
+     *        onto the published copy (never onto $sourcePath itself). Used
+     *        to mark the content-area bounding box that was actually
+     *        compared, so it's visible on the full-res image alongside it.
+     */
+    private function publish(string $sourcePath, string $relativeOutPath, ?array $box = null): string
     {
         $destPath = "{$this->outputDir}/{$relativeOutPath}";
         if (!copy($sourcePath, $destPath)) {
             throw new RuntimeException("Failed to publish {$sourcePath} -> {$destPath}");
         }
+        if ($box !== null) {
+            $this->drawBox($destPath, $box);
+        }
         return $relativeOutPath;
+    }
+
+    /**
+     * Draws a thin rectangle in place on a published image, in image-pixel
+     * coordinates (same space cropForComparison's box is returned in).
+     *
+     * @param array{left: int, top: int, width: int, height: int} $box
+     */
+    private function drawBox(string $imagePath, array $box): void
+    {
+        $x1 = (int)$box['left'];
+        $y1 = (int)$box['top'];
+        $x2 = $x1 + (int)$box['width'];
+        $y2 = $y1 + (int)$box['height'];
+
+        $cmd = sprintf(
+            'convert %s -stroke %s -strokewidth %d -fill none -draw %s %s 2>&1',
+            escapeshellarg($imagePath),
+            escapeshellarg($this->bboxColor),
+            $this->bboxStrokeWidth,
+            escapeshellarg("rectangle {$x1},{$y1} {$x2},{$y2}"),
+            escapeshellarg($imagePath)
+        );
+        exec($cmd, $output, $exitCode);
+        if ($exitCode !== 0) {
+            fwrite(STDERR, "[-] Failed to draw bounding box on {$imagePath}: " . implode(' ', $output) . "\n");
+        }
+    }
+
+    /**
+     * Grows an image's canvas in place to $width x $height, anchoring the
+     * existing content at the top-left and filling the new area with
+     * $padBackgroundColor. No-op-safe to call even when the image is
+     * already exactly that size. Used to reconcile two content-area crops
+     * that came out a slightly different size before comparing them.
+     */
+    private function padToDimensions(string $path, int $width, int $height): bool
+    {
+        $cmd = sprintf(
+            'convert %s -background %s -gravity NorthWest -extent %dx%d %s 2>&1',
+            escapeshellarg($path),
+            escapeshellarg($this->padBackgroundColor),
+            $width,
+            $height,
+            escapeshellarg($path)
+        );
+        exec($cmd, $output, $exitCode);
+        if ($exitCode !== 0) {
+            fwrite(STDERR, "[-] Padding to {$width}x{$height} failed for {$path}: " . implode(' ', $output) . "\n");
+            return false;
+        }
+        return true;
     }
 
     private function recursiveDelete(string $dir): void
